@@ -28,3 +28,6 @@ except AttributeError:
 
 # 受信任的app可以从header获取用户名.(私有化版本apigw不支持bk_username传参)
 trusted_app_list = ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]
+
+# 缓存项目信息的标识
+bcs_project_cache_key = f"BK_DEVOPS_BCS:ENABLED_BCS_PROJECT:{{project_id_or_code}}"

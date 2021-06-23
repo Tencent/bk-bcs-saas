@@ -36,14 +36,18 @@ module.exports = function (api) {
         '@babel/plugin-syntax-dynamic-import',
         'date-fns',
         '@vue/babel-plugin-transform-vue-jsx',
-        '@babel/plugin-syntax-jsx'
+        '@babel/plugin-syntax-jsx',
+        '@babel/plugin-proposal-optional-chaining',
+        '@babel/plugin-proposal-class-properties'
     ]
     const comments = true
 
     return {
+        compact: false,
         presets,
         plugins,
         comments,
+        babelrcRoots: ['./src', './bk-bcs-saas/bcs-app/frontend/src/'],
         exclude: /node_modules/
     }
 }

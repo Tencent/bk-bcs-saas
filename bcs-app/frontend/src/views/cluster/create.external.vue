@@ -2,15 +2,15 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-cluster-create-title" @click="goIndex">
-                <i class="bk-icon icon-arrows-left back"></i>
+                <i class="bcs-icon bcs-icon-arrows-left back"></i>
                 <span>{{$t('创建容器集群')}}</span>
             </div>
-            <div class="biz-actions" style="margin: 0;">
-                <bk-tooltip :content="$t('快速入门')" placement="left" :transfer="true">
+            <div class="biz-actions">
+                <bcs-popover :content="$t('快速入门')" placement="left" :transfer="true">
                     <a class="button" href="javascript:void(0)" @click.stop.prevent="showGuide">
-                        <i class="bk-icon icon-calendar"></i>
+                        <i class="bcs-icon bcs-icon-calendar"></i>
                     </a>
-                </bk-tooltip>
+                </bcs-popover>
             </div>
         </div>
         <div class="biz-content-wrapper">
@@ -20,20 +20,13 @@
                     <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('集群分类')}}：<span class="red">*</span></label>
                         <div class="form-item-inner">
-                            <label class="bk-form-radio">
-                                <input type="radio" value="bcs_new" name="cluster-nat-radio" v-model="clusterState">
-                                <i class="bk-radio-text">{{$t('新建集群')}}</i>
-                            </label>
-                            <label class="bk-form-radio" style="width: 110px;">
-                                <input type="radio" value="existing" name="cluster-nat-radio" v-model="clusterState">
-                                <i class="bk-radio-text">{{$t('导入集群')}}</i>
-                                <bk-tooltip placement="top">
-                                    <i class="bk-icon icon-question-circle" style="vertical-align: middle; cursor: pointer;"></i>
-                                    <div slot="content">
-                                        {{$t('导入已经存在的集群')}}
-                                    </div>
-                                </bk-tooltip>
-                            </label>
+                            <bk-radio-group v-model="clusterState">
+                                <bk-radio value="bcs_new">{{$t('新建集群')}}</bk-radio>
+                                <bk-radio value="existing">
+                                    {{$t('导入集群')}}
+                                    <i class="bcs-icon bcs-icon-question-circle" style="vertical-align: middle; cursor: pointer;" v-bk-tooltips="$t('导入已经存在的集群')"></i>
+                                </bk-radio>
+                            </bk-radio-group>
                         </div>
                     </div>
                     <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
@@ -95,27 +88,25 @@
                             </table>
                         </div>
                     </div>
-                    <div v-if="clusterState !== 'existing'" class="form-item bk-form-item" :class="isEn ? 'en' : ''">
+                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label class="mt10">{{$t('注意事项：')}}<span class="red">*</span></label>
                         <div class="form-item-inner" style="vertical-align: top;">
                             <div v-if="isK8sProject">
-                                <label class="bk-form-checkbox" style="width: auto;">
-                                    <input type="checkbox" value="public" name="cluster-classify-checkbox" v-model="checkHostname">
-                                    <i class="bk-checkbox-text">{{$t('服务器将按照系统规则修改主机名')}}</i>
-                                    <bk-tooltip placement="right">
-                                        <i class="bk-icon icon-question-circle" style="vertical-align: middle; cursor: pointer;"></i>
-                                        <div slot="content" style="min-width: 300px;">
-                                            <p>cluster id: BCS-K8S-40000, master ip: 127.0.0.1</p>
-                                            <p>{{$t('修改后')}}: ip-127-0-0-1-m-bcs-k8s-40000</p>
-                                        </div>
-                                    </bk-tooltip>
-                                </label>
+                                <bk-checkbox name="cluster-classify-checkbox" v-model="checkHostname">
+                                    {{$t('服务器将按照系统规则修改主机名')}}
+                                    <i class="bcs-icon bcs-icon-question-circle"
+                                        style="vertical-align: middle; cursor: pointer;"
+                                        v-bk-tooltips="{
+                                            content: `<p>cluster id: BCS-K8S-40000, master ip: 127.0.0.1</p>
+                                                    <p>${$t('修改后')}: ip-127-0-0-1-m-bcs-k8s-40000</p>`,
+                                            placement: 'right'
+                                        }"></i>
+                                </bk-checkbox>
                             </div>
                             <div>
-                                <label class="bk-form-checkbox" style="width: auto;">
-                                    <input type="checkbox" value="public" name="cluster-classify-checkbox" v-model="checkService">
-                                    <i class="bk-checkbox-text">{{$t('服务器将安装容器服务相关组件')}}</i>
-                                </label>
+                                <bk-checkbox name="cluster-classify-checkbox" v-model="checkService">
+                                    {{$t('服务器将安装容器服务相关组件')}}
+                                </bk-checkbox>
                             </div>
                         </div>
                     </div>
@@ -139,7 +130,7 @@
             :quick-close="false"
             :ext-cls="'biz-cluster-create-choose-dialog'"
             @confirm="chooseServer">
-            <div slot="content">
+            <template slot="content">
                 <div style="margin: -20px;" v-bkloading="{ isLoading: ccHostLoading, opacity: 1 }">
                     <div class="biz-cluster-create-table-header">
                         <div class="left">
@@ -148,8 +139,7 @@
                                 （{{$t('关联业务：')}}{{ccApplicationName}}）
                             </span>
                             <span class="tip">{{$t('请选择奇数个服务器')}}</span>
-                            <span class="remain-tip" v-if="isEn">{{remainCount}} items</span>
-                            <span class="remain-tip" v-else>已选择{{remainCount}}个节点</span>
+                            <span class="remain-tip">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
                         </div>
                         <div style="position: absolute;right: 20px;top: 11px;">
                             <div class="biz-searcher-wrapper">
@@ -176,7 +166,7 @@
                                 <template v-if="candidateHostList.length">
                                     <tr v-for="(host, index) in candidateHostList" @click.stop="rowClick" :style="{ cursor: !host.is_used && String(host.agent) === '1' ? 'pointer' : 'not-allowed' }" :key="index">
                                         <td style="text-align: right;" v-if="host.is_used || String(host.agent) !== '1'">
-                                            <bk-tooltip placement="left">
+                                            <bcs-popover placement="left">
                                                 <label class="bk-form-checkbox">
                                                     <input type="checkbox" name="check-host" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
                                                 </label>
@@ -185,7 +175,7 @@
                                                         {{$t('当前节点已被项目（{projectName}）的集群（{clusterName}）占用', { projectName: host.project_name, clusterName: host.cluster_name })}}
                                                     </p>
                                                 </template>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td style="text-align: right;" v-else>
                                             <label class="bk-form-checkbox">
@@ -193,41 +183,36 @@
                                             </label>
                                         </td>
                                         <td>
-                                            <bk-tooltip placement="top">
+                                            <bcs-popover placement="top">
                                                 <div class="name" style="max-width: 360px;">{{host.host_name || '--'}}</div>
                                                 <template slot="content">
                                                     <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.host_name || '--'}}</p>
                                                 </template>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td>
-                                            <bk-tooltip placement="top">
+                                            <bcs-popover placement="top">
                                                 <div class="inner-ip">{{host.inner_ip || '--'}}</div>
                                                 <template slot="content">
                                                     <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.inner_ip || '--'}}</p>
                                                 </template>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td>
                                             <span class="biz-success-text" v-if="String(host.agent) === '1'">
                                                 {{$t('正常')}}
                                             </span>
                                             <template v-else-if="String(host.agent) === '0'">
-                                                <bk-tooltip placement="top">
+                                                <bcs-popover placement="top">
                                                     <span class="biz-warning-text f12" style="vertical-align: super;">
                                                         {{$t('异常')}}
                                                     </span>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">
-                                                            <template v-if="isEn">
-                                                                Agent abnormal, please install first
-                                                            </template>
-                                                            <template v-else>
-                                                                Agent异常，请先安装
-                                                            </template>
+                                                            {{$t('Agent异常，请先安装')}}
                                                         </p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </template>
                                             <span class="biz-danger-text f12" v-else>
                                                 {{$t('错误')}}
@@ -257,23 +242,23 @@
                         </bk-paging>
                     </div>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="bk-dialog-outer">
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="chooseServer" style="margin-top: 12px;">
                         {{$t('确定')}}
-                    </button>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hiseChooseServer" style="margin-top: 12px;">
+                    </bk-button>
+                    <bk-button type="button" @click="hiseChooseServer" style="margin-top: 12px;">
                         {{$t('取消')}}
-                    </button>
+                    </bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
         <cluster-guide ref="clusterGuide" @status-change="toggleGuide"></cluster-guide>
         <tip-dialog
             ref="clusterNoticeDialog"
-            icon="bk-icon icon-exclamation-triangle"
+            icon="bcs-icon bcs-icon-exclamation-triangle"
             :title="$t('创建集群')"
             :sub-title="$t('此操作需要对你的主机进行如下操作，请知悉：')"
             :check-list="clusterNoticeList"
@@ -557,11 +542,7 @@
                     this.candidateHostList.splice(0, this.candidateHostList.length, ...list)
                     this.selectHost(this.candidateHostList)
                 } catch (e) {
-                    this.bkMessageInstance && this.bkMessageInstance.close()
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
+                    console.log(e)
                 } finally {
                     this.ccHostLoading = false
                 }
@@ -807,15 +788,9 @@
                     } else if (e.code === 403) {
                         this.exceptionCode = {
                             code: '403',
-                            msg: 'Sorry，您的权限不足!'
+                            msg: this.$t('Sorry，您的权限不足!')
                         }
                         this.isChange = false
-                    } else {
-                        this.bkMessageInstance && this.bkMessageInstance.close()
-                        this.bkMessageInstance = this.$bkMessage({
-                            theme: 'error',
-                            message: e.message || e.data.msg || e.statusText
-                        })
                     }
                 }
             },

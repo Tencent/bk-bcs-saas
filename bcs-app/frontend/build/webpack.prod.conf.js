@@ -1,8 +1,9 @@
 /**
  * @file webpack prod config
+ * @author ielgnaw <wuji0223@gmail.com>
  */
 
-const { resolve, sep } = require('path')
+const { resolve, sep, join } = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -13,6 +14,11 @@ const bundleAnalyzer = require('webpack-bundle-analyzer')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+// const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
+// const SentryPlugin = require('webpack-sentry-plugin')
+const threadLoader = require('thread-loader')
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
@@ -20,7 +26,16 @@ const { assetsPath } = require('./util')
 const manifest = require('../static/lib-manifest.json')
 const ReplaceJSStaticUrlPlugin = require('./replace-js-static-url-plugin')
 const ReplaceCSSStaticUrlPlugin = require('./replace-css-static-url-plugin')
-const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+
+const cssWorkerPool = {
+    // 一个 worker 进程中并行执行工作的数量
+    // 默认为 20
+    workerParallelJobs: 2,
+    poolTimeout: 2000
+}
+threadLoader.warmup(cssWorkerPool, ['css-loader', 'postcss-loader'])
+
+// const smp = new SpeedMeasurePlugin()
 
 const NOW = new Date()
 const RELEASE_VERSION = [NOW.getFullYear(), '-', (NOW.getMonth() + 1), '-', NOW.getDate(), '_', NOW.getHours(), ':', NOW.getMinutes(), ':', NOW.getSeconds()].join('')
@@ -48,8 +63,31 @@ const webpackConfig = merge(baseWebpackConfig, {
         rules: [
             {
                 test: /\.(css|postcss)?$/,
+                // use: [
+                //     MiniCssExtractPlugin.loader,
+                //     {
+                //         loader: 'css-loader',
+                //         options: {
+                //             sourceMap: config.build.cssSourceMap,
+                //             importLoaders: 1
+                //         }
+                //     },
+                //     {
+                //         loader: 'postcss-loader',
+                //         options: {
+                //             sourceMap: config.build.cssSourceMap,
+                //             config: {
+                //                 path: resolve(__dirname, '..', 'postcss.config.js')
+                //             }
+                //         }
+                //     }
+                // ]
                 use: [
                     MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'thread-loader',
+                        options: cssWorkerPool
+                    },
                     {
                         loader: 'css-loader',
                         options: {
@@ -61,11 +99,26 @@ const webpackConfig = merge(baseWebpackConfig, {
                         loader: 'postcss-loader',
                         options: {
                             sourceMap: config.build.cssSourceMap,
-                            config: {
-                                path: resolve(__dirname, '..', 'postcss.config.js')
+                            postcssOptions: {
+                                config: resolve(__dirname, '..', 'postcss.config.js')
                             }
                         }
                     }
+                ]
+            },
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    // Translates CSS into CommonJS
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            importLoaders: 1
+                        }
+                    },
+                    // Compiles Sass to CSS
+                    'sass-loader'
                 ]
             }
         ]
@@ -157,7 +210,7 @@ const webpackConfig = merge(baseWebpackConfig, {
             }
         }
     },
-    devtool: config.build.productionSourceMap ? '#source-map' : false,
+    devtool: (VERSION === 'ieod' && config.build.productionSourceMap) ? '#source-map' : false,
     plugins: [
         new webpack.DefinePlugin(config.build.env),
 
@@ -184,8 +237,7 @@ const webpackConfig = merge(baseWebpackConfig, {
             // 如果打开 vendor 和 manifest 那么需要配置 chunksSortMode 保证引入 script 的顺序
             chunksSortMode: 'dependency',
             staticUrl: config.build.env.staticUrl,
-            releaseVersion: RELEASE_VERSION,
-            version: VERSION
+            releaseVersion: RELEASE_VERSION
         }),
 
         new MonacoEditorPlugin({
@@ -215,8 +267,62 @@ const webpackConfig = merge(baseWebpackConfig, {
         ]),
 
         new ReplaceJSStaticUrlPlugin({}),
-        new ReplaceCSSStaticUrlPlugin({})
+        new ReplaceCSSStaticUrlPlugin({}),
         // new ReplaceInternalInfo({})
+
+        new HardSourceWebpackPlugin({
+            // cacheDirectory是在高速缓存写入。默认情况下，将缓存存储在node_modules下的目录中
+            // 'node_modules/.cache/hard-source/[confighash]'
+            cacheDirectory: join(__dirname, '../.hard-source-cache/[confighash]'),
+            // configHash在启动webpack实例时转换webpack配置，
+            // 并用于cacheDirectory为不同的webpack配置构建不同的缓存
+            configHash: (webpackConfig) => {
+                // node-object-hash on npm can be used to build this.
+                return require('node-object-hash')({ sort: false }).hash(webpackConfig)
+            },
+            // 当加载器、插件、其他构建时脚本或其他动态依赖项发生更改时，
+            // hard-source需要替换缓存以确保输出正确。
+            // environmentHash被用来确定这一点。如果散列与先前的构建不同，则将使用新的缓存
+            environmentHash: {
+                root: process.cwd(),
+                directories: [],
+                files: ['package-lock.json', 'yarn.lock']
+            },
+            // An object. 控制来源
+            info: {
+                // 'none' or 'test'.
+                mode: 'none',
+                // 'debug', 'log', 'info', 'warn', or 'error'.
+                level: 'debug'
+            },
+            // Clean up large, old caches automatically.
+            cachePrune: {
+                // Caches younger than `maxAge` are not considered for deletion. They must
+                // be at least this (default: 2 days) old in milliseconds.
+                maxAge: 2 * 24 * 60 * 60 * 1000,
+                // All caches together must be larger than `sizeThreshold` before any
+                // caches will be deleted. Together they must be at least this
+                // (default: 50 MB) big in bytes.
+                // 要删除缓存，所有缓存的总和必须超过此阈值
+                sizeThreshold: 50 * 1024 * 1024
+            }
+        }),
+        new HardSourceWebpackPlugin.ExcludeModulePlugin([
+            {
+                // HardSource works with mini-css-extract-plugin but due to how
+                // mini-css emits assets, assets are not emitted on repeated builds with
+                // mini-css and hard-source together. Ignoring the mini-css loader
+                // modules, but not the other css loader modules, excludes the modules
+                // that mini-css needs rebuilt to output assets every time.
+                test: /mini-css-extract-plugin[\\/]dist[\\/]loader/
+            },
+            {
+                test: /url-loader/
+            },
+            {
+                test: /.*\.DS_Store/
+            }
+        ])
     ]
 })
 
@@ -269,3 +375,4 @@ if (config.build.bundleAnalyzerReport) {
 }
 
 module.exports = webpackConfig
+// module.exports = smp.wrap(webpackConfig)

@@ -12,7 +12,7 @@
     line-height: 20px;
 
     a {
-        color: #3c96ff;
+        color: #3a84ff;
     }
 }
 
@@ -57,7 +57,7 @@
 
 .value-file-wrapper {
     padding: 15px 16px;
-    border: 1px solid #c3cdd7;
+    border: 1px solid #dcdee5;
     border-radius: 2px;
     background: #f9fbfd;
     position: relative;

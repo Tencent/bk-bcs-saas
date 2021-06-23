@@ -2,7 +2,7 @@
 
 <script>
     import State from '../mesos-state'
-    import mixinBaseList from '../mixins/mixin-base-list'
+    import mixinBaseList from '../mixins/mixin-base-list.mesos'
 
     export default {
         mixins: [mixinBaseList],

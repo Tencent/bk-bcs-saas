@@ -1,7 +1,7 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/clearfix.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/scroller.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/scroller.css';
 
 .biz-content-wrapper {
     padding: 20px;
@@ -28,7 +28,7 @@
     display: inline-block;
     width: 100%;
     .tip {
-        color: #a6b5ca;
+        color: #979ba5;
         font-size: 12px;
         margin-top: -10px;
         margin-bottom: 10px;
@@ -137,11 +137,11 @@
                 }
 
                 .select-all-tpl {
-                    position: absolute;
+                    position: relative;
                     font-size: 14px;
-                    top: 44px;
-                    margin-left: 20px;
-                    right: -75px;
+                    bottom: 26px;
+                    margin-left: 40px;
+                    right: -250px;
                 }
 
                 .title {
@@ -348,13 +348,13 @@
 
 .biz-configuration-instantiation-cancel-fullscreen {
     position: fixed;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    z-index: 1112;
-    font-size: 40px;
-    padding: 10px;
+    z-index: 5000;
+    font-size: 16px;
+    padding: 7px;
+    color: #fff;
     cursor: pointer;
-
     i.icon-close {
         font-weight: 700;
     }

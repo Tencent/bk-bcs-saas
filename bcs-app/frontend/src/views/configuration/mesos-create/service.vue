@@ -20,10 +20,10 @@
                                 {{$t('Service主要用于服务发现、DNS基础数据、loadbalance服务导出')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosService" target="_blank">{{$t('详情查看文档')}}</a>
                             </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalService">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalService">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}Service</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
 
@@ -34,18 +34,18 @@
                                 </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(service, index) in services" :key="service.id">
-                                        <button :class="['bk-button', { 'bk-primary': curService.id === service.id }]" @click.stop="setCurService(service, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curService.id === service.id }]" @click.stop="setCurService(service, index)">
                                             {{(service && service.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="service.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeService(service, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeService(service, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="serviceTooltip" :content="$t('添加Service')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalService">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="serviceTooltip" :content="$t('添加Service')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalService">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -54,7 +54,7 @@
                                     <div class="bk-form-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="text"
                                                 :placeholder="$t('请输入64个以内的字符')"
                                                 style="width: 310px;"
@@ -62,7 +62,7 @@
                                                 :value.sync="curService.config.metadata.name"
                                                 :list="varList"
                                             >
-                                            </bk-input>
+                                            </bkbcs-input>
                                             <div class="bk-form-tip" v-if="errors.has('serviceName')">
                                                 <p class="bk-tip-text">{{$t('名称必填，以字母开头，只能含小写字母、数字、连字符(-)')}}</p>
                                             </div>
@@ -105,10 +105,10 @@
                                                         @change="checkTotalPercent">
                                                     </bk-number-input>
                                                 </div>
-                                                <p :class="['biz-tip f12', { 'bk-danger': isWeightError }]">{{$t('权重的值为大于等于0的整数，且所有权重相加为100')}}</p>
+                                                <p :class="['biz-tip', { 'bk-danger': isWeightError }]">{{$t('权重的值为大于等于0的整数，且所有权重相加为100')}}</p>
                                             </template>
                                             <template v-else>
-                                                <p class="mt5 biz-tip f12">{{$t('请关联相应的Application')}}</p>
+                                                <p class="mt5 biz-tip">{{$t('请关联相应的Application')}}</p>
                                             </template>
                                         </div>
                                     </div>
@@ -129,7 +129,7 @@
                                     <div class="bk-form-item" v-show="curService.config.spec.type !== 'None'">
                                         <label class="bk-label" style="width: 130px;">IP：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <input type="text" class="bk-form-input" :placeholder="$t('多个IP以逗号分隔')" style="width: 310px;" v-model="curService.serviceIPs">
+                                            <bkbcs-input :placeholder="$t('多个IP以逗号分隔')" style="width: 310px;" v-model="curService.serviceIPs" />
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
@@ -169,48 +169,48 @@
                                                                     </td>
                                                                     <td>
 
-                                                                        <input type="text" class="bk-form-input" disabled :value="getProtocalById(port.id)" style="width: 120px;">
+                                                                        <bkbcs-input :disabled="true" :value="getProtocalById(port.id)" style="width: 120px;" />
                                                                     </td>
                                                                     <td>
-                                                                        <input type="text" class="bk-form-input" disabled :value="getTargetPortById(port.id)" style="width: 100px;">
+                                                                        <bkbcs-input :disabled="true" :value="getTargetPortById(port.id)" style="width: 100px;" />
                                                                     </td>
                                                                     <td>
-                                                                        <bk-input
+                                                                        <bkbcs-input
                                                                             type="number"
                                                                             :placeholder="$t('服务端口')"
                                                                             :value.sync="port.servicePort"
                                                                             :min="1"
                                                                             :max="65535"
                                                                             :list="varList">
-                                                                        </bk-input>
+                                                                        </bkbcs-input>
                                                                     </td>
                                                                     <td>
-                                                                        <bk-input
+                                                                        <bkbcs-input
                                                                             type="text"
                                                                             :placeholder="$t('域名')"
                                                                             style="width: 125px;"
                                                                             :disabled="port.protocol !== 'HTTP'"
                                                                             :value.sync="port.domainName"
                                                                             :list="varList">
-                                                                        </bk-input>
+                                                                        </bkbcs-input>
                                                                     </td>
                                                                     <td>
-                                                                        <bk-input
+                                                                        <bkbcs-input
                                                                             type="text"
                                                                             :placeholder="$t('路径')"
                                                                             style="width: 125px;"
                                                                             :disabled="port.protocol !== 'HTTP'"
                                                                             :value.sync="port.path"
                                                                             :list="varList">
-                                                                        </bk-input>
+                                                                        </bkbcs-input>
                                                                     </td>
                                                                     <td>
-                                                                        <button class="action-btn ml5" @click.stop.prevent="addPort" v-show="curService.config.spec.ports.length < appPortList.length">
-                                                                            <i class="bk-icon icon-plus"></i>
-                                                                        </button>
-                                                                        <button class="action-btn" @click.stop.prevent="removePort(port, index)" v-show="curService.config.spec.ports.length > 1">
-                                                                            <i class="bk-icon icon-minus"></i>
-                                                                        </button>
+                                                                        <bk-button class="action-btn ml5" @click.stop.prevent="addPort" v-show="curService.config.spec.ports.length < appPortList.length">
+                                                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                                                        </bk-button>
+                                                                        <bk-button class="action-btn" @click.stop.prevent="removePort(port, index)" v-show="curService.config.spec.ports.length > 1">
+                                                                            <i class="bcs-icon bcs-icon-minus"></i>
+                                                                        </bk-button>
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
@@ -221,7 +221,7 @@
                                                     </template>
                                                 </template>
                                                 <template v-else>
-                                                    <p class="mt5 biz-tip f12">{{$t('请关联相应的Application')}}</p>
+                                                    <p class="mt5 biz-tip">{{$t('请关联相应的Application')}}</p>
                                                 </template>
                                             </div>
                                         </div>
@@ -235,10 +235,7 @@
 
                                     <div class="bk-form-item">
                                         <div class="bk-form-content" style="margin-left: 130px">
-                                            <label class="bk-form-checkbox">
-                                                <input type="checkbox" v-model="curService.config.isLinkLoadBalance">
-                                                <i class="bk-checkbox-text">{{$t('关联LoadBalance')}}</i>
-                                            </label>
+                                            <bk-checkbox v-model="curService.config.isLinkLoadBalance">{{$t('关联LoadBalance')}}</bk-checkbox>
                                         </div>
                                     </div>
 
@@ -716,8 +713,8 @@
                 const serviceId = service.id
 
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Service')}：${service.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除Service')}：${service.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (serviceId.indexOf && serviceId.indexOf('local_') > -1) {
                             self.removeLocalService(service, index)

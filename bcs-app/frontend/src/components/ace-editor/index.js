@@ -62,12 +62,16 @@ module.exports = {
         },
         lang (newVal) {
             if (newVal) {
-                import(
-                    /* webpackChunkName: 'brace-[request]' */
-                    `brace/mode/${newVal}`
-                ).then(langModule => {
+                require([`brace/mode/${newVal}`], langModule => {
                     this.$ace.getSession().setMode(`ace/mode/${newVal}`)
                 })
+                // import(
+                //     /* webpackChunkName: 'brace-[request]' */
+                //     `brace/mode/${newVal}`
+                // ).then(langModule => {
+                //     this.$ace.getSession().setMode(`ace/mode/${newVal}`)
+                // })
+
                 // require(`brace/mode/${newVal}`)
                 // this.$ace.getSession().setMode(`ace/mode/${newVal}`)
             }
@@ -85,6 +89,9 @@ module.exports = {
             if (_size.match(/^[0-9]?%$/)) return _size
 
             return '100%'
+        },
+        showSearchBox () {
+            this.$ace && this.$ace.execCommand("find")
         }
     },
     mounted () {
@@ -114,6 +121,7 @@ module.exports = {
             // require('brace/mode/json')
             // require('brace/mode/yaml')
             // require(`brace/theme/${theme}`)
+            require('brace/ext/searchbox')
             import(
                 /* webpackChunkName: 'brace-[request]' */
                 `brace/mode/${lang}`

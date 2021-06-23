@@ -40,13 +40,13 @@
                         </bk-selector>
                     </div>
                     <div class="left range-picker">
-                        <bk-date-range
-                            @change="change"
-                            :range-separator="'-'"
-                            :disabled="false"
-                            :position="'bottom-left'"
-                            :timer="true">
-                        </bk-date-range>
+                        <bk-date-picker
+                            :placeholder="$t('选择日期')"
+                            :shortcuts="shortcuts"
+                            :type="'datetimerange'"
+                            :placement="'bottom-end'"
+                            @change="change">
+                        </bk-date-picker>
                     </div>
                     <div class="left">
                         <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
@@ -54,84 +54,34 @@
                         </bk-button>
                     </div>
                 </div>
-                <div v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                    <div class="biz-table-wrapper">
-                        <table class="bk-table has-table-hover biz-table biz-operate-audit-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 260px; text-align: left;padding-left: 30px;">
-                                        {{$t('时间')}}
-                                    </th>
-                                    <th style="width: 100px;">{{$t('操作类型')}}</th>
-                                    <th style="width: 170px;">{{$t('对象及类型')}}</th>
-                                    <th style="width: 130px;">{{$t('状态')}}</th>
-                                    <th style="width: 150px;">{{$t('发起者')}}</th>
-                                    <th style="width: 200px;">{{$t('描述')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="dataList.length">
-                                    <tr v-for="(item, index) in dataList" :key="index">
-                                        <td style="text-align: left;padding-left: 30px;">
-                                            {{item.activityTime}}
-                                        </td>
-                                        <td>
-                                            {{item.activityType}}
-                                        </td>
-                                        <td>
-                                            <p class="extra-info" :title="item.extra.resourceType || '--'"><span>{{$t('类型：')}}</span>{{item.extra.resourceType || '--'}}</p>
-                                            <p class="extra-info" :title="item.extra.resource || '--'"><span>{{$t('对象：')}}</span>{{item.extra.resource || '--'}}</p>
-                                        </td>
-                                        <td>
-                                            <i class="bk-icon" :class="item.activityStatus === $t('完成1') || item.activityStatus === $t('成功1') ? 'success icon-check-circle' : 'fail icon-close-circle'"></i>{{item.activityStatus}}
-                                        </td>
-                                        <td>{{item.user}}</td>
-                                        <td>
-                                            <bk-tooltip placement="top" :delay="500">
-                                                <div class="description vm">
-                                                    {{item.description}}
-                                                </div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{item.description}}</p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else-if="!dataList.length && !isPageLoading">
-                                    <tr class="no-hover">
-                                        <td colspan="6">
-                                            <div class="bk-message-box" v-if="!isPageLoading">
-                                                <p class="message empty-message">{{$t('无数据')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr class="no-hover">
-                                        <td colspan="6">
-                                            <div class="bk-message-box">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="biz-page-wrapper" v-if="pageConf.show">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
-                </div>
+                <bk-table v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                    ext-cls="biz-operate-audit-table"
+                    :data="dataList"
+                    :page-params="pageConf"
+                    size="medium"
+                    @page-change="pageChange"
+                    @page-limit-change="changePageSize">
+                    <bk-table-column :label="$t('时间')" prop="activityTime"></bk-table-column>
+                    <bk-table-column :label="$t('操作类型')" prop="activityType"></bk-table-column>
+                    <bk-table-column :label="$t('对象及类型')">
+                        <template slot-scope="{ row }">
+                            <p class="extra-info lh20" :title="row.extra.resourceType || '--'">
+                                <span>{{$t('类型：')}}</span>{{row.extra.resourceType || '--'}}
+                            </p>
+                            <p class="extra-info lh20" :title="row.extra.resource || '--'">
+                                <span>{{$t('对象：')}}</span>{{row.extra.resource || '--'}}
+                            </p>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('状态')">
+                        <template slot-scope="{ row }">
+                            <i class="bk-icon" :class="row.activityStatus === $t('完成1') || row.activityStatus === $t('成功1') ? 'success icon-check-circle' : 'fail icon-close-circle'"></i>
+                            {{row.activityStatus}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('发起者')" prop="user"></bk-table-column>
+                    <bk-table-column :label="$t('描述')" prop="description" :show-overflow-tooltip="true" min-width="160"></bk-table-column>
+                </bk-table>
             </template>
         </div>
     </div>
@@ -212,7 +162,7 @@
                 resourceTypeIndex: -1,
 
                 // 查询时间范围
-                dataRange: '',
+                dataRange: ['', ''],
                 // 列表数据
                 dataList: [],
 
@@ -237,7 +187,47 @@
                 // 自定义页数 对象
                 pageCountList: pageCountData,
                 pageCountListIndex: '10',
-                bkMessageInstance: null
+                bkMessageInstance: null,
+                shortcuts: [
+                    {
+                        text: this.$t('今天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            return [start, end]
+                        },
+                        onClick: picker => {
+                            console.error(picker)
+                        }
+                    },
+                    {
+                        text: this.$t('近7天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+                            return [start, end]
+                        }
+                    },
+                    {
+                        text: this.$t('近15天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 15)
+                            return [start, end]
+                        }
+                    },
+                    {
+                        text: this.$t('近30天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+                            return [start, end]
+                        }
+                    }
+                ]
             }
         },
         computed: {
@@ -298,10 +288,6 @@
                     })
                     this.resourceTypeList.unshift({ id: 'all', name: this.$t('全部1') })
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -330,10 +316,7 @@
                 const resourceType = this.resourceTypeIndex === -1 ? null : this.resourceTypeIndex
 
                 // 开始结束时间
-                let [beginTime, endTime] = ['', '']
-                if (this.dataRange) {
-                    [beginTime, endTime] = this.dataRange.split(' - ')
-                }
+                const [beginTime, endTime] = this.dataRange
 
                 this.isPageLoading = true
                 try {
@@ -383,10 +366,6 @@
                         })
                     })
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isPageLoading = false
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
@@ -402,6 +381,7 @@
              * @param {number} page 页码
              */
             pageChange (page = 1) {
+                this.pageConf.curPage = page
                 this.fetchData({
                     projId: this.projId,
                     limit: this.pageConf.pageSize,
@@ -433,10 +413,9 @@
             /**
              * 日期范围搜索条件
              *
-             * @param {string} oldValue 变化前的值
-             * @param {string} newValue 变化后的值
+             * @param {string} newValue 变化前的值
              */
-            change (oldValue, newValue) {
+            change (newValue) {
                 this.dataRange = newValue
             },
 

@@ -3,13 +3,8 @@
         <div class="biz-top-bar">
             <div class="biz-app-title">
                 {{$t('Metric管理')}}
-                <span class="biz-tip f13 ml10">
-                    <template v-if="isEn">
-                        Support for Metric in Prometheus format, View the <a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=10733511" target="_blank" class="bk-text-button">document</a> for details
-                    </template>
-                    <template v-else>
-                        支持 Prometheus 格式的 Metric，详情<a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=10733511" target="_blank" class="bk-text-button">查看文档</a>
-                    </template>
+                <span class="biz-tip ml10">
+                    {{$t('支持 Prometheus 格式的 Metric')}}
                 </span>
             </div>
             <bk-guide></bk-guide>
@@ -23,7 +18,7 @@
             <div v-show="!exceptionCode && !isInitLoading">
                 <div class="biz-lock-box" v-if="updateMsg">
                     <div class="lock-wrapper warning">
-                        <i class="bk-icon icon-info-circle-shape"></i>
+                        <i class="bcs-icon bcs-icon-info-circle-shape"></i>
                         <strong class="desc">{{updateMsg}}</strong>
                         <div class="action">
                             <a class="bk-text-button metric-query" href="javascript:void(0)" @click="doUpdate">{{$t('升级')}}</a>
@@ -33,250 +28,184 @@
                 <div class="biz-panel-header biz-metric-manage-create" style="padding: 27px 30px 22px 20px;">
                     <div class="left">
                         <bk-button type="primary" :title="$t('新建Metric')" @click="showCreateMetric">
-                            <i class="bk-icon icon-plus"></i>
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span class="text">{{$t('新建Metric')}}</span>
                         </bk-button>
-                        <button class="bk-button" @click="batchDel">
+                        <bk-button class="bk-button" @click="batchDel">
                             <span>{{$t('批量删除')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <searcher
-                            ref="dSearcher"
+                            ref="Searcher"
                             :scope-list="clusterList"
                             :search-scope.sync="searchClusterId"
                             :placeholder="$t('输入名称，按Enter搜索')"
                             :search-key.sync="searchKeyWord"
+                            :cluster-fixed="!!curClusterId"
                             @update:searchScope="searchMetricByCluster"
                             @update:searchKey="searchMetricByWord"
                             @refresh="refresh">
                         </searcher>
                     </div>
                 </div>
-                <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                    <table class="bk-table has-table-hover biz-table biz-metric-manage-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 20px; text-align: center; top: 0; position: relative; padding: 0;">
-                                    <label class="bk-form-checkbox" v-if="curPageData.length">
-                                        <bk-tooltip v-if="curPageData.filter(node => node.canDel).length === 0" :content="$t('当前页全是系统命名空间')" placement="left" :transfer="true" :delay="300">
-                                            <input type="checkbox" name="check-strategy" :disabled="true" />
-                                        </bk-tooltip>
-                                        <input type="checkbox" v-else name="check-all-strategy" v-model="isCheckAll" @click="checkAllMetric">
-                                    </label>
-                                </th>
-                                <th style="width: 20px;"></th>
-                                <th style="">{{$t('名称')}}</th>
-                                <th style="">Endpoints</th>
-                                <th style="width: 90px;">{{$t('命名空间')}}</th>
-                                <th style="">Service</th>
-                                <th style="width: 100px;">{{$t('Metric路径')}}</th>
-                                <th style="">{{$t('端口')}}</th>
-                                <th style="width: 90px;">{{$t('周期(s)')}}</th>
-                                <th style="width: 190px;text-align: right; padding-right: 100px;">{{$t('操作')}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template v-if="curPageData.length">
-                                <template v-for="(item, index) in curPageData">
-                                    <tr :key="index">
-                                        <td style="width: 20px; text-align: center; position: relative;">
-                                            <label class="bk-form-checkbox">
-                                                <bk-tooltip v-if="!item.canDel" :content="item.delMsg" placement="left" :transfer="true" :delay="300">
-                                                    <input type="checkbox" name="check-strategy" v-model="item.isChecked" :disabled="true" />
-                                                </bk-tooltip>
-                                                <input type="checkbox" v-else name="check-strategy" v-model="item.isChecked" @click.stop="checkMetric(item)" />
-                                            </label>
-                                        </td>
-                                        <td style="text-align: left;">
-                                            <i class="bk-icon" @click="toggleRow(item)" :class="item.expand ? 'icon-down-shape' : 'icon-right-shape'"></i>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip placement="top" :delay="500">
-                                                <p class="item-name" @click="toggleRow(item)">{{item.name || '--'}}</p>
+                <div class="biz-table-wrapper">
+                    <bk-table
+                        class="biz-metric-manage-table"
+                        v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                        :data="curPageData"
+                        :page-params="pageConf"
+                        @page-change="pageChange"
+                        @page-limit-change="changePageSize">
+                        <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
+                            <template slot-scope="{ row }">
+                                <label class="bk-form-checkbox">
+                                    <bcs-popover v-if="!row.canDel" :content="row.delMsg" placement="left" :transfer="true" :delay="300">
+                                        <bk-checkbox name="check-strategy" v-model="row.isChecked" :disabled="true" />
+                                    </bcs-popover>
+                                    <bk-checkbox v-else name="check-strategy" v-model="row.isChecked" @change="checkMetric(row)" />
+                                </label>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column
+                            key="icon"
+                            type="expand"
+                            width="30">
+                            <template slot-scope="{ row }">
+                                <bk-table
+                                    class="biz-metric-manage-sub-table"
+                                    v-bkloading="{ isLoading: row.expanding }"
+                                    :outer-border="false"
+                                    :header-border="false"
+                                    :data="row.targetData.targets">
+                                    <bk-table-column label="Endpoints" prop="name" width="250">
+                                        <template slot-scope="scope">
+                                            <bcs-popover placement="top" :delay="500">
+                                                <p class="sub-item-name">{{scope.row.scrapeUrl || '--'}}</p>
                                                 <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{item.name || '--'}}</p>
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{scope.row.scrapeUrl || '--'}}</p>
                                                 </template>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <template v-if="Object.keys(item.targetData).length">
-                                                {{item.targetData.health_count}}/{{item.targetData.total_count}}
-                                            </template>
-                                            <template v-else>
-                                                -/-
-                                            </template>
-                                        </td>
-                                        <td>{{item.namespace || '--'}}</td>
-                                        <td>
-                                            <bk-tooltip placement="top" :delay="500">
-                                                <p class="service-name">{{item.service_name || '--'}}</p>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{item.service_name || '--'}}</p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <template v-for="(endpoint, endpointIndex) in item.spec.endpoints">
-                                                <div :key="endpointIndex">{{endpoint.path || '--'}}</div>
-                                            </template>
-                                        </td>
-                                        <td>
-                                            <template v-for="(endpoint, endpointIndex) in item.spec.endpoints">
-                                                <div :key="endpointIndex">{{endpoint.port || '80'}}</div>
-                                            </template>
-                                        </td>
-                                        <td>
-                                            <template v-for="(endpoint, endpointIndex) in item.spec.endpoints">
-                                                <div :key="endpointIndex">{{endpoint.interval || '--'}}</div>
-                                            </template>
-                                        </td>
-                                        <td class="act">
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="showEditMetric(item)" v-if="item.canEdit">{{$t('更新')}}</a>
-                                            <template v-else>
-                                                <bk-tooltip :delay="300" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('更新')}}</a>
-                                                    <template slot="content">
-                                                        <p class="app-biz-node-label-tip-content">{{item.editMsg}}</p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </template>
-                                            <a class="bk-text-button metric-query" href="javascript:void(0)" @click="go(item)" v-if="item.targetData.graph_url">{{$t('指标查询')}}</a>
-                                            <a class="bk-text-button metric-query disabled" href="javascript:void(0)" v-else>{{$t('指标查询')}}</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(item)" v-if="item.canDel">{{$t('删除')}}</a>
-                                            <template v-else>
-                                                <bk-tooltip :delay="300" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button disabled metric-del">{{$t('删除')}}</a>
-                                                    <template slot="content">
-                                                        <p class="app-biz-node-label-tip-content">{{item.delMsg}}</p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </template>
-                                        </td>
-                                    </tr>
-                                    <tr :key="'expand-' + index" v-if="item.expand">
-                                        <td colspan="9" style="padding: 0 30px 0 42px;background-color: #fff;">
-                                            <div class="sub-table-wrapper" v-bkloading="{ isLoading: item.expanding }">
-                                                <table class="bk-table has-table-hover biz-table biz-metric-manage-sub-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 200px;">Endpoints</th>
-                                                            <th style="width: 230px;">{{$t('状态')}}</th>
-                                                            <th style="width: 400px;">Labels</th>
-                                                            <th style="width: 300px;">{{$t('最后请求时间')}}</th>
-                                                            <th style="width: 300px;">{{$t('请求耗时')}}</th>
-                                                            <th style="width: 300px;">{{$t('错误信息')}}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <template v-if="item.targetData.targets && item.targetData.targets.length && !item.expanding">
-                                                            <template v-for="(targetItem, targetItemIndex) in item.targetData.targets">
-                                                                <tr :key="targetItemIndex">
-                                                                    <td>
-                                                                        <bk-tooltip placement="top" :delay="500">
-                                                                            <p class="sub-item-name">{{targetItem.scrapeUrl || '--'}}</p>
-                                                                            <template slot="content">
-                                                                                <p style="text-align: left; white-space: normal;word-break: break-all;">{{targetItem.scrapeUrl || '--'}}</p>
-                                                                            </template>
-                                                                        </bk-tooltip>
-                                                                    </td>
-                                                                    <td>
-                                                                        <span class="health up" v-if="targetItem.health === 'up'">{{$t('正常')}}</span>
-                                                                        <span class="health down" v-else>{{$t('异常')}}</span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="labels-wrapper">
-                                                                            <div class="labels-inner" v-for="(labelKey, labelKeyIndex) in Object.keys(targetItem.labels)" :key="labelKeyIndex">
-                                                                                <!-- <span class="key">{{labelKey}}</span>
-                                                                                <span class="value">{{targetItem.labels[labelKey]}}</span> -->
-                                                                                <bk-tooltip :delay="300" placement="top">
-                                                                                    <span class="key">{{labelKey}}</span>
-                                                                                    <template slot="content">
-                                                                                        <p class="app-biz-node-label-tip-content">{{labelKey}}</p>
-                                                                                    </template>
-                                                                                </bk-tooltip>
-                                                                                <bk-tooltip :delay="300" placement="top">
-                                                                                    <span class="value">{{targetItem.labels[labelKey]}}</span>
-                                                                                    <template slot="content">
-                                                                                        <p class="app-biz-node-label-tip-content">{{targetItem.labels[labelKey]}}</p>
-                                                                                    </template>
-                                                                                </bk-tooltip>
-                                                                            </div>
-                                                                        </div>
-                                                                        <!-- <template v-for="(labelStr, labelStrIndex) in targetItem.labelArr">
-                                                                            <div :key="labelStrIndex">{{labelStr}}</div>
-                                                                        </template> -->
-                                                                    </td>
-                                                                    <td>
-                                                                        <template v-if="targetItem.lastScrapeDiffStr === '--'">
-                                                                            {{targetItem.lastScrapeDiffStr}}
-                                                                        </template>
-                                                                        <template v-else>
-                                                                            {{targetItem.lastScrapeDiffStr}}{{$t('前')}}
-                                                                        </template>
-                                                                    </td>
-                                                                    <td>{{targetItem.lastScrapeDuration * 1000}}ms</td>
-                                                                    <td>{{targetItem.lastError || '--'}}</td>
-                                                                </tr>
-                                                            </template>
+                                            </bcs-popover>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('状态')" prop="name" width="150">
+                                        <template slot-scope="scope">
+                                            <bk-tag type="filled" v-if="scope.row.health === 'up'" theme="success">{{$t('正常')}}</bk-tag>
+                                            <bk-tag type="filled" v-else theme="danger">{{$t('异常')}}</bk-tag>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column label="Labels" prop="name" width="250">
+                                        <template slot-scope="scope">
+                                            <div class="labels-wrapper">
+                                                <div class="labels-inner" v-for="(labelKey, labelKeyIndex) in Object.keys(scope.row.labels)" :key="labelKeyIndex">
+                                                    <bcs-popover :delay="300" placement="top">
+                                                        <span class="key">{{labelKey}}</span>
+                                                        <template slot="content">
+                                                            <p class="app-biz-node-label-tip-content">{{labelKey}}</p>
                                                         </template>
-                                                        <template v-else-if="(!item.targetData.targets || !item.targetData.targets.length) && !item.expanding">
-                                                            <tr class="no-hover">
-                                                                <td colspan="6">
-                                                                    <div class="bk-message-box">
-                                                                        <!-- <p class="message empty-message">{{$t('无数据')}}</p> -->
-                                                                        <p class="message empty-message">{{item.emptyMsg}}</p>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
+                                                    </bcs-popover>
+                                                    <bcs-popover :delay="300" placement="top">
+                                                        <span class="value">{{scope.row.labels[labelKey]}}</span>
+                                                        <template slot="content">
+                                                            <p class="app-biz-node-label-tip-content">{{scope.row.labels[labelKey]}}</p>
                                                         </template>
-                                                        <template v-else>
-                                                            <tr class="no-hover">
-                                                                <td colspan="6">
-                                                                    <div class="bk-message-box">
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        </template>
-                                                    </tbody>
-                                                </table>
+                                                    </bcs-popover>
+                                                </div>
                                             </div>
-                                        </td>
-                                    </tr>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('最后请求时间')" prop="lastScrapeDiffStr" :show-overflow-tooltip="true">
+                                        <template slot-scope="scope">
+                                            <template v-if="scope.row.lastScrapeDiffStr === '--'">
+                                                --
+                                            </template>
+                                            <template v-else>
+                                                {{ lastScrapeDiffStr(row) }}{{$t('前')}}
+                                            </template>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('请求耗时')" prop="name">
+                                        <template slot-scope="scope">
+                                            {{ scope.row.lastScrapeDuration * 1000 }}ms
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('错误信息')" prop="name" :show-overflow-tooltip="true">
+                                        <template slot-scope="scope">
+                                            {{ scope.row.lastError || '--' }}
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('名称')" prop="name" :show-overflow-tooltip="true" :min-width="200">
+                            <template slot-scope="{ row }">
+                                {{row.name || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column label="Endpoints" prop="targetData" :show-overflow-tooltip="true" :min-width="100">
+                            <template slot-scope="{ row }">
+                                <div v-if="Object.keys(row.targetData).length">
+                                    {{row.targetData.health_count}}/{{row.targetData.total_count}}
+                                </div>
+                                <div v-else>
+                                    -/-
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('命名空间')" prop="namespace" :min-width="120" />
+                        <bk-table-column label="Service" prop="service" :min-width="120">
+                            <template slot-scope="{ row }">
+                                {{row.service_name || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('Metric路径')" :show-overflow-tooltip="true" prop="path" :min-width="150">
+                            <template slot-scope="{ row }">
+                                <template v-for="(endpoint, endpointIndex) in row.spec.endpoints">
+                                    <div :key="endpointIndex" style="overflow: hidden;">{{endpoint.path || '--'}}</div>
                                 </template>
                             </template>
-                            <template v-else-if="!curPageData.length && !isInitLoading">
-                                <tr class="no-hover">
-                                    <td colspan="10">
-                                        <div class="bk-message-box">
-                                            <p class="message empty-message">{{$t('无数据')}}</p>
-                                        </div>
-                                    </td>
-                                </tr>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('端口')" prop="port" :min-width="120">
+                            <template slot-scope="{ row }">
+                                <template v-for="(endpoint, endpointIndex) in row.spec.endpoints">
+                                    <div :key="endpointIndex" style="overflow: hidden;">{{endpoint.port || '80'}}</div>
+                                </template>
                             </template>
-                            <template v-else>
-                                <tr class="no-hover">
-                                    <td colspan="10">
-                                        <div class="bk-message-box">
-                                        </div>
-                                    </td>
-                                </tr>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('周期(s)')" prop="interval" :min-width="90">
+                            <template slot-scope="{ row }">
+                                <template v-for="(endpoint, endpointIndex) in row.spec.endpoints">
+                                    <div :key="endpointIndex">{{endpoint.interval || '--'}}</div>
+                                </template>
                             </template>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="biz-page-wrapper" v-if="pageConf.total">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" prop="permissions" width="190">
+                            <template slot-scope="{ row }">
+                                <div class="act">
+                                    <a href="javascript:void(0);" class="bk-text-button" style="margin-right: 5px;" @click="showEditMetric(row)" v-if="row.canEdit">{{$t('更新')}}</a>
+                                    <template v-else>
+                                        <bcs-popover :delay="300" placement="left">
+                                            <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('更新')}}</a>
+                                            <template slot="content">
+                                                <p class="app-biz-node-label-tip-content">{{row.editMsg || '--'}}</p>
+                                            </template>
+                                        </bcs-popover>
+                                    </template>
+                                    <a class="bk-text-button metric-query" href="javascript:void(0)" @click="go(row)" v-if="row.targetData.graph_url">{{$t('指标查询')}}</a>
+                                    <a class="bk-text-button metric-query disabled" href="javascript:void(0)" v-else>{{$t('指标查询')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(row)" v-if="row.canDel">{{$t('删除')}}</a>
+                                    <template v-else>
+                                        <bcs-popover :delay="300" placement="left">
+                                            <a href="javascript:void(0);" class="bk-text-button disabled metric-del">{{$t('删除')}}</a>
+                                            <template slot="content">
+                                                <p class="app-biz-node-label-tip-content">{{row.delMsg}}</p>
+                                            </template>
+                                        </bcs-popover>
+                                    </template>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </div>
         </div>
@@ -306,7 +235,7 @@
             :ext-cls="'biz-metric-update-dialog'"
             :has-header="false"
             :quick-close="false">
-            <div slot="content" style="padding: 0 20px;">
+            <template slot="content" style="padding: 0 20px;">
                 <div class="title">
                     {{$t('升级')}}
                 </div>
@@ -316,51 +245,52 @@
                 <div style="color: red;">
                     {{$t('升级大约需要 1~2 分钟，请勿重复提交；升级过程中 Prometheus 服务将会重启，数据无损失')}}
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="bk-dialog-outer">
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="updateConfirm">
                         {{$t('确定')}}
-                    </button>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="updateCancel">
+                    </bk-button>
+                    <bk-button type="button" @click="updateCancel">
                         {{$t('取消')}}
-                    </button>
+                    </bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-dialog
+            :title="$t('确认删除')"
             :is-show.sync="batchDelDialogConf.isShow"
             :width="360"
-            :close-icon="false"
             :ext-cls="'export-strategy-dialog'"
             :has-header="false"
-            :quick-close="false">
-            <div slot="content" style="font-size: 18px; text-align: center;">
+            :quick-close="false"
+            @cancel="batchDelDialogConf.isShow = false">
+            <template slot="content" style="font-size: 18px; text-align: center;">
                 {{batchDelDialogConf.content}}
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="bk-dialog-outer">
                     <template v-if="batchDelDialogConf.isDeleting">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled">
+                        <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled">
                             {{$t('删除中...')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel is-disabled">
+                        </bk-button>
+                        <bk-button type="button" class="bk-dialog-btn bk-dialog-btn-cancel is-disabled">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                     <template v-else>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                             @click="batchDelConfirm">
                             {{$t('确定')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideBatchDelDialog">
+                        </bk-button>
+                        <bk-button type="button" @click="hideBatchDelDialog">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
     </div>
 </template>
@@ -435,6 +365,64 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            lastScrapeDiffStr () {
+                return function (row) {
+                    let newLastScrapeDiffStr = ''
+                    if (row.targetData.targets && row.targetData.targets.length) {
+                        row.targetData.targets.forEach(item => {
+                            item.labelArr = []
+                            Object.keys(item.labels).forEach(k => {
+                                item.labelArr.push(`${k}="${item.labels[k]}"`)
+                            })
+
+                            if (item.lastScrape.substr(0, 10) === '0001-01-01') {
+                                item.lastScrapeDiffStr = '--'
+                                newLastScrapeDiffStr = '--'
+                            } else {
+                                const timeDiff = moment.duration(
+                                    moment().diff(moment(Date.parse(item.lastScrape)).format('YYYY-MM-DD HH:mm:ss'))
+                                )
+                                const arr = [
+                                    moment().diff(moment(Date.parse(item.lastScrape)), 'days'),
+                                    timeDiff.get('hour'),
+                                    timeDiff.get('minute'),
+                                    timeDiff.get('second')
+                                ]
+                                item.lastScrapeDiffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天1')) : '')
+                                    + (arr[1] !== 0 ? (arr[1] + this.$t('小时1')) : '')
+                                    + (arr[2] !== 0 ? (arr[2] + this.$t('分1')) : '')
+                                    + (arr[3] !== 0 ? (arr[3] + this.$t('秒1')) : '')
+                                newLastScrapeDiffStr = item.lastScrapeDiffStr
+                            }
+                        })
+                    } else {
+                        const curTimestamp = new Date().getTime()
+                        const createTimestamp = new Date(Date.parse(row.metadata.creationTimestamp)).getTime()
+                        if (curTimestamp - createTimestamp > 120000) {
+                            row.emptyMsg = this.$t('无数据（请检查 Service 是否有关联的 Endpoints)')
+                        } else {
+                            row.emptyMsg = this.$t('无数据（新建 Metric 需要1~2分钟生效，请刷新），通过计算创建时间和当前时间判断')
+                        }
+                    }
+                    row.expanding = false
+                    return newLastScrapeDiffStr
+                }
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
+            }
+        },
+        watch: {
+            curClusterId: {
+                handler (v) {
+                    if (!v) {
+                        return false
+                    }
+                    this.searchClusterId = v
+                    this.searchMetricByCluster()
+                },
+                immediate: true
             }
         },
         async created () {
@@ -469,10 +457,6 @@
                     this.updateMsg = data.update_tooltip || ''
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -511,7 +495,7 @@
                         if (cluster) {
                             this.searchClusterId = cluster.cluster_id
                             this.searchClusterName = cluster.cluster_name
-                            this.addParamsToRouter({ cluster_id: this.searchClusterId })
+                            // this.addParamsToRouter({ cluster_id: this.searchClusterId })
 
                             await this.fetchService()
                             await this.fetchTarget()
@@ -535,10 +519,6 @@
                     }
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                     setTimeout(() => {
                         this.isInitLoading = false
                     }, 200)
@@ -551,7 +531,7 @@
             async searchMetricByCluster () {
                 this.pageConf.curPage = 1
                 this.isPageLoading = true
-                this.addParamsToRouter({ cluster_id: this.searchClusterId })
+                // this.addParamsToRouter({ cluster_id: this.searchClusterId })
                 await this.fetchService()
                 await this.fetchTarget()
                 await this.fetchData()
@@ -574,10 +554,6 @@
                     this.serviceList.splice(0, this.serviceList.length, ...list)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -593,10 +569,6 @@
                     this.targets = Object.assign({}, res.data || {})
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -634,10 +606,7 @@
                     this.searchMetricByWord()
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
+                    this.curPageData = []
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
@@ -747,8 +716,8 @@
             /**
              * 列表全选
              */
-            checkAllMetric (e) {
-                const isChecked = e.target.checked
+            checkAllMetric (value) {
+                const isChecked = value
                 this.curPageData.forEach(item => {
                     if (item.canDel) {
                         item.isChecked = isChecked
@@ -871,10 +840,6 @@
                     await this.refresh()
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.batchDelDialogConf.isDeleting = false
                 }
@@ -885,52 +850,52 @@
              *
              * @param {Object} row 当前行数据
              */
-            async toggleRow (row) {
-                if (row.expand) {
-                    row.expand = false
-                    return
-                }
-                row.expand = true
-                row.expanding = true
+            // async toggleRow (row) {
+            //     if (row.expand) {
+            //         row.expand = false
+            //         return
+            //     }
+            //     row.expand = true
+            //     row.expanding = true
 
-                setTimeout(() => {
-                    if (row.targetData.targets && row.targetData.targets.length) {
-                        row.targetData.targets.forEach(item => {
-                            item.labelArr = []
-                            Object.keys(item.labels).forEach(k => {
-                                item.labelArr.push(`${k}="${item.labels[k]}"`)
-                            })
+            //     setTimeout(() => {
+            //         if (row.targetData.targets && row.targetData.targets.length) {
+            //             row.targetData.targets.forEach(item => {
+            //                 item.labelArr = []
+            //                 Object.keys(item.labels).forEach(k => {
+            //                     item.labelArr.push(`${k}="${item.labels[k]}"`)
+            //                 })
 
-                            if (item.lastScrape.substr(0, 10) === '0001-01-01') {
-                                item.lastScrapeDiffStr = '--'
-                            } else {
-                                const timeDiff = moment.duration(
-                                    moment().diff(moment(Date.parse(item.lastScrape)).format('YYYY-MM-DD HH:mm:ss'))
-                                )
-                                const arr = [
-                                    moment().diff(moment(Date.parse(item.lastScrape)), 'days'),
-                                    timeDiff.get('hour'),
-                                    timeDiff.get('minute'),
-                                    timeDiff.get('second')
-                                ]
-                                item.lastScrapeDiffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天1')) : '')
-                                    + (arr[1] !== 0 ? (arr[1] + this.$t('小时1')) : '')
-                                    + (arr[2] !== 0 ? (arr[2] + this.$t('分1')) : '')
-                                    + (arr[3] !== 0 ? (arr[3] + this.$t('秒1')) : '')
-                            }
-                        })
-                    } else {
-                        const curTimestamp = new Date().getTime()
-                        const createTimestamp = new Date(Date.parse(row.metadata.creationTimestamp)).getTime()
-                        if (curTimestamp - createTimestamp > 120000) {
-                            row.emptyMsg = this.$t('无数据（请检查 Service 是否有关联的 Endpoints)')
-                        } else {
-                            row.emptyMsg = this.$t('无数据（新建 Metric 需要1~2分钟生效，请刷新），通过计算创建时间和当前时间判断')
-                        }
-                    }
-                    row.expanding = false
-                }, 500)
-            },
+            //                 if (item.lastScrape.substr(0, 10) === '0001-01-01') {
+            //                     item.lastScrapeDiffStr = '--'
+            //                 } else {
+            //                     const timeDiff = moment.duration(
+            //                         moment().diff(moment(Date.parse(item.lastScrape)).format('YYYY-MM-DD HH:mm:ss'))
+            //                     )
+            //                     const arr = [
+            //                         moment().diff(moment(Date.parse(item.lastScrape)), 'days'),
+            //                         timeDiff.get('hour'),
+            //                         timeDiff.get('minute'),
+            //                         timeDiff.get('second')
+            //                     ]
+            //                     item.lastScrapeDiffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天1')) : '')
+            //                         + (arr[1] !== 0 ? (arr[1] + this.$t('小时1')) : '')
+            //                         + (arr[2] !== 0 ? (arr[2] + this.$t('分1')) : '')
+            //                         + (arr[3] !== 0 ? (arr[3] + this.$t('秒1')) : '')
+            //                 }
+            //             })
+            //         } else {
+            //             const curTimestamp = new Date().getTime()
+            //             const createTimestamp = new Date(Date.parse(row.metadata.creationTimestamp)).getTime()
+            //             if (curTimestamp - createTimestamp > 120000) {
+            //                 row.emptyMsg = this.$t('无数据（请检查 Service 是否有关联的 Endpoints)')
+            //             } else {
+            //                 row.emptyMsg = this.$t('无数据（新建 Metric 需要1~2分钟生效，请刷新），通过计算创建时间和当前时间判断')
+            //             }
+            //         }
+            //         row.expanding = false
+            //     }, 500)
+            // },
 
             /**
              * 显示创建 metric sideslider
@@ -993,7 +958,7 @@
             async deleteMetric (metric) {
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -1016,10 +981,6 @@
                         } catch (e) {
                             console.error(e)
                             me.$bkLoading.hide()
-                            me.bkMessageInstance = me.$bkMessage({
-                                theme: 'error',
-                                message: e.message || e.data.msg || e.statusText
-                            })
                         }
                     }
                 })
@@ -1045,10 +1006,6 @@
                     await this.refresh()
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -1069,6 +1026,15 @@
              */
             async go (metric) {
                 window.open(metric.targetData.graph_url)
+            },
+
+            renderSelectionHeader () {
+                if (this.curPageData.filter(node => node.canDel).length === 0) {
+                    return <bcs-popover v-if={this.curPageData.length} content={this.$t('当前页全是系统命名空间')} placement="left" transfer={true} delay={300}>
+                                <bk-checkbox name="check-strategy" disabled={true} />
+                            </bcs-popover>
+                }
+                return <bk-checkbox v-if={this.curPageData.length} name="check-all-strategy" v-model={this.isCheckAll} onChange={this.checkAllMetric} />
             }
         }
     }

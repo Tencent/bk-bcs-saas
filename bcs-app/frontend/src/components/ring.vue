@@ -4,7 +4,7 @@
             <circle :cx="size / 2" :cy="size / 2" :r="size / 2 - strokeWidth" fill="none" :stroke="strokeColor" :stroke-width="strokeWidth" stroke-linecap="round" />
             <circle :cx="size / 2" :cy="size / 2" :r="size / 2 - fillWidth" fill="none" :stroke="fillColor" stroke-linecap="round" :stroke-width="fillWidth" stroke-dasharray="0,10000" />
             <text :style="textStyle" :fill="(textStyle || {}).color" :class="text !== 'always' ? 'hide' : ''" x="50%" y="50%" dy=".3em" text-anchor="middle">
-                {{realPercent}}%
+                {{roundDecimalNum(realPercent, 2)}}%
             </text>
         </svg>
         <slot name="text"></slot>
@@ -56,7 +56,7 @@
             },
             fillColor: {
                 type: String,
-                default: '#3c96ff'
+                default: '#3a84ff'
             },
             // 显示 ring-text 的方式
             text: {
@@ -74,7 +74,7 @@
                 default: () => {
                     return {
                         fontSize: '12px',
-                        color: '#3c96ff'
+                        color: '#3a84ff'
                     }
                 }
             },
@@ -141,6 +141,10 @@
             updateProcess (percent) {
                 this.node.setAttribute('stroke-dasharray', `${this.circleLen * percent / 100},10000`)
                 this.realPercent = percent
+            },
+
+            roundDecimalNum (value, n) {
+                return Math.round(value * Math.pow(10, n)) / Math.pow(10, n)
             }
         }
     }
@@ -171,6 +175,7 @@
 
         text {
             cursor: default;
+            letter-spacing: -0.3px;
 
             &.hide {
                 display: none;

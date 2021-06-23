@@ -9,9 +9,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// 浏览器重置样式
 * {
     box-sizing: border-box;
+    outline: none;
 }
 
 html,

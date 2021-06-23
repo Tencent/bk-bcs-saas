@@ -71,20 +71,20 @@
                     @mixin ellipsis 350px;
                 }
 
-                .bk-icon {
+                .bcs-icon {
                     margin-right: 5px;
                 }
                 &.active,
                 &:hover {
                     background: $primaryLightColor;
-                    color: #3c96ff;
+                    color: #3a84ff;
                 }
             }
         }
     }
 
     .bk-searcher-mask {
-        height: 34px;
+        height: 30px;
         border-radius: 2px;
         background-color: #fff;
         overflow: hidden;
@@ -109,7 +109,7 @@
     }
 
     .bk-searcher {
-        height: 34px;
+        height: 30px;
         border-radius: 2px;
         font-size: 14px;
         position: relative;
@@ -143,12 +143,12 @@
             .name {
                 background-color: #fff;
                 border-right: 1px solid $borderWeightColor;
-                padding: 7px 10px;
+                padding: 6px 10px;
             }
 
             .value-container {
                 background-color: #fafbfd;
-                padding: 7px 8px 5px 0;
+                padding: 6px 8px 5px 0;
 
                 .value {
                     display: inline-block;
@@ -164,6 +164,8 @@
                     font-size: 10px;
                     position: relative;
                     top: -1px;
+                    transform: scale(0.8);
+                    display: inline-block;
                 }
             }
         }
@@ -173,7 +175,7 @@
             border: 0;
             box-shadow: border-box;
             outline: none;
-            height: 34px;
+            height: 30px;
             margin: 0;
         }
 
@@ -187,7 +189,7 @@
                 display: inline-block;
                 cursor: pointer;
                 position: relative;
-                top: -1px;
+                top: -2px;
                 margin: 0;
                 margin-right: 5px;
                 &:nth-child(1) {

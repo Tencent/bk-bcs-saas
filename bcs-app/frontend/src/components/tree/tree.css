@@ -99,12 +99,12 @@
     }
 
     .node-selected {
-        color: #3c96ff;
+        color: #3a84ff;
     }
 
     .node-icon {
         position: relative;
-        top: 1px;
+        top: -2px;
         left: 2px;
     }
 
@@ -268,7 +268,7 @@
         position: absolute;
         right: auto;
         border-width: 1px;
-        border-left: 1px dotted #c3cdd7;
+        border-left: 1px dotted #c4c6cc;
         bottom: 50px;
         height: 100%;
         left: -12px;
@@ -282,7 +282,7 @@
         position: absolute;
         right: auto;
         border-width: 1px;
-        border-top: 1px dotted #c3cdd7;
+        border-top: 1px dotted #c4c6cc;
         height: 20px;
         top: 15px;
         width: 16px
@@ -298,7 +298,7 @@
         position: absolute;
         right: auto;
         border-width: 1px;
-        border-top: 1px dotted #c3cdd7;
+        border-top: 1px dotted #c4c6cc;
         height: 20px;
         top: 15px;
         width: 20px;

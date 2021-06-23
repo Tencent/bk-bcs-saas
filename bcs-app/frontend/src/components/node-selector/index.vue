@@ -4,12 +4,13 @@
         :width="dialogConf.width"
         :content="dialogConf.content"
         :has-header="dialogConf.hasHeader"
+        :position="{ top: 60 }"
         :close-icon="dialogConf.closeIcon"
         :ext-cls="'biz-cluster-create-choose-dialog'"
         :quick-close="false"
         class="server-dialog"
         @confirm="chooseServer">
-        <div slot="content">
+        <template slot="content">
             <div style="margin: -20px;" v-bkloading="{ isLoading: ccHostLoading }">
                 <div class="biz-cluster-create-table-header">
                     <div class="left" style="height: 60px;">
@@ -22,7 +23,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 60px; text-align: right;">
-                                    <label class="bk-form-checkbox">
+                                    <label class="bk-form-checkbox mt5">
                                         <input type="checkbox" name="check-all-host" v-model="isCheckCurPageAll" @click="toggleCheckCurPage">
                                     </label>
                                 </th>
@@ -36,7 +37,7 @@
                             <template v-if="candidateHostList.length">
                                 <tr v-for="(host, index) in candidateHostList" @click.stop="rowClick" :key="index">
                                     <td style="width: 60px; text-align: right; ">
-                                        <label class="bk-form-checkbox">
+                                        <label class="bk-form-checkbox mt5">
                                             <input type="checkbox" name="check-host" v-model="host.isChecked" @click.stop="selectHost(candidateHostList)" :disabled="host.status !== 'normal'">
                                         </label>
                                     </td>
@@ -67,28 +68,29 @@
                     </table>
                 </div>
                 <div class="biz-page-box" v-if="pageConf.show && candidateHostList.length">
-                    <bk-paging
-                        :size="'small'"
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
-                </div>
-            </div>
-        </div>
-        <template slot="footer">
-            <div class="bk-dialog-outer">
-                <div style="float: right;">
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                        @click="chooseServer">
-                        {{$t('确定')}}
-                    </button>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hiseChooseServer">
-                        {{$t('取消')}}
-                    </button>
+                    <bk-pagination
+                        :show-limit="false"
+                        :current.sync="pageConf.curPage"
+                        :count.sync="pageConf.count"
+                        :limit="pageConf.pageSize"
+                        @change="pageChange">
+                    </bk-pagination>
                 </div>
             </div>
         </template>
+        <div slot="footer">
+            <div class="bk-dialog-outer" style="overflow: hidden;">
+                <div style="float: right;">
+                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        @click="chooseServer">
+                        {{$t('确定')}}
+                    </bk-button>
+                    <bk-button type="button" @click="hiseChooseServer">
+                        {{$t('取消')}}
+                    </bk-button>
+                </div>
+            </div>
+        </div>
     </bk-dialog>
 </template>
 
@@ -118,6 +120,7 @@
                 // 备选服务器集合
                 candidateHostList: [],
                 pageConf: {
+                    count: 1,
                     totalPage: 1,
                     pageSize: 10,
                     curPage: 1,
@@ -268,6 +271,7 @@
                     const count = res.data.count
 
                     this.pageConf.show = !!count
+                    this.pageConf.count = count
                     this.pageConf.totalPage = Math.ceil(count / this.pageConf.pageSize)
                     if (this.pageConf.totalPage < this.pageConf.curPage) {
                         this.pageConf.curPage = 1
@@ -284,10 +288,7 @@
                     this.initSelected(this.candidateHostList)
                     this.selectHost(this.candidateHostList)
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
+                    console.log(e)
                 } finally {
                     this.ccHostLoading = false
                 }
@@ -400,7 +401,6 @@
     @import '../../css/mixins/ellipsis';
     .biz-cluster-create-table-header {
         @mixin clearfix;
-        border: 1px solid #dde4eb;
         background-color: #fff;
         height: 60px;
         line-height: 59px;
@@ -419,6 +419,7 @@
             .remain-tip {
                 font-size: 12px;
                 margin-left: 10px;
+                color: $dangerColor;
             }
         }
         .right {
@@ -448,7 +449,7 @@
                 font-size: 14px;
                 float: left;
                 margin-right: 0;
-                border: 1px solid #c3cdd7;
+                border: 1px solid #c4c6cc;
                 box-sizing: border-box;
                 border-radius: 2px;
                 overflow: hidden;
@@ -467,7 +468,7 @@
                     border-color: $iconPrimaryColor;
                 }
                 &.disabled {
-                    border-color: #c3cdd7 !important;
+                    border-color: #c4c6cc !important;
                     .page-button {
                         cursor: not-allowed;
                         background-color: #fafafa;
@@ -523,7 +524,8 @@
         .biz-cluster-create-table {
             border-left: none;
             border-right: none;
-            width: 920px;
+            border-bottom: none;
+            width: 910px;
             thead {
                 tr {
                     th {
@@ -538,7 +540,6 @@
                         padding-top: 0;
                         padding-bottom: 0;
                         position: relative;
-                        top: 5px;
                     }
                 }
             }
@@ -597,5 +598,9 @@
         .bk-page {
             float: right;
         }
+    }
+
+    .bk-dialog-footer {
+        overflow: hidden;
     }
 </style>
