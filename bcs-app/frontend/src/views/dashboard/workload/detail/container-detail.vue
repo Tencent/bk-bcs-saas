@@ -1,7 +1,37 @@
 <template>
     <div class="workload-detail" v-bkloading="{ isLoading }">
         <div class="workload-detail-info">
-            <!-- todo -->
+            <div class="workload-info-basic">
+                <span class="name mr20">{{ detail && detail.container_name }}</span>
+                <div class="basic-wrapper">
+                    <div class="basic-item">
+                        <span class="label">{{ $t('主机IP') }}</span>
+                        <span class="value">{{ detail && detail.host_ip || '--' }}</span>
+                    </div>
+                    <div class="basic-item">
+                        <span class="label">{{ $t('容器IP') }}</span>
+                        <span class="value">{{ detail && detail.container_ip || '--' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="workload-main-info">
+                <div class="info-item">
+                    <span class="label">{{ $t('主机名称') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ detail && detail.host_name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('容器ID') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ detail && detail.container_id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('镜像') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ detail && detail.image }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('网络模式') }}</span>
+                    <span class="value">{{ detail && detail.network_mode }}</span>
+                </div>
+            </div>
         </div>
         <div class="workload-detail-body">
             <div class="workload-metric">
@@ -65,6 +95,7 @@
 <script lang="ts">
     /* eslint-disable camelcase */
     import { defineComponent, toRefs, computed, onMounted, ref } from '@vue/composition-api'
+    import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
 
@@ -81,6 +112,9 @@
         components: {
             StatusIcon,
             Metric
+        },
+        directives: {
+            bkOverflowTips
         },
         props: {
             namespace: {
@@ -196,10 +230,11 @@
     })
 </script>
 <style lang="postcss" scoped>
+@import './detail-info.css';
 .workload-detail {
     width: 100%;
     &-info {
-
+        @mixin detail-info 4;
     }
     &-body {
         background: #FAFBFD;
