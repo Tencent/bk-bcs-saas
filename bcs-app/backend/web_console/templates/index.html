@@ -9,6 +9,7 @@
     <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/throttle-debounce.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/base64.min.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/jquery.min.js"></script>
 
     <style>
@@ -148,14 +149,11 @@
         })
 
         term.onResize(function (size) {
+            data = JSON.stringify({cols: term.cols, rows: term.rows})
             // set_pty_size()
-            data = size.rows + ',' + size.cols
-
-
             if (typeof ws != "undefined") {
                 // RESIZE_CHANNEL = 4
-
-                ws.send('4' + data);
+                ws.send('4' + Base64.encode(data));
                 console.log('set_pty_size: ' + data)
             }
         });
@@ -222,12 +220,12 @@
             // term handler
             term.onData(function (data) {
                 // STDIN_CHANNEL = 0
-                ws.send('0' + data);
+                ws.send('0' + Base64.encode(data));
             });
 
             ws.onmessage = function (e) {
-                obj = JSON.parse(e.data);
-                term.write(obj.data);
+                // obj = JSON.parse(e.data);
+                term.write(Base64.decode(e.data));
             };
 
             // websocket handler

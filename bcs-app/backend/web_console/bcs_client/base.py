@@ -12,13 +12,14 @@
 # specific language governing permissions and limitations under the License.
 #
 import abc
+import base64
 import logging
 import shlex
 from urllib.parse import urlencode
 
 import arrow
 import tornado.gen
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_bytes, smart_str
 from django.utils.translation import ugettext_lazy as _
 from tornado.httpclient import HTTPRequest
 from tornado.ioloop import IOLoop
@@ -58,7 +59,8 @@ class BCSClientBase(abc.ABC):
 
     def post_connected(self):
         logger.info("bcs client connected, %s", self.msg_handler.user_pod_name)
-        self.msg_handler.write_message({"data": hello_message(self.msg_handler.source)})
+        msg = base64.b64encode(smart_bytes(hello_message(self.msg_handler.source)))
+        self.msg_handler.write_message(msg)
         self.msg_handler.start_record()
         self.msg_handler.tick_timeout()
         self.set_pty_size(self.init_rows, self.init_cols)
@@ -118,14 +120,14 @@ class BCSClientBase(abc.ABC):
                 self.last_output_ts = IOLoop.current().time()
 
                 # 不同类型, 子类继承处理 message
-                msg = self.handle_message(msg)
-                if not msg:
+                raw_msg = self.handle_message(msg)
+                if not raw_msg:
                     continue
 
                 try:
-                    msg = smart_str(msg)
+                    msg = smart_str(raw_msg)
                 except Exception:
-                    msg = smart_str(msg, "latin1")
+                    msg = smart_str(raw_msg, "latin1")
 
                 self.output_buffer += msg
 
@@ -143,7 +145,7 @@ class BCSClientBase(abc.ABC):
                 # 删除异常回车键
                 # msg = re.sub(r'[\b]+$', '\b', msg)
 
-                self.msg_handler.write_message({"data": msg})
+                self.msg_handler.write_message(base64.b64encode(raw_msg))
             except Exception as e:
                 logger.exception(e)
                 self.ws.close()
