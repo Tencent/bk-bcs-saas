@@ -50,7 +50,7 @@
             }
         },
         setup (props, ctx) {
-            const { $router } = ctx.root
+            const { $router, $store } = ctx.root
             // 区分首次进入pod详情还是其他workload详情
             const defaultComId = props.category === 'pods' ? 'PodDetail' : 'WorkloadDetail'
             // 子标题
@@ -87,7 +87,7 @@
                 const { id } = item
                 const index = titles.value.findIndex(item => item.id === id)
                 if (id === '') {
-                    $router.back()
+                    $router.push({ name: $store.getters.curNavName })
                 } else {
                     componentId.value = id
                     if (index > -1) {

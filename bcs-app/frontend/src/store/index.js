@@ -93,14 +93,17 @@ const store = new Vuex.Store({
 
         crdInstanceList: [],
         // 功能开关
-        featureFlag: {}
+        featureFlag: {},
+        // 当前一级导航路由名称
+        curNavName: ''
     },
     // 公共 getters
     getters: {
         mainContentLoading: state => state.mainContentLoading,
         user: state => state.user,
         lang: state => state.lang,
-        featureFlag: state => state.featureFlag
+        featureFlag: state => state.featureFlag,
+        curNavName: state => state.curNavName
     },
     // 公共 mutations
     mutations: {
@@ -219,6 +222,14 @@ const store = new Vuex.Store({
          */
         setFeatureFlag (state, data) {
             state.featureFlag = data || {}
+        },
+        /**
+         * 更新当前一级导航路由名称
+         * @param {*} state
+         * @param {*} data
+         */
+        updateCurNavName (state, data) {
+            state.curNavName = data
         }
     },
     actions: {
@@ -362,6 +373,7 @@ const store = new Vuex.Store({
                         // clearMenuListSelected(list)
                         menu.isSelected = true
                         continueLoop = false
+                        context.commit('updateCurNavName', menu.pathName[0])
                         break
                     }
                     if (menu.children) {
@@ -376,6 +388,7 @@ const store = new Vuex.Store({
                                 menu.isChildSelected = true
                                 menu.children[j].isSelected = true
                                 continueLoop = false
+                                context.commit('updateCurNavName', tmpPathName[0])
                                 break
                             }
                         }

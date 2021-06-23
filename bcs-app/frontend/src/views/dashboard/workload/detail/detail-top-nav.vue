@@ -13,7 +13,7 @@
     import { defineComponent } from '@vue/composition-api'
 
     export default defineComponent({
-        name: 'DetailInfo',
+        name: 'DetailTopNav',
         props: {
             titles: {
                 type: Array,
@@ -21,10 +21,10 @@
             }
         },
         setup (props, ctx) {
-            const { $router } = ctx.root
+            const { $router, $store } = ctx.root
 
             const handleBack = () => {
-                $router.back()
+                $router.push({ name: $store.getters.curNavName })
             }
 
             const routeHop = (item, index) => {
