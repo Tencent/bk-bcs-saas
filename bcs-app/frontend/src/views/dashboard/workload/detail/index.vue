@@ -63,10 +63,16 @@
                 pods: 'Pod',
                 container: 'Container'
             }
+            // 首字母大写
+            const upperFirstLetter = (str: string) => {
+                if (!str) return str
+
+                return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`
+            }
             // 顶部导航内容
             const titles = ref<ITitle[]>([
                 {
-                    name: props.category,
+                    name: upperFirstLetter(props.category),
                     id: ''
                 },
                 {
@@ -138,6 +144,7 @@
 </script>
 <style scoped>
 .detail {
-    width: 100%;
+    flex: 1;
+    width: 0;
 }
 </style>
