@@ -15,6 +15,7 @@ from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.exceptions import CreateResourceError, UpdateResourceError
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.utils.error_codes import error_codes
@@ -51,9 +52,9 @@ class CreateMixin:
         params = self.params_validate(CreateResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
         try:
-            response_data = client.create(body=params, is_format=False).to_dict()
+            response_data = client.create(body=params['manifest'], is_format=False).to_dict()
         except DynamicApiError as e:
-            raise error_codes.APIError(e.summary())
+            raise CreateResourceError(message=e.summary())
         return Response(response_data)
 
 
@@ -64,9 +65,11 @@ class UpdateMixin:
         params = self.params_validate(UpdateResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
         try:
-            response_data = client.replace(body=params, namespace=namespace, name=name, is_format=False).to_dict()
+            response_data = client.replace(
+                body=params['manifest'], namespace=namespace, name=name, is_format=False
+            ).to_dict()
         except DynamicApiError as e:
-            raise error_codes.APIError(e.summary())
+            raise UpdateResourceError(message=e.summary())
         return Response(response_data)
 
 
