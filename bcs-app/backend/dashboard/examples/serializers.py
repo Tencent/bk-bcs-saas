@@ -14,7 +14,7 @@
 
 from rest_framework import serializers
 
-from backend.dashboard.templates.constants import RES_KIND_WITH_DEMO_MANIFEST
+from backend.dashboard.examples.constants import RES_KIND_WITH_DEMO_MANIFEST
 
 
 class FetchResourceDemoManifestSLZ(serializers.Serializer):

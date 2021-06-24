@@ -16,11 +16,11 @@ from django.conf import settings
 from backend.resources.constants import K8sResourceKind
 
 # 资源模板相关配置 目录
-RESOURCE_TEMPLATE_DIR = f'{settings.BASE_DIR}/backend/resources/templates'
+RESOURCE_EXAMPLE_DIR = f'{settings.BASE_DIR}/backend/resources/examples'
 # 模板配置信息 目录
-TEMPLATE_CONFIG_DIR = f'{RESOURCE_TEMPLATE_DIR}/configs'
+EXAMPLE_CONFIG_DIR = f'{RESOURCE_EXAMPLE_DIR}/configs'
 # Demo 配置文件 目录
-DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_TEMPLATE_DIR}/manifests'
+DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_EXAMPLE_DIR}/manifests'
 
 
 RES_KIND_WITH_DEMO_MANIFEST = [

@@ -13,17 +13,17 @@
 #
 import pytest
 
-from backend.dashboard.templates.constants import RES_KIND_WITH_DEMO_MANIFEST
+from backend.dashboard.examples.constants import RES_KIND_WITH_DEMO_MANIFEST
 from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
 from backend.utils.basic import getitems
 
 pytestmark = pytest.mark.django_db
 
 
-class TestResourceTemplate:
+class TestResourceExample:
     """ 测试 资源模版 相关接口 """
 
-    common_prefix = f'/api/dashboard/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}/templates'
+    common_prefix = f'/api/dashboard/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}/examples'
 
     @pytest.mark.parametrize('resource_kind', RES_KIND_WITH_DEMO_MANIFEST)
     def test_fetch_demo_manifest(self, resource_kind, api_client):

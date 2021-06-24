@@ -15,8 +15,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.templates.serializers import FetchResourceDemoManifestSLZ
-from backend.dashboard.templates.utils import load_demo_manifest, load_resource_template
+from backend.dashboard.examples.serializers import FetchResourceDemoManifestSLZ
+from backend.dashboard.examples.utils import load_demo_manifest, load_resource_template
 
 
 class TemplateViewSet(SystemViewSet):

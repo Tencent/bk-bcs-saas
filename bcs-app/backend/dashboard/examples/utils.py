@@ -16,13 +16,13 @@ from typing import Dict
 
 import yaml
 
-from backend.dashboard.templates.constants import DEMO_RESOURCE_MANIFEST_DIR, TEMPLATE_CONFIG_DIR
+from backend.dashboard.examples.constants import DEMO_RESOURCE_MANIFEST_DIR, EXAMPLE_CONFIG_DIR
 from backend.utils.string import gen_random_str
 
 
 def load_resource_template(kind: str) -> Dict:
     """ 获取指定 资源类型模版 信息 """
-    with open(f'{TEMPLATE_CONFIG_DIR}/{kind}.json') as fr:
+    with open(f'{EXAMPLE_CONFIG_DIR}/{kind}.json') as fr:
         return json.loads(fr.read())
 
 
@@ -34,7 +34,4 @@ def load_demo_manifest(file_path: str) -> Dict:
     # 避免名称重复，每次默认添加随机后缀
     new_resource_name = f"{manifest['metadata']['name']}-{gen_random_str()}"
     manifest['metadata']['name'] = new_resource_name
-    # 对于 Deployment, DaemonSet, StatefulSet 需要更新默认的 selector.matchLabels 信息，防止发生冲突
-    manifest['spec']['selector']['matchLabels'].update({'owner': new_resource_name})
-    manifest['spec']['template']['metadata']['labels'].update({'owner': new_resource_name})
     return manifest

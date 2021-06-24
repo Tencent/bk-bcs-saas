@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.dashboard.templates.utils import load_demo_manifest
+from backend.dashboard.examples.utils import load_demo_manifest
 from backend.tests.conftest import DEFAULT_NAMESPACE
 from backend.tests.dashboard.conftest import DASHBOARD_API_URL_COMMON_PREFIX as DAU_PREFIX
 from backend.utils.basic import getitems
