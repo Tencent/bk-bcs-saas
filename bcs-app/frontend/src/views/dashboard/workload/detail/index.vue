@@ -138,6 +138,7 @@
 </script>
 <style scoped>
 .detail {
-    width: 100%;
+    flex: 1;
+    width: 0;
 }
 </style>
