@@ -14,23 +14,14 @@
 
 
 class ResourceBaseError(Exception):
-    """ Resource 模块基础异常类 """
+    """ Resource 模块基础异常类，需在上层捕获后处理 """
 
     message = 'Resource module exception'
-    code = 40051
 
-    def __init__(self, message=None, code=None):
+    def __init__(self, message=None):
         """ 初始化异常类，若无参数则使用默认值 """
         if message:
             self.message = message
-        if code:
-            self.code = code
 
     def __str__(self):
-        return f'{self.code}: {self.message}'
-
-
-class ResourceNotExist(ResourceBaseError):
-    """ 指定资源不存在 """
-
-    message = 'Resource not exist'
+        return f'{self.message}'

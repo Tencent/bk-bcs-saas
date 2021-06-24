@@ -141,7 +141,7 @@ class Pod(ResourceClient):
         if owner_kind not in [K8sResourceKind.Deployment.value, K8sResourceKind.CronJob.value]:
             return sub_owner_reference
 
-        # Deployment/CronJob 不直接关联 Pod，而是通过 ReplicaSet/Job 间接关联，需要向下钻取获取 Pod 的 owner reference 信息
+        # Deployment/CronJob 不直接关联 Pod，而是通过 ReplicaSet/Job 间接关联，需要向下钻取 Pod 的 owner reference 信息
         SubResClient = {
             K8sResourceKind.Deployment.value: ReplicaSet,
             K8sResourceKind.CronJob.value: Job,

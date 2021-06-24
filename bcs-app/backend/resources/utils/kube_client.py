@@ -140,9 +140,8 @@ class CoreDynamicClient(DynamicClient):
         **kwargs,
     ) -> ResourceInstance:
         if auto_add_version:
-            obj = self.get_or_none(resource, name=name, namespace=namespace, **kwargs)
-            if not obj:
-                raise ResourceNotExist(f'Resource {resource.kind}:{name} not exists, replace failed!')
+            # get 方法若找不到对应的资源，会抛出 ApiException 给上层捕获
+            obj = self.get(resource, name=name, namespace=namespace, **kwargs)
             self._add_resource_version(obj, body)
         return super().replace(resource, body, name, namespace, **kwargs)
 
@@ -182,4 +181,4 @@ def wrap_kube_client_exc():
         yield
     except ApiException as e:
         body = json.loads(e.body)
-        raise error_codes.APIError(body['message'])
+        raise error_codes.ResourceError(body['message'])
