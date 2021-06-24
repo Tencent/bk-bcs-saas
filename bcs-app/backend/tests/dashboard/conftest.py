@@ -18,12 +18,12 @@ import mock
 import pytest
 from django.conf import settings
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 # 资源视图 API URL 共用前缀
-DASHBOARD_API_URL_COMMON_PREFIX = f'/api/dashboard/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}'
+DASHBOARD_API_URL_COMMON_PREFIX = f'/api/dashboard/projects/{TEST_PROJECT_ID}/clusters/{TEST_CLUSTER_ID}'
 
 
 @pytest.fixture(autouse=True, scope='package')

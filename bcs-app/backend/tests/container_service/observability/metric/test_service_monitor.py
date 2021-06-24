@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
@@ -36,7 +36,7 @@ class TestServiceMonitor:
     """ 指标：ServiceMonitor 相关测试 """
 
     common_prefix = '/api/metrics/projects/{project_id}/clusters/{cluster_id}/service_monitors'.format(
-        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID
+        project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID
     )
 
     def test_list(self, api_client, metric_api_common_patch, sm_api_patch, patch_k8s_client):

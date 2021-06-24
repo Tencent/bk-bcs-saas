@@ -14,7 +14,7 @@
 import pytest
 
 from backend.dashboard.examples.utils import load_demo_manifest
-from backend.tests.conftest import DEFAULT_NAMESPACE
+from backend.tests.conftest import TEST_NAMESPACE
 from backend.tests.dashboard.conftest import DASHBOARD_API_URL_COMMON_PREFIX as DAU_PREFIX
 from backend.utils.basic import getitems
 
@@ -27,7 +27,7 @@ class TestSecret:
     manifest = load_demo_manifest('configs/simple_secret')
     name = getitems(manifest, 'metadata.name')
     batch_url = f'{DAU_PREFIX}/configs/secrets/'
-    detail_url = f'{DAU_PREFIX}/namespaces/{DEFAULT_NAMESPACE}/configs/secrets/{name}/'
+    detail_url = f'{DAU_PREFIX}/namespaces/{TEST_NAMESPACE}/configs/secrets/{name}/'
 
     def test_create(self, api_client):
         """ 测试创建资源接口 """
