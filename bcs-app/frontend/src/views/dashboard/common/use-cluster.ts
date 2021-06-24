@@ -22,11 +22,11 @@ export default function useClusterList (ctx: SetupContext): IUseClusterListResul
         }
     }
 
-    onMounted(() => {
-        if (!curClusterList.value.length) {
-            getClusterList()
-        }
-    })
+    // onMounted(() => {
+    //     if (!curClusterList.value.length) {
+    //         getClusterList()
+    //     }
+    // })
 
     return {
         curClusterList,
