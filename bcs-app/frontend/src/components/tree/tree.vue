@@ -40,7 +40,7 @@
                 </div>
             </div>
             <collapse-transition>
-                <bk-tree v-if="!isLeaf(item)"
+                <bcs-tree v-if="!isLeaf(item)"
                     @dropTreeChecked='nodeCheckStatusChange'
                     @async-load-nodes='asyncLoadNodes'
                     @on-expanded='onExpanded'
@@ -56,7 +56,7 @@
                     :parent ='item'
                     :isDeleteRoot ='isDeleteRoot'
                     :multiple="multiple">
-                </bk-tree>
+                </bcs-tree>
             </collapse-transition>
         </li>
         <p class="search-no-data" v-else>{{emptyText}}</p>
@@ -103,7 +103,7 @@ export default {
         },
         emptyText: {
             type: String,
-            default: '暂无数据'
+            default: window.i18n.t('暂无数据')
         },
         tpl: Function
     },

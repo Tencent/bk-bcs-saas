@@ -4,22 +4,22 @@
             <div class="biz-image-library-title">
                 {{$t('公共镜像')}}
             </div>
-            <div class="biz-actions">
-                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10 mb10">{{$t('如何推镜像？')}}</a>
-            </div>
+            <bk-guide>
+                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10">{{$t('如何推镜像？')}}</a>
+            </bk-guide>
         </div>
         <div class="biz-content-wrapper" style="padding: 0;" v-bkloading="{ isLoading: isInitLoading, opacity: 0.1 }">
             <template v-if="!isInitLoading">
                 <div class="biz-panel-header biz-image-library-query">
                     <div class="right">
                         <div class="biz-search-input" style="width: 300px;">
-                            <input @keyup.enter="enterHandler" v-model="searchKey" type="text" class="bk-form-input" :placeholder="$t('输入镜像名，按Enter搜索')">
-                            <a href="javascript:void(0)" class="biz-search-btn" @click="handleClick" v-if="!searchKey">
-                                <i class="bk-icon icon-search icon-search-li"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearSearch">
-                                <i class="bk-icon icon-close-circle-shape"></i>
-                            </a>
+                            <bkbcs-input right-icon="bk-icon icon-search"
+                                clearable
+                                :placeholder="$t('输入镜像名，按Enter搜索')"
+                                v-model="searchKey"
+                                @enter="enterHandler"
+                                @clear="clearSearch">
+                            </bkbcs-input>
                         </div>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
                     <template v-if="dataList.length">
                         <div class="list-item" v-for="(item, index) in dataList" :key="index">
                             <div class="left-wrapper">
-                                <img src="@open/images/default_logo.jpg" class="logo" />
+                                <img src="@/images/default_logo.jpg" class="logo" />
                             </div>
                             <div class="right-wrapper">
                                 <div class="content">
@@ -45,34 +45,29 @@
                                         </div>
                                     </div>
                                     <div class="detail" @click="toImageDetail(item)">
-                                        {{$t('详情')}}<i class="bk-icon icon-angle-right"></i>
+                                        {{$t('详情')}}<i class="bcs-icon bcs-icon-angle-right"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </template>
                     <template v-else-if="!isPageLoading">
-                        <div class="empty">
-                            <p class="biz-empty-message">{{$t('无数据')}}</p>
-                        </div>
+                        <bcs-exception type="empty" scene="part"></bcs-exception>
                     </template>
                     <template v-else>
                         <div class="loading"></div>
                     </template>
                 </div>
-                <div class="biz-page-wrapper" v-if="pageConf.total">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
-                </div>
+                <template v-if="pageConf.total">
+                    <bk-pagination ext-cls="m20"
+                        align="right"
+                        :current.sync="pageConf.curPage"
+                        :count="pageConf.total"
+                        :show-total-count="true"
+                        @change="pageChange"
+                        @limit-change="changePageSize">
+                    </bk-pagination>
+                </template>
             </template>
         </div>
     </div>
@@ -171,9 +166,6 @@
                     name: 'imageDetail',
                     params: {
                         repo: item.repo
-                    },
-                    query: {
-                        public: true
                     }
                 })
             },
@@ -207,10 +199,6 @@
                         this.pageConf.curPage = 1
                     }
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isPageLoading = false
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动

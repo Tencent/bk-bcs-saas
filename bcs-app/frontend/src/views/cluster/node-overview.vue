@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-cluster-node-overview-title">
-                <i class="bk-icon icon-arrows-left back" @click="goNode"></i>
+                <i class="bcs-icon bcs-icon-arrows-left back" @click="goNode"></i>
                 <span @click="refreshCurRouter">{{nodeId}}</span>
             </div>
             <bk-guide></bk-guide>
@@ -17,51 +17,51 @@
                 <div class="biz-cluster-node-overview-header">
                     <div class="header-item">
                         <div class="key-label">IP：</div>
-                        <bk-tooltip :content="nodeId" placement="bottom">
+                        <bcs-popover :content="nodeId" placement="bottom">
                             <div class="value-label">{{nodeId}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">CPU：</div>
-                        <bk-tooltip :content="nodeInfo.cpu_count" placement="bottom">
+                        <bcs-popover :content="nodeInfo.cpu_count" placement="bottom">
                             <div class="value-label">{{nodeInfo.cpu_count}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('内存：')}}</div>
-                        <bk-tooltip :content="nodeInfo.memory" placement="bottom">
+                        <bcs-popover :content="nodeInfo.memory" placement="bottom">
                             <div class="value-label">{{nodeInfo.memory}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('存储：')}}</div>
-                        <bk-tooltip :content="nodeInfo.disk" placement="bottom">
+                        <bcs-popover :content="nodeInfo.disk" placement="bottom">
                             <div class="value-label">{{nodeInfo.disk}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('IP来源：')}}</div>
-                        <bk-tooltip :content="nodeInfo.provider" placement="bottom">
+                        <bcs-popover :content="nodeInfo.provider" placement="bottom">
                             <div class="value-label">{{nodeInfo.provider}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('内核：')}}</div>
-                        <bk-tooltip :content="nodeInfo.release" placement="bottom">
+                        <bcs-popover :content="nodeInfo.release" placement="bottom">
                             <div class="value-label">{{nodeInfo.release}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">Docker：</div>
-                        <bk-tooltip :content="nodeInfo.dockerVersion" placement="bottom">
+                        <bcs-popover :content="nodeInfo.dockerVersion" placement="bottom">
                             <div class="value-label">{{nodeInfo.dockerVersion}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('操作系统：')}}</div>
-                        <bk-tooltip :content="nodeInfo.sysname" placement="bottom">
+                        <bcs-popover :content="nodeInfo.sysname" placement="bottom">
                             <div class="value-label">{{nodeInfo.sysname}}</div>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                 </div>
                 <div class="biz-cluster-node-overview-chart-wrapper">
@@ -74,7 +74,7 @@
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
                                             <span>{{cpuToggleRangeStr}}</span>
                                             <button class="biz-dropdown-button">
-                                                <i class="bk-icon icon-angle-down"></i>
+                                                <i class="bcs-icon bcs-icon-angle-down" style="margin-top: 1px;"></i>
                                             </button>
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -91,7 +91,6 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <!-- <chart :options="curProject.kind !== 2 ? cpuChartOptsK8S : cpuLine" ref="cpuLine1" auto-resize></chart> -->
                             <chart :options="cpuChartOptsK8S" ref="cpuLine1" auto-resize></chart>
                         </div>
                         <div class="part top-right">
@@ -102,7 +101,7 @@
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
                                             <span>{{memToggleRangeStr}}</span>
                                             <button class="biz-dropdown-button">
-                                                <i class="bk-icon icon-angle-down"></i>
+                                                <i class="bcs-icon bcs-icon-angle-down" style="margin-top: 1px;"></i>
                                             </button>
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -119,7 +118,6 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <!-- <chart :options="curProject.kind !== 2 ? memChartOptsK8S : memoryLine" ref="memoryLine1" auto-resize></chart> -->
                             <chart :options="memChartOptsK8S" ref="memoryLine1" auto-resize></chart>
                         </div>
                     </div>
@@ -131,8 +129,8 @@
                                     <bk-dropdown-menu :align="'right'" ref="networkDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
                                             <span>{{networkToggleRangeStr}}</span>
-                                            <button class="biz-dropdown-button">
-                                                <i class="bk-icon icon-angle-down"></i>
+                                            <button class="biz-dropdown-button" style="vertical-align: middle;">
+                                                <i class="bcs-icon bcs-icon-angle-down" style="margin-top: 1px;"></i>
                                             </button>
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -149,7 +147,6 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <!-- <chart :options="curProject.kind !== 2 ? networkChartOptsK8S : networkLine" ref="networkLine1" auto-resize></chart> -->
                             <chart :options="networkChartOptsK8S" ref="networkLine1" auto-resize></chart>
                         </div>
                         <div class="part">
@@ -160,7 +157,7 @@
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
                                             <span>{{storageToggleRangeStr}}</span>
                                             <button class="biz-dropdown-button">
-                                                <i class="bk-icon icon-angle-down"></i>
+                                                <i class="bcs-icon bcs-icon-angle-down" style="margin-top: 1px;"></i>
                                             </button>
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -177,14 +174,13 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <!-- <chart :options="curProject.kind !== 2 ? diskioChartOptsK8S : storageLine" ref="storageLine1" auto-resize></chart> -->
                             <chart :options="diskioChartOptsK8S" ref="storageLine1" auto-resize></chart>
                         </div>
                     </div>
                 </div>
                 <div class="biz-cluster-node-overview-table-wrapper">
-                    <bk-tab :type="'fill'" :active-name="'container'" @tab-changed="tabChanged">
-                        <bk-tabpanel name="container" :title="$t('容器')">
+                    <bk-tab class="biz-tab-container" :type="'fill'" :active-name="'container'" @tab-changed="tabChanged">
+                        <bk-tab-panel name="container" :title="$t('容器')">
                             <div class="container-table-wrapper" v-bkloading="{ isLoading: containerTableLoading }">
                                 <table class="bk-table has-table-hover biz-table biz-cluster-node-overview-table">
                                     <thead>
@@ -204,51 +200,51 @@
                                                     </div>
                                                 </td>
                                                 <td style="padding-left: 20px;" v-else>
-                                                    <bk-tooltip placement="top" :delay="500" :transfer="true">
+                                                    <bcs-popover placement="top" :delay="500" :transfer="true">
                                                         <div class="name">
                                                             <a href="javascript:void(0)" @click="goContainerDetail(containerTableItem)" class="bk-text-button">{{containerTableItem.name}}</a>
                                                         </div>
                                                         <template slot="content">
                                                             <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerTableItem.name}}</p>
                                                         </template>
-                                                    </bk-tooltip>
+                                                    </bcs-popover>
                                                 </td>
                                                 <td v-if="containerTableItem.status === 'terminated'">
-                                                    <i class="bk-icon icon-circle-shape danger"></i>terminated
+                                                    <i class="bcs-icon bcs-icon-circle-shape danger"></i>terminated
                                                 </td>
                                                 <td v-else-if="containerTableItem.status === 'running'">
-                                                    <i class="bk-icon icon-circle-shape running"></i>running
+                                                    <i class="bcs-icon bcs-icon-circle-shape running"></i>running
                                                 </td>
                                                 <td v-else>
-                                                    <i class="bk-icon icon-circle-shape warning"></i>{{containerTableItem.status}}
+                                                    <i class="bcs-icon bcs-icon-circle-shape warning"></i>{{containerTableItem.status}}
                                                 </td>
                                                 <td>
-                                                    <bk-tooltip placement="top" :delay="500" :transfer="true">
+                                                    <bcs-popover placement="top" :delay="500" :transfer="true">
                                                         <div class="mirror">
                                                             {{containerTableItem.image}}
                                                         </div>
                                                         <template slot="content">
                                                             <p style="text-align: left; white-space: normal; word-break: break-all;font-weight: 400;">{{containerTableItem.image}}</p>
                                                         </template>
-                                                    </bk-tooltip>
+                                                    </bcs-popover>
                                                 </td>
                                                 <td>
                                                     <template v-if="containerTableItem.status === 'running'">
                                                         <a href="javascript: void(0);" class="bk-text-button" @click.stop="showTerminal(containerTableItem)">WebConsole</a>
                                                     </template>
                                                     <template v-else>
-                                                        <bk-tooltip :content="$t('容器状态不是running')" placement="right">
+                                                        <bcs-popover :content="$t('容器状态不是running')" placement="right">
                                                             <a href="javascript: void(0);" class="bk-text-button is-disabled">WebConsole</a>
-                                                        </bk-tooltip>
+                                                        </bcs-popover>
                                                     </template>
                                                 </td>
                                             </tr>
                                         </template>
                                         <template v-else>
                                             <tr>
-                                                <td colspan="3">
+                                                <td colspan="4">
                                                     <div class="bk-message-box no-data">
-                                                        <p class="message empty-message">{{$t('无数据')}}</p>
+                                                        <bcs-exception type="empty" scene="part"></bcs-exception>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -256,16 +252,17 @@
                                     </tbody>
                                 </table>
                                 <div class="biz-page-box biz-cluster-node-overview-page" v-if="containerTablePageConf.show">
-                                    <bk-paging
-                                        :size="'small'"
-                                        :cur-page.sync="containerTablePageConf.curPage"
-                                        :total-page="containerTablePageConf.totalPage"
-                                        @page-change="pageChange">
-                                    </bk-paging>
+                                    <bk-pagination
+                                        :show-limit="false"
+                                        :current.sync="containerTablePageConf.curPage"
+                                        :count.sync="containerTablePageConf.count"
+                                        :limit="containerTablePageConf.pageSize"
+                                        @change="pageChange">
+                                    </bk-pagination>
                                 </div>
                             </div>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="label" :title="$t('标签')">
+                        </bk-tab-panel>
+                        <!-- <bk-tab-panel name="label" :title="$t('标签')">
                             <div class="container-table-wrapper" v-bkloading="{ isLoading: labelListLoading }">
                                 <table class="bk-table has-table-hover biz-table biz-app-instance-label-table">
                                     <thead>
@@ -289,7 +286,7 @@
                                             <tr>
                                                 <td colspan="2">
                                                     <div class="bk-message-box no-data">
-                                                        <p class="message empty-message" v-if="!labelListLoading">{{$t('无数据')}}</p>
+                                                        <bcs-exception type="empty" scene="part" v-if="!labelListLoading"></bcs-exception>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -297,7 +294,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </bk-tabpanel>
+                        </bk-tab-panel> -->
                     </bk-tab>
                 </div>
             </div>
@@ -347,6 +344,7 @@
                 containerTableLoading: false,
                 containerTableList: [],
                 containerTablePageConf: {
+                    count: 1,
                     totalPage: 1,
                     pageSize: 5,
                     curPage: 1,
@@ -540,6 +538,7 @@
                 const total = this.containerTableList.length
                 this.containerTablePageConf.show = total > 0
                 this.containerTablePageConf.totalPage = Math.ceil(total / this.containerTablePageConf.pageSize) || 1
+                this.containerTablePageConf.count = total
             },
 
             /**
@@ -727,7 +726,7 @@
                             },
                             itemStyle: {
                                 normal: {
-                                    color: '#3c96ff'
+                                    color: '#3a84ff'
                                 }
                             },
                             data: item.values
@@ -1047,7 +1046,7 @@
 </script>
 
 <style scoped lang="postcss">
-    @import '../../css/variable.css';
+    @import '@/css/variable.css';
 
     .biz-cluster-node-overview {
         padding: 20px;
@@ -1225,11 +1224,11 @@
             border-bottom: none;
 
             .name {
-                width: 350px;
+                width: 300px;
             }
 
             .mirror {
-                width: 450px;
+                width: 400px;
             }
         }
     }

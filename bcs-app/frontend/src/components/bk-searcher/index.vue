@@ -19,7 +19,7 @@
                             <div class="name">{{sp.text}}</div>
                             <div class="value-container" v-if="sp.value">
                                 <div class="value">{{sp.value.text}}</div>
-                                <div class="remove-search-params" @click.stop="removeSearchParams($event, sp, spIndex)"><i class="bk-icon icon-close"></i></div>
+                                <div class="remove-search-params" @click.stop="removeSearchParams($event, sp, spIndex)"><i class="bcs-icon bcs-icon-close"></i></div>
                             </div>
                         </div>
                     </li>

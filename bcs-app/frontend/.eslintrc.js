@@ -1,48 +1,192 @@
-// http://eslint.org/docs/user-guide/configuring
-// eslint-config-standard 12.0.0
-// eslint-plugin-import 2.16.0
-// eslint-plugin-node 8.0.1
-// eslint-plugin-promise 4.0.1
-// eslint-plugin-standard 4.0.0
-// eslint-plugin-vue 5.2.2
+const resolver = {
+    'eslint-import-resolver-node': {}
+}
+
 module.exports = {
     root: true,
+    // Prerequisite `eslint-plugin-vue`, being extended, sets
+    // root property `parser` to `'vue-eslint-parser'`, which, for code parsing,
+    // in turn delegates to the parser, specified in `parserOptions.parser`:
+    // https://github.com/vuejs/eslint-plugin-vue#what-is-the-use-the-latest-vue-eslint-parser-error
     parserOptions: {
-        parser: 'babel-eslint',
-        sourceType: 'module'
+        parser: '@typescript-eslint/parser',
+        extraFileExtensions: ['.vue'],
+        ecmaFeatures: {
+            jsx: true
+        },
+        ecmaVersion: 2020
     },
+    parser: 'vue-eslint-parser',
+
     env: {
         browser: true,
+        node: true
     },
     extends: [
+        'eslint-config-standard',
+        'plugin:@typescript-eslint/eslint-recommended',
+        'plugin:@typescript-eslint/recommended',
         'plugin:vue/recommended',
         'standard'
     ],
+    settings: {
+        'import/resolver': resolver,
+        'import/extensions': [
+            '.js',
+            '.jsx',
+            '.mjs',
+            '.ts',
+            '.tsx'
+        ]
+    },
     // required to lint *.vue files
     plugins: [
+        '@typescript-eslint',
         'vue'
     ],
+    // value 为 true 允许被重写，为 false 不允许被重写
     globals: {
         // value 为 true 允许被重写，为 false 不允许被重写
         NODE_ENV: true,
+        LOGIN_SERVICE_URL: true,
         DEVOPS_HOST: true,
         DEVOPS_BCS_API_URL: true,
+        DEVOPS_BCS_HOST: true,
         VERSION: true,
         DEVOPS_ARTIFACTORY_HOST: true,
         PROJECT_MESOS: true,
         PROJECT_K8S: true,
         PROJECT_TKE: true,
+        REGION: true,
         SENTRY_URL: true,
         SITE_URL: true,
+        RELEASE_VERSION: true,
         BK_IAM_APP_URL: true
     },
     // add your custom rules hered
     rules: {
+        '@typescript-eslint/interface-name-prefix': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/camelcase': ['error', { 'properties': 'never', 'ignoreDestructuring': true }],
+        // '@typescript-eslint/no-this-alias': [
+        //     'error',
+        //     {
+        //         allowDestructuring: true, // Allow `const { props, state } = this`; false by default
+        //         allowedNames: ['self', 'me'], // Allow `const self = this`; `[]` by default
+        //     }
+        // ],
+        '@typescript-eslint/no-use-before-define': 'off',
+        // '@typescript-eslint/no-require-imports': 'error',
+        '@typescript-eslint/no-var-requires': 'off',
+        // this rule, if on, would require explicit return type on the `render` function
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-inferrable-types': 'off',
+        '@typescript-eslint/indent': ['error', 4, {
+            'SwitchCase': 1,
+            'flatTernaryExpressions': true
+        }],
+        '@typescript-eslint/ban-ts-ignore': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+
+        // https://eslint.org/docs/rules/brace-style
+        'brace-style': ['error', '1tbs', { 'allowSingleLine': false }],
+
+        // https://eslint.org/docs/rules/camelcase
+        'camelcase': ['error', { 'properties': 'never', 'ignoreDestructuring': true }],
+
+        // 缩进使用 4 个空格，并且 switch 语句中的 Case 需要缩进
+        // https://eslint.org/docs/rules/indent
+        'indent': ['error', 4, {
+            'SwitchCase': 1,
+            'flatTernaryExpressions': true
+        }],
+
+        // 数组的括号内的前后禁止有空格
+        // https://eslint.org/docs/rules/array-bracket-spacing
+        'array-bracket-spacing': ['error', 'never'],
+
+        // https://eslint.org/docs/rules/operator-linebreak
+        'operator-linebreak': ['error', 'before'],
+
+        // 在开发阶段打开调试
+        // https://eslint.org/docs/rules/no-debugger
+        'no-debugger': 'off',
+
+        // 只有一个参数时，箭头函数体可以省略圆括号
+        // https://eslint.org/docs/rules/arrow-parens
+        'arrow-parens': 'off',
+
+        // 禁止空语句（可在空语句写注释避免），允许空的 catch 语句
+        // https://eslint.org/docs/rules/no-empty
+        'no-empty': ['error', { 'allowEmptyCatch': true }],
+
+        // 禁止在语句末尾使用分号
+        // https://eslint.org/docs/rules/semi
+        'semi': ['error', 'never'],
+
+        // 禁用不必要的分号
+        // https://eslint.org/docs/rules/no-extra-semi
+        'no-extra-semi': 'error',
+
+        // generator 的 * 前面禁止有空格，后面必须有空格
+        // https://eslint.org/docs/rules/generator-star-spacing
+        'generator-star-spacing': [
+            'error',
+            {
+                before: false,
+                after: true
+            }
+        ],
+
+        // 函数圆括号之前有一个空格
+        // https://eslint.org/docs/rules/space-before-function-paren
+        'space-before-function-paren': ['error', {
+            'anonymous': 'always', // 匿名函数表达式
+            'named': 'always', // 命名的函数表达式
+            'asyncArrow': 'always' // 异步的箭头函数表达式
+        }],
+
+        // 禁止行尾有空格
+        // https://eslint.org/docs/rules/no-trailing-spaces
+        'no-trailing-spaces': ['error', {
+            'skipBlankLines': true // 允许在空行使用空白符
+        }],
+
+        // 注释的斜线或 * 后必须有空格
+        // https://eslint.org/docs/rules/spaced-comment
+        'spaced-comment': ['error', 'always', {
+            'line': {
+                'markers': ['*package', '!', '/', ',', '=']
+            },
+            'block': {
+                // 前后空格是否平衡
+                'balanced': false,
+                'markers': ['*package', '!', ',', ':', '::', 'flow-include'],
+                'exceptions': ['*']
+            }
+        }],
+
+        // https://eslint.org/docs/rules/no-template-curly-in-string
+        // 禁止在字符串中使用字符串模板。不限制
+        'no-template-curly-in-string': 'off',
+
+        // https://eslint.org/docs/rules/no-useless-escape
+        // 禁止出现没必要的转义。不限制
+        'no-useless-escape': 'off',
+
+        // https://eslint.org/docs/rules/no-var
+        // 禁止使用 var
+        'no-var': 'error',
+
+        // https://eslint.org/docs/rules/prefer-const
+        // 如果一个变量不会被重新赋值，必须使用 `const` 进行声明。
+        'prefer-const': 'error',
+
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/array-bracket-spacing.md
         'vue/array-bracket-spacing': ['error', 'never'],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/arrow-spacing.md
-        'vue/arrow-spacing': ['error', {'before': true, 'after': true}],
+        'vue/arrow-spacing': ['error', { 'before': true, 'after': true }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/attribute-hyphenation.md
         'vue/attribute-hyphenation': ['error', 'always'],
@@ -50,33 +194,16 @@ module.exports = {
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/attributes-order.md
         // 属性顺序，不限制
         'vue/attributes-order': 'off',
-        // 'vue/attributes-order': ['error', {
-        //     'order': [
-        //         'DEFINITION',
-        //         'LIST_RENDERING',
-        //         'CONDITIONALS',
-        //         'RENDER_MODIFIERS',
-        //         'GLOBAL',
-        //         'UNIQUE',
-        //         'TWO_WAY_BINDING',
-        //         'OTHER_DIRECTIVES',
-        //         'OTHER_ATTR',
-        //         'EVENTS',
-        //         'CONTENT'
-        //     ]
-        // }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/block-spacing.md
         'vue/block-spacing': ['error', 'always'],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/brace-style.md
-        'vue/brace-style': ['error', '1tbs', {'allowSingleLine': false}],
-        'brace-style': ['error', '1tbs', {'allowSingleLine': false}],
+        'vue/brace-style': ['error', '1tbs', { 'allowSingleLine': false }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/camelcase.md
         // 后端数据字段经常不是驼峰，所以不限制 properties，也不限制解构
-        'vue/camelcase': ['error', {'properties': 'never', 'ignoreDestructuring': true}],
-        'camelcase': ['error', {'properties': 'never', 'ignoreDestructuring': true}],
+        'vue/camelcase': ['error', { 'properties': 'never', 'ignoreDestructuring': true }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/comma-dangle.md
         // 禁止使用拖尾逗号，如 {demo: 'test',}
@@ -96,7 +223,7 @@ module.exports = {
         // 'vue/dot-location': ['error', 'property'],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/eqeqeq.md
-        'vue/eqeqeq': ['error', 'always', {'null': 'ignore'}],
+        'vue/eqeqeq': ['error', 'always', { 'null': 'ignore' }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/html-closing-bracket-newline.md
         // 单行写法不需要换行，多行需要，不限制
@@ -133,7 +260,7 @@ module.exports = {
         'vue/jsx-uses-vars': 1,
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/key-spacing.md
-        'vue/key-spacing': ['error', {'beforeColon': false, 'afterColon': true}],
+        'vue/key-spacing': ['error', { 'beforeColon': false, 'afterColon': true }],
 
         // 关键字周围空格一致性，在关键字前后保留空格，如 if () else {}
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/keyword-spacing.md
@@ -166,7 +293,7 @@ module.exports = {
         'vue/no-boolean-default': 'off',
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/no-confusing-v-for-v-if.md
-        'vue/no-confusing-v-for-v-if': 'off',
+        'vue/no-confusing-v-for-v-if': 'error',
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/no-dupe-keys.md
         // 二级属性名禁止重复
@@ -319,7 +446,7 @@ module.exports = {
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/space-unary-ops.md
         // new, delete, typeof, void, yield 等后面必须有空格，一元操作符 -, +, --, ++, !, !! 禁止有空格
-        'vue/space-unary-ops': ['error', {'words': true, 'nonwords': false}],
+        'vue/space-unary-ops': ['error', { 'words': true, 'nonwords': false }],
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/this-in-template.md
         // 不允许在 template 中使用 this
@@ -397,100 +524,45 @@ module.exports = {
         // v-text 指令必须合法
         'vue/valid-v-text': 'error',
 
-
-        // 缩进使用 4 个空格，并且 switch 语句中的 Case 需要缩进
-        // https://eslint.org/docs/rules/indent
-        'indent': ['error', 4, {
-            'SwitchCase': 1,
-            'flatTernaryExpressions': true
-        }],
-
-        // 数组的括号内的前后禁止有空格
-        // https://eslint.org/docs/rules/array-bracket-spacing
-        'array-bracket-spacing': ['error', 'never'],
-
-        // https://eslint.org/docs/rules/operator-linebreak
-        'operator-linebreak': ['error', 'before'],
-
-        // 在开发阶段打开调试
-        // https://eslint.org/docs/rules/no-debugger
-        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-
-        // 只有一个参数时，箭头函数体可以省略圆括号
-        // https://eslint.org/docs/rules/arrow-parens
-        'arrow-parens': 'off',
-
-        // 禁止空语句（可在空语句写注释避免），允许空的 catch 语句
-        // https://eslint.org/docs/rules/no-empty
-        'no-empty': ['error', {'allowEmptyCatch': true}],
-
-        // 禁止在语句末尾使用分号
-        // https://eslint.org/docs/rules/semi
-        'semi': ['error', 'never'],
-
-        // 禁用不必要的分号
-        // https://eslint.org/docs/rules/no-extra-semi
-        'no-extra-semi': 'error',
-
-
-        // generator 的 * 前面禁止有空格，后面必须有空格
-        // https://eslint.org/docs/rules/generator-star-spacing
-        'generator-star-spacing': [
-            'error',
-            {
-                before: false,
-                after: true
-            }
-        ],
-
-        // 函数圆括号之前有一个空格
-        // https://eslint.org/docs/rules/space-before-function-paren
-        'space-before-function-paren': ['error', {
-            'anonymous': 'always', // 匿名函数表达式
-            'named': 'always', // 命名的函数表达式
-            'asyncArrow': 'always' // 异步的箭头函数表达式
-        }],
-
-        // 禁止行尾有空格
-        // https://eslint.org/docs/rules/no-trailing-spaces
-        'no-trailing-spaces': ['error', {
-            'skipBlankLines': true // 允许在空行使用空白符
-        }],
-
-        // 注释的斜线或 * 后必须有空格
-        // https://eslint.org/docs/rules/spaced-comment
-        'spaced-comment': ['error', 'always', {
-            'line': {
-                'markers': ['*package', '!', '/', ',', '=']
-            },
-            'block': {
-                // 前后空格是否平衡
-                'balanced': false,
-                'markers': ['*package', '!', ',', ':', '::', 'flow-include'],
-                'exceptions': ['*']
-            }
-        }],
-
-        // https://eslint.org/docs/rules/no-template-curly-in-string
-        // 禁止在字符串中使用字符串模板。不限制
-        'no-template-curly-in-string': 'off',
-
-        // https://eslint.org/docs/rules/no-useless-escape
-        // 禁止出现没必要的转义。不限制
-        'no-useless-escape': 'off',
-
-        // https://eslint.org/docs/rules/no-var
-        // 禁止使用 var
-        'no-var': 'error',
-
-        // https://eslint.org/docs/rules/prefer-const
-        // 如果一个变量不会被重新赋值，必须使用 `const` 进行声明。
-        'prefer-const': 'error'
+        'quote-props': 'off',
+        'no-prototype-builtins': 'off',
+        'quotes': 'off',
+        'no-void': 'off',
+        'dot-notation': 'off',
+        '@typescript-eslint/no-this-alias': 'off',
+        'no-async-promise-executor': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        'no-case-declarations': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
+        'prefer-rest-params': 'off'
     },
     overrides: [
         {
+            files: ['*.js'],
+            rules: {
+              '@typescript-eslint/no-require-imports': 'off'
+            }
+        },
+        {
+            files: ['*.d.ts'],
+            rules: {
+                '@typescript-eslint/no-empty-interface': 'off',
+                '@typescript-eslint/no-explicit-any': 'off',
+                '@typescript-eslint/no-unused-vars': 'off'
+            }
+        },
+        {
+            files: ['*.ts', '*.tsx'],
+            rules: {
+                // The core 'no-unused-vars' rules (in the eslint:recommeded ruleset)
+                // does not work with type definitions
+                'no-unused-vars': 'off',
+            }
+        },
+        {
             files: ['*.vue'],
             rules: {
+                '@typescript-eslint/indent': 'off',
                 indent: 'off'
             }
         }

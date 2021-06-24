@@ -5,8 +5,10 @@
         :has-header="false"
         :has-footer="false"
         :quick-close="false"
+        :close-icon="showClose"
         :width="tipDialogConf.width"
-        :title="tipDialogConf.title">
+        :title="tipDialogConf.title"
+        @cancel="cancel">
         <template slot="content">
             <div :class="`dialog-wrapper ${type}`">
                 <div class="dialog-header">
@@ -14,18 +16,13 @@
                         <i :class="icon"></i>
                     </div>
                     <h2 class="dialog-title">{{titleRender}}</h2>
-                    <span v-if="showClose" class="close-btn" title="关闭" @click="cancel">╳</span>
+                    <!-- <span v-if="showClose" class="close-btn" title="关闭" @click="cancel">╳</span> -->
                 </div>
                 <div class="dialog-content">
-                    <strong v-if="hasSubTitle">{{subTitleRender}}</strong>
+                    <strong>{{subTitleRender}}</strong>
                     <ul class="update-list">
                         <li v-for="(item, index) of noticeList" :key="index">
-                            <label :class="['bk-form-checkbox']" v-if="!item.isText">
-                                <input v-if="!isConfirming" type="checkbox" name="check" v-model="item.isChecked" @change="changeCheck(item)">
-                                <input v-else disabled="disabled" type="checkbox" name="check" v-model="item.isChecked">
-                                {{item.text}}
-                            </label>
-                            <div v-else>{{item.text}}</div>
+                            <bk-checkbox name="check" v-model="item.isChecked" :disabled="isConfirming" @change="changeCheck(item)">{{item.text}}</bk-checkbox>
                         </li>
                     </ul>
                     <template v-if="canConfirm">
@@ -40,9 +37,9 @@
                     </template>
                     <template v-else>
                         <div class="dialog-action">
-                            <bk-tooltip :content="$t('请确认以上内容，才可操作')" placement="top">
+                            <bk-popover :content="$t('请确认以上内容，才可操作')" placement="top">
                                 <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmBtnTextRender}}</a>
-                            </bk-tooltip>
+                            </bk-popover>
                             <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel" style="margin-left: 10px;">{{cancelBtnTextRender}}</a>
                         </div>
                     </template>
@@ -70,10 +67,6 @@
             subTitle: {
                 type: String,
                 default: ''
-            },
-            hasSubTitle: {
-                type: Boolean,
-                default: true
             },
             checkList: {
                 type: Array,
@@ -110,13 +103,16 @@
             isConfirming: {
                 type: Boolean,
                 default: false
+            },
+            width: {
+                type: Number
             }
         },
         data () {
             return {
                 tipDialogConf: {
                     isShow: false,
-                    width: 600
+                    width: this.width || 630
                 },
                 noticeList: [],
                 titleRender: '',
@@ -145,7 +141,7 @@
             this.titleRender = this.title || this.$t('提示')
             this.subTitleRender = this.subTitle || this.$t('提示')
             this.confirmBtnTextRender = this.confirmBtnText || this.$t('确定')
-            this.confirmingBtnTextRender = this.confirmingBtnText || this.$t('执行中')
+            this.confirmingBtnTextRender = this.confirmingBtnText || this.$t('执行中...')
             this.cancelBtnTextRender = this.cancelBtnText || this.$t('取消')
             this.cancelingBtnTextRender = this.cancelingBtnText || this.$t('取消中')
         },

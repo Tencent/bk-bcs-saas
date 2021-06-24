@@ -1,80 +1,197 @@
 /*
  * @file menu 配置
+ * @author ielgnaw <wuji0223@gmail.com>
  */
 
 /**
  * 生成左侧导航菜单
- *
- * @param {string} lang 当前语言标识 en-US 英文 zh-CN 中文
- *
  * @return {Object} 左侧导航菜单对象
  */
-export default function menuConfig (lang) {
-    let cluster = '集群'
-    let node = '节点'
-    let namespace = '命名空间'
-    let templateset = '模板集'
-    let variable = '变量管理'
-    let metric = 'Metric管理'
-    let app = '应用'
-    let network = '网络'
-    let resource = '配置'
-    let imageHub = '仓库'
-    let publicImage = '公共镜像'
-    let projectImage = '项目镜像'
-    let operateAudit = '操作审计'
-    let eventQuery = '事件查询'
-    let monitor = '监控中心'
-    let release = 'Release列表'
-    let chart = 'Chart仓库'
-
-    if (lang === 'en-US') {
-        cluster = 'Clusters'
-        node = 'Nodes'
-        namespace = 'Namespaces'
-        templateset = 'TemplateSets'
-        variable = 'Variables'
-        metric = 'Metrics'
-        app = 'Applications'
-        network = 'Network'
-        resource = 'Configuration'
-        imageHub = 'ImageHub'
-        publicImage = 'Public'
-        projectImage = 'Private'
-        operateAudit = 'Audit Log'
-        eventQuery = 'Events'
-        monitor = 'Container Monitoring'
-        release = 'Release'
-        chart = 'Chart'
-    }
+export default function menuConfig () {
+    const cluster = window.i18n.t('集群')
+    const overview = window.i18n.t('概览')
+    const node = window.i18n.t('节点')
+    const namespace = window.i18n.t('命名空间')
+    const templateset = window.i18n.t('模板集')
+    const variable = window.i18n.t('变量管理')
+    const metric = window.i18n.t('Metric管理')
+    const app = window.i18n.t('应用')
+    const network = window.i18n.t('网络')
+    const resource = window.i18n.t('配置')
+    const imageHub = window.i18n.t('仓库')
+    const publicImage = window.i18n.t('公共镜像')
+    const projectImage = window.i18n.t('项目镜像')
+    const operateAudit = window.i18n.t('操作审计')
+    const eventQuery = window.i18n.t('事件查询')
+    const monitor = window.i18n.t('监控中心')
+    const release = window.i18n.t('Release列表')
+    const chart = window.i18n.t('Chart仓库')
+    const crdcontroller = window.i18n.t('组件库')
+    const logCollection = window.i18n.t('日志采集')
+    const storage = window.i18n.t('存储')
+    const workload = window.i18n.t('工作负载')
+    const dashboardNamespace = window.i18n.t('命名空间')
 
     return {
-        menuList: [
+        dashboardMenuList: [
+            {
+                name: dashboardNamespace,
+                isSaveData: true,
+                icon: 'bcs-icon-namespace',
+                roleId: 'workload:menu',
+                pathName: ['dashboardNamespace'],
+                id: 'NAMESPACE'
+            },
+            {
+                name: workload,
+                isSaveData: true,
+                icon: 'bcs-icon-yy-apply',
+                roleId: 'workload:menu',
+                id: 'WORKLOAD',
+                children: [
+                    {
+                        name: 'Deployments',
+                        pathName: ['dashboardWorkloadDeployments']
+                    },
+                    {
+                        name: 'DaemonSets',
+                        pathName: ['dashboardWorkloadDaemonSets']
+                    },
+                    {
+                        name: 'StatefulSets',
+                        pathName: ['dashboardWorkloadStatefulSets']
+                    },
+                    {
+                        name: 'CronJobs',
+                        pathName: ['dashboardWorkloadCronJobs']
+                    },
+                    {
+                        name: 'Jobs',
+                        pathName: ['dashboardWorkloadJobs']
+                    },
+                    {
+                        name: 'Pods',
+                        pathName: ['dashboardWorkloadPods']
+                    }
+                    // {
+                    //     name: 'GameStatefulSets',
+                    //     pathName: ['dashboardWorkloadGameStatefulSets']
+                    // },
+                    // {
+                    //     name: 'GameDeployments',
+                    //     pathName: ['dashboardWorkloadGameDeployments']
+                    // },
+                    // {
+                    //     name: 'CustomObjects',
+                    //     pathName: ['dashboardWorkloadCustomObjects']
+                    // }
+                ]
+            },
+            {
+                name: network,
+                isSaveData: true,
+                icon: 'bcs-icon-wl-network',
+                roleId: 'network:menu',
+                id: 'NETWORK',
+                children: [
+                    {
+                        name: 'Ingresses',
+                        pathName: ['dashboardNetworkIngress']
+                    },
+                    {
+                        name: 'Services',
+                        pathName: ['dashboardNetworkService']
+                    },
+                    {
+                        name: 'Endpoints',
+                        pathName: ['dashboardNetworkEndpoints']
+                    }
+                ]
+            },
+            {
+                name: storage,
+                isSaveData: true,
+                icon: 'bcs-icon-data',
+                roleId: 'storage:menu',
+                children: [
+                    {
+                        name: 'PersistentVolumes',
+                        pathName: ['dashboardStoragePersistentVolumes']
+                    },
+                    {
+                        name: 'PersistentVolumesClaims',
+                        pathName: ['dashboardStoragePersistentVolumesClaims']
+                    },
+                    {
+                        name: 'StorageClasses',
+                        pathName: ['dashboardStorageStorageClass']
+                    }
+                ],
+                id: 'STORAGE'
+            },
+            {
+                name: resource,
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
+                roleId: 'resource:menu',
+                children: [
+                    {
+                        name: 'ConfigMaps',
+                        pathName: ['dashboardConfigsConfigMaps']
+                    },
+                    {
+                        name: 'Secrets',
+                        pathName: ['dashboardConfigsSecrets']
+                    }
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
+                name: 'RBAC',
+                isSaveData: true,
+                icon: 'bcs-icon-lock-line',
+                roleId: 'RBAC:menu',
+                children: [
+                    {
+                        name: 'ServiceAccounts',
+                        pathName: ['dashboardRbacServiceAccounts']
+                    }
+                ],
+                id: 'RBAC'
+            }
+        ],
+        clusterMenuList: [
             {
                 name: cluster,
-                icon: 'icon-jq-colony',
+                icon: 'bcs-icon-jq-colony',
                 pathName: [
                     'clusterMain', 'clusterCreate', 'clusterOverview',
                     'clusterNode', 'clusterInfo', 'clusterNodeOverview', 'containerDetailForNode'
                 ],
-                roleId: 'cluster:menu'
+                roleId: 'cluster:menu',
+                id: 'CLUSTER'
             },
             {
                 name: node,
-                icon: 'icon-jd-node',
+                isSaveData: true,
+                icon: 'bcs-icon-jd-node',
                 pathName: ['nodeMain'],
-                roleId: 'node:menu'
+                roleId: 'node:menu',
+                id: 'NODE'
             },
             {
                 name: namespace,
-                icon: 'icon-namespace',
+                isSaveData: true,
+                icon: 'bcs-icon-namespace',
                 roleId: 'configuration:menu',
-                pathName: ['namespace']
+                pathName: ['namespace'],
+                id: 'NAMESPACE'
             },
             { name: 'line' },
             {
                 name: templateset,
-                icon: 'icon-templateset',
+                isSaveData: true,
+                icon: 'bcs-icon-templateset',
                 roleId: 'configuration:menu',
                 pathName: [
                     'templateset',
@@ -83,31 +200,40 @@ export default function menuConfig (lang) {
                     'mesosTemplatesetService',
                     'mesosTemplatesetConfigmap',
                     'mesosTemplatesetSecret',
+                    'mesosTemplatesetIngress',
                     'mesosTemplatesetHPA',
                     'instantiation'
-                ]
+                ],
+                id: 'TEMPLATESET'
             },
             {
                 name: variable,
-                icon: 'icon-var',
+                isSaveData: true,
+                icon: 'bcs-icon-var',
                 roleId: 'configuration:menu',
-                pathName: ['var']
+                pathName: ['var'],
+                id: 'VARIABLE'
             },
             {
                 name: metric,
-                icon: 'icon-control-center',
-                pathName: ['metricManage']
+                isSaveData: true,
+                icon: 'bcs-icon-control-center',
+                pathName: ['metricManage'],
+                id: 'METRICS'
             },
             { name: 'line' },
             {
                 name: app,
-                icon: 'icon-yy-apply',
+                isSaveData: true,
+                icon: 'bcs-icon-yy-apply',
                 pathName: ['mesos', 'instanceDetail', 'instanceDetail2', 'containerDetail', 'containerDetail2', 'mesosInstantiation'],
-                roleId: 'app:menu'
+                roleId: 'app:menu',
+                id: 'WORKLOAD'
             },
             {
                 name: network,
-                icon: 'icon-wl-network',
+                isSaveData: true,
+                icon: 'bcs-icon-wl-network',
                 roleId: 'network:menu',
                 children: [
                     {
@@ -115,14 +241,24 @@ export default function menuConfig (lang) {
                         pathName: ['service']
                     },
                     {
+                        name: 'Ingress',
+                        pathName: ['resourceIngress']
+                    },
+                    {
                         name: 'LoadBalancer',
                         pathName: ['loadBalance', 'loadBalanceDetail']
+                    },
+                    {
+                        name: 'CloudLoadBalancer',
+                        pathName: ['cloudLoadBalance', 'cloudLoadBalanceDetail']
                     }
-                ]
+                ],
+                id: 'NETWORK'
             },
             {
                 name: resource,
-                icon: 'icon-zy-resource',
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
                 roleId: 'resource:menu',
                 children: [
                     {
@@ -133,69 +269,64 @@ export default function menuConfig (lang) {
                         name: 'Secrets',
                         pathName: ['resourceSecret']
                     }
-                ]
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
+                name: 'HPA',
+                isSaveData: true,
+                icon: 'bcs-icon-hpa',
+                roleId: 'configuration:menu',
+                pathName: ['hpa'],
+                id: 'HPA'
             },
             { name: 'line' },
-            {
-                name: imageHub,
-                icon: 'icon-ck-store',
-                roleId: 'repo:menu',
-                children: [
-                    {
-                        name: publicImage,
-                        pathName: ['imageLibrary']
-                    },
-                    {
-                        name: projectImage,
-                        pathName: ['projectImage']
-                    }
-                ]
-            },
-            { name: 'line' },
-            {
-                name: operateAudit,
-                icon: 'icon-operate-audit',
-                pathName: ['operateAudit']
-            },
             {
                 name: eventQuery,
-                icon: 'icon-event-query',
-                pathName: ['eventQuery']
+                isSaveData: true,
+                icon: 'bcs-icon-event-query',
+                pathName: ['eventQuery'],
+                id: 'EVENT'
             },
             { name: 'line' },
             {
                 name: monitor,
-                icon: 'icon-monitors',
+                isSaveData: true,
+                icon: 'bcs-icon-monitors',
                 externalLink: '/console/monitor/',
-                pathName: []
+                pathName: [],
+                id: 'MONITOR'
             }
         ],
-        k8sMenuList: [
+        clusterk8sMenuList: [
             {
-                name: cluster,
-                icon: 'icon-jq-colony',
-                pathName: [
-                    'clusterMain', 'clusterCreate', 'clusterOverview',
-                    'clusterNode', 'clusterInfo', 'clusterNodeOverview', 'containerDetailForNode'
-                ],
-                roleId: 'cluster:menu'
+                name: overview,
+                icon: 'bcs-icon-jq-colony',
+                pathName: ['clusterOverview', 'clusterNode', 'clusterNodeOverview', 'clusterInfo'],
+                roleId: '[overview:menu]',
+                id: 'OVERVIEW'
             },
             {
                 name: node,
-                icon: 'icon-jd-node',
+                isSaveData: true,
+                icon: 'bcs-icon-jd-node',
                 pathName: ['nodeMain'],
-                roleId: 'node:menu'
+                roleId: 'node:menu',
+                id: 'NODE'
             },
             {
                 name: namespace,
-                icon: 'icon-namespace',
+                isSaveData: true,
+                icon: 'bcs-icon-namespace',
                 roleId: 'configuration:menu',
-                pathName: ['namespace']
+                pathName: ['namespace'],
+                id: 'NAMESPACE'
             },
             { name: 'line' },
             {
                 name: templateset,
-                icon: 'icon-templateset',
+                isSaveData: true,
+                icon: 'bcs-icon-templateset',
                 roleId: 'configuration:menu',
                 pathName: [
                     'templateset',
@@ -210,23 +341,29 @@ export default function menuConfig (lang) {
                     'k8sTemplatesetHPA',
                     'K8sYamlTemplateset',
                     'instantiation'
-                ]
+                ],
+                id: 'TEMPLATESET'
             },
             {
                 name: variable,
-                icon: 'icon-var',
+                isSaveData: true,
+                icon: 'bcs-icon-var',
                 roleId: 'configuration:menu',
-                pathName: ['var']
+                pathName: ['var'],
+                id: 'VARIABLE'
             },
             {
                 name: metric,
-                icon: 'icon-control-center',
-                pathName: ['metricManage']
+                isSaveData: true,
+                icon: 'bcs-icon-control-center',
+                pathName: ['metricManage'],
+                id: 'METRICS'
             },
             { name: 'line' },
             {
                 name: 'Helm',
-                icon: 'icon-helm',
+                isSaveData: true,
+                icon: 'bcs-icon-helm',
                 children: [
                     {
                         name: release,
@@ -240,12 +377,14 @@ export default function menuConfig (lang) {
                             'helmTplInstance'
                         ]
                     }
-                ]
+                ],
+                id: 'HELM'
             },
             { name: 'line' },
             {
                 name: app,
-                icon: 'icon-yy-apply',
+                isSaveData: true,
+                icon: 'bcs-icon-yy-apply',
                 roleId: 'app:menu',
                 children: [
                     {
@@ -263,6 +402,13 @@ export default function menuConfig (lang) {
                         ]
                     },
                     {
+                        name: 'StatefulSets',
+                        pathName: [
+                            'statefulset', 'statefulsetInstanceDetail', 'statefulsetInstanceDetail2',
+                            'statefulsetContainerDetail', 'statefulsetContainerDetail2', 'statefulsetInstantiation'
+                        ]
+                    },
+                    {
                         name: 'Jobs',
                         pathName: [
                             'job', 'jobInstanceDetail', 'jobInstanceDetail2',
@@ -270,17 +416,30 @@ export default function menuConfig (lang) {
                         ]
                     },
                     {
-                        name: 'StatefulSets',
+                        name: 'GameStatefulSets',
                         pathName: [
-                            'statefulset', 'statefulsetInstanceDetail', 'statefulsetInstanceDetail2',
-                            'statefulsetContainerDetail', 'statefulsetContainerDetail2', 'statefulsetInstantiation'
+                            'gamestatefulset'
+                        ]
+                    },
+                    {
+                        name: 'GameDeployments',
+                        pathName: [
+                            'gamedeployments'
+                        ]
+                    },
+                    {
+                        name: 'CustomObjects',
+                        pathName: [
+                            'customobjects'
                         ]
                     }
-                ]
+                ],
+                id: 'WORKLOAD'
             },
             {
                 name: network,
-                icon: 'icon-wl-network',
+                isSaveData: true,
+                icon: 'bcs-icon-wl-network',
                 roleId: 'network:menu',
                 children: [
                     {
@@ -295,11 +454,13 @@ export default function menuConfig (lang) {
                         name: 'LoadBalancer',
                         pathName: ['loadBalance', 'loadBalanceDetail']
                     }
-                ]
+                ],
+                id: 'NETWORK'
             },
             {
                 name: resource,
-                icon: 'icon-zy-resource',
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
                 roleId: 'resource:menu',
                 children: [
                     {
@@ -310,13 +471,198 @@ export default function menuConfig (lang) {
                         name: 'Secrets',
                         pathName: ['resourceSecret']
                     }
-                ]
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
+                name: 'HPA',
+                isSaveData: true,
+                icon: 'bcs-icon-hpa',
+                roleId: 'configuration:menu',
+                pathName: ['hpa'],
+                id: 'HPA'
+            },
+            {
+                name: storage,
+                isSaveData: true,
+                icon: 'bcs-icon-data',
+                roleId: 'storage:menu',
+                children: [
+                    {
+                        name: 'PersistentVolume',
+                        pathName: ['pv']
+                    },
+                    {
+                        name: 'PersistentVolumeClaim',
+                        pathName: ['pvc']
+                    },
+                    {
+                        name: 'StorageClass',
+                        pathName: ['storageClass']
+                    }
+                ],
+                id: 'STORAGE'
+            },
+            { name: 'line' },
+            {
+                name: logCollection,
+                isSaveData: true,
+                icon: 'bcs-icon-log-collection',
+                roleId: 'logCollection:menu',
+                pathName: ['logCrdcontroller', 'crdcontrollerLogInstances'],
+                id: 'LOG'
+            },
+            {
+                name: crdcontroller,
+                isSaveData: true,
+                icon: 'bcs-icon-crd1',
+                roleId: 'crdcontroller:menu',
+                pathName: ['dbCrdcontroller', 'crdcontrollerDBInstances', 'crdcontrollerPolarisInstances', 'crdcontrollerPolarisInstances'],
+                id: 'COMPONENTS'
+            },
+            {
+                name: eventQuery,
+                isSaveData: true,
+                icon: 'bcs-icon-event-query',
+                pathName: ['eventQuery'],
+                id: 'EVENT'
+            },
+            { name: 'line' },
+            {
+                name: monitor,
+                isSaveData: true,
+                icon: 'bcs-icon-monitors',
+                externalLink: '/console/monitor/',
+                pathName: [],
+                id: 'MONITOR'
+            }
+        ],
+        menuList: [
+            {
+                name: cluster,
+                icon: 'bcs-icon-jq-colony',
+                pathName: [
+                    'clusterMain', 'clusterCreate', 'clusterOverview',
+                    'clusterNode', 'clusterInfo', 'clusterNodeOverview', 'containerDetailForNode'
+                ],
+                roleId: 'cluster:menu',
+                id: 'CLUSTER'
+            },
+            {
+                name: node,
+                isSaveData: true,
+                icon: 'bcs-icon-jd-node',
+                pathName: ['nodeMain'],
+                roleId: 'node:menu',
+                id: 'NODE'
+            },
+            {
+                name: namespace,
+                isSaveData: true,
+                icon: 'bcs-icon-namespace',
+                roleId: 'configuration:menu',
+                pathName: ['namespace'],
+                id: 'NAMESPACE'
+            },
+            { name: 'line' },
+            {
+                name: templateset,
+                isSaveData: true,
+                icon: 'bcs-icon-templateset',
+                roleId: 'configuration:menu',
+                pathName: [
+                    'templateset',
+                    'mesosTemplatesetApplication',
+                    'mesosTemplatesetDeployment',
+                    'mesosTemplatesetService',
+                    'mesosTemplatesetConfigmap',
+                    'mesosTemplatesetSecret',
+                    'mesosTemplatesetIngress',
+                    'mesosTemplatesetHPA',
+                    'instantiation'
+                ],
+                id: 'TEMPLATESET'
+            },
+            {
+                name: variable,
+                isSaveData: true,
+                icon: 'bcs-icon-var',
+                roleId: 'configuration:menu',
+                pathName: ['var'],
+                id: 'VARIABLE'
+            },
+            {
+                name: metric,
+                isSaveData: true,
+                icon: 'bcs-icon-control-center',
+                pathName: ['metricManage'],
+                id: 'METRICS'
+            },
+            { name: 'line' },
+            {
+                name: app,
+                isSaveData: true,
+                icon: 'bcs-icon-yy-apply',
+                pathName: ['mesos', 'instanceDetail', 'instanceDetail2', 'containerDetail', 'containerDetail2', 'mesosInstantiation'],
+                roleId: 'app:menu',
+                id: 'WORKLOAD'
+            },
+            {
+                name: network,
+                isSaveData: true,
+                icon: 'bcs-icon-wl-network',
+                roleId: 'network:menu',
+                children: [
+                    {
+                        name: 'Service',
+                        pathName: ['service']
+                    },
+                    {
+                        name: 'Ingress',
+                        pathName: ['resourceIngress']
+                    },
+                    {
+                        name: 'LoadBalancer',
+                        pathName: ['loadBalance', 'loadBalanceDetail']
+                    },
+                    {
+                        name: 'CloudLoadBalancer',
+                        pathName: ['cloudLoadBalance', 'cloudLoadBalanceDetail']
+                    }
+                ],
+                id: 'NETWORK'
+            },
+            {
+                name: resource,
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
+                roleId: 'resource:menu',
+                children: [
+                    {
+                        name: 'ConfigMaps',
+                        pathName: ['resourceConfigmap']
+                    },
+                    {
+                        name: 'Secrets',
+                        pathName: ['resourceSecret']
+                    }
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
+                name: 'HPA',
+                isSaveData: true,
+                icon: 'bcs-icon-hpa',
+                roleId: 'configuration:menu',
+                pathName: ['hpa'],
+                id: 'HPA'
             },
             { name: 'line' },
             {
                 name: imageHub,
-                icon: 'icon-ck-store',
+                icon: 'bcs-icon-ck-store',
                 roleId: 'repo:menu',
+                isSaveData: false,
                 children: [
                     {
                         name: publicImage,
@@ -326,25 +672,300 @@ export default function menuConfig (lang) {
                         name: projectImage,
                         pathName: ['projectImage']
                     }
-                ]
+                ],
+                id: 'REPO'
             },
             { name: 'line' },
             {
                 name: operateAudit,
-                icon: 'icon-operate-audit',
-                pathName: ['operateAudit']
+                icon: 'bcs-icon-operate-audit',
+                pathName: ['operateAudit'],
+                isSaveData: false,
+                id: 'AUDIT'
             },
             {
                 name: eventQuery,
-                icon: 'icon-event-query',
-                pathName: ['eventQuery']
+                isSaveData: true,
+                icon: 'bcs-icon-event-query',
+                pathName: ['eventQuery'],
+                id: 'EVENT'
             },
             { name: 'line' },
             {
                 name: monitor,
-                icon: 'icon-monitors',
+                isSaveData: true,
+                icon: 'bcs-icon-monitors',
                 externalLink: '/console/monitor/',
-                pathName: []
+                pathName: [],
+                id: 'MONITOR'
+            }
+        ],
+        k8sMenuList: [
+            {
+                name: cluster,
+                icon: 'bcs-icon-jq-colony',
+                pathName: [
+                    'clusterMain', 'clusterCreate', 'clusterOverview',
+                    'clusterNode', 'clusterInfo', 'clusterNodeOverview', 'containerDetailForNode'
+                ],
+                roleId: 'cluster:menu',
+                id: 'CLUSTER'
+            },
+            {
+                name: node,
+                isSaveData: true,
+                icon: 'bcs-icon-jd-node',
+                pathName: ['nodeMain'],
+                roleId: 'node:menu',
+                id: 'NODE'
+            },
+            {
+                name: namespace,
+                isSaveData: true,
+                icon: 'bcs-icon-namespace',
+                roleId: 'configuration:menu',
+                pathName: ['namespace'],
+                id: 'NAMESPACE'
+            },
+            { name: 'line' },
+            {
+                name: templateset,
+                isSaveData: true,
+                icon: 'bcs-icon-templateset',
+                roleId: 'configuration:menu',
+                pathName: [
+                    'templateset',
+                    'k8sTemplatesetDeployment',
+                    'k8sTemplatesetDaemonset',
+                    'k8sTemplatesetJob',
+                    'k8sTemplatesetStatefulset',
+                    'k8sTemplatesetService',
+                    'k8sTemplatesetConfigmap',
+                    'k8sTemplatesetSecret',
+                    'k8sTemplatesetIngress',
+                    'k8sTemplatesetHPA',
+                    'K8sYamlTemplateset',
+                    'instantiation'
+                ],
+                id: 'TEMPLATESET'
+            },
+            {
+                name: variable,
+                isSaveData: true,
+                icon: 'bcs-icon-var',
+                roleId: 'configuration:menu',
+                pathName: ['var'],
+                id: 'VARIABLE'
+            },
+            {
+                name: metric,
+                isSaveData: true,
+                icon: 'bcs-icon-control-center',
+                pathName: ['metricManage'],
+                id: 'METRICS'
+            },
+            { name: 'line' },
+            {
+                name: 'Helm',
+                isSaveData: true,
+                icon: 'bcs-icon-helm',
+                children: [
+                    {
+                        name: release,
+                        pathName: ['helms', 'helmAppDetail']
+                    },
+                    {
+                        name: chart,
+                        pathName: [
+                            'helmTplList',
+                            'helmTplDetail',
+                            'helmTplInstance'
+                        ]
+                    }
+                ],
+                id: 'HELM'
+            },
+            { name: 'line' },
+            {
+                name: app,
+                isSaveData: true,
+                icon: 'bcs-icon-yy-apply',
+                roleId: 'app:menu',
+                children: [
+                    {
+                        name: 'Deployments',
+                        pathName: [
+                            'deployments', 'deploymentsInstanceDetail', 'deploymentsInstanceDetail2',
+                            'deploymentsContainerDetail', 'deploymentsContainerDetail2', 'deploymentsInstantiation'
+                        ]
+                    },
+                    {
+                        name: 'DaemonSets',
+                        pathName: [
+                            'daemonset', 'daemonsetInstanceDetail', 'daemonsetInstanceDetail2',
+                            'daemonsetContainerDetail', 'daemonsetContainerDetail2', 'daemonsetInstantiation'
+                        ]
+                    },
+                    {
+                        name: 'StatefulSets',
+                        pathName: [
+                            'statefulset', 'statefulsetInstanceDetail', 'statefulsetInstanceDetail2',
+                            'statefulsetContainerDetail', 'statefulsetContainerDetail2', 'statefulsetInstantiation'
+                        ]
+                    },
+                    {
+                        name: 'Jobs',
+                        pathName: [
+                            'job', 'jobInstanceDetail', 'jobInstanceDetail2',
+                            'jobContainerDetail', 'jobContainerDetail2', 'jobInstantiation'
+                        ]
+                    },
+                    {
+                        name: 'GameStatefulSets',
+                        pathName: [
+                            'gamestatefulset'
+                        ]
+                    },
+                    {
+                        name: 'GameDeployments',
+                        pathName: [
+                            'gamedeployments'
+                        ]
+                    },
+                    {
+                        name: 'CustomObjects',
+                        pathName: [
+                            'customobjects'
+                        ]
+                    }
+                ],
+                id: 'WORKLOAD'
+            },
+            {
+                name: network,
+                isSaveData: true,
+                icon: 'bcs-icon-wl-network',
+                roleId: 'network:menu',
+                children: [
+                    {
+                        name: 'Service',
+                        pathName: ['service']
+                    },
+                    {
+                        name: 'Ingress',
+                        pathName: ['resourceIngress']
+                    },
+                    {
+                        name: 'LoadBalancer',
+                        pathName: ['loadBalance', 'loadBalanceDetail']
+                    }
+                ],
+                id: 'NETWORK'
+            },
+            {
+                name: resource,
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
+                roleId: 'resource:menu',
+                children: [
+                    {
+                        name: 'ConfigMaps',
+                        pathName: ['resourceConfigmap']
+                    },
+                    {
+                        name: 'Secrets',
+                        pathName: ['resourceSecret']
+                    }
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
+                name: 'HPA',
+                isSaveData: true,
+                icon: 'bcs-icon-hpa',
+                roleId: 'configuration:menu',
+                pathName: ['hpa'],
+                id: 'HPA'
+            },
+            {
+                name: storage,
+                isSaveData: true,
+                icon: 'bcs-icon-data',
+                roleId: 'storage:menu',
+                children: [
+                    {
+                        name: 'PersistentVolume',
+                        pathName: ['pv']
+                    },
+                    {
+                        name: 'PersistentVolumeClaim',
+                        pathName: ['pvc']
+                    },
+                    {
+                        name: 'StorageClass',
+                        pathName: ['storageClass']
+                    }
+                ],
+                id: 'STORAGE'
+            },
+            { name: 'line' },
+            {
+                name: logCollection,
+                isSaveData: true,
+                icon: 'bcs-icon-log-collection',
+                roleId: 'logCollection:menu',
+                pathName: ['logCrdcontroller', 'crdcontrollerLogInstances'],
+                id: 'LOG'
+            },
+            {
+                name: crdcontroller,
+                isSaveData: true,
+                icon: 'bcs-icon-crd1',
+                roleId: 'crdcontroller:menu',
+                pathName: ['dbCrdcontroller', 'crdcontrollerDBInstances', 'crdcontrollerPolarisInstances'],
+                id: 'COMPONENTS'
+            },
+            { name: 'line' },
+            {
+                name: imageHub,
+                icon: 'bcs-icon-ck-store',
+                roleId: 'repo:menu',
+                isSaveData: false,
+                children: [
+                    {
+                        name: publicImage,
+                        pathName: ['imageLibrary']
+                    },
+                    {
+                        name: projectImage,
+                        pathName: ['projectImage']
+                    }
+                ],
+                id: 'REPO'
+            },
+            { name: 'line' },
+            {
+                name: operateAudit,
+                icon: 'bcs-icon-operate-audit',
+                pathName: ['operateAudit'],
+                isSaveData: false,
+                id: 'AUDIT'
+            },
+            {
+                name: eventQuery,
+                isSaveData: true,
+                icon: 'bcs-icon-event-query',
+                pathName: ['eventQuery'],
+                id: 'EVENT'
+            },
+            { name: 'line' },
+            {
+                name: monitor,
+                isSaveData: true,
+                icon: 'bcs-icon-monitors',
+                externalLink: '/console/monitor/',
+                pathName: [],
+                id: 'MONITOR'
             }
         ]
     }

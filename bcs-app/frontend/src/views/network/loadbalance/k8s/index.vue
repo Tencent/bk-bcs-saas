@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-loadbalance-title">
                 LoadBalancer
-                <span data-v-67a1b199="" class="biz-tip f12 ml10">{{$t('K8S官方维护的ingress-nginx')}}</span>
+                <span data-v-67a1b199="" class="biz-tip ml10">{{$t('K8S官方维护的ingress-nginx')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,10 +17,10 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="createLoadBlance">
-                            <i class="bk-icon icon-plus"></i>
+                        <bk-button type="primary" @click.stop.prevent="createLoadBlance">
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新建LoadBalancer')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -28,94 +28,72 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getLoadBalanceList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
                 </div>
                 <div class="biz-loadbalance">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-loadbalance-table">
-                            <thead>
-                                <tr>
-                                    <th>{{$t('所属集群')}}</th>
-                                    <th>{{$t('命名空间')}}</th>
-                                    <th>{{$t('Chart名称及版本')}}</th>
-                                    <th>{{$t('更新时间')}}</th>
-                                    <th>{{$t('更新人')}}</th>
-                                    <th style="width: 160px;">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="loadBalanceList.length">
-                                    <tr v-for="(loadBalance, index) in curPageData" :key="loadBalance.id">
-                                        <td>
-                                            <bk-tooltip :content="loadBalance.cluster_id" placement="top">
-                                                <div class="cluster-name">{{loadBalance.cluster_name}}</div>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            {{loadBalance.namespace_name}}
-                                        </td>
-                                        <td>
-                                            <div class="chart-info" v-if="loadBalance.chart">
-                                                <p>{{$t('名称')}}：{{loadBalance.chart.name || '--'}}</p>
-                                                <p>{{$t('版本')}}：{{loadBalance.chart.version || '--'}}</p>
-                                            </div>
-                                            <template v-else>--</template>
-                                        </td>
-                                        <td>
-                                            {{formatDate(loadBalance.updated)}}
-                                        </td>
-                                        <td>
-                                            {{loadBalance.updator}}
-                                        </td>
-                                        <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('更新')}}</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">{{$t('删除')}}</a>
-                                        </td>
-                                    </tr>
+                    <div class="biz-table-wrapper">
+                        <bk-table
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            @page-limit-change="handlePageLimitChange"
+                            @page-change="handlePageChange">
+                            <bk-table-column :label="$t('所属集群')" min-width="150">
+                                <template slot-scope="props">
+                                    <bcs-popover :content="props.row.cluster_id" placement="top">
+                                        <div class="cluster-name">{{props.row.cluster_name}}</div>
+                                    </bcs-popover>
                                 </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="5">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('命名空间')" min-width="150">
+                                <template slot-scope="props">
+                                    {{props.row.namespace_name || '--'}}
                                 </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="handlerPageChange">
-                        </bk-paging>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('Chart名称及版本')" min-width="150">
+                                <template slot-scope="props">
+                                    <div class="chart-info" v-if="props.row.chart">
+                                        <p>{{$t('名称')}}：{{props.row.chart.name || '--'}}</p>
+                                        <p>{{$t('版本')}}：{{props.row.chart.version || '--'}}</p>
+                                    </div>
+                                    <template v-else>--</template>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新时间')" min-width="150">
+                                <template slot-scope="props">
+                                    {{formatDate(props.row.updated)}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新人')" min-width="150">
+                                <template slot-scope="props">
+                                    {{props.row.updator}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" min-width="150">
+                                <template slot-scope="props">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(props.row, index)">{{$t('更新')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(props.row, index)">{{$t('删除')}}</a>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                 </div>
             </template>
         </div>
 
         <bk-sideslider
-            style="z-index: 150;"
             :quick-close="false"
             :is-show.sync="loadBalanceSlider.isShow"
             :title="loadBalanceSlider.title"
             :width="700"
             @hidden="hideLoadBalanceSlider">
             <div class="p30" slot="content">
-                <div class="bk-form bk-form-vertical mb20" v-bkloading="{ isLoading: isDataSaveing }">
+                <div class="bk-form bk-form-vertical mb20">
                     <div class="bk-form-item is-required">
                         <div class="bk-form-content">
                             <label class="bk-label">{{$t('所属集群')}}：</label>
@@ -127,7 +105,7 @@
                                     :setting-key="'cluster_id'"
                                     :display-key="'longName'"
                                     :is-link="true"
-                                    :disabled="!!curLoadBalance.id"
+                                    :disabled="!!curLoadBalance.id || !!curClusterId"
                                     :selected.sync="curLoadBalance.cluster_id"
                                     :list="clusterList">
                                 </bk-selector>
@@ -138,9 +116,9 @@
                     <div class="bk-form-item is-required mt15">
                         <div class="head">
                             <label class="bk-label">{{$t('节点IP')}}：</label>
-                            <bk-button type="primary" size="mini" @click="showNodeSelector">{{$t('添加节点')}}</bk-button>
+                            <bk-button type="primary" size="small" @click="showNodeSelector">{{$t('添加节点')}}</bk-button>
                         </div>
-                        <table class="bk-table biz-data-table has-table-bordered">
+                        <table class="bk-table biz-data-table has-table-bordered" style="border-bottom: none;">
                             <thead>
                                 <tr>
                                     <th>IP</th>
@@ -161,7 +139,7 @@
                                 <template v-else>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="biz-no-data p30">{{$t('无数据')}}</div>
+                                            <bcs-exception type="empty" scene="part"></bcs-exception>
                                         </td>
                                     </tr>
                                 </template>
@@ -173,9 +151,9 @@
                         <div class="bk-form-content">
                             <label class="bk-label">
                                 {{$t('选择版本')}}：
-                                <bk-tooltip :content="$t('选择chart:blueking-nginx-ingress对应的版本')" placement="right">
-                                    <i class="bk-icon icon-question-circle"></i>
-                                </bk-tooltip>
+                                <bcs-popover :content="$t('选择chart:blueking-nginx-ingress对应的版本')" placement="right">
+                                    <i class="bcs-icon bcs-icon-question-circle"></i>
+                                </bcs-popover>
                             </label>
                             <div class="bk-form-content">
                                 <bk-selector
@@ -194,8 +172,8 @@
                     <div class="bk-form-item mt15">
                         <label class="bk-label">{{$t('Values内容')}}：</label>
                         <div class="bk-form-content">
-                            <i v-if="editorIsFullScreen" class="bk-icon icon-close icon-btn" :title="$t('关闭全屏')" @click="handleCloseFullScreen"></i>
-                            <i v-else class="bk-icon icon-full-screen icon-btn" :title="$t('全屏')" @click="handleSetFullScreen"></i>
+                            <i v-if="editorIsFullScreen" class="bcs-icon bcs-icon-close icon-btn" :title="$t('关闭全屏')" @click="handleCloseFullScreen"></i>
+                            <i v-else class="bcs-icon bcs-icon-full-screen icon-btn" :title="$t('全屏')" @click="handleSetFullScreen"></i>
                             <ace
                                 lang="yaml"
                                 :width="'100%'"
@@ -211,8 +189,8 @@
                     </div>
 
                     <div class="bk-form-item mt25">
-                        <bk-button type="primary" @click="saveLoadBalance">{{$t('保存')}}</bk-button>
-                        <bk-button @click="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
+                        <bk-button type="primary" :loading="isDataSaveing" @click="saveLoadBalance">{{$t('保存')}}</bk-button>
+                        <bk-button :disabled="isDataSaveing" @click="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
                     </div>
                 </div>
             </div>
@@ -332,11 +310,14 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
             loadBalanceList () {
-                const data = this.getDataByPage(this.pageConf.curPage)
+                const data = this.getDataByPage(this.pageConf.current)
                 this.curPageData = this.formatDataToClient(data)
             },
             curPageData () {
@@ -367,6 +348,11 @@
                 }
             },
 
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getLoadBalanceList()
+            },
+
             async 'curLoadBalanceChartId' (chartId) {
                 await this.handlerSelectChart(chartId)
             }
@@ -379,7 +365,7 @@
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getLoadBalanceList()
             },
@@ -389,11 +375,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.pageConf.current = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.handlerPageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -454,7 +440,7 @@
                     'name': '',
                     'namespace': '',
                     'project_id': this.projectId,
-                    'cluster_id': '',
+                    'cluster_id': this.curClusterId || '',
                     'protocol': {
                         'http': {
                             port: 80,
@@ -596,7 +582,7 @@
                 const projectKind = this.curProject.kind
                 const loadBalanceId = loadBalance.id
                 this.$bkInfo({
-                    title: '',
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -653,9 +639,9 @@
                     return false
                 })
                 this.loadBalanceList.splice(0, this.loadBalanceList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -663,9 +649,9 @@
              */
             initPageConf () {
                 const total = this.loadBalanceList.length
-                this.pageConf.total = total
-                this.pageConf.curPage = 1
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.count = total
+                this.pageConf.current = 1
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.current)
             },
 
             /**
@@ -673,7 +659,7 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -684,10 +670,10 @@
             getDataByPage (page) {
                 // 如果没有page，重置
                 if (!page) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.current
+                let endIndex = page * this.pageConf.current
                 this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -705,9 +691,9 @@
              * 分页改变回调
              * @param  {number} page 页
              */
-            handlerPageChange (page = 1) {
+            handlePageChange (page = 1) {
                 this.isPageLoading = true
-                this.pageConf.curPage = page
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData = JSON.parse(JSON.stringify(data))
             },
@@ -722,7 +708,7 @@
                     'name': '',
                     'namespace': '',
                     'project_id': this.projectId,
-                    'cluster_id': '',
+                    'cluster_id': this.curClusterId || '',
                     'protocol': {
                         'http': {
                             port: 80,

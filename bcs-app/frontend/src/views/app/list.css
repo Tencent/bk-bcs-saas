@@ -1,6 +1,6 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/scroller.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/scroller.css';
 
 .biz-app-title {
     display: inline-block;
@@ -15,41 +15,72 @@
         margin-right: 10px;
         float: left;
 
-        .toggle-view {
-            width: 130px;
-            padding: 0 15px;
-            border: 1px solid $borderWeightColor;
-            height: 36px;
-            line-height: 34px;
-            display: inline-block;
-            white-space: nowrap;
-            outline: none;
-            cursor: pointer;
-            white-space: nowrap;
-            -webkit-appearance: none;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 14px;
-            background: #fff;
+        /deep/ .dropdown-trigger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #c4c6cc;
+            height: 32px;
+            min-width: 68px;
             border-radius: 2px;
-            box-sizing: border-box;
-            color: $fontWeightColor;
-            text-decoration: none;
-            transition: background-color ease 0.3s;
-
-            .bk-icon {
-                color: $fnMinorColor;
-                margin-left: 0;
-                left: 0px;
-                font-weight: 700;
+            padding: 0 10px 0 15px;
+            color: #63656e;
+            &:hover {
+                cursor: pointer;
+                border-color: #979ba5;
+            }
+            .bcs-icon {
+                margin-left: 4px;
                 font-size: 10px;
-                top: -1px;
+            }
+        }
+
+        .cluster-search-warpper {
+            font-size: 0;
+            .label {
+                position: relative;
+                border: 1px solid #c4c6cc;
+                border-radius: 2px;
+                line-height: 30px;
+                color: #63656e;
+                font-size: 12px;
+                display: inline-block;
+                width: 60px;
+                vertical-align: top;
+                border-right: 0;
+                margin-right: -3px;
+                padding-left: 10px;
+                &:after {
+                    content: "";
+                    position: absolute;
+                    display: inline-block;
+                    top: 8px;
+                    right: 3px;
+                    width: 1px;
+                    height: 14px;
+                    background-color: #c4c6cc;
+                }
+                &.is-focus {
+                    border-color: #3a84ff;
+                }
+            }
+            .cluster-search-select {
+                width: 180px;
+                display: inline-block;
+                border-left: 0;
+                border-radius: 0 2px 2px 0;
+                &.is-focus {
+                    box-shadow: none;
+                }
             }
         }
     }
 
     .right {
-        width: calc(100% - 140px);
+        width: calc(100% - 380px);
+        &.mesos {
+            width: calc(100% - 140px);
+        }
         position: relative;
 
         .biz-search-input {
@@ -132,7 +163,7 @@
 
         .list-item-tpl {
             background-color: #fff;
-            border-top: 1px solid $borderWeightColor;
+            border-top: 1px solid #dfe0e5;
 
             .list-item-tpl-inner {
                 height: 60px;
@@ -140,7 +171,7 @@
                 font-weight: 700;
 
                 i.toggle {
-                    border: 2px solid $borderWeightColor;
+                    border: 2px solid #dfe0e5;
                     border-radius: 2px;
                     color: $fnMinorColor;
                     font-size: 10px;
@@ -199,6 +230,9 @@
                 }
 
                 table {
+                    &:before {
+                        background-color: transparent;
+                    }
 
                     tbody,
                     thead {
@@ -270,6 +304,7 @@
 
                 p.instance-createat {
                     width: 125px;
+                    white-space: nowrap;
                 }
             }
         }
@@ -301,7 +336,7 @@
         }
         .app-toggle {
             padding-right: 20px;
-            font-size: 18px;
+            font-size: 14px;
         }
 
         .has-update {
@@ -393,7 +428,7 @@
         }
 
         .app-toggle {
-            font-size: 18px;
+            font-size: 14px;
         }
 
         .has-update {
@@ -490,7 +525,9 @@
                 }
 
                 table {
-
+                    &:before {
+                        background-color: transparent;
+                    }
                     tbody,
                     thead {
                         tr {
@@ -559,7 +596,8 @@
         }
 
         p.instance-createat {
-            width: 75px;
+            width: 80px;
+            white-space: nowrap;
         }
     }
 
@@ -908,11 +946,12 @@
 
 .biz-configuration-instantiation-cancel-fullscreen {
     position: fixed;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    z-index: 1500;
-    font-size: 40px;
-    padding: 10px;
+    z-index: 5000;
+    font-size: 16px;
+    padding: 7px;
+    color: #fff;
     cursor: pointer;
 
     i.icon-close {

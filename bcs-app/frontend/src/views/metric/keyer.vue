@@ -3,7 +3,7 @@
         <div class="biz-keys-list mb10">
             <div class="biz-key-item" v-for="(keyItem, index) in list" :key="index">
                 <template v-if="varList.length">
-                    <bk-input
+                    <bkbcs-input
                         type="text"
                         :placeholder="keyPlaceholder || $t('键')"
                         style="flex-basis: 40%;"
@@ -12,7 +12,7 @@
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
                         @input="valueChange"
                         @paste="pasteKey(keyItem, $event)">
-                    </bk-input>
+                    </bkbcs-input>
                 </template>
                 <template v-else>
                     <input
@@ -29,7 +29,7 @@
                 <span class="operator">=</span>
 
                 <template v-if="varList.length">
-                    <bk-input
+                    <bkbcs-input
                         type="text"
                         :placeholder="valuePlaceholder || $t('值')"
                         style="flex-basis: 60%;"
@@ -38,7 +38,7 @@
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
                         @input="valueChange"
                     >
-                    </bk-input>
+                    </bkbcs-input>
                 </template>
                 <template v-else>
                     <input
@@ -51,16 +51,15 @@
                     />
                 </template>
 
-                <button class="action-btn" @click.stop.prevent="addKey">
-                    <i class="bk-icon icon-plus"></i>
-                </button>
-                <button class="action-btn" v-if="list.length > 1" @click.stop.prevent="removeKey(keyItem, index)">
-                    <i class="bk-icon icon-minus"></i>
-                </button>
-                <label class="bk-form-checkbox" style="margin-left: 20px;" v-if="isLinkToSelector">
-                    <input type="checkbox" v-model="keyItem.isSelector" @change="valueChange">
+                <bk-button class="action-btn" @click.stop.prevent="addKey">
+                    <i class="bcs-icon bcs-icon-plus"></i>
+                </bk-button>
+                <bk-button class="action-btn" v-if="list.length > 1" @click.stop.prevent="removeKey(keyItem, index)">
+                    <i class="bcs-icon bcs-icon-minus"></i>
+                </bk-button>
+                <bk-checkbox class="ml20" v-if="isLinkToSelector" v-model="keyItem.isSelector" @change="valueChange">
                     {{addToSelectorStr || $t('添加至选择器')}}
-                </label>
+                </bk-checkbox>
                 <div v-if="keyItem.linkMessage" class="biz-tip mt5 f12">{{keyItem.linkMessage}}</div>
             </div>
         </div>
@@ -285,7 +284,7 @@
         background: transparent;
         outline: none;
 
-        .bk-icon {
+        .bcs-icon {
             width: 24px;
             height: 24px;
             line-height: 24px;
@@ -310,17 +309,17 @@
             cursor: default;
             color: #ddd !important;
             border-color: #ddd !important;
-            .bk-icon {
+            .bcs-icon {
                 color: #ddd !important;
                 border-color: #ddd !important;
             }
         }
         &:hover {
-            color: #3c96ff;
-            border-color: #3c96ff;
-            .bk-icon {
-                color: #3c96ff;
-                border-color: #3c96ff;
+            color: #3a84ff;
+            border-color: #3a84ff;
+            .bcs-icon {
+                color: #3a84ff;
+                border-color: #3a84ff;
             }
         }
     }

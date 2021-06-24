@@ -5,11 +5,13 @@
 // 集群首页
 const Cluster = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster')
 // 创建集群
-const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create.external')
+const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create')
+// 外部版创建集群
+const ClusterCreateExternal = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create.external')
 // 集群总览
 const ClusterOverview = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/overview')
 // 节点详情
-const ClusterNode = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/node.external')
+const ClusterNode = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/node')
 // 集群信息
 const ClusterInfo = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/info')
 const ClusterNodeOverview = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/node-overview')
@@ -39,7 +41,7 @@ const childRoutes = [
     {
         path: ':projectCode/cluster/create',
         name: 'clusterCreate',
-        component: ClusterCreate
+        component: global.REGION === 'ieod' ? ClusterCreate : ClusterCreateExternal
     },
     // 集群总览
     {

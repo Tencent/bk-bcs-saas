@@ -114,25 +114,16 @@ export function catchErrorHandler (err, ctx) {
         if (!err.code || err.code === 404) {
             ctx.exceptionCode = {
                 code: '404',
-                msg: '当前访问的页面不存在'
+                msg: window.i18n.t('当前访问的页面不存在')
             }
         } else if (err.code === 403) {
             ctx.exceptionCode = {
                 code: '403',
-                msg: 'Sorry，您的权限不足!'
+                msg: window.i18n.t('Sorry，您的权限不足!')
             }
         } else {
             console.error(err)
-            ctx.bkMessageInstance = ctx.$bkMessage({
-                theme: 'error',
-                message: err.message || err.data.msg || err.statusText
-            })
         }
-    } else if (err.hasOwnProperty('code')) {
-        ctx.bkMessageInstance = ctx.$bkMessage({
-            theme: 'error',
-            message: err.message || err.data.msg || err.statusText
-        })
     } else {
         // 其它像语法之类的错误不展示
         console.error(err)
@@ -453,6 +444,8 @@ export const chartColors = [
  * @return {str} 格式化后的日期
  */
 export function formatDate (date, formatStr = 'YYYY-MM-DD hh:mm:ss') {
+    if (!date) return ''
+
     const dateObj = new Date(date)
     const o = {
         'M+': dateObj.getMonth() + 1, // 月份
@@ -499,6 +492,14 @@ export function formatBytes (bytes, decimals) {
 }
 
 /**
+ * 判断是否为空
+ * @param {Object} obj
+ */
+export function isEmpty (obj) {
+    return typeof obj === 'undefined' || obj === null || obj === ''
+}
+
+/**
  * 生成随机数
  * @param {Number} n
  */
@@ -509,4 +510,85 @@ export const random = (n) => { // 生成n位长度的字符串
         result += str[parseInt(Math.random() * str.length, 10)]
     }
     return result
+}
+
+/**
+ * 清空对象的属性值
+ * @param {*} obj
+ */
+export function clearObjValue (obj) {
+    if (Object.prototype.toString.call(obj) !== '[object Object]') return
+
+    Object.keys(obj).forEach(key => {
+        if (Array.isArray(obj[key])) {
+            obj[key] = []
+        } else if (Object.prototype.toString.call(obj[key]) === '[object Object]') {
+            clearObjValue(obj[key])
+        } else {
+            obj[key] = ''
+        }
+    })
+}
+
+/**
+ * 获取对象key键下的值
+ * @param {*} obj { a: { b: { c: '123' } } }
+ * @param {*} key 'a.b.c'
+ */
+export const getObjectProps = (obj, key) => {
+    if (!isObject(obj)) return obj[key]
+
+    return String(key).split('.').reduce((pre, k) => {
+        return pre && pre[k] ? pre[k] : undefined
+    }, obj)
+}
+
+/**
+ * 排序数组对象
+ * 排序规则：1. 数字 => 2. 字母 => 3. 中文
+ * @param {*} arr
+ * @param {*} key
+ */
+export const sort = (arr, key, order = 'ascending') => {
+    if (!Array.isArray(arr)) return arr
+    const reg = /^[0-9a-zA-Z]/
+    const data = arr.sort((pre, next) => {
+        if (isObject(pre) && isObject(next) && key) {
+            const preStr = String(getObjectProps(pre, key))
+            const nextStr = String(getObjectProps(next, key))
+            if (reg.test(preStr) && !reg.test(nextStr)) {
+                return -1
+            } if (!reg.test(preStr) && reg.test(nextStr)) {
+                return 1
+            }
+            return preStr.localeCompare(nextStr)
+        }
+        return (`${pre}`).toString().localeCompare((`${pre}`))
+    })
+    return order === 'ascending' ? data : data.reverse()
+}
+
+// 格式化时间
+export const formatTime = (timestamp, fmt) => {
+    const time = new Date(timestamp)
+    const opt = {
+        "M+": time.getMonth() + 1, // 月份
+        "d+": time.getDate(), // 日
+        "h+": time.getHours(), // 小时
+        "m+": time.getMinutes(), // 分
+        "s+": time.getSeconds(), // 秒
+        "q+": Math.floor((time.getMonth() + 3) / 3), // 季度
+        "S": time.getMilliseconds() // 毫秒
+    }
+    if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (time.getFullYear() + "").substr(4 - RegExp.$1.length))
+    }
+    for (const k in opt) {
+        if (new RegExp("(" + k + ")").test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1)
+                ? opt[k]
+                : (`00${opt[k]}`).substr(String(opt[k]).length))
+        }
+    }
+    return fmt
 }

@@ -1,0 +1,56 @@
+<template>
+    <BaseLayout title="DaemonSets" kind="DaemonSet" category="daemonsets" type="workloads">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, gotoDetail, handleSortChange }">
+            <bk-table
+                :data="curPageData"
+                :pagination="pageConf"
+                @page-change="handlePageChange"
+                @page-limit-change="handlePageSizeChange"
+                @sort-change="handleSortChange">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" min-width="100" sortable :resizable="false">
+                    <template #default="{ row }">
+                        <bk-button class="bcs-button-ellipsis" text @click="gotoDetail(row)">{{ row.metadata.name }}</bk-button>
+                    </template>
+                </bk-table-column>
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" min-width="100" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('镜像')" min-width="280" :resizable="false">
+                    <template slot-scope="{ row }">
+                        <div class="images-wrapper">
+                            <div class="image-item" :title="image" v-for="(image, imageIndex) in handleGetExtData(row.metadata.uid, 'images')" :key="imageIndex">
+                                <span v-bk-tooltips.top="image">{{image}}</span>
+                            </div>
+                        </div>
+                    </template>
+                </bk-table-column>
+                <bk-table-column label="Desired" width="110" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.desiredNumberScheduled || 0}}</template>
+                </bk-table-column>
+                <bk-table-column label="Current" width="110" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.currentNumberScheduled || 0}}</template>
+                </bk-table-column>
+                <bk-table-column label="Ready" width="110" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.numberReady || 0}}</template>
+                </bk-table-column>
+                <bk-table-column label="Up-to-date" width="110" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.updatedNumberScheduled || 0}}</template>
+                </bk-table-column>
+                <bk-table-column label="Available" width="110" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.numberAvailable || 0}}</template>
+                </bk-table-column>
+                <bk-table-column label="Age" :resizable="false">
+                    <template #default="{ row }">
+                        <span>{{handleGetExtData(row.metadata.uid, 'age')}}</span>
+                    </template>
+                </bk-table-column>
+            </bk-table>
+        </template>
+    </BaseLayout>
+</template>
+<script>
+    import { defineComponent } from '@vue/composition-api'
+    import BaseLayout from '@open/views/dashboard/common/base-layout'
+
+    export default defineComponent({
+        components: { BaseLayout }
+    })
+</script>

@@ -24,7 +24,7 @@
             },
             placeholder: {
                 type: String,
-                default: '请输入'
+                default: window.i18n.t('请输入')
             }
         },
         data () {

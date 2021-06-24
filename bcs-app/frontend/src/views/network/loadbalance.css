@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-loadbalance-title {
     display: inline-block;
@@ -45,7 +45,7 @@
     color: #737987;
     margin-right: 10px;
 
-    .bk-icon {
+    .bcs-icon {
         margin-right: 5px;
         font-size: 12px;
         color: #dde4eb;
@@ -56,7 +56,7 @@
     }
 
     .bk-warning {
-        .bk-icon {
+        .bcs-icon {
             color: $warningColor;
         }
     }

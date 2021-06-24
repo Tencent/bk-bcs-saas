@@ -135,8 +135,7 @@ class LogStreamHandler(AsyncWebsocketConsumer):
 
             # k8s返回使用空格分隔
             t, _, log = line.partition(' ')
-            data = {'time': t, 'log': log}
-
+            data = {"streams": [{'time': t, 'log': log}]}
             try:
                 await self.send(text_data=json.dumps(data))
             except Exception as error:

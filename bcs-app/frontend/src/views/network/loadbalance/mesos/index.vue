@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-loadbalance-title">
                 LoadBalancer
-                <span class="biz-tip f12 ml10">{{$t('LB镜像升级，不影响已运行实例；如出现无法编辑或者启用的情况，请联系容器助手处理')}}</span>
+                <span class="biz-tip ml10">{{$t('LB镜像升级，不影响已运行实例；如出现无法编辑或者启用的情况，请联系容器助手处理')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,10 +17,10 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="createLoadBlance">
-                            <i class="bk-icon icon-plus"></i>
+                        <bk-button theme="primary" @click.stop.prevent="createLoadBlance">
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新建LoadBalancer')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -28,6 +28,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getLoadBalanceList"
                             @refresh="refresh">
                         </bk-data-searcher>
@@ -36,7 +37,82 @@
 
                 <div class="biz-loadbalance">
                     <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-loadbalance-table">
+                        <bk-table
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            @page-limit-change="handlePageLimitChange"
+                            @page-change="handlePageChange"
+                            @select="handlePageSelect"
+                            @select-all="handlePageSelectAll">
+                            <bk-table-column :label="$t('名称')" :show-overflow-tooltip="true" min-width="200">
+                                <template slot-scope="props">
+                                    <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(props.row)">{{props.row.name || '--'}}</a>
+                                    <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="loadBalanceFixStatus.includes(props.row.status)">
+                                        <div class="rotate rotate1"></div>
+                                        <div class="rotate rotate2"></div>
+                                        <div class="rotate rotate3"></div>
+                                        <div class="rotate rotate4"></div>
+                                        <div class="rotate rotate5"></div>
+                                        <div class="rotate rotate6"></div>
+                                        <div class="rotate rotate7"></div>
+                                        <div class="rotate rotate8"></div>
+                                    </div>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('所属集群')" min-width="150">
+                                <template slot-scope="props">
+                                    <bcs-popover :content="props.row.cluster_id" placement="top">
+                                        <div class="cluster-name biz-text-wrapper">{{props.row.cluster_id}}</div>
+                                    </bcs-popover>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('网络类型')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.network_type || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('转发模式')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.forward_mode || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('状态')" min-width="160">
+                                <template slot-scope="props">
+                                    <span class="vm mr10">{{statusMap[props.row.status] || $t('未部署')}}</span>
+                                    <div class="vm f12" style="display: inline-block;">
+                                        <p v-bk-tooltips="props.row.deployment_message || props.row.deployment_status" v-if="props.row.deployment_status">
+                                            Deployment: <span :class="`lb-text ${props.row.deployment_status.toLowerCase()}`">{{props.row.deployment_status}}</span>
+                                        </p>
+                                        <p v-bk-tooltips="props.row.application_message || props.row.application_status" v-if="props.row.application_status">
+                                            Application: <span :class="`lb-text ${props.row.application_status.toLowerCase()}`">{{props.row.application_status}}</span>
+                                        </p>
+                                    </div>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="200">
+                                <template slot-scope="props">
+                                    <!--
+                                        NOT_DEPLOYED = "not_deployed" : 没部署，操作：启动、编辑、删除
+                                        DEPLOYING = "deploying" : 部署中，操作：无
+                                        DEPLOYED = "deployed" : 已部署，操作：停止
+                                        STOPPING = "stopping" : 停止中，操作：无
+                                        STOPPED = "stopped" : 已停止，操作：启动、编辑、删除
+                                    -->
+                                    <!-- <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(props.row)">{{$t('查看')}}</a> -->
+                                    <template v-if="!props.row.status || props.row.status === 'not_deployed' || props.row.status === 'stopped'">
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(props.row, index)">{{$t('启动')}}</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(props.row, index)">{{$t('编辑')}}</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(props.row, index)">{{$t('删除')}}</a>
+                                    </template>
+                                    <template v-else-if="props.row.status === 'deployed'">
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="stopLoadBalance(props.row, index)">{{$t('停止')}}</a>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                        <table class="bk-table has-table-hover biz-table biz-loadbalance-table" v-if="false">
                             <thead>
                                 <tr>
                                     <th style="width: 160px;">{{$t('名称')}}</th>
@@ -65,9 +141,9 @@
                                             <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.name || '--'}}</a>
                                         </td>
                                         <td>
-                                            <bk-tooltip :content="loadBalance.cluster_id" placement="top">
+                                            <bcs-popover :content="loadBalance.cluster_id" placement="top">
                                                 <div class="cluster-name biz-text-wrapper">{{loadBalance.cluster_id}}</div>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td>{{loadBalance.network_type || '--'}}</td>
                                         <td>{{loadBalance.forward_mode || '--'}}</td>
@@ -75,12 +151,12 @@
                                             {{loadBalance.ip_list.length ? loadBalance.ip_list.join(', ') : '--'}}
                                         </td> -->
                                         <td>
-                                            <span class="vm mr10">{{statusMap[loadBalance.status] || '未部署'}}</span>
+                                            <span class="vm mr10">{{statusMap[loadBalance.status] || $t('未部署')}}</span>
                                             <div class="vm f12" style="display: inline-block;">
-                                                <p v-bktooltips="loadBalance.deployment_message || loadBalance.deployment_status" v-if="loadBalance.deployment_status">
+                                                <p v-bk-tooltips.left="loadBalance.deployment_message || loadBalance.deployment_status" v-if="loadBalance.deployment_status">
                                                     Deployment: <span :class="`lb-text ${loadBalance.deployment_status.toLowerCase()}`">{{loadBalance.deployment_status}}</span>
                                                 </p>
-                                                <p v-bktooltips="loadBalance.application_message || loadBalance.application_status" v-if="loadBalance.application_status">
+                                                <p v-bk-tooltips.left="loadBalance.application_message || loadBalance.application_status" v-if="loadBalance.application_status">
                                                     Application: <span :class="`lb-text ${loadBalance.application_status.toLowerCase()}`">{{loadBalance.application_status}}</span>
                                                 </p>
                                             </div>
@@ -110,7 +186,7 @@
                                         <td colspan="7">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part" v-if="!isInitLoading"></bcs-exception>
                                                 </div>
                                             </div>
                                         </td>
@@ -119,24 +195,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="handlerPageChange">
-                        </bk-paging>
-                    </div>
                 </div>
             </template>
 
             <bk-sideslider
-                style="z-index: 150;"
                 :quick-close="false"
                 :is-show.sync="loadBalanceSlider.isShow"
                 :title="loadBalanceSlider.title"
@@ -150,10 +212,8 @@
                                 <div class="bk-form-inline-item is-required" style="width: 260px;">
                                     <label class="bk-label">{{$t('名称')}}：</label>
                                     <div class="bk-form-content">
-                                        <input
-                                            type="text"
-                                            class="bk-form-input"
-                                            placeholder="请输入30个以内的字符"
+                                        <bk-input
+                                            :placeholder="$t('请输入30个以内的字符')"
                                             v-model="curLoadBalance.name"
                                             maxlength="30"
                                             :disabled="curLoadBalance.id" />
@@ -201,12 +261,12 @@
                                 <div class="bk-form-inline-item is-required" style="width: 260px;">
                                     <label class="bk-label">{{$t('实例数量')}}：</label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             type="number"
                                             :placeholder="$t('请输入')"
                                             style="width: 260px;"
                                             :value.sync="curLoadBalance.instance_num">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                             </div>
@@ -252,30 +312,30 @@
                                             </div>
 
                                             <template v-if="constraint.unionData[0].name !== 'ip-resources'">
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="text"
                                                     :placeholder="$t('多个值以管道符分隔')"
                                                     style="width: 250px;"
                                                     :disabled="constraint.unionData[0].operate === 'UNIQUE'"
                                                     :value.sync="constraint.unionData[0].arg_value"
                                                     :list="varList">
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </template>
                                             <template v-else>
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="number"
                                                     :placeholder="$t('请输入')"
                                                     style="width: 190px;"
                                                     :value.sync="constraint.unionData[0].arg_value"
                                                     :list="varList">
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </template>
-                                            <button class="action-btn" @click.stop.prevent="addConstraint()">
-                                                <i class="bk-icon icon-plus"></i>
-                                            </button>
-                                            <button class="action-btn" @click.stop.prevent="removeConstraint(constraint, index)" v-show="curLoadBalance.constraint.IntersectionItem.length > 1">
-                                                <i class="bk-icon icon-minus"></i>
-                                            </button>
+                                            <bk-button class="action-btn" @click.stop.prevent="addConstraint()">
+                                                <i class="bcs-icon bcs-icon-plus"></i>
+                                            </bk-button>
+                                            <bk-button class="action-btn" @click.stop.prevent="removeConstraint(constraint, index)" v-show="curLoadBalance.constraint.IntersectionItem.length > 1">
+                                                <i class="bcs-icon bcs-icon-minus"></i>
+                                            </bk-button>
                                         </div>
                                     </div>
                                 </div>
@@ -293,7 +353,7 @@
                                             size="small">
                                         </bk-switcher>
                                     </span>
-                                    <span class="biz-tip f12 ml5" style="font-weight: normal;">({{$t('启用后允许直接填写镜像信息')}})</span>
+                                    <span class="biz-tip ml5" style="font-weight: normal;">({{$t('启用后允许直接填写镜像信息')}})</span>
                                 </div>
                                 <div class="bk-form-item content">
                                     <div class="bk-form-item">
@@ -301,21 +361,21 @@
                                             <div class="bk-form-inline-item is-required" style="width: 239px;">
                                                 <label class="bk-label">{{$t('镜像地址')}}：</label>
                                                 <div class="bk-form-content">
-                                                    <input class="bk-form-input" :readonly="!curLoadBalance.use_custom_image_url" v-model="curLoadBalance.image_url" />
+                                                    <bk-input :readonly="!curLoadBalance.use_custom_image_url" v-model="curLoadBalance.image_url" />
                                                 </div>
                                             </div>
                                             <div class="bk-form-inline-item is-required" style="width: 235px; margin-left: 35px;">
                                                 <label class="bk-label">{{$t('镜像版本')}}：</label>
                                                 <div class="bk-form-content">
                                                     <template v-if="curLoadBalance.use_custom_image_url">
-                                                        <bk-input
+                                                        <bkbcs-input
                                                             type="text"
                                                             :placeholder="$t('版本号1')"
                                                             :value.sync="curLoadBalance.image_tag">
-                                                        </bk-input>
+                                                        </bkbcs-input>
                                                     </template>
                                                     <template v-else>
-                                                        <bk-input
+                                                        <bkbcs-input
                                                             ref="imageVersion"
                                                             type="text"
                                                             :placeholder="$t('版本号1')"
@@ -327,40 +387,39 @@
                                                             :is-select-mode="true"
                                                             :is-custom="true"
                                                             :default-list="imageVersionList">
-                                                        </bk-input>
+                                                        </bkbcs-input>
                                                     </template>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <label class="bk-form-checkbox mt5">
-                                            <input type="checkbox" name="image-get" value="Always" v-model="curLoadBalance.use_custom_imagesecret">
-                                            <i class="bk-checkbox-text">{{$t('添加镜像凭证')}}</i>
-                                        </label>
+                                        <bk-checkbox class="mt5" name="image-get" v-model="curLoadBalance.use_custom_imagesecret">
+                                            {{$t('添加镜像凭证')}}
+                                        </bk-checkbox>
 
                                         <template v-if="curLoadBalance.use_custom_imagesecret">
                                             <div class="bk-form-item">
                                                 <label class="bk-label" style="width: 150px;">ImagePullUser：</label>
                                                 <div class="bk-form-content" style="margin-left: 150px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||user)')"
                                                         style="width: 515px;"
                                                         :value.sync="curLoadBalance.image_pull_user"
                                                         :list="varList">
-                                                    </bk-input>
+                                                    </bkbcs-input>
                                                 </div>
                                             </div>
                                             <div class="bk-form-item">
                                                 <label class="bk-label" style="width: 150px;">ImagePullPasswd：</label>
                                                 <div class="bk-form-content" style="margin-left: 150px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||pwd)')"
                                                         style="width: 515px;"
                                                         :value.sync="curLoadBalance.image_pull_password"
                                                         :list="varList">
-                                                    </bk-input>
+                                                    </bkbcs-input>
                                                 </div>
                                             </div>
                                         </template>
@@ -373,7 +432,7 @@
                             <div class="bk-form-content">
                                 <label class="bk-label">{{$t('IP集')}}：</label>
                                 <div class="bk-form-content">
-                                    <textarea class="bk-form-textarea" placeholder="请输入IP，多个IP以空格或换行分隔" v-model="curLoadBalance.ips" style="width: 558px;"></textarea>
+                                    <textarea class="bk-form-textarea" :placeholder="$t('请输入IP，多个IP以空格或换行分隔')" v-model="curLoadBalance.ips" style="width: 558px;"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -394,46 +453,43 @@
                                                     </bk-selector>
                                                 </td>
                                                 <td style="width: 130px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         :placeholder="$t('挂载源')"
                                                         maxlength="512"
                                                         :value.sync="volumeItem.volume.hostPath"
                                                         :list="varList">
-                                                    </bk-input>
+                                                    </bkbcs-input>
                                                 </td>
                                                 <td style="width: 90px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         :placeholder="$t('挂载目录')"
                                                         maxlength="512"
                                                         :value.sync="volumeItem.volume.mountPath"
                                                         :list="varList">
-                                                    </bk-input>
+                                                    </bkbcs-input>
                                                 </td>
                                                 <td style="width: 70px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         :placeholder="$t('用户')"
                                                         :value.sync="volumeItem.volume.user"
                                                         :list="varList">
-                                                    </bk-input>
+                                                    </bkbcs-input>
                                                 </td>
-                                                <td style="width: 70px;">
+                                                <td style="width: 60px;">
                                                     <div class="biz-input-wrapper">
-                                                        <label class="bk-form-checkbox">
-                                                            <input type="checkbox" v-model="volumeItem.volume.readOnly">
-                                                            <i class="bk-checkbox-text">{{$t('只读')}}</i>
-                                                        </label>
+                                                        <bk-checkbox v-model="volumeItem.volume.readOnly">{{$t('只读')}}</bk-checkbox>
                                                     </div>
                                                 </td>
                                                 <div class="action-box">
-                                                    <button class="action-btn p0 mr5" @click.stop.prevent="addVolumn()">
-                                                        <i class="bk-icon icon-plus"></i>
-                                                    </button>
-                                                    <button class="action-btn p0" @click.stop.prevent="removeVolumn(volumeItem, index)" v-show="curLoadBalance.volumes.length > 1">
-                                                        <i class="bk-icon icon-minus"></i>
-                                                    </button>
+                                                    <bk-button class="action-btn p0 mr5" @click.stop.prevent="addVolumn()">
+                                                        <i class="bcs-icon bcs-icon-plus"></i>
+                                                    </bk-button>
+                                                    <bk-button class="action-btn p0" @click.stop.prevent="removeVolumn(volumeItem, index)" v-show="curLoadBalance.volumes.length > 1">
+                                                        <i class="bcs-icon bcs-icon-minus"></i>
+                                                    </bk-button>
                                                 </div>
                                             </tr>
                                         </tbody>
@@ -449,11 +505,11 @@
                                     <div class="biz-keys-list mb10">
                                         <div class="biz-key-item">
                                             <div class="bk-input-box bk-selector" style="width: 257px;">
-                                                <input type="text" placeholder="键" autocomplete="off" class="bk-form-input" value="BCSGROUP" disabled style="width: 257px;" />
+                                                <bk-input :placeholder="$t('键')" :native-attributes="{ autocomplete: 'off' }" value="BCSGROUP" :disabled="true" style="width: 257px;" />
                                             </div>
                                             <span class="operator">=</span>
                                             <div class="bk-input-box bk-selector" style="width: 257px;">
-                                                <input type="text" placeholder="值" autocomplete="off" class="bk-form-input" readonly style="width: 257px;" v-model="curLoadBalance.related_service_label" />
+                                                <bk-input :placeholder="$t('值')" :native-attributes="{ autocomplete: 'off' }" :readonly="true" style="width: 257px;" v-model="curLoadBalance.related_service_label" />
                                             </div>
                                         </div>
                                     </div>
@@ -472,12 +528,12 @@
                                             <span class="input-group-addon is-left">
                                                 limits
                                             </span>
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 110px;"
                                                 :value.sync="curLoadBalance.resources.limits.cpu">
-                                            </bk-input>
+                                            </bkbcs-input>
                                             <span class="input-group-addon">
                                                 {{$t('核')}}
                                             </span>
@@ -491,12 +547,12 @@
                                             <span class="input-group-addon is-left">
                                                 limits
                                             </span>
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 110px;"
                                                 :value.sync="curLoadBalance.resources.limits.memory">
-                                            </bk-input>
+                                            </bkbcs-input>
                                             <span class="input-group-addon">
                                                 M
                                             </span>
@@ -508,8 +564,8 @@
 
                         <div class="biz-span mr30">
                             <div class="title">
-                                <button :class="['bk-text-button fb', { 'rotate': isShowMore }]" @click.stop.prevent="toggleMore">
-                                    {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down f12 ml5 mb10 fb"></i>
+                                <button :class="['bk-text-button', { 'rotate': isShowMore }]" @click.stop.prevent="toggleMore">
+                                    {{$t('更多设置')}}<i class="bcs-icon bcs-icon-angle-double-down f12 ml5 mb10 fb"></i>
                                 </button>
                             </div>
                         </div>
@@ -535,21 +591,21 @@
                                                             </bk-selector>
                                                         </div>
                                                         <transition name="fade">
-                                                            <input type="text" class="bk-form-input" style="width: 220px;" :placeholder="$t('自定义值')" v-model="curLoadBalance.custom_value" v-if="curLoadBalance.network_mode === 'CUSTOM'">
+                                                            <bk-input style="width: 220px;" :placeholder="$t('自定义值')" v-model="curLoadBalance.custom_value" v-if="curLoadBalance.network_mode === 'CUSTOM'" />
                                                         </transition>
                                                     </div>
                                                 </div>
                                                 <div class="bk-form-inline-item is-required" style="width: 235px; margin-left: 35px;" v-if="curLoadBalance.network_mode === 'BRIDGE'">
                                                     <label class="bk-label">{{$t('端口')}}：</label>
                                                     <div class="bk-form-content">
-                                                        <bk-input
+                                                        <bkbcs-input
                                                             type="number"
                                                             :placeholder="$t('请输入')"
                                                             style="width: 235px;"
                                                             :min="31000"
                                                             :max="32000"
                                                             :value.sync="curLoadBalance.host_port">
-                                                        </bk-input>
+                                                        </bkbcs-input>
                                                     </div>
                                                 </div>
                                             </div>
@@ -560,28 +616,20 @@
                                                 <div class="bk-form-inline-item is-required" style="width: 235px; margin-right: 35px;">
                                                     <label class="bk-label">{{$t('转发模式')}}：</label>
                                                     <div class="bk-form-content">
-                                                        <label class="bk-form-radio">
-                                                            <input type="radio" name="forward_mode" value="haproxy" v-model="curLoadBalance.forward_mode" />
-                                                            <i class="bk-radio-text">haproxy</i>
-                                                        </label>
-                                                        <label class="bk-form-radio">
-                                                            <input type="radio" name="forward_mode" value="nginx" v-model="curLoadBalance.forward_mode" />
-                                                            <i class="bk-radio-text">nginx</i>
-                                                        </label>
+                                                        <bk-radio-group v-model="curLoadBalance.forward_mode">
+                                                            <bk-radio value="haproxy">haproxy</bk-radio>
+                                                            <bk-radio value="nginx">nginx</bk-radio>
+                                                        </bk-radio-group>
                                                     </div>
                                                 </div>
 
                                                 <div class="bk-form-inline-item is-required" style="width: 235px;">
                                                     <label class="bk-label">{{$t('网络类型')}}：</label>
                                                     <div class="bk-form-content">
-                                                        <label class="bk-form-radio">
-                                                            <input type="radio" name="network_model" value="cni" v-model="curLoadBalance.network_type">
-                                                            <i class="bk-radio-text">cni</i>
-                                                        </label>
-                                                        <label class="bk-form-radio">
-                                                            <input type="radio" name="network_model" value="cnm" v-model="curLoadBalance.network_type" :disabled="curLoadBalance.network_mode === 'USER'">
-                                                            <i class="bk-radio-text">cnm</i>
-                                                        </label>
+                                                        <bk-radio-group v-model="curLoadBalance.network_type">
+                                                            <bk-radio value="cni">cni</bk-radio>
+                                                            <bk-radio value="cnm" :disabled="curLoadBalance.network_mode === 'USER'">cnm</bk-radio>
+                                                        </bk-radio-group>
                                                     </div>
                                                 </div>
                                             </div>
@@ -592,8 +640,8 @@
                         </template>
 
                         <div class="bk-form-item mt25">
-                            <button :class="['bk-button bk-primary', { 'is-loading': isDataSaveing }]" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</button>
-                            <button class="bk-button bk-default" @click.stop.prevent="hideLoadBalanceSlider">{{$t('取消')}}</button>
+                            <bk-button type="primary" :loading="isDataSaveing" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</bk-button>
+                            <bk-button :disabled="isDataSaveing" @click.stop.prevent="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
                         </div>
                     </div>
                 </div>
@@ -622,10 +670,10 @@
                 isDataSaveing: false,
                 prmissions: {},
                 pageConf: {
-                    total: 0,
+                    count: 0,
                     totalPage: 1,
-                    pageSize: 5,
-                    curPage: 1,
+                    limit: 5,
+                    current: 1,
                     show: true
                 },
                 mountTypeList: [
@@ -670,11 +718,11 @@
                 searchScope: '',
                 operatorIndex: -1,
                 statusMap: {
-                    'not_deployed': '未部署',
-                    'deploying': '部署中',
-                    'deployed': '已部署',
-                    'stopping': '停止中',
-                    'stopped': '已停止'
+                    'not_deployed': this.$t('未部署'),
+                    'deploying': this.$t('部署中'),
+                    'deployed': this.$t('已部署'),
+                    'stopping': this.$t('停止中'),
+                    'stopped': this.$t('已停止')
                 },
                 operatorList: [
                     {
@@ -712,7 +760,7 @@
                 loadBalanceListCache: [],
                 nameSpaceList: [],
                 nameSpaceClusterList: [],
-                globalImageId: 'public/bcs/mesos/bcs-loadbalance',
+                globalImageId: 'paas/public/mesos/bcs-loadbalance',
                 curLoadBalance: {
                     'name': '',
                     'cluster_id': '',
@@ -842,6 +890,9 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
@@ -859,7 +910,7 @@
                 }
             },
             loadBalanceList () {
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
             curPageData () {
                 this.curPageData.forEach(item => {
@@ -888,6 +939,10 @@
                         }, 1000)
                     }
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getLoadBalanceList()
             }
         },
 
@@ -899,7 +954,7 @@
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getLoadBalanceList()
             },
@@ -949,11 +1004,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.handlerPageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -1189,7 +1244,8 @@
                 const namespace = loadBalance.namespace
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要操启动此LoadBalancer')}: ${loadBalanceId}`,
+                    title: this.$t('确认操作'),
+                    content: `${this.$t('确定要启动此LoadBalancer')}: ${loadBalanceId}`,
                     async confirmFn () {
                         try {
                             await self.$store.dispatch('network/runMesosLoadBalance', {
@@ -1207,7 +1263,7 @@
                             loadBalance.application_status = ''
                             self.getLoadBalanceStatus(loadBalance, index)
                         } catch (e) {
-                            catchErrorHandler(e, this)
+                            catchErrorHandler(e, self)
                             e.is_update && self.getLoadBalanceList()
                         }
                     }
@@ -1236,7 +1292,8 @@
                 const namespace = loadBalance.namespace
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要停止此LoadBalancer')}: ${loadBalanceId}`,
+                    title: this.$t('确认操作'),
+                    content: `${this.$t('确定要停止此LoadBalancer')}: ${loadBalanceId}`,
                     async confirmFn () {
                         try {
                             await self.$store.dispatch('network/stopMesosLoadBalance', { projectId, loadBalanceId, clusterId, namespace })
@@ -1245,7 +1302,7 @@
                             loadBalance.application_status = ''
                             self.getLoadBalanceStatus(loadBalance, index)
                         } catch (e) {
-                            catchErrorHandler(e, this)
+                            catchErrorHandler(e, self)
                         }
                     }
                 })
@@ -1302,7 +1359,7 @@
                 const clusterId = loadBalance.cluster_id
                 const namespace = loadBalance.namespace
                 this.$bkInfo({
-                    title: '',
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -1317,7 +1374,7 @@
                             })
                             self.getLoadBalanceList()
                         } catch (e) {
-                            catchErrorHandler(e, this)
+                            catchErrorHandler(e, self)
                         } finally {
                             self.isPageLoading = false
                         }
@@ -1399,9 +1456,9 @@
                     }
                 })
                 this.loadBalanceList.splice(0, this.loadBalanceList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -1409,9 +1466,9 @@
              */
             initPageConf () {
                 const total = this.loadBalanceList.length
-                this.pageConf.total = total
-                this.pageConf.curPage = 1
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.count = total
+                this.pageConf.current = 1
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
             },
 
             /**
@@ -1419,7 +1476,7 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -1430,10 +1487,10 @@
             getDataByPage (page) {
                 // 如果没有page，重置
                 if (!page) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 // this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -1451,9 +1508,9 @@
              * 分页改变回调
              * @param  {number} page 页
              */
-            handlerPageChange (page = 1) {
+            handlePageChange (page = 1) {
                 this.isPageLoading = true
-                this.pageConf.curPage = page
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData = JSON.parse(JSON.stringify(data))
             },
@@ -1537,7 +1594,7 @@
                         params
                     })
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
                     this.isAllDataLoad = true
                     // 如果有搜索关键字，继续显示过滤后的结果
                     if (this.searchKeyword) {

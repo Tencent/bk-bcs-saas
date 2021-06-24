@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-helm-title">
-                <a class="bk-icon icon-arrows-left back" href="javascript:void(0);" @click="goToHelmIndex"></a>
+                <a class="bcs-icon bcs-icon-arrows-left back" href="javascript:void(0);" @click="goToHelmIndex"></a>
                 <span>{{curApp.name}}</span>
             </div>
         </div>
@@ -36,41 +36,63 @@
                                 <span>{{$t('简介')}}：</span>
                                 {{curApp.chart_info.description || '--'}}
                             </div>
+                            <div class="desc">
+                                <span>Notes：</span>
+                                <bcs-button v-if="notesdialog.notes" text size="small" style="padding: 0;" @click="handleViewNodesDetails">{{$t('点击查看详情')}}</bcs-button>
+                                <span v-else
+                                    class="bk-primary bk-button-normal bk-button-text is-disabled"
+                                    style="font-size: 12px; height: 26px; line-height: 26px;"
+                                    v-bk-tooltips="getNotesTips">
+                                    {{$t('点击查看详情')}}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="right">
                         <div class="bk-collapse-item bk-collapse-item-active">
-                            <div class="bk-collapse-item-header" style="cursor: default;">
+                            <div class="biz-item-header" style="cursor: default;">
                                 {{$t('配置选项')}}
                             </div>
-                            <div class="bk-collapse-item-content f12" style="padding: 15px;">
+                            <div class="bk-collapse-item-content f13" style="padding: 15px;">
                                 <div class="config-box">
                                     <div class="inner">
                                         <div class="inner-item">
                                             <label class="title">{{$t('名称')}}</label>
-                                            <input type="text" class="bk-form-input" :value="curApp.name" readonly="readonly">
+                                            <bkbcs-input :value="curApp.name" :readonly="true" />
                                         </div>
 
                                         <div class="inner-item">
                                             <label class="title">{{$t('版本')}}</label>
 
                                             <div>
-                                                <bk-input
-                                                    style="width: 225px;"
+                                                <bk-selector
+                                                    :placeholder="$t('请选择')"
+                                                    style="width: 215px;"
+                                                    searchable
+                                                    :selected.sync="tplVersionId"
+                                                    :list="curAppVersions"
+                                                    setting-key="version"
+                                                    :disabled="isTplSynLoading"
+                                                    display-key="version"
+                                                    search-key="version"
+                                                    @item-selected="handlerVersionChange">
+                                                </bk-selector>
+                                                <!-- <bkbcs-input
+                                                    style="width: 215px;"
                                                     type="text"
                                                     :placeholder="$t('请选择')"
                                                     :value.sync="tplVersionId"
                                                     :is-select-mode="true"
                                                     :default-list="curAppVersions"
-                                                    :setting-key="'id'"
+                                                    :setting-key="'version'"
                                                     :disabled="isTplSynLoading"
                                                     :display-key="'version'"
                                                     :search-key="'version'"
                                                     @item-selected="handlerVersionChange">
-                                                </bk-input>
+                                                </bkbcs-input> -->
 
-                                                <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('同步仓库')" @click="syncHelmTpl">
+                                                <bk-button class="bk-button bk-default is-outline is-icon" v-bk-tooltips.top="$t('同步仓库')" @click="syncHelmTpl">
                                                     <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isTplSynLoading">
                                                         <div class="rotate rotate1"></div>
                                                         <div class="rotate rotate2"></div>
@@ -81,15 +103,15 @@
                                                         <div class="rotate rotate7"></div>
                                                         <div class="rotate rotate8"></div>
                                                     </div>
-                                                    <i class="bk-icon icon-refresh" v-else></i>
-                                                </button>
+                                                    <i class="bcs-icon bcs-icon-refresh" v-else></i>
+                                                </bk-button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="inner">
                                         <div class="inner-item">
                                             <label class="title">{{$t('所属集群')}}</label>
-                                            <input type="text" class="bk-form-input" :value="curClusterName" readonly="readonly">
+                                            <bkbcs-input :value="curClusterName" :disabled="true" />
                                         </div>
                                         <div class="inner-item">
                                             <label class="title">
@@ -99,7 +121,7 @@
                                                 </span>
                                             </label>
                                             <div>
-                                                <input type="text" class="bk-form-input" :value="curApp.namespace" readonly="readonly">
+                                                <bkbcs-input :value="curApp.namespace" :disabled="true" />
                                             </div>
                                         </div>
                                     </div>
@@ -113,32 +135,30 @@
                     <div class="header" @click="isShowCommandParams = !isShowCommandParams" style="line-height: 40px;">
                         {{$t('Helm命令行参数')}}
                         <div class="expand">
-                            <i class="bk-icon icon-angle-down" v-if="isShowCommandParams"></i>
-                            <i class="bk-icon icon-angle-up" v-else></i>
+                            <i class="bcs-icon bcs-icon-angle-down" v-if="isShowCommandParams"></i>
+                            <i class="bcs-icon bcs-icon-angle-up" v-else></i>
                         </div>
                     </div>
                     <div class="content p0 m0 biz-table-wrapper" style="border: none;">
-                        <table class="bk-table has-table-hover has-table-bordered" style="border: none;" v-if="isShowCommandParams">
+                        <table class="bk-table has-table-hover biz-special-bk-table" style="border: none;" v-if="isShowCommandParams">
                             <thead>
                                 <tr>
-                                    <th class="pl20 f12" style="width: 400px; height: auto;">{{$t('参数')}}</th>
-                                    <th class="pl25 f12" style="height: auto;">{{$t('是否启用')}}</th>
+                                    <th class="pl20 f12" style="width: 400px; height: 36px;">{{$t('参数')}}</th>
+                                    <th class="pl25 f12" style="height: 36px;">{{$t('是否启用')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
-                                    <td class="pl20 pt5 pb5" style="height: auto;">
+                                    <td class="pl20 pt5 pb5" style="height: 36px;">
                                         {{command.id}}
-                                        <bk-tooltip placement="top" :content="command.desc">
+                                        <bcs-popover placement="top" :content="command.desc" :width="300">
                                             <span style="font-size: 12px;cursor: pointer;">
-                                                <i class="bk-icon icon-info-circle"></i>
+                                                <i class="bcs-icon bcs-icon-info-circle"></i>
                                             </span>
-                                        </bk-tooltip>
+                                        </bcs-popover>
                                     </td>
-                                    <td class="pl25 pt5 pb5" style="height: auto;">
-                                        <label class="bk-form-checkbox">
-                                            <input type="checkbox" v-model="helmCommandParams[command.id]">
-                                        </label>
+                                    <td class="pl25 pt5 pb5" style="height: 36px;">
+                                        <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
                                     </td>
                                 </tr>
                             </tbody>
@@ -147,7 +167,7 @@
                 </div>
 
                 <div class="action-box">
-                    <div class="title">
+                    <div class="title fn">
                         Chart Values
                     </div>
                 </div>
@@ -167,43 +187,46 @@
                             @item-selected="changeValueFile">
                         </bk-selector>
 
-                        <bk-tooltip placement="top" :content="$t('Values文件命名规范是以values.yaml结尾，例如xxx-values.yaml')">
+                        <bcs-popover placement="top">
                             <span class="bk-badge" style="margin-left: 3px;">
-                                <i class="f12 bk-icon icon-question"></i>
+                                <i class="bcs-icon bcs-icon-question-circle f10"></i>
                             </span>
-                        </bk-tooltip>
+                            <div slot="content">
+                                <p>{{ $t('Values文件包含两类:') }}</p>
+                                <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
+                                <p>{{ $t('- bcs-values目录下的文件') }}</p>
+                            </div>
+                        </bcs-popover>
 
                         <div style="display: inline-block;">
-                            <label class="bk-form-checkbox ml10 mr5">
-                                <input type="checkbox" v-model="isLocked">
-                                <i class="bk-checkbox-text">{{isLocked ? '已锁定' : '已解锁'}}</i>
-                            </label>
+                            <bk-checkbox class="ml10 mr5" v-model="isLocked">{{isLocked ? '已锁定' : '已解锁'}}</bk-checkbox>
                         </div>
                         <!-- <span class="f12 vm">{{isLocked ? '已锁定' : '已解锁'}}</span> -->
-                        <span class="biz-tip f12 vm">(默认锁定values内容为当前release(版本：<span v-bktooltips.top="curApp.chart_info.version" class="release-version">{{curApp.chart_info.version}}</span>)的内容，解除锁定后，加载为对应Chart中的values内容)</span>
+                        <span class="biz-tip vm">({{$t('默认锁定values内容为当前release')}}({{$t('版本：')}}<span v-bk-tooltips.top="curApp.chart_info.version" class="release-version">{{curApp.chart_info.version}}</span>){{$t('的内容，解除锁定后，加载为对应Chart中的values内容')}})</span>
                     </section>
                     <bk-tab
                         :type="'fill'"
                         :size="'small'"
                         :key="tabChangeIndex"
                         :active-name.sync="curEditMode"
+                        class="biz-tab-container"
                         @tab-changed="helmModeChangeHandler">
-                        <bk-tabpanel name="yaml-mode" :title="$t('YAML模式')">
+                        <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
                             <template slot="tag">
                                 <span
-                                    class="bk-icon icon-circle-shape biz-danger-text v-bk"
+                                    class="bcs-icon bcs-icon-circle-shape biz-danger-text v-bk"
                                     style="font-size: 10px;"
-                                    v-bktooltips.top="$t('Release参数与选中的Chart Version中values.yaml有区别')"
-                                    v-if="String(tplVersionId) !== '-1' && !isLocked">
+                                    v-bk-tooltips.top="$t('Release参数与选中的Chart Version中values.yaml有区别')"
+                                    v-if="String(tplVersionId) !== originReleaseVersion && !isLocked">
                                 </span>
                             </template>
-                            <div style="width: 100%; min-height: 600px;" v-bkloading="{ isLoading: isSyncYamlLoading }">
+                            <div style="width: 100%; min-height: 600px; overflow: hidden;" v-bkloading="{ isLoading: isSyncYamlLoading }">
                                 <p class="biz-tip m15" style="color: #63656E;">
-                                    <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>
+                                    <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
                                     {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，内容最终通过`--values`选项传递给`helm template`命令')}}
                                 </p>
-                                <div v-if="String(tplVersionId) !== '-1' && !isLocked" class="f14 mb15 ml15" style="color: #63656E;">
-                                    <i class="bk-icon icon-eye biz-warning-text mr5"></i>
+                                <div v-if="String(tplVersionId) !== originReleaseVersion && !isLocked" class="f14 mb15 ml15" style="color: #63656E;">
+                                    <i class="bcs-icon bcs-icon-eye biz-warning-text mr5"></i>
                                     {{$t('您更改了Chart版本，')}}<span class="bk-text-button" @click="showCodeDiffDialog">{{$t('点击查看')}}</span> Helm Release参数与选中的Chart Version中values.yaml区别
                                 </div>
                                 <ace
@@ -218,10 +241,10 @@
                                     @init="editorInit">
                                 </ace>
                             </div>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="form-mode" :title="$t('表单模式')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="form-mode" :title="$t('表单模式')">
                             <p class="biz-tip p15" style="color: #63656E;">
-                                <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
+                                <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
                             </p>
                             <template v-if="formData.questions">
                                 <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
@@ -229,28 +252,28 @@
                             <template v-else>
                                 <div class="biz-guard-box" v-if="!isQuestionsLoading">
                                     <span>{{$t('您可以参考')}}
-                                        <a class="bk-text-button" href="https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html" target="_blank">{{$t('指引')}}</a>
+                                        <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
                                         {{$t('通过表单模式配置您的Helm Release 参数')}}，
                                     </span>
                                     <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml">{{$t('YAML模式')}}</a>{{$t('直接修改Helm Release参数')}}
                                     </span>
                                 </div>
                             </template>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
 
                 <div class="create-wrapper" v-if="!isNamespaceLoading && !isNamespaceMatch">
-                    <bk-tooltip :content="$t('所属命名空间不存在，不可操作')" placement="top">
+                    <bcs-popover :content="$t('所属命名空间不存在，不可操作')" placement="top">
                         <bk-button type="primary" :title="$t('更新')" :disabled="true">
                             {{$t('更新')}}
                         </bk-button>
-                    </bk-tooltip>
-                    <bk-tooltip :content="$t('所属命名空间不存在，不可操作')" placement="top">
+                    </bcs-popover>
+                    <bcs-popover :content="$t('所属命名空间不存在，不可操作')" placement="top">
                         <bk-button type="default" :title="$t('预览')" :disabled="true">
                             {{$t('预览')}}
                         </bk-button>
-                    </bk-tooltip>
+                    </bcs-popover>
                     <bk-button type="default" :title="$t('取消')" @click="goToHelmIndex">
                         {{$t('取消')}}
                     </bk-button>
@@ -284,12 +307,12 @@
                             :min="250"
                             :max="400">
                             <div class="tree-box">
-                                <bk-tree
+                                <bcs-tree
                                     :data="treeData"
                                     :node-key="'name'"
                                     :has-border="true"
                                     @on-click="getFileDetail">
-                                </bk-tree>
+                                </bcs-tree>
                             </div>
                         </resizer>
 
@@ -307,10 +330,11 @@
                         </div>
                     </div>
                 </template>
-                <p class="biz-no-data" style="padding: 100px 40px; text-align: center;" v-else>{{$t('无数据')}}</p>
+                <bcs-exception type="empty" scene="part" v-else></bcs-exception>
             </div>
         </bk-sideslider>
         <bk-dialog
+            :position="{ top: 80 }"
             :width="1100"
             :title="updateConfirmDialog.title"
             :close-icon="!updateInstanceLoading"
@@ -318,7 +342,7 @@
             @cancel="hideConfirmDialog">
             <template slot="content">
                 <p class="biz-tip mb5 tl" style="color: #666;">{{$t('Helm Release参数发生如下变化，请确认后再点击“确定”更新')}}</p>
-                <div class="difference-code" v-bkloading="{ isLoading: isDifferenceLoading }" v-if="isDifferenceLoading || difference">
+                <div class="difference-code" v-bkloading="{ isLoading: isDifferenceLoading }" v-if="isDifferenceLoading || difference" style="height: 400px;">
                     <div class="editor-header">
                         <div>当前版本</div>
                         <div>更新版本</div>
@@ -326,10 +350,10 @@
 
                     <div :class="['diff-editor-box', { 'editor-fullscreen': yamlDiffEditorOptions.fullScreen }]" style="position: relative;">
                         <!-- <div title="关闭全屏" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
-                            <i class="bk-icon icon-close"></i>
+                            <i class="bcs-icon bcs-icon-close"></i>
                         </div>
                         <div title="全屏" class="fullscreen-use" v-else @click="setFullScreen">
-                            <i class="bk-icon icon-full-screen"></i>
+                            <i class="bcs-icon bcs-icon-full-screen"></i>
                         </div> -->
                         <monaco-editor
                             ref="yamlEditor"
@@ -345,7 +369,7 @@
                         </monaco-editor>
                     </div>
                 </div>
-                <div class="difference-code" v-bkloading="{ isLoading: isDifferenceLoading }" v-else>
+                <div class="difference-code" v-bkloading="{ isLoading: isDifferenceLoading }" v-else style="height: 400px;">
                     <ace
                         :value="$t('本次更新没有内容变化')"
                         :width="updateConfirmDialog.width"
@@ -357,22 +381,23 @@
                 </div>
                 <p class="biz-tip mt15 tl biz-warning" v-if="isChartVersionChange">{{$t('温馨提示：Helm Chart 版本已更改，请检查是否需要同步容器服务上Release 的参数')}}</p>
             </template>
-            <template slot="footer">
+            <div slot="footer">
                 <div class="bk-dialog-outer">
                     <template>
-                        <button
-                            :class="['bk-button bk-dialog-btn-confirm bk-primary', { 'is-disabled': isDifferenceLoading || updateInstanceLoading }]"
+                        <bk-button
+                            theme="primary"
+                            :loading="updateInstanceLoading"
+                            :disabled="isDifferenceLoading"
                             @click="updateApp">
-                            {{updateInstanceLoading ? $t('更新中...') : $t('确定')}}
-                        </button>
-                        <button
-                            :class="['bk-button bk-dialog-btn-cancel bk-default']"
+                            {{$t('确定')}}
+                        </bk-button>
+                        <bk-button
                             @click="hideConfirmDialog">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-dialog
@@ -381,28 +406,29 @@
             :has-footet="false"
             :title="errorDialogConf.title"
             @cancel="hideErrorDialog">
-            <div slot="content">
+            <template slot="content">
                 <div class="bk-intro bk-danger pb30 mb15" v-if="errorDialogConf.message" style="position: relative;">
                     <pre class="biz-error-message">
                         {{errorDialogConf.message}}
                     </pre>
-                    <bk-button size="mini" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bk-icon icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
+                    <bk-button size="small" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bcs-icon bcs-icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
                 </div>
                 <div class="biz-message" v-if="errorDialogConf.errorCode === 40031">
                     <h3>{{$t('您需要')}}：</h3>
-                    <p>{{$t('在集群页面，启用Helm')}}</p>
+                    <p>1、{{$t('在集群页面，启用Helm')}}</p>
+                    <p>2、{{$t('或者联系')}}【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>】</p>
                 </div>
                 <div class="biz-message" v-else>
                     <h3>{{$t('您可以')}}：</h3>
                     <p>1、{{$t('更新Helm Chart，并推送到项目Chart仓库')}}</p>
                     <p>2、{{$t('重新更新')}}</p>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="biz-footer">
                     <bk-button type="primary" @click="hideErrorDialog">{{$t('知道了')}}</bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-dialog
@@ -412,18 +438,18 @@
             :has-footet="false"
             :title="codeDialogConf.title"
             @cancel="hideCodeDiffDialog">
-            <div slot="content">
+            <template slot="content">
                 <div class="code-diff-header">
                     <h3>{{$t('当前 Release 参数')}}：</h3>
                     <h3>{{$t('Chart 默认值')}}：</h3>
                 </div>
                 <div style="max-height: 500px; overflow: auto; position: relative; border: 1px solid #ddd; border-radius: 2px;">
                     <div :class="['diff-editor-box', { 'editor-fullscreen': yamlDiffEditorOptions.fullScreen }]" style="position: relative;">
-                        <div title="关闭全屏" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
-                            <i class="bk-icon icon-close"></i>
+                        <div :title="$t('关闭全屏')" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
+                            <i class="bcs-icon bcs-icon-close"></i>
                         </div>
-                        <div title="全屏" class="fullscreen-use" v-else @click="setFullScreen">
-                            <i class="bk-icon icon-full-screen"></i>
+                        <div :title="$t('全屏')" class="fullscreen-use" v-else @click="setFullScreen">
+                            <i class="bcs-icon bcs-icon-full-screen"></i>
                         </div>
                         <monaco-editor
                             ref="yamlEditor"
@@ -439,13 +465,34 @@
                         </monaco-editor>
                     </div>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="biz-footer">
                     <bk-button type="primary" @click="hideCodeDiffDialog" class="mr5">{{$t('知道了')}}</bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
+
+        <bcs-dialog v-model="notesdialog.isShow"
+            title="Notes"
+            header-position="left"
+            :width="750"
+            @cancel="handleCloseNotes">
+            <div class="notes-details">
+                <pre class="notes-message">{{notesdialog.notes}}</pre>
+                <bcs-button class="copy-button"
+                    id="notes-message"
+                    size="small"
+                    type="default"
+                    :data-clipboard-text="notesdialog.notes">
+                    <i class="bcs-icon bcs-icon-clipboard mr5"></i>
+                    {{$t('复制')}}
+                </bcs-button>
+            </div>
+            <template slot="footer">
+                <bcs-button type="primary" @click="handleCloseNotes">{{$t('关闭')}}</bcs-button>
+            </template>
+        </bcs-dialog>
     </div>
 </template>
 
@@ -485,6 +532,7 @@
                 isNamespaceMatch: false, // 判断命名空间是否已经删除
                 isRouterLeave: false,
                 isTplSynLoading: false,
+                curVersionId: -1,
                 isAppVerLoading: true,
                 instanceYamlValue: '', // 当前应用实例化后的配置
                 instanceValueFileName: '', // 用户实例化选择的value文件名
@@ -503,6 +551,8 @@
                 isChartVersionChange: false,
                 appName: '',
                 tplVersionId: -1,
+                originReleaseVersion: '',
+                originReleaseData: {},
                 formData: {},
                 fieldset: [],
                 winHeight: 0,
@@ -517,7 +567,7 @@
                     title: this.$t('和当前版本对比'),
                     isShow: false
                 },
-                curVersionYaml: '',
+                // curVersionYaml: '',
                 curEditYaml: '',
                 curReourceFile: {
                     name: '',
@@ -601,22 +651,27 @@
                     {
                         id: 'disable-openapi-validation',
                         disabled: true,
-                        desc: '如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板'
+                        desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
                     },
                     {
                         id: 'no-hooks',
                         disabled: false,
-                        desc: '如果选择，部署或更新时，忽略hooks'
+                        desc: this.$t('如果选择，部署或更新时，忽略hooks')
                     },
                     {
                         id: 'skip-crds',
                         disabled: false,
-                        desc: '如果选择，部署或更新时，跳过crds'
+                        desc: this.$t('如果选择，部署或更新时，跳过crds')
+                    },
+                    {
+                        id: 'reuse-values',
+                        disabled: false,
+                        desc: this.$t('升级时，将Release中的value作为默认值')
                     },
                     {
                         id: 'wait',
                         disabled: false,
-                        desc: '如果设置，需要等待pods、pvcs、service等的处于ready状态，release才认为成功'
+                        desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
                     }
                 ],
                 helmCommandParams: {
@@ -624,7 +679,13 @@
                     'no-hooks': false,
                     'skip-crds': false,
                     'wait': false
-                }
+                },
+                notesdialog: {
+                    isShow: false,
+                    notes: '',
+                    clipboard: null
+                },
+                isNotesLoading: false
             }
         },
         computed: {
@@ -669,6 +730,9 @@
                 }
                 this.answers = answers
                 return list
+            },
+            getNotesTips () {
+                return this.isNotesLoading ? this.$t('加载中') : this.$t('Notes 为空')
             }
         },
         watch: {
@@ -683,9 +747,11 @@
         async mounted () {
             const appId = this.$route.params.appId
             this.curApp = await this.getAppById(appId)
-            this.getAppVersions(appId)
+            this.getAppVersions()
+            this.getPermissionClusterList()
             this.getNamespaceList()
             this.winHeight = window.innerHeight
+            await this.getNotes()
         },
         beforeRouteLeave (to, from, next) {
             this.isRouterLeave = true
@@ -947,52 +1013,8 @@
                 try {
                     const res = await this.$store.dispatch('helm/getAppById', { projectId, appId })
                     result = res.data
-                    const files = result.release.chartVersionSnapshot.files
-                    const tplName = result.release.chartVersionSnapshot.name
-                    const questions = result.release.chartVersionSnapshot.questions
-                    this.curTplReadme = files[`${tplName}/README.md`]
-                    this.curValueFile = result.valuefile_name || 'values.file'
-                    this.curTplYaml = result.valuefile
-                    this.instanceYamlValue = result.valuefile // 保存当前应用实例化后的配置
-                    this.instanceValueFileName = result.valuefile_name // 保存用户实例化时选择的文件名
-                    this.curTplName = tplName
-                    this.curTplFiles = files
-                    this.initValuesFileData(tplName, files, result.valuefile_name)
-
-                    this.$nextTick(() => {
-                        this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
-                    })
-
-                    if (result.cmd_flags && result.cmd_flags.length) {
-                        result.cmd_flags.forEach(key => {
-                            this.helmCommandParams[key] = true
-                        })
-                    }
-                    if (questions.questions) {
-                        questions.questions.forEach(question => {
-                            this.fieldset = result.release.answers
-                            if (this.fieldset && this.fieldset.length) {
-                                this.fieldset.forEach(item => {
-                                    if (question.variable === item.name) {
-                                        question.default = item.value
-                                    }
-                                })
-                            }
-
-                            if (question.subquestions) {
-                                question.subquestions.forEach(subQuestion => {
-                                    if (this.fieldset && this.fieldset.length) {
-                                        this.fieldset.forEach(item => {
-                                            if (subQuestion.variable === item.name) {
-                                                subQuestion.default = item.value
-                                            }
-                                        })
-                                    }
-                                })
-                            }
-                        })
-                    }
-                    this.formData = questions
+                    this.originReleaseData = result
+                    this.setAppDetail()
                     this.isQuestionsLoading = false
                 } catch (e) {
                     if (e.status === 404) {
@@ -1006,22 +1028,79 @@
                 return result
             },
 
+            setAppDetail () {
+                const files = this.originReleaseData.release.chartVersionSnapshot.files
+                const tplName = this.originReleaseData.release.chartVersionSnapshot.name
+                const questions = this.originReleaseData.release.chartVersionSnapshot.questions
+                this.curTplReadme = files[`${tplName}/README.md`]
+                this.curValueFile = this.originReleaseData.valuefile_name || 'values.file'
+                this.curTplYaml = this.originReleaseData.valuefile
+                this.instanceYamlValue = this.originReleaseData.valuefile // 保存当前应用实例化后的配置
+                this.instanceValueFileName = this.originReleaseData.valuefile_name // 保存用户实例化时选择的文件名
+                this.curTplName = tplName
+                this.curTplFiles = files
+                this.initValuesFileData(tplName, files, this.originReleaseData.valuefile_name)
+                this.$nextTick(() => {
+                    this.$refs.codeViewer && this.$refs.codeViewer.$ace && this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                })
+
+                if (this.originReleaseData.cmd_flags && this.originReleaseData.cmd_flags.length) {
+                    this.originReleaseData.cmd_flags.forEach(key => {
+                        this.helmCommandParams[key] = true
+                    })
+                }
+                if (questions.questions) {
+                    questions.questions.forEach(question => {
+                        this.fieldset = this.originReleaseData.release.answers
+                        if (this.fieldset && this.fieldset.length) {
+                            this.fieldset.forEach(item => {
+                                if (question.variable === item.name) {
+                                    question.default = item.value
+                                }
+                            })
+                        }
+
+                        if (question.subquestions) {
+                            question.subquestions.forEach(subQuestion => {
+                                if (this.fieldset && this.fieldset.length) {
+                                    this.fieldset.forEach(item => {
+                                        if (subQuestion.variable === item.name) {
+                                            subQuestion.default = item.value
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+                this.formData = questions
+            },
+
             /**
              * 切换应用版本号回调
              * @param  {number} index 索引
              * @param  {object} data 版本对象
              */
             async handlerVersionChange (index, data) {
+                if (data.version === this.originReleaseVersion) {
+                    this.setAppDetail()
+                    this.curVersionId = -1
+                    return false
+                }
                 const projectId = this.projectId
-                const appId = this.curApp.id
-                const version = data.id
+                const appId = this.curApp.name
+                const clusterId = this.curApp.cluster_id
+                const namespace = this.curApp.namespace
+                const version = data.version
 
-                this.curVersionYaml = ''
+                // this.curVersionYaml = ''
                 try {
-                    const res = await this.$store.dispatch('helm/getUpdateChartByVersion', {
+                    const res = await this.$store.dispatch('helm/getUpdateChartVersionDetail', {
                         projectId,
                         appId,
-                        version
+                        clusterId,
+                        version,
+                        namespace
                     })
 
                     const files = res.data.data.files
@@ -1030,6 +1109,7 @@
 
                     this.curTplName = tplName
                     this.curTplFiles = files
+                    this.curVersionId = res.data.id
                     this.initValuesFileData(tplName, files)
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -1039,17 +1119,25 @@
             initValuesFileData (tplName, files, valueFileName) {
                 const list = []
                 const regex = new RegExp(`^${tplName}\\/[\\w-]*values.(yaml|yml)$`)
-                const valueNames = [`${tplName}/values.yaml`, `${tplName}/values.yml`]
+                const bcsTplName = tplName + '/bcs-values'
+                const bcsRegex = new RegExp(`^${bcsTplName}\\/[\\w-]*.(yaml|yml)$`)
 
                 this.yamlFile = ''
 
                 // 根据valueFileName判断是否第一次展示, curTplYaml显示实例化配置的内容
                 if (valueFileName) {
                     this.curValueFile = valueFileName
-                    this.curVersionYaml = files[valueFileName]
+                    // this.curVersionYaml = files[valueFileName]
                 }
-
                 for (const key in files) {
+                    if (bcsRegex.test(key)) {
+                        const catalog = key.split('/')
+                        const fileName = catalog[catalog.length - 2] + '/' + catalog[catalog.length - 1]
+                        list.push({
+                            name: fileName,
+                            content: files[key]
+                        })
+                    }
                     if (regex.test(key)) {
                         const catalog = key.split('/')
                         const fileName = catalog[catalog.length - 1]
@@ -1058,32 +1146,40 @@
                             content: files[key]
                         })
                     }
+                }
+                this.curValueFileList = list
 
-                    // 选择版本后
-                    if (!valueFileName && valueNames.includes(key)) {
-                        // 如果锁定则用release values
-                        if (this.isLocked) {
+                // 选择版本后（valueFileName为空）
+                if (!valueFileName) {
+                    // 如果锁定则用release values
+                    if (this.isLocked) {
+                        this.curTplYaml = this.instanceYamlValue
+                        this.curValueFile = this.instanceValueFileName
+                        console.log('locked usedefault')
+                    } else {
+                        // 选择版本后依然是原来的, 显示原来实例化时的配置内容
+                        if (String(this.tplVersionId) === this.originReleaseVersion) {
                             this.curTplYaml = this.instanceYamlValue
                             this.curValueFile = this.instanceValueFileName
-                            console.log('locked usedefault')
+                            console.log('unlocked but no change usedefault')
                         } else {
-                            this.curVersionYaml = files[key]
-
-                            // 选择版本后依然是原来的, 显示原来实例化时的配置内容
-                            if (String(this.tplVersionId) === '-1') {
-                                this.curTplYaml = this.instanceYamlValue
+                            const fileNames = Object.keys(files)
+                            const matchName = fileNames.find(name => {
+                                return name.endsWith(this.instanceValueFileName)
+                            })
+                            // 默认用原来的value文件
+                            if (matchName) {
+                                this.curTplYaml = files[matchName]
                                 this.curValueFile = this.instanceValueFileName
-                                console.log('unlocked but no change usedefault')
                             } else {
-                                // curTplYaml以返回的files为默认值
-                                this.curTplYaml = files[key]
-                                this.curValueFile = key.split('/')[1]
-                                console.log('unlocked and change usenew')
+                                const valueDefaultNames = `${tplName}/values.yaml`
+                                this.curTplYaml = files[valueDefaultNames]
+                                this.curValueFile = 'values.yaml'
                             }
+                            console.log('unlocked and change usenew')
                         }
                     }
                 }
-                this.curValueFileList = list
             },
 
             /**
@@ -1091,12 +1187,12 @@
              */
             changeValueFile (index, data) {
                 this.curValueFile = index
-                this.curVersionYaml = data.content
+                // this.curVersionYaml = data.content
                 this.curTplYaml = data.content
                 this.yamlFile = ''
 
                 // 没有选择过版本时, 如果切换为原来实例化的文件名，显示原来实例化时的配置内容
-                if (String(this.tplVersionId) === '-1' && index === this.instanceValueFileName) {
+                if (String(this.tplVersionId) === this.originReleaseVersion && index === this.instanceValueFileName) {
                     this.curTplYaml = this.instanceYamlValue
                     console.log('unlocked && nochange use default')
                 } else {
@@ -1130,7 +1226,6 @@
                 this.isTplSynLoading = true
                 try {
                     await this.$store.dispatch('helm/syncHelmTpl', { projectId: this.projectId })
-                    const appId = this.$route.params.appId
                     this.$bkMessage({
                         theme: 'success',
                         message: this.$t('同步成功')
@@ -1138,7 +1233,7 @@
 
                     setTimeout(() => {
                         this.isAppVerLoading = true
-                        this.getAppVersions(appId)
+                        this.getAppVersions()
                     }, 1000)
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -1153,16 +1248,40 @@
              * 获取应用版本列表
              * @param  {number} appId 应用ID
              */
-            async getAppVersions (appId) {
-                const projectId = this.projectId
+            async getAppVersions () {
                 this.curAppVersions = []
                 try {
-                    const res = await this.$store.dispatch('helm/getUpdateVersions', { projectId, appId })
-                    this.curAppVersions = res.data.results
+                    const projectId = this.projectId
+                    const appId = this.curApp.name
+                    const clusterId = this.curApp.cluster_id
+                    const namespace = this.curApp.namespace
+                    const res = await this.$store.dispatch('helm/getUpdateVersionList', { projectId, clusterId, appId, namespace })
+                    this.curAppVersions = res.data
+                    if (this.curAppVersions.length) {
+                        this.originReleaseVersion = this.curAppVersions[0].version
+                        this.tplVersionId = this.curAppVersions[0].version
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
                     this.isAppVerLoading = false
+                }
+            },
+
+            /**
+             * 获取有权限的集群列表
+             */
+            async getPermissionClusterList (chartId) {
+                const projectId = this.projectId
+
+                try {
+                    const res = await this.$store.dispatch('cluster/getPermissionClusterList', projectId)
+                    res.data.results.forEach(item => {
+                        item.id = item.cluster_id
+                    })
+                    this.clusterList = res.data.results
+                } catch (e) {
+                    catchErrorHandler(e, this)
                 }
             },
 
@@ -1180,7 +1299,7 @@
                     const curNamespaceId = this.curApp.namespace_id
                     this.isNamespaceMatch = false
 
-                    this.clusterList = []
+                    // this.clusterList = []
                     res.data.forEach(item => {
                         const obj = {}
                         const match = item.name.match(/^([\s\S]*)\(([\w-]*)\)/)
@@ -1192,7 +1311,7 @@
                             obj.name = item.name
                             obj.id = item.name
                         }
-                        this.clusterList.push(obj)
+                        // this.clusterList.push(obj)
 
                         if (item.children) {
                             item.children.forEach(child => {
@@ -1246,7 +1365,6 @@
                         commands.push(key)
                     }
                 }
-
                 if (this.curEditMode === 'yaml-mode') {
                     this.saveYaml()
                 }
@@ -1256,7 +1374,7 @@
                 }
 
                 const params = {
-                    upgrade_verion: this.tplVersionId,
+                    upgrade_verion: this.curVersionId,
                     answers: formData,
                     customs: customs,
                     cmd_flags: commands,
@@ -1300,7 +1418,7 @@
                         this.clipboardInstance.on('success', e => {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: '复制成功'
+                                message: this.$t('复制成功')
                             })
                             this.isVarPanelShow = false
                         })
@@ -1504,6 +1622,46 @@
             handleToggleLock () {
                 this.isLocked = !this.isLocked
                 this.initValuesFileData(this.curTplName, this.curTplFiles)
+            },
+
+            async getNotes () {
+                this.isNotesLoading = true
+                try {
+                    const res = await this.$store.dispatch('helm/getNotes', {
+                        projectId: this.projectId,
+                        clusterId: this.curApp.cluster_id,
+                        namespaceName: this.curApp.namespace,
+                        releaseName: this.curApp.name
+                    })
+                    const data = res.data || {}
+                    this.notesdialog.notes = data.notes || ''
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.isNotesLoading = false
+                }
+            },
+
+            handleViewNodesDetails () {
+                this.notesdialog.isShow = true
+                if (this.notesdialog.notes) {
+                    this.$nextTick(() => {
+                        this.notesdialog.clipboard = new Clipboard('#notes-message')
+                        this.notesdialog.clipboard.on('success', e => {
+                            this.$bkMessage({
+                                theme: 'success',
+                                message: this.$t('复制成功')
+                            })
+                        })
+                    })
+                }
+            },
+
+            handleCloseNotes () {
+                this.notesdialog.isShow = false
+                if (this.notesdialog.clipboard && this.notesdialog.clipboard.off) {
+                    this.notesdialog.clipboard.off('success')
+                }
             }
         }
     }

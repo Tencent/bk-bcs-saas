@@ -50,7 +50,7 @@ def gen_mock_env_info(*args, **kwargs) -> str:
 def dashboard_container_api_patch():
     with mock.patch(
         'backend.dashboard.workloads.views.container.Pod.fetch_manifest', new=gen_mock_pod_manifest
-    ), mock.patch('backend.dashboard.workloads.views.container.exec_command', new=gen_mock_env_info):
+    ), mock.patch('backend.dashboard.workloads.views.container.Pod.exec_command', new=gen_mock_env_info):
         yield
 
 

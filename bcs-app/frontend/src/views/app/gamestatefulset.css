@@ -1,6 +1,6 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/scroller.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/scroller.css';
 
 .biz-app-title {
     display: inline-block;
@@ -87,7 +87,7 @@
         }
     }
 
-    i.bk-icon {
+    i.bcs-icon {
         font-size: 16px;
         vertical-align: middle;
         position: relative;
@@ -123,7 +123,19 @@
         display: inline-block;
     }
 
-    .name-col {
+    .name-col,
+    .cluster-col,
+    .namespace-col {
         @mixin ellipsis 300px;
+        vertical-align: middle;
+    }
+}
+
+.batch-delete-gamestatefulset {
+    .batch-list {
+        @mixin scroller;
+    }
+    /deep/ .bk-dialog-close {
+        display: none;
     }
 }

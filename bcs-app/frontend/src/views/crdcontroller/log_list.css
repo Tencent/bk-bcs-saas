@@ -1,6 +1,6 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/clearfix.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/clearfix.css';
 
 .biz-crd-instance-title {
     display: inline-block;
@@ -14,7 +14,7 @@
         font-weight: 700;
         position: relative;
         top: -1px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
 
     .info {
@@ -29,6 +29,7 @@
 }
 
 .key-list {
+    overflow: hidden;
     @mixin clearfix;
 
     li {
@@ -37,6 +38,7 @@
         border: 1px solid $borderWeightColor;
         border-radius: 2px;
         cursor: pointer;
+        display: flex;
     }
 
     .key,
@@ -114,10 +116,9 @@
     }
 
     .label {
-        width: 90px;
+        width: 92px;
         height: 32px;
         line-height: 32px;
-        font-weight: bold;
         color: #737987;
         padding-right: 20px;
         font-size: 14px;
@@ -130,12 +131,6 @@
 
 .log-flex {
     display: flex;
-
-    .bk-form-inline-item {
-        &:first-child {
-            margin-right: 32px;
-        }
-    }
 }
 
 .log-inner-wrapper {
@@ -159,11 +154,11 @@
     box-sizing: border-box;
 
     &:hover {
-        border: 1px solid #3c96ff;
-        color: #3c96ff;
+        border: 1px solid #3a84ff;
+        color: #3a84ff;
     }
 
-    .bk-icon {
+    .bcs-icon {
         font-weight: bold;
         position: relative;
         top: -3px;
@@ -250,14 +245,15 @@
         .data-item {
             display: flex;
             border: none;
-            padding: 0 0 5px 0;
+            padding: 0 0 10px 0;
 
-            .key {
+            > .key {
                 text-align: right;
                 font-size: 14px;
                 color: #979BA5;
                 display: inline-block;
                 margin-bottom: 0;
+                min-width: 100px;
             }
 
             .value {
@@ -349,7 +345,7 @@
     padding: 0 12px;
     margin-bottom: 15px;
 
-    .bk-icon {
+    .bcs-icon {
         color: #FFB848;
         font-size: 14px;
         margin-right: 3px;

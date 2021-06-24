@@ -16,6 +16,7 @@ import cookie from 'cookie'
 import CachedPromise from './cached-promise'
 import RequestQueue from './request-queue'
 import { bus } from '../common/bus'
+import { messageError } from '../common/bkmagic'
 
 // axios 实例
 const axiosInstance = axios.create({
@@ -126,6 +127,7 @@ async function getPromise (method, url, data, userConfig = {}) {
             // http status 错误
             // 避免 cancel request 时出现 error message
             if (httpError && httpError.message && httpError.message.type === 'cancel') {
+                console.warn('请求被取消：', url)
                 return
             }
 
@@ -178,7 +180,7 @@ function handleResponse ({ config, response, resolve, reject }) {
  * @return {Promise} promise 对象
  */
 function handleReject (error, config) {
-    if (axios.isCancel(error)) {
+    if (axios.isCancel(error) || error?.message === 'Request aborted') {
         return Promise.reject(error)
     }
 
@@ -197,10 +199,10 @@ function handleReject (error, config) {
             })
             return Promise.resolve({ data: {} })
         } else if (status === 500) {
-            nextError.message = '系统出现异常'
+            nextError.message = window.i18n.t('系统出现异常')
         } else if (status === 502) {
             // 屏蔽 502
-            nextError.message = '系统出现异常'
+            nextError.message = window.i18n.t('系统出现异常')
             if (nextError.response.config.urlId === 'getClusterList') {
                 return Promise.resolve({ data: {} })
             }
@@ -208,6 +210,7 @@ function handleReject (error, config) {
         } else if (data && data.message) {
             nextError.message = data.message
         }
+        messageError(nextError.message)
         return Promise.reject(nextError)
     }
 
@@ -221,7 +224,7 @@ function handleReject (error, config) {
             }
         }
 
-        let message = error.message || '系统出现异常'
+        let message = error.message || window.i18n.t('系统出现异常')
         if (Object.prototype.toString.call(message) === '[object Object]') {
             const msg = []
             for (const key in message) {
@@ -236,10 +239,10 @@ function handleReject (error, config) {
         }
 
         error.message = message
-
+        messageError(message)
         return Promise.reject(error)
     }
-
+    messageError(error.message)
     console.error(error)
     console.error(error.response)
     console.error(error.message)

@@ -17,16 +17,16 @@
             :has-footer="false"
             :title="$t('项目Chart仓库配置信息')"
             @cancel="hideHelmDialog">
-            <div slot="content">
+            <template slot="content">
                 <div class="helm-repos-detail" v-if="reposData">
                     <div class="repos-item" v-for="repo in reposData.privateRepos" :key="repo.url">
                         <div class="wrapper mb10">
                             <h2 class="label">{{$t('项目Chart仓库地址')}}：</h2>
                             <p class="url">
                                 {{repo.url}}
-                                <bk-tooltip placement="top" :content="$t('复制')">
-                                    <span :data-clipboard-text="repo.url" class="copy-btn bk-text-button bk-icon icon-clipboard ml5" style="color: #999;"></span>
-                                </bk-tooltip>
+                                <bcs-popover placement="top" :content="$t('复制')">
+                                    <span :data-clipboard-text="repo.url" class="copy-btn bk-text-button bcs-icon bcs-icon-clipboard ml5" style="color: #999;"></span>
+                                </bcs-popover>
                             </p>
                         </div>
                         <div class="auth" v-for="auth in repo.auths" :key="auth.credentials_decoded.username">
@@ -34,14 +34,14 @@
                             <div>password：
                                 <template v-if="repo.isPasswordShow">{{auth.credentials_decoded.password}}</template>
                                 <template v-else>************</template>
-                                <bk-tooltip placement="top" :content="repo.isPasswordShow ? $t('隐藏') : $t('查看')">
-                                    <span :class="['bk-text-button bk-icon',{ 'icon-eye': !repo.isPasswordShow, 'icon-eye-slash': repo.isPasswordShow }]" @click="togglePassword(repo)" style="color: #999;"></span>
-                                </bk-tooltip>
+                                <bcs-popover placement="top" :content="repo.isPasswordShow ? $t('隐藏') : $t('查看')">
+                                    <span :class="['bk-text-button bcs-icon',{ 'bcs-icon-eye': !repo.isPasswordShow, 'bcs-icon-eye-slash': repo.isPasswordShow }]" @click="togglePassword(repo)" style="color: #999;"></span>
+                                </bcs-popover>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
         </bk-dialog>
 
         <div class="biz-content-wrapper biz-tpl-wrapper" style="padding: 0; margin: 0;" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
@@ -50,17 +50,16 @@
                     <div class="left">
                         <bk-button type="primary" @click="syncHelmTpl" :loading="isTplSynLoading">{{$t('同步仓库')}}</bk-button>
                         <span class="biz-tip ml5">{{$t('同步仓库中的Helm Chart')}}</span>
-                        <a class="bk-text-button f13 ml10" href="javascript:void(0);" @click="getHelmDeops">{{$t('查看项目Chart仓库配置信息')}}</a>
+                        <a class="bk-text-button f12 ml10" href="javascript:void(0);" @click="getHelmDeops">{{$t('查看项目Chart仓库配置信息')}}</a>
                     </div>
                     <div class="right">
                         <div class="biz-search-input" style="width: 300px;">
-                            <input type="text" class="bk-form-input" :placeholder="$t('输入关键字，按Enter搜索')" v-model="searchKeyword" @keyup.enter="search">
-                            <a href="javascript:void(0)" class="biz-search-btn" v-if="!searchKeyword">
-                                <i class="bk-icon icon-search" style="color: #c3cdd7;"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearSearch">
-                                <i class="bk-icon icon-close-circle-shape"></i>
-                            </a>
+                            <bk-input right-icon="bk-icon icon-search"
+                                :placeholder="$t('输入关键字，按Enter搜索')"
+                                clearable
+                                v-model="searchKeyword"
+                                @enter="search"
+                                @clear="clearSearch" />
                         </div>
                     </div>
                 </div>
@@ -102,13 +101,13 @@
                         </symbol>
                     </svg>
 
-                    <div class="bk-tab2" style="border-left: none; border-right: none;">
+                    <div class="bk-tab2" style="border-left: none; border-right: none; font-size: 0;">
                         <div class="bk-tab2-head is-fill">
                             <div class="bk-tab2-nav" style="width: 100%;">
-                                <div :title="$t('项目仓库')" :class="['tab2-nav-item', { 'active': tabActiveName === 'privateRepo' }]" @click="tabActiveName = 'privateRepo'" style="width: 200px;">
+                                <div :title="$t('项目仓库')" :class="['tab2-nav-item', { 'active': tabActiveName === 'privateRepo' }]" @click="tabActiveName = 'privateRepo'" style="width: 180px;">
                                     {{$t('项目仓库')}}
                                 </div>
-                                <div title="公共仓库" :class="['tab2-nav-item', { 'active': tabActiveName === 'publicRepo' }]" @click="tabActiveName = 'publicRepo'" style="width: 200px;">
+                                <div :title="$t('公共仓库')" :class="['tab2-nav-item', { 'active': tabActiveName === 'publicRepo' }]" @click="tabActiveName = 'publicRepo'" style="width: 180px;">
                                     {{$t('公共仓库')}}
                                 </div>
                             </div>
@@ -143,25 +142,25 @@
                                                                 </svg>
                                                             </td>
                                                             <td class="data">
-                                                                <bk-tooltip placement="top" :delay="500">
+                                                                <bcs-popover placement="top" :delay="500">
                                                                     <p class="tpl-name">
                                                                         <router-link class="bk-text-button bk-primary bk-button-small" :to="{ name: 'helmTplDetail', params: { tplId: template.id } }">{{template.name}}</router-link>
                                                                     </p>
                                                                     <template slot="content">
                                                                         <p>{{template.name}}</p>
                                                                     </template>
-                                                                </bk-tooltip>
+                                                                </bcs-popover>
                                                             </td>
                                                             <td class="version">
                                                                 <template v-if="template.defaultChartVersion">
-                                                                    <bk-tooltip placement="top" :delay="500">
+                                                                    <bcs-popover placement="top" :delay="500">
                                                                         <p class="tpl-version">
                                                                             {{template.defaultChartVersion.version}}
                                                                         </p>
                                                                         <template slot="content">
                                                                             <p>{{template.defaultChartVersion.version}}</p>
                                                                         </template>
-                                                                    </bk-tooltip>
+                                                                    </bcs-popover>
                                                                 </template>
                                                                 <template v-else>--</template>
                                                             </td>
@@ -172,12 +171,23 @@
                                                                 {{template.changed_at}}
                                                             </td>
                                                             <td class="action">
-                                                                <router-link class="bk-button bk-primary mr5" :to="{ name: 'helmTplInstance', params: { tplId: template.id } }">{{$t('部署')}}</router-link>
+                                                                <span v-bk-tooltips="{
+                                                                    placement: 'top',
+                                                                    content: $t('仅允许平台部署，如有疑问请联系蓝鲸容器助手'),
+                                                                    disabled: !template.annotations.only_for_platform || (tabActiveName === 'privateRepo')
+                                                                }">
+                                                                    <router-link class="bk-button bk-primary mr5"
+                                                                        :to="template.annotations.only_for_platform ? {} : { name: 'helmTplInstance', params: { tplId: template.id } }"
+                                                                        :disabled="template.annotations.only_for_platform">
+                                                                        {{$t('部署')}}
+                                                                    </router-link>
+                                                                </span>
+                                                                <bk-button v-if="tabActiveName === 'publicRepo'" theme="default" @click="handleDownloadChart(template)">{{$t('下载版本')}}</bk-button>
                                                                 <bk-dropdown-menu class="dropdown-menu" :align="'right'" ref="dropdown" v-if="tabActiveName === 'privateRepo'">
-                                                                    <button class="bk-button bk-default btn" slot="dropdown-trigger" style="width: 82px; position: relative;">
-                                                                        <span>{{$t('更多')}}</span>
-                                                                        <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                                    </button>
+                                                                    <bk-button class="bk-button bk-default btn" slot="dropdown-trigger" style="width: 82px; position: relative;">
+                                                                        <span class="f14">{{$t('更多')}}</span>
+                                                                        <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
+                                                                    </bk-button>
                                                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                         <li>
                                                                             <a href="javascript:void(0)" @click="handleRemoveChart(template)">{{$t('删除Chart')}}</a>
@@ -198,7 +208,7 @@
                                                 <td colspan="6">
                                                     <div class="biz-empty-message" style="padding: 80px;">
                                                         <template v-if="isSearchMode">
-                                                            {{$t('无数据')}}
+                                                            <bcs-exception type="empty" scene="part"></bcs-exception>
                                                         </template>
                                                         <template v-else>
                                                             <span style="vertical-align: middle;">{{$t('无数据，请尝试')}}</span> <a href="javascript:void(0);" class="bk-text-button" @click="syncHelmTpl">{{$t('同步仓库')}}</a>
@@ -220,11 +230,10 @@
             :is-show.sync="delInstanceDialogConf.isShow"
             :width="delInstanceDialogConf.width"
             :title="delInstanceDialogConf.title"
-            :close-icon="delInstanceDialogConf.closeIcon"
             :quick-close="false"
             :ext-cls="'biz-config-templateset-del-instance-dialog'"
             @cancel="delInstanceDialogConf.isShow = false">
-            <div slot="content" v-bkloading="{ isLoading: isDeleting }">
+            <template slot="content" v-bkloading="{ isLoading: isDeleting }">
                 <div class="content-inner">
                     <div class="bk-form bk-form-vertical" style="margin-bottom: 20px;">
                         <div class="bk-form-item">
@@ -233,108 +242,118 @@
                             </label>
                             <div class="bk-form-content">
                                 <div class="bk-dropdown-box" style="width: 300px;">
-                                    <bk-selector
-                                        :placeholder="$t('请选择')"
-                                        :setting-key="'id'"
-                                        :display-key="'version'"
-                                        :selected.sync="delInstanceDialogConf.versionIndex"
-                                        :list="delInstanceDialogConf.versions"
-                                        @item-selected="getReleaseByVersion">
-                                    </bk-selector>
+                                    <bk-select v-if="delInstanceDialogConf.isShow"
+                                        v-model="delInstanceDialogConf.versionIds"
+                                        :multi-select="true"
+                                        searchable
+                                        :placeholder="$t('请选择')">
+                                        <bk-option v-for="item in delInstanceDialogConf.versions"
+                                            :key="item.id"
+                                            :name="item.version"
+                                            :id="item.id">
+                                        </bk-option>
+                                    </bk-select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <template v-if="!isReleaseLoading">
-                        <!-- <template v-if="delInstanceDialogConf.versionIndex && !delInstanceDialogConf.releases.length">
-                            <transition name="fadeDown">
-                                <div class="content-trigger-wrapper" style="text-align: left;">
-                                    {{$t('没有Release，可进行版本删除操作')}}
-                                </div>
-                            </transition>
-                        </template> -->
-                        <template v-if="delInstanceDialogConf && delInstanceDialogConf.releases.length">
-                            <p style="font-weight: bold; color: #737987; font-size: 14px; text-align: left;">
-                                当前版本含有的Release: <span class="biz-tip f12" style="font-weight: normal;">(格式：命名空间:Release名称)</span>
-                            </p>
-                            <ul class="key-list mt10 mb10">
-                                <li v-for="release of delInstanceDialogConf.releases" :key="release.name">
-                                    <span class="key">{{release.namespace}}</span>
-                                    <span class="value">{{release.name}}</span>
-                                </li>
-                            </ul>
-                            <div>
-                                {{$t('您需要先删除所有Release，再进行版本删除操作')}}
-                            </div>
-                        </template>
-                    </template>
-                    <template v-else>
-                        <div v-bkloading="{ isLoading: isReleaseLoading }" style="min-height: 50px;"></div>
-                    </template>
-                </div>
-            </div>
-            <template slot="footer">
-                <div class="bk-dialog-outer">
-                    <template v-if="isVersionDeleting">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled">
-                            {{$t('删除中...')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel is-disabled">
-                            {{$t('取消')}}
-                        </button>
-                    </template>
-                    <template v-else>
-                        <template v-if="delInstanceDialogConf.versionIndex && !delInstanceDialogConf.releases.length">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                                @click="confirmDelVersion">
-                                {{$t('提交')}}
-                            </button>
-                        </template>
-                        <template v-else>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled" disabled>
-                                {{$t('提交')}}
-                            </button>
-                        </template>
-                        
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancelDelVersion">
-                            {{$t('取消')}}
-                        </button>
+                    <template v-if="delInstanceDialogConf && delInstanceDialogConf.releases.length && delInstanceDialogConf.versionIds.length">
+                        <p style="font-weight: bold; color: #737987; font-size: 14px; text-align: left;">
+                            {{$t('当前版本含有的Release:')}} <span class="biz-tip" style="font-weight: normal;">({{$t('格式：命名空间:Release名称')}})</span>
+                        </p>
+                        <ul class="key-list mt10 mb10">
+                            <li v-for="release of delInstanceDialogConf.releases" :key="release.name">
+                                <span class="key">{{release.namespace}}</span>
+                                <span class="value">{{release.name}}</span>
+                            </li>
+                        </ul>
+                        <div>
+                            {{$t('您需要先删除所有Release，再进行版本删除操作')}}
+                        </div>
                     </template>
                 </div>
             </template>
+            <div slot="footer">
+                <div class="bk-dialog-outer">
+                    <template v-if="delInstanceDialogConf.versionIds.length && !delInstanceDialogConf.releases.length">
+                        <bk-button type="primary" :loading="isVersionDeleting" class="bk-dialog-btn bk-dialog-btn-confirm"
+                            @click="confirmDelVersion">
+                            {{$t('提交')}}
+                        </bk-button>
+                    </template>
+                    <template v-else>
+                        <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm" disabled>
+                            {{$t('提交')}}
+                        </bk-button>
+                    </template>
+
+                    <bk-button type="button" :disabled="isVersionDeleting" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancelDelVersion">
+                        {{$t('取消')}}
+                    </bk-button>
+                </div>
+            </div>
         </bk-dialog>
 
         <bk-dialog
             :is-show.sync="delTemplateDialogConf.isShow"
             :width="delTemplateDialogConf.width"
-            :close-icon="false"
             :ext-cls="'biz-config-templateset-copy-dialog'"
             :has-header="false"
-            :quick-close="false">
-            <div slot="content" style="padding: 0 20px;">
+            :quick-close="false"
+            @cancel="delTemplateDialogConf.isShow = false">
+            <template slot="content" style="padding: 0 20px;">
                 <div style="color: #333; font-size: 20px">
-                    Chart【{{delTemplateDialogConf.title}}】包含以下Releases：
-                    <span class="biz-tip">(格式：命名空间:Release名称)</span>
+                    Chart【{{delTemplateDialogConf.title}}】{{$t('包含以下Releases：')}}
+                    <span class="biz-tip">({{$t('格式：命名空间:Release名称')}})</span>
                 </div>
-                <ul class="key-list mt10 mb10">
+                <ul class="key-list mt20 mb5">
                     <li v-for="release of delTemplateDialogConf.releases" :key="release.name">
                         <span class="key">{{release.namespace}}</span>
                         <span class="value">{{release.name}}</span>
                     </li>
                 </ul>
-                <div>
+                <div style="clear: both; margin-bottom: 20px;">
                     {{$t('您需要先删除所有Release，再进行Chart删除操作')}}
                 </div>
-            </div>
-            <template slot="footer">
-                <div class="bk-dialog-outer">
-                    <button type="button" style="width: 96px;" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                        @click="delTemplateCancel">
-                        {{$t('关闭')}}
-                    </button>
-                </div>
             </template>
+            <div slot="footer">
+                <div class="bk-dialog-outer">
+                    <bk-button type="primary" @click="delTemplateCancel">
+                        {{$t('关闭')}}
+                    </bk-button>
+                </div>
+            </div>
         </bk-dialog>
+
+        <bcs-dialog
+            v-model="downloadDialog.isShow"
+            header-position="left"
+            :title="$t('下载Chart版本')"
+            :width="550"
+            :mask-close="false">
+            <bcs-form form-type="vertical">
+                <bcs-form-item :label="$t('选择要下载的版本')">
+                    <bcs-select v-model="downloadDialog.downloadVersion"
+                        :loading="isTplVersionLoading"
+                        :clearable="false">
+                        <bcs-option v-for="item in downloadDialog.versions"
+                            :key="item.version"
+                            :id="item.version"
+                            :name="item.version">
+                        </bcs-option>
+                    </bcs-select>
+                </bcs-form-item>
+            </bcs-form>
+            <template slot="footer">
+                <bcs-button theme="primary"
+                    :disabled="!downloadDialog.downloadVersion"
+                    :loading="isVersionDetailLoading"
+                    @click="handleComfirmDownload">
+                    {{$t('确定')}}
+                </bcs-button>
+                <bcs-button @click="handleCancelDownload">{{$t('取消')}}</bcs-button>
+            </template>
+        </bcs-dialog>
 
     </div>
 </template>
@@ -379,7 +398,7 @@
                     template: {},
                     versions: [],
                     releases: [],
-                    versionIndex: 0
+                    versionIds: []
                 },
                 reposData: {
                     publicRepos: [],
@@ -387,7 +406,16 @@
                 },
                 helmDialog: {
                     isShow: false
-                }
+                },
+                deleteVersionTimer: null,
+                downloadDialog: {
+                    isShow: false,
+                    downloadVersion: '',
+                    chartName: '',
+                    versions: []
+                },
+                isTplVersionLoading: false,
+                isVersionDetailLoading: false
             }
         },
         computed: {
@@ -423,6 +451,16 @@
             },
             tabActiveName (val) {
                 this.setTplList()
+            },
+            'delInstanceDialogConf.versionIds' () {
+                if (this.delInstanceDialogConf.isShow) {
+                    this.delInstanceDialogConf.releases = []
+                    if (this.deleteVersionTimer) {
+                        clearTimeout(this.deleteVersionTimer)
+                        this.deleteVersionTimer = null
+                    }
+                    this.deleteVersionTimer = setTimeout(this.getReleaseByVersion, 300)
+                }
             }
         },
         mounted () {
@@ -477,6 +515,7 @@
                         this.clipboardInstance = new Clipboard('.copy-btn')
                         this.clipboardInstance.on('success', e => {
                             this.$bkMessage({
+                                limit: 1,
                                 theme: 'success',
                                 message: this.$t('复制成功')
                             })
@@ -627,18 +666,18 @@
                     // 先检测当前Chart是否有release
                     const res = await this.$store.dispatch('helm/getExistReleases', {
                         projectId: this.projectId,
-                        templateId: template.id
+                        chartName: template.name
                     })
 
                     // 如果没有release，可删除
                     if (!res.data.length) {
                         const me = this
                         me.$bkInfo({
-                            title: ``,
+                            title: this.$t('确认删除'),
                             clsName: 'biz-remove-dialog',
                             content: me.$createElement('p', {
                                 class: 'biz-confirm-desc'
-                            }, `${this.$t('确定要Chart')}【${template.name}】?`),
+                            }, `${this.$t('确定要删除Chart')}【${template.name}】?`),
                             async confirmFn () {
                                 me.deleteTemplate(template)
                             }
@@ -662,7 +701,7 @@
                 try {
                     await this.$store.dispatch('helm/removeTemplate', {
                         projectId: this.projectId,
-                        templateId: template.id
+                        chartName: template.name
                     })
 
                     this.$bkMessage({
@@ -680,12 +719,13 @@
              * @param {Object} template 当前模板集对象
              */
             async deleteTemplateVersion () {
+                const versions = this.delInstanceDialogConf.versions.filter(item => this.delInstanceDialogConf.versionIds.includes(item.id))
                 this.isVersionDeleting = true
                 try {
                     await this.$store.dispatch('helm/removeTemplate', {
                         projectId: this.projectId,
-                        templateId: this.delInstanceDialogConf.template.id,
-                        versionId: this.delInstanceDialogConf.versionIndex
+                        chartName: this.delInstanceDialogConf.template.name,
+                        versions: versions.map(item => item.version)
                     })
 
                     this.$bkMessage({
@@ -725,7 +765,7 @@
                 this.delInstanceDialogConf.template = Object.assign({}, template)
                 this.delInstanceDialogConf.versions = []
                 this.delInstanceDialogConf.releases = []
-                this.delInstanceDialogConf.versionIndex = 0
+                this.delInstanceDialogConf.versionIds = []
 
                 this.getTplVersions()
             },
@@ -743,13 +783,14 @@
                 }
             },
 
-            async getReleaseByVersion (versionId) {
+            async getReleaseByVersion () {
+                const versions = this.delInstanceDialogConf.versions.filter(item => this.delInstanceDialogConf.versionIds.includes(item.id))
                 this.isReleaseLoading = true
                 try {
                     const res = await this.$store.dispatch('helm/getExistReleases', {
                         projectId: this.projectId,
-                        templateId: this.delInstanceDialogConf.template.id,
-                        versionId: versionId
+                        chartName: this.delInstanceDialogConf.template.name,
+                        versions: versions.map(item => item.version)
                     })
 
                     this.delInstanceDialogConf.releases = res.data
@@ -767,7 +808,7 @@
                 this.delInstanceDialogConf.template = {}
                 this.delInstanceDialogConf.versions = []
                 this.delInstanceDialogConf.releases = []
-                this.delInstanceDialogConf.versionIndex = 0
+                this.delInstanceDialogConf.versionIds = []
             },
 
             /**
@@ -775,20 +816,81 @@
              */
             async confirmDelVersion () {
                 const me = this
-                if (!this.delInstanceDialogConf.versionIndex) {
+                if (!this.delInstanceDialogConf.versionIds.length) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择Chart版本')
                     })
                     return
                 }
-
+                const versions = this.delInstanceDialogConf.versions.filter(item => this.delInstanceDialogConf.versionIds.includes(item.id))
                 this.$bkInfo({
-                    title: this.$t('确定删除版本？'),
+                    title: this.$t('确认删除以下版本'),
+                    content: versions.map(item => item.version).join(', '),
                     async confirmFn () {
                         me.deleteTemplateVersion()
                     }
                 })
+            },
+
+            async getChartVersionDetail (chartId, version) {
+                this.isVersionDetailLoading = true
+                let url = ''
+                try {
+                    const res = await this.$store.dispatch('helm/getChartVersionDetail', {
+                        projectId: this.projectId,
+                        isPublic: this.tabActiveName === 'publicRepo',
+                        chartId,
+                        version
+                    })
+                    const data = res.data || {}
+                    const urls = (data.data || {}).urls || []
+                    url = urls[0] || ''
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.isVersionDetailLoading = false
+                }
+                return url
+            },
+
+            async getTplVersionList (tplId) {
+                this.isTplVersionLoading = true
+                try {
+                    const res = await this.$store.dispatch('helm/getTplVersionList', {
+                        projectId: this.projectId,
+                        isPublic: this.tabActiveName === 'publicRepo',
+                        tplId
+                    })
+                    this.downloadDialog.versions = res.data || []
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.isTplVersionLoading = false
+                }
+            },
+
+            async handleDownloadChart (template) {
+                this.downloadDialog.downloadVersion = ''
+                this.downloadDialog.versions = []
+                this.downloadDialog.chartName = template.name
+                this.downloadDialog.isShow = true
+                await this.getTplVersionList(template.name)
+            },
+
+            async handleComfirmDownload () {
+                const url = await this.getChartVersionDetail(this.downloadDialog.chartName, this.downloadDialog.downloadVersion)
+                const a = document.createElement('a')
+                a.href = url
+                a.click()
+                this.handleCancelDownload()
+            },
+
+            handleCancelDownload () {
+                this.downloadDialog.isShow = false
+                this.downloadDialog.versions = []
+                this.downloadDialog.chartName = ''
+                this.downloadDialog.downloadVersion = ''
             }
         }
     }
