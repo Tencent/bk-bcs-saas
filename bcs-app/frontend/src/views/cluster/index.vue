@@ -24,7 +24,7 @@
                     <apply-host class="ml10" v-if="$INTERNAL" />
                 </div>
                 <div class="biz-cluster-list" :style="{ paddingTop: isK8SProject ? 0 : '30px' }">
-                    <div class="biz-cluster" v-for="(cluster, clusterIndex) in clusterList.filter(item => item && (item.cluster_id !== 'all'))" :key="clusterIndex">
+                    <div class="biz-cluster" v-for="(cluster, clusterIndex) in clusterList" :key="clusterIndex">
                         <!-- 异常状态 -->
                         <div class="bk-mark-corner bk-warning" v-if="
                             cluster.status === 'normal'

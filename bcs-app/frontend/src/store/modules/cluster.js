@@ -68,7 +68,7 @@ export default {
         async getClusterList (context, projectId, config = {}) {
             if (context.state.clusterList.length && Object.keys(context.state.cacheRes)) {
                 delete context.state.cacheRes.request_id
-                return context.state.cacheRes
+                return JSON.parse(JSON.stringify(context.state.cacheRes))
             }
             // return http.get('/app/cluster?invoke=getClusterList', {}, config)
             const res = await http.get(

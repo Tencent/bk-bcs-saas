@@ -423,7 +423,7 @@
             async getClusters () {
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
-                    const list = res.data.results || []
+                    const list = JSON.parse(JSON.stringify(res.data.results || []))
                     this.$store.commit('cluster/forceUpdateClusterList', list)
                     if (this.curClusterId) {
                         const match = list.find(item => {
