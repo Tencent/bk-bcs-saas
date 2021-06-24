@@ -121,7 +121,7 @@ export default defineComponent({
         // 分页
         const { pagination, curPageData, pageConf, pageChange, pageSizeChange } = usePage(searchData)
         // 搜索时重置分页
-        watch([searchValue, namespaceList], () => {
+        watch([searchValue, namespaceValue], () => {
             pageConf.current = 1
         })
 

@@ -13,7 +13,7 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column :label="$t('镜像')" width="450" :resizable="false">
+                <bk-table-column :label="$t('镜像')" width="450" :resizable="false" :show-overflow-tooltip="false">
                     <template slot-scope="{ row }">
                         <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
                             {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
