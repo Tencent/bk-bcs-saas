@@ -1895,7 +1895,7 @@ export default {
     '所属集群: ': ['Cluster: '],
     '命名空间: ': ['Namespace: '],
     '标签有助于整理你的资源（如 env:prod）': ['Tags help organize your resources (like env:prod)'],
-    '当前容器网络配置下，集群最多 {count} 个节点(包含master和node)': ['Under the current container network configuration, the cluster has at most {count} nodes (including master and node)'],
+    '当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)': ['Under the current container network configuration, the cluster has at most {count} nodes (including Master and Node)'],
     '最少选择三个服务器': ['Choose at least three servers']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
