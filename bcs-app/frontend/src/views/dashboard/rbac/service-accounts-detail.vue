@@ -26,11 +26,7 @@
         </div>
         <div class="scerets-content">
             <bk-table :data="data.secrets">
-                <bk-table-column label="name">
-                    <template slot-scope="{ row }">
-                        {{ row.name }}
-                    </template>
-                </bk-table-column>
+                <bk-table-column label="name" prop="name"></bk-table-column>
             </bk-table>
         </div>
     </div>
