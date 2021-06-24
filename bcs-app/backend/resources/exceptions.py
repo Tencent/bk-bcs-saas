@@ -16,12 +16,12 @@
 class ResourceBaseError(Exception):
     """ Resource 模块基础异常类，需在上层捕获后处理 """
 
-    message = 'Resource module exception'
+    message: str = 'Resource Module Exception'
 
-    def __init__(self, message=None):
-        """ 初始化异常类，若无参数则使用默认值 """
+    def __init__(self, message: str = None, *args: object) -> None:
+        super().__init__(*args)
         if message:
             self.message = message
 
     def __str__(self):
-        return f'{self.message}'
+        return self.message
