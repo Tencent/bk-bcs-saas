@@ -108,7 +108,9 @@
                     try {
                         const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                         this.clusterList = res.data.results
-                        this.$store.commit('cluster/forceUpdateClusterList', this.clusterList)
+                        if (!this.$store.state.cluster.clusterList.length) {
+                            this.$store.commit('cluster/forceUpdateClusterList', this.clusterList)
+                        }
                     } catch (e) {
                         catchErrorHandler(e, this)
                     }
