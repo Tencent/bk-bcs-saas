@@ -20,11 +20,11 @@ export default function useClusterList (ctx: SetupContext): IUseClusterListResul
         $store.commit('cluster/forceUpdateClusterList', res.data.results || [])
     }
 
-    onMounted(() => {
-        if (!curClusterList.value.length) {
-            getClusterList()
-        }
-    })
+    // onMounted(() => {
+    //     if (!curClusterList.value.length) {
+    //         getClusterList()
+    //     }
+    // })
 
     return {
         curClusterList,
