@@ -13,6 +13,7 @@
 #
 import logging
 
+from kubernetes.client.exceptions import ApiException
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -42,19 +43,23 @@ class ContainerViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='env_info', detail=True)
     def env_info(self, request, project_id, cluster_id, namespace, pod_name, container_name):
         """ 获取 Pod 环境变量配置信息 """
-        env_resp = Pod(request.ctx_cluster).exec_command(namespace, pod_name, container_name, ['/bin/sh', '-c', 'env'])
 
+        response_data = []
         try:
+            env_resp = Pod(request.ctx_cluster).exec_command(
+                namespace, pod_name, container_name, ['/bin/sh', '-c', 'env']
+            )
             # docker 环境变量格式: key=val
-            response_data = []
             for info in env_resp.splitlines():
                 if not info:
                     continue
                 partition_ret = info.partition('=')
                 response_data.append({'name': partition_ret[0], 'value': partition_ret[2]})
+        except ApiException as e:
+            # 在 Pod 中执行命令失败，可能原因有 Pod 未就绪等
+            logger.warning('尝试在 Pod 中执行命令失败: %s', e)
         except Exception as e:
             # 若解析失败，仅保留错误信息，不抛出异常
             logger.error('解析容器环境变量失败: %s', e)
-            response_data = []
 
         return Response(response_data)
