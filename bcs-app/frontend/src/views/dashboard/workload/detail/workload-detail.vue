@@ -234,7 +234,7 @@
 
                 // 获取工作负载下对应的pod数据
                 podLoading.value = true
-                const matchLabels = detail.value?.manifest?.spec.selector.matchLabels || {}
+                const matchLabels = detail.value?.manifest?.spec?.selector?.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
