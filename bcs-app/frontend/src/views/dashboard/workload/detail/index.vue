@@ -50,7 +50,7 @@
             }
         },
         setup (props, ctx) {
-            const { $router } = ctx.root
+            const { $router, $store } = ctx.root
             // 区分首次进入pod详情还是其他workload详情
             const defaultComId = props.category === 'pods' ? 'PodDetail' : 'WorkloadDetail'
             // 子标题
@@ -63,10 +63,16 @@
                 pods: 'Pod',
                 container: 'Container'
             }
+            // 首字母大写
+            const upperFirstLetter = (str: string) => {
+                if (!str) return str
+
+                return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`
+            }
             // 顶部导航内容
             const titles = ref<ITitle[]>([
                 {
-                    name: props.category,
+                    name: upperFirstLetter(props.category),
                     id: ''
                 },
                 {
@@ -87,7 +93,7 @@
                 const { id } = item
                 const index = titles.value.findIndex(item => item.id === id)
                 if (id === '') {
-                    $router.back()
+                    $router.push({ name: $store.getters.curNavName })
                 } else {
                     componentId.value = id
                     if (index > -1) {
@@ -138,6 +144,7 @@
 </script>
 <style scoped>
 .detail {
-    width: 100%;
+    flex: 1;
+    width: 0;
 }
 </style>

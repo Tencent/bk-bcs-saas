@@ -2,22 +2,25 @@
     <div class="workload-detail">
         <div class="workload-detail-info" v-bkloading="{ isLoading }">
             <div class="workload-info-basic">
-                <span class="name mr20">{{ metadata.name }}</span>
-                <div class="basic-wrapper">
-                    <StatusIcon class="basic-item" :status="manifestExt.status"></StatusIcon>
-                    <div class="basic-item">
-                        <span class="label">Ready</span>
-                        <span class="value">{{ manifestExt.readyCnt }} / {{ manifestExt.totalCnt }}</span>
-                    </div>
-                    <div class="basic-item">
-                        <span class="label">Host IP</span>
-                        <span class="value">{{ status.hostIP || '--' }}</span>
-                    </div>
-                    <div class="basic-item">
-                        <span class="label">Pod IP</span>
-                        <span class="value">{{ status.podIP || '--' }}</span>
+                <div class="basic-left">
+                    <span class="name mr20">{{ metadata.name }}</span>
+                    <div class="basic-wrapper">
+                        <StatusIcon class="basic-item" :status="manifestExt.status"></StatusIcon>
+                        <div class="basic-item">
+                            <span class="label">Ready</span>
+                            <span class="value">{{ manifestExt.readyCnt }} / {{ manifestExt.totalCnt }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">Host IP</span>
+                            <span class="value">{{ status.hostIP || '--' }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">Pod IP</span>
+                            <span class="value">{{ status.podIP || '--' }}</span>
+                        </div>
                     </div>
                 </div>
+                <bk-button theme="primary" @click="handleShowYamlPanel">To Yaml</bk-button>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">
@@ -199,6 +202,11 @@
                 </bcs-tab-panel>
             </bcs-tab>
         </div>
+        <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
+            <template #content>
+                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+            </template>
+        </bcs-sideslider>
     </div>
 </template>
 <script lang="ts">
@@ -209,6 +217,7 @@
     import Metric from '../../common/metric.vue'
     import useDetail from './use-detail'
     import { formatTime } from '@/common/util'
+    import Ace from '@/components/ace-editor'
 
     export interface IDetail {
         manifest: any;
@@ -225,7 +234,8 @@
         name: 'PodDetail',
         components: {
             StatusIcon,
-            Metric
+            Metric,
+            Ace
         },
         directives: {
             bkOverflowTips
@@ -253,7 +263,10 @@
                 annotations,
                 metadata,
                 manifestExt,
-                handleGetDetail
+                yaml,
+                showYamlPanel,
+                handleGetDetail,
+                handleShowYamlPanel
             } = useDetail(ctx, {
                 ...props,
                 category: 'pods',
@@ -366,6 +379,9 @@
                 annotations,
                 storageLoading,
                 containerLoading,
+                yaml,
+                showYamlPanel,
+                handleShowYamlPanel,
                 handleGetStorage,
                 handleGetContainer,
                 gotoContainerDetail,
@@ -380,6 +396,9 @@
 @import './detail-info.css';
 .workload-detail {
     width: 100%;
+    /deep/ .bk-sideslider .bk-sideslider-content {
+        height: 100%;
+    }
     &-info {
         @mixin detail-info 3;
     }

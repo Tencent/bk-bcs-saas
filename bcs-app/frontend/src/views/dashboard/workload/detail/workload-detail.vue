@@ -2,15 +2,18 @@
     <div class="workload-detail" v-bkloading="{ isLoading }">
         <div class="workload-detail-info">
             <div class="workload-info-basic">
-                <span class="name mr20">{{ metadata.name }}</span>
-                <div class="basic-wrapper">
-                    <div v-for="item in basicInfoList"
-                        :key="item.label"
-                        class="basic-item">
-                        <span class="label">{{ item.label }}</span>
-                        <span class="value">{{ item.value }}</span>
+                <div class="basic-left">
+                    <span class="name mr20">{{ metadata.name }}</span>
+                    <div class="basic-wrapper">
+                        <div v-for="item in basicInfoList"
+                            :key="item.label"
+                            class="basic-item">
+                            <span class="label">{{ item.label }}</span>
+                            <span class="value">{{ item.value }}</span>
+                        </div>
                     </div>
                 </div>
+                <bk-button theme="primary" @click="handleShowYamlPanel">To Yaml</bk-button>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">
@@ -36,7 +39,7 @@
             </div>
         </div>
         <div class="workload-detail-body">
-            <div class="workload-metric">
+            <div class="workload-metric" v-bkloading="{ isLoading: podLoading }">
                 <Metric :title="$t('CPU使用率')" metric="cpu_usage" :params="params" category="pods" colors="#30d878"></Metric>
                 <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" unit="byte" category="pods" colors="#3a84ff"></Metric>
                 <Metric :title="$t('网络')"
@@ -58,14 +61,9 @@
                         <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
                         <bk-table-column :label="$t('镜像')" width="450" :resizable="false">
                             <template slot-scope="{ row }">
-                                <div class="images-wrapper">
-                                    <div class="image-item"
-                                        :title="image"
-                                        v-for="(image, imageIndex) in handleGetExtData(row.metadata.uid, 'images')"
-                                        :key="imageIndex">
-                                        {{image}}
-                                    </div>
-                                </div>
+                                <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
+                                    {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
+                                </span>
                             </template>
                         </bk-table-column>
                         <bk-table-column label="Status" :resizable="false">
@@ -81,7 +79,10 @@
                         <bk-table-column label="Restarts" width="110" :resizable="false">
                             <template slot-scope="{ row }">{{handleGetExtData(row.metadata.uid, 'restartCnt')}}</template>
                         </bk-table-column>
-                        <bk-table-column label="IP" :resizable="false">
+                        <bk-table-column label="Host IP" width="140" :resizable="false">
+                            <template slot-scope="{ row }">{{row.status.hostIP || '--'}}</template>
+                        </bk-table-column>
+                        <bk-table-column label="Pod IP" width="140" :resizable="false">
                             <template slot-scope="{ row }">{{row.status.podIP || '--'}}</template>
                         </bk-table-column>
                         <bk-table-column label="Node" :resizable="false">
@@ -108,6 +109,11 @@
                 </bcs-tab-panel>
             </bcs-tab>
         </div>
+        <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
+            <template #content>
+                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+            </template>
+        </bcs-sideslider>
     </div>
 </template>
 <script lang="ts">
@@ -118,6 +124,7 @@
     import Metric from '../../common/metric.vue'
     import useDetail from './use-detail'
     import detailBasicList from './detail-basic'
+    import Ace from '@/components/ace-editor'
 
     export interface IDetail {
         manifest: any;
@@ -132,7 +139,8 @@
         name: 'WorkloadDetail',
         components: {
             StatusIcon,
-            Metric
+            Metric,
+            Ace
         },
         directives: {
             bkOverflowTips
@@ -166,14 +174,17 @@
                 annotations,
                 metadata,
                 manifestExt,
-                handleGetDetail
+                yaml,
+                showYamlPanel,
+                handleGetDetail,
+                handleShowYamlPanel
             } = useDetail(ctx, {
                 ...props,
                 defaultActivePanel: 'pod'
             })
             const podLoading = ref(false)
             const workloadPods = ref<IDetail|null>(null)
-            const basicInfoList = detailBasicList(ctx, {
+            const basicInfoList = detailBasicList({
                 category: props.category,
                 detail
             })
@@ -218,7 +229,7 @@
 
                 // 获取工作负载下对应的pod数据
                 podLoading.value = true
-                const matchLabels = detail.value?.manifest?.spec.selector.matchLabels || {}
+                const matchLabels = detail.value?.manifest?.spec?.selector?.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
@@ -242,6 +253,9 @@
                 labels,
                 annotations,
                 podLoading,
+                yaml,
+                showYamlPanel,
+                handleShowYamlPanel,
                 gotoPodDetail,
                 handleGetExtData,
                 getImagesTips
@@ -253,6 +267,9 @@
 @import './detail-info.css';
 .workload-detail {
     width: 100%;
+    /deep/ .bk-sideslider .bk-sideslider-content {
+        height: 100%;
+    }
     &-info {
         @mixin detail-info 3;
     }

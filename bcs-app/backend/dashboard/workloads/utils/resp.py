@@ -41,8 +41,8 @@ class ContainerRespBuilder:
 
             containers.append(
                 {
-                    # 原格式：docker://[a-zA-Z0-9]{64}，需要去除前缀
-                    'container_id': self._extract_container_id(cs['containerID']),
+                    # 原格式：docker://[a-zA-Z0-9]{64}，需要去除前缀，特殊状态下可能不存在
+                    'container_id': self._extract_container_id(get_with_placeholder(cs, 'containerID')),
                     'image': cs['image'],
                     'name': cs['name'],
                     'status': status,
@@ -74,7 +74,7 @@ class ContainerRespBuilder:
             'host_name': get_with_placeholder(spec, 'nodeName'),
             'host_ip': get_with_placeholder(status, 'hostIP'),
             'container_ip': get_with_placeholder(status, 'podIP'),
-            'container_id': self._extract_container_id(container_status['containerID']),
+            'container_id': self._extract_container_id(get_with_placeholder(container_status, 'containerID')),
             'container_name': self.container_name,
             'image': get_with_placeholder(container_status, 'image'),
             'network_mode': get_with_placeholder(spec, 'dnsPolicy'),

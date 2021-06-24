@@ -19,7 +19,7 @@
             </div>
             <div class="basic-info-item">
                 <label>Hosts</label>
-                <span>{{ extData.hosts.join('/') || '--' }}</span>
+                <span>{{ extData.hosts.join('/') || '*' }}</span>
             </div>
             <div class="basic-info-item">
                 <label>Address</label>
@@ -43,7 +43,11 @@
             <bcs-tab-panel name="config" :label="$t('配置')">
                 <p class="detail-title">{{ $t('主机列表') }}（spec.tls）</p>
                 <bk-table :data="data.spec.tls" class="mb20">
-                    <bk-table-column label="Hosts" prop="hosts"></bk-table-column>
+                    <bk-table-column label="Hosts" prop="hosts">
+                        <template #default="{ row }">
+                            {{ (row.hosts || []).join(', ') }}
+                        </template>
+                    </bk-table-column>
                     <bk-table-column label="SecretName" prop="secretName"></bk-table-column>
                 </bk-table>
                 <p class="detail-title">{{ $t('规则') }}（spec.rules）</p>
@@ -86,7 +90,7 @@
                 default: () => ({})
             }
         },
-        setup (props, ctx) {
+        setup () {
             const handleTransformObjToArr = (obj) => {
                 if (!obj) return []
 

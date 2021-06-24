@@ -31,7 +31,7 @@ export default function (unit) {
                 }
             },
             formatter: (params) => {
-                const date = formatDate(params?.[0]?.axisValue, 'YYYY-MM-DD hh:mm:ss')
+                const date = formatDate(params?.[0]?.axisValue * 1000, 'YYYY-MM-DD hh:mm:ss')
                 let ret = `<div>${date}</div>`
                 params.forEach(p => {
                     ret += `<div>${p.seriesName}：${axisLabel(p.value?.[1])}</div>`

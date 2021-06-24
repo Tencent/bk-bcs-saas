@@ -5,7 +5,7 @@ export interface IDetailBasicOptions {
     detail: any;
 }
 
-export default function detailBasicList (ctx, options: IDetailBasicOptions) {
+export default function detailBasicList (options: IDetailBasicOptions) {
     const basicInfoMap = {
         deployments: [
             {
@@ -96,7 +96,7 @@ export default function detailBasicList (ctx, options: IDetailBasicOptions) {
     const basicInfoList = computed(() => curBasicInfo.map(item => {
         const dataKey = hasOwnProperty(item, 'dataBasicKey') ? item.dataBasicKey : 'manifest'
         const data = options.detail.value?.[dataKey]
-        const hasDefaultValue = hasOwnProperty(item, 'hasDefaultValue')
+        const hasDefaultValue = hasOwnProperty(item, 'defaultValue')
         const hasDelimiter = hasOwnProperty(item, 'delimiter')
         const values = item.valueKeys.map(key => {
             const childrenKey = key.split('.')
@@ -104,7 +104,7 @@ export default function detailBasicList (ctx, options: IDetailBasicOptions) {
             if (childrenKey.length > 1) {
                 value = childrenKey.reduce((acc, item) => acc?.[item], data)
             }
-            return hasDefaultValue ? value || item.hasDefaultValue : value
+            return hasDefaultValue ? value || item.defaultValue : value
         })
         return {
             label: item.label,
