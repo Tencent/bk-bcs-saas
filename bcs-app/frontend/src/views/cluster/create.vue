@@ -202,7 +202,7 @@
                                         </div>
                                     </div>
                                     <p class="computed-rules">{{$t('计算规则: (IP数量-Service的数量)/(Master数量+Node数量)')}}</p>
-                                    <i18n v-if="isShowTips" path="当前容器网络配置下，集群最多 {count} 个节点(包含master和node)" class="computed-rules" tag="p">
+                                    <i18n v-if="isShowTips" path="当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)" class="computed-rules" tag="p">
                                         <strong place="count" style="color: #222222;">{{ maxClusterCount }}</strong>
                                     </i18n>
                                 </div>
