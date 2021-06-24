@@ -2,15 +2,17 @@
     <div class="workload-detail">
         <div class="workload-detail-info" v-bkloading="{ isLoading }">
             <div class="workload-info-basic">
-                <span class="name mr20">{{ detail && detail.container_name }}</span>
-                <div class="basic-wrapper">
-                    <div class="basic-item">
-                        <span class="label">{{ $t('主机IP') }}</span>
-                        <span class="value">{{ detail && detail.host_ip || '--' }}</span>
-                    </div>
-                    <div class="basic-item">
-                        <span class="label">{{ $t('容器IP') }}</span>
-                        <span class="value">{{ detail && detail.container_ip || '--' }}</span>
+                <div class="basic-left">
+                    <span class="name mr20">{{ detail && detail.container_name }}</span>
+                    <div class="basic-wrapper">
+                        <div class="basic-item">
+                            <span class="label">{{ $t('主机IP') }}</span>
+                            <span class="value">{{ detail && detail.host_ip || '--' }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">{{ $t('容器IP') }}</span>
+                            <span class="value">{{ detail && detail.container_ip || '--' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>

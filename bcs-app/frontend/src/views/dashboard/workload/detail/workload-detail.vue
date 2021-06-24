@@ -189,7 +189,7 @@
             })
             const podLoading = ref(false)
             const workloadPods = ref<IDetail|null>(null)
-            const basicInfoList = detailBasicList(ctx, {
+            const basicInfoList = detailBasicList({
                 category: props.category,
                 detail
             })
