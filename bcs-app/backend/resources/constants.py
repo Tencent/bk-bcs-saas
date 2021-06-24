@@ -32,6 +32,7 @@ class WorkloadTypes(ChoicesEnum):
 
     _choices_labels = (
         (Deployment, "Deployment"),
+        (ReplicaSet, "ReplicaSet"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (Job, "Job"),
@@ -70,6 +71,7 @@ class K8sResourceKind(ChoicesEnum):
     _choices_labels = (
         # workload
         (Deployment, "Deployment"),
+        (ReplicaSet, "ReplicaSet"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (CronJob, "CronJob"),

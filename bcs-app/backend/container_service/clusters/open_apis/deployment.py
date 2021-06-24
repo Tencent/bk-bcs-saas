@@ -37,6 +37,6 @@ class DeploymentViewSet(UserViewSet):
             label_selector=labels_string,
             is_format=False,
             owner_kind=K8sResourceKind.Deployment.value,
-            owner_names=deploy_name,
+            owner_name=deploy_name,
         )['items']
         return Response(ResourceDefaultFormatter().format_list(pods))

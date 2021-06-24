@@ -41,31 +41,30 @@ class Pod(ResourceClient):
         is_format: bool = True,
         formatter: Optional[ResourceDefaultFormatter] = None,
         owner_kind: Optional[str] = None,
-        owner_names: Optional[List] = None,
+        owner_name: Optional[str] = None,
         **kwargs
     ) -> Union[ResourceInstance, Dict]:
+        """
+        查询 Pod 列表
+
+        :param is_format: 是否使用 PodFormatter 进行格式化
+        :param formatter: 指定的特殊格式化器
+        :param owner_kind: 上级资源类型
+        :param owner_name: 上级资源名称
+        :return: Pod 列表信息
+        """
         resp = super().list(is_format, formatter, **kwargs)
-        if not (kwargs.get('namespace') and owner_kind and owner_names):
+        if not (kwargs.get('namespace') and owner_kind and owner_name):
             return resp
+
+        # 找到当前指定资源关联的 Pod 的 owner reference 信息
+        pod_owner_reference = self._get_pod_owner_reference(kwargs['namespace'], owner_kind, owner_name)
 
         # NOTE: Pod 类型 list 若需要支持根据 owner_reference 过滤，
         # 结果不是返回 ResourceInstance 而是 Dict，需要上层进行兼容
         # 原因是：ResourceInstance 对象属性不支持赋值
         resp = resp.to_dict()
-        # Deployment/CronJob 不直接关联 Pod，而是通过 ReplicaSet/Job 间接关联
-        if owner_kind in [K8sResourceKind.Deployment.value, K8sResourceKind.CronJob.value]:
-            SubResClient = {
-                K8sResourceKind.Deployment.value: ReplicaSet,
-                K8sResourceKind.CronJob.value: Job,
-            }[owner_kind]
-            sub_res = SubResClient(self.ctx_cluster).list(namespace=kwargs['namespace'], is_format=False).to_dict()
-            owner_names = [
-                getitems(sr, 'metadata.name')
-                for sr in self._filter_by_owner_reference(sub_res['items'], owner_kind, owner_names)
-            ]
-            owner_kind = SubResClient.kind
-
-        resp['items'] = self._filter_by_owner_reference(resp['items'], owner_kind, owner_names)
+        resp['items'] = self._filter_by_owner_reference(resp['items'], pod_owner_reference)
         return resp
 
     def fetch_manifest(self, namespace: str, pod_name: str) -> Dict:
@@ -130,13 +129,36 @@ class Pod(ResourceClient):
             tty=False,
         )
 
-    def _filter_by_owner_reference(self, sub_res_items: List, owner_kind: str, owner_names: List) -> List:
+    def _get_pod_owner_reference(self, namespace: str, owner_kind: str, owner_name: str) -> List[Dict]:
+        """
+        非直接关联 Pod 的资源，找到下层直接关联的子资源
+
+        :param namespace: 命名空间
+        :param owner_kind: 所属资源类型
+        :param owner_name: 所属资源名称列表
+        """
+        sub_owner_reference = [{'kind': owner_kind, 'name': owner_name}]
+        if owner_kind not in [K8sResourceKind.Deployment.value, K8sResourceKind.CronJob.value]:
+            return sub_owner_reference
+
+        # Deployment/CronJob 不直接关联 Pod，而是通过 ReplicaSet/Job 间接关联，需要向下钻取获取 Pod 的 owner reference 信息
+        SubResClient = {
+            K8sResourceKind.Deployment.value: ReplicaSet,
+            K8sResourceKind.CronJob.value: Job,
+        }[owner_kind]
+        sub_res = SubResClient(self.ctx_cluster).list(namespace=namespace, is_format=False).to_dict()
+        owner_names = [
+            getitems(sr, 'metadata.name')
+            for sr in self._filter_by_owner_reference(sub_res['items'], sub_owner_reference)
+        ]
+        return [{'kind': SubResClient.kind, 'name': n} for n in owner_names]
+
+    def _filter_by_owner_reference(self, sub_res_items: List, owner_reference: List) -> List:
         """
         根据 owner_reference 过滤关联的子资源
 
         :param sub_res_items: 子资源列表
-        :param owner_kind: 所属资源类型
-        :param owner_names: 所属资源名称列表
+        :param owner_reference: 所属资源信息
         :return: 根据 owner_reference 过滤后的资源列表
         """
         ret = []
@@ -144,7 +166,8 @@ class Pod(ResourceClient):
             if 'ownerReferences' not in sub_res['metadata']:
                 continue
             for owner_ref in sub_res['metadata']['ownerReferences']:
-                if owner_ref['kind'] == owner_kind and owner_ref['name'] in owner_names:
-                    ret.append(sub_res)
-                    break
+                for ref in owner_reference:
+                    if owner_ref['kind'] == ref['kind'] and owner_ref['name'] == ref['name']:
+                        ret.append(sub_res)
+                        break
         return ret

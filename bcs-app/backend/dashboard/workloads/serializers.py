@@ -21,7 +21,5 @@ class ListPodsSLZ(serializers.Serializer):
 
     label_selector = serializers.CharField(label=_('标签选择算符'), max_length=512, required=False)
     # 过滤子资源（Pod）用参数
-    owner_names = serializers.ListField(
-        label=_('名称列表'), child=serializers.CharField(label=_('所属资源名称'), max_length=256), required=False
-    )
+    owner_name = serializers.CharField(label=_('所属资源名称'), max_length=256, required=False)
     owner_kind = serializers.CharField(label=_('所属资源类型'), max_length=32, required=False)
