@@ -13,7 +13,7 @@
                         </div>
                     </div>
                 </div>
-                <bk-button theme="primary" @click="handleShowYamlPanel">To Yaml</bk-button>
+                <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">

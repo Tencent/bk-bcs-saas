@@ -71,7 +71,7 @@ export default defineComponent({
                 },
                 {
                     id: 'yaml',
-                    name: 'Yaml'
+                    name: 'YAML'
                 }
             ]
         })
