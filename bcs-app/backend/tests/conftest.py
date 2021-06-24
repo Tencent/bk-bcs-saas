@@ -11,6 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+"""
+单元测试可用环境变量说明
+值                          说明                          默认值
+TESTING_API_SERVER_URL  	测试环境/本地集群URL           'http://localhost:28180'
+TESTING_SERVER_API_KEY	    测试环境/本地集群 api_key      None
+TEST_PROJECT_ID		        指定的测试项目 ID              32位随机字符串
+TEST_CLUSTER_ID	            指定的测试集群 ID              8位随机字符串
+TEST_NAMESPACE	            用于单元测试的命名空间          'default'
+TEST_POD_NAME	            用于单元测试的 Pod 名称        8位随机字符串
+TEST_CONTAINER_NAME	        用于单元测试的容器名称          8位随机字符串
+"""
 import os
 from unittest import mock
 
