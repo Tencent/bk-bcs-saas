@@ -17,7 +17,9 @@ export default defineComponent({
             running: 'green',
             completed: 'green',
             failed: 'red',
-            terminating: 'blue'
+            terminating: 'blue',
+            true: 'green',
+            false: 'red'
         }
         const statusClass = computed(() => {
             return `status-icon status-${statusMap[props.status.toLowerCase()]}`
