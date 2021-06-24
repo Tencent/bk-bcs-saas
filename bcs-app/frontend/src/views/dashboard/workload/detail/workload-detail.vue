@@ -222,22 +222,30 @@
                 }
             }
 
-            onMounted(async () => {
-                // 详情接口前置
-                await handleGetDetail()
-
+            /**
+             * 获取工作负载下的pods数据
+             */
+            const handleGetWorkloadPods = async () => {
                 // 获取工作负载下对应的pod数据
-                podLoading.value = true
                 const matchLabels = detail.value?.manifest?.spec?.selector?.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
                 }, '')
+                if (!labelSelector) return
+
+                podLoading.value = true
                 workloadPods.value = await $store.dispatch('dashboard/listWorkloadPods', {
                     $namespaceId: props.namespace,
                     label_selector: labelSelector
                 })
                 podLoading.value = false
+            }
+
+            onMounted(async () => {
+                // 详情接口前置
+                await handleGetDetail()
+                await handleGetWorkloadPods()
             })
 
             return {
