@@ -61,13 +61,22 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getClusterList (context, projectId, config = {}) {
+        async getClusterList (context, projectId, config = {}) {
+            if (context.state.clusterList.length) {
+                return {
+                    data: {
+                        results: context.state.clusterList
+                    }
+                }
+            }
             // return http.get('/app/cluster?invoke=getClusterList', {}, config)
-            return http.get(
+            const res = await http.get(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters?limit=1000`,
                 {},
                 Object.assign(config, { urlId: 'getClusterList' })
             )
+            context.commit('forceUpdateClusterList', res.data.results)
+            return res
         },
 
         /**
