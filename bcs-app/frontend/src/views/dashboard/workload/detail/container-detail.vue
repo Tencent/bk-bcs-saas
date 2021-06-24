@@ -2,15 +2,17 @@
     <div class="workload-detail">
         <div class="workload-detail-info" v-bkloading="{ isLoading }">
             <div class="workload-info-basic">
-                <span class="name mr20">{{ detail && detail.container_name }}</span>
-                <div class="basic-wrapper">
-                    <div class="basic-item">
-                        <span class="label">{{ $t('主机IP') }}</span>
-                        <span class="value">{{ detail && detail.host_ip || '--' }}</span>
-                    </div>
-                    <div class="basic-item">
-                        <span class="label">{{ $t('容器IP') }}</span>
-                        <span class="value">{{ detail && detail.container_ip || '--' }}</span>
+                <div class="basic-left">
+                    <span class="name mr20">{{ detail && detail.container_name }}</span>
+                    <div class="basic-wrapper">
+                        <div class="basic-item">
+                            <span class="label">{{ $t('主机IP') }}</span>
+                            <span class="value">{{ detail && detail.host_ip || '--' }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">{{ $t('容器IP') }}</span>
+                            <span class="value">{{ detail && detail.container_ip || '--' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,16 +50,32 @@
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
                 <bcs-tab-panel name="ports" :label="$t('端口映射')">
                     <bk-table :data="ports">
-                        <bk-table-column label="Name" prop="name"></bk-table-column>
-                        <bk-table-column label="Host Port" prop=""></bk-table-column>
+                        <bk-table-column label="Name" prop="name">
+                            <template #default="{ row }">
+                                {{ row.name || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column label="Host Port" prop="hostPort">
+                            <template #default="{ row }">
+                                {{ row.hostPort || '--' }}
+                            </template>
+                        </bk-table-column>
                         <bk-table-column label="Container Port" prop="containerPort"></bk-table-column>
                         <bk-table-column label="Protocol" prop="protocol"></bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="command" :label="$t('命令')">
                     <bk-table :data="command">
-                        <bk-table-column label="Command" prop="command"></bk-table-column>
-                        <bk-table-column label="Args" prop="args"></bk-table-column>
+                        <bk-table-column label="Command" prop="command">
+                            <template #default="{ row }">
+                                {{ row.command || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column label="Args" prop="args">
+                            <template #default="{ row }">
+                                {{ row.args || '--' }}
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="volumes" :label="$t('挂载卷')">
@@ -85,8 +103,16 @@
                 </bcs-tab-panel>
                 <bcs-tab-panel name="resources" :label="$t('资源限制')">
                     <bk-table :data="resources">
-                        <bk-table-column label="Key" prop=""></bk-table-column>
-                        <bk-table-column label="Value" prop=""></bk-table-column>
+                        <bk-table-column label="Cpu">
+                            <template #default="{ row }">
+                                {{ `requests: ${row.requests ? row.requests.cpu : '--'} | limits: ${row.limits ? row.limits.cpu : '--'}` }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column label="Memory">
+                            <template #default="{ row }">
+                                {{ `requests: ${row.requests ? row.requests.memory : '--'} | limits: ${row.limits ? row.limits.memory : '--'}` }}
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
             </bcs-tab>
@@ -177,7 +203,7 @@
             })
             // 资源限额
             const resources = computed(() => {
-                return [detail.value?.resources || {}]
+                return [detail.value?.resources || { requests: {}, limits: {} }]
             })
             // 环境变量
             const envs = ref([])

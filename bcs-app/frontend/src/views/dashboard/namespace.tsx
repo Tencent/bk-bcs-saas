@@ -89,14 +89,14 @@ export default defineComponent({
     },
     render () {
         return (
-            <div class="biz-content" v-bkloading={{ isLoading: this.namespaceLoading }}>
+            <div class="biz-content">
                 <div class="biz-top-bar">
                     <div class="dashboard-top-title">
                         {this.$t('命名空间')}
                     </div>
                     <DashboardTopActions />
                 </div>
-                <div class="biz-content-wrapper">
+                <div class="biz-content-wrapper" v-bkloading={{ isLoading: this.namespaceLoading }}>
                     <bcs-input class="mb20 search-input"
                         right-icon="bk-icon icon-search"
                         placeholder={this.$t('搜索名称')}

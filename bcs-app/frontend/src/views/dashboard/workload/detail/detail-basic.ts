@@ -5,7 +5,7 @@ export interface IDetailBasicOptions {
     detail: any;
 }
 
-export default function detailBasicList (ctx, options: IDetailBasicOptions) {
+export default function detailBasicList (options: IDetailBasicOptions) {
     const basicInfoMap = {
         deployments: [
             {
