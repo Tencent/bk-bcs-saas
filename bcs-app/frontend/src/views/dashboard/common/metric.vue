@@ -251,6 +251,7 @@
         margin: 0;
         height: 180px;
         justify-content: center;
+        width: 100%;
     }
 }
 </style>
