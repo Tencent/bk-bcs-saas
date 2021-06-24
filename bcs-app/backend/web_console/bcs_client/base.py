@@ -91,8 +91,11 @@ class BCSClientBase(abc.ABC):
     @classmethod
     def get_command_params(cls, context):
         """获取k8s标准的命令参数"""
-        command = context.get("command") or "sh"
-        command_list = shlex.split(command)
+        if context.get("command") and context["command"] != "sh":
+            command_list = shlex.split(context["command"])
+        else:
+            command_list = constants.DEFAULT_COMMAND
+
         command_list = [("command", i) for i in command_list]
         command = urlencode(command_list)
         return command
