@@ -36,7 +36,7 @@ from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log.audit.context import AuditContext
-from backend.bcs_web.audit_log.constants import BaseActivityStatus
+from backend.bcs_web.audit_log.constants import ActivityStatus
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.templatesets.legacy_apps.instance.serializers import (
@@ -324,9 +324,9 @@ class VersionInstanceView(viewsets.ViewSet):
                     resource_id=self.template_id,
                     extra=self.instance_entity,
                     description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name']),
-                    activity_status=BaseActivityStatus.Succeed,
+                    activity_status=ActivityStatus.Succeed,
                 )
-            ).raw_log()
+            ).log_raw()
 
         failed_ns_name_list = []
         failed_msg = []
@@ -361,9 +361,9 @@ class VersionInstanceView(viewsets.ViewSet):
                     resource_id=self.template_id,
                     extra=self.instance_entity,
                     description=description,
-                    activity_status=BaseActivityStatus.Failed,
+                    activity_status=ActivityStatus.Failed,
                 )
-            ).raw_log()
+            ).log_raw()
 
             if is_show_failed_msg:
                 msg = '\n'.join(failed_msg)

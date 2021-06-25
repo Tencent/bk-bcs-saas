@@ -28,7 +28,7 @@ from backend.accounts import bcs_perm
 from backend.apps import constants
 from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
-from backend.bcs_web.audit_log.constants import BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
 from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity
@@ -67,7 +67,7 @@ class ListCreateVariableView(generics.ListCreateAPIView):
 
         return variables
 
-    @log_audit(VariableAuditor, activity_type=BaseActivityType.Add)
+    @log_audit(VariableAuditor, activity_type=ActivityType.Add)
     def perform_create(self, serializer):
         self.audit_ctx.update_fields(
             project_id=self.kwargs['project_id'],
@@ -117,7 +117,7 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
     def get_object(self):
         return Variable.objects.get_by_id_with_projects(project_id=self.kwargs['project_id'], id=self.kwargs['pk'])
 
-    @log_audit(VariableAuditor, activity_type=BaseActivityType.Modify)
+    @log_audit(VariableAuditor, activity_type=ActivityType.Modify)
     def perform_update(self, serializer):
         self.audit_ctx.update_fields(
             project_id=self.kwargs['project_id'],
@@ -236,7 +236,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
 class VariableOverView(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    @log_audit_on_view(VariableAuditor, activity_type=BaseActivityType.Delete)
+    @log_audit_on_view(VariableAuditor, activity_type=ActivityType.Delete)
     @transaction.atomic
     def batch_delete(self, request, project_id):
         self.slz = serializers.VariableDeleteSLZ(data=request.query_params)

@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 
-class BaseActivityType(str, StructuredEnum):
+class ActivityType(str, StructuredEnum):
     """ 操作类型 """
 
     Add = EnumField('add', _('创建'))
@@ -33,7 +33,7 @@ class BaseActivityType(str, StructuredEnum):
     Retrieve = EnumField('retrieve', _('查询'))
 
 
-class BaseActivityStatus(str, StructuredEnum):
+class ActivityStatus(str, StructuredEnum):
     """ 操作状态 """
 
     Completed = EnumField('completed', _('完成'))
@@ -42,7 +42,7 @@ class BaseActivityStatus(str, StructuredEnum):
     Failed = EnumField('failed', _('失败'))
 
 
-class BaseResourceType(str, StructuredEnum):
+class ResourceType(str, StructuredEnum):
     """ 资源类型 """
 
     Project = EnumField('project', _('项目'))
@@ -63,10 +63,10 @@ class BaseResourceType(str, StructuredEnum):
     HPA = EnumField('hpa', 'HPA')
 
 
-ResourceTypes = dict(BaseResourceType.get_choices())
+ResourceTypes = dict(ResourceType.get_choices())
 
 MetaMap = {
-    'activity_type': dict(BaseActivityType.get_choices()),
-    'activity_status': dict(BaseActivityStatus.get_choices()),
+    'activity_type': dict(ActivityType.get_choices()),
+    'activity_status': dict(ActivityStatus.get_choices()),
     'resource_type': ResourceTypes,
 }

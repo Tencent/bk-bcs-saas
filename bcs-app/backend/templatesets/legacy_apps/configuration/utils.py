@@ -26,7 +26,7 @@ from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.audit.decorators import log_audit
-from backend.bcs_web.audit_log.constants import BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.utils import cache
 from backend.utils.exceptions import ResNotFoundError
 
@@ -169,7 +169,7 @@ def validate_template_locked(template, username):
         raise ValidationError(_('{locker}正在操作，您如需操作请联系{locker}解锁').format(locker=locker))
 
 
-@log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Add, ignore_exceptions=(ValidationError,))
+@log_audit(TemplatesetAuditor, activity_type=ActivityType.Add, ignore_exceptions=(ValidationError,))
 def create_template(audit_ctx, username, project_id, tmpl_args):
     if not tmpl_args:
         raise ValidationError(_("请先创建模板集"))
@@ -189,7 +189,7 @@ def create_template(audit_ctx, username, project_id, tmpl_args):
     return template
 
 
-@log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
+@log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
 def update_template(audit_ctx, username, template, tmpl_args):
     serializer = TemplateSLZ(template, data=tmpl_args)
     serializer.is_valid(raise_exception=True)

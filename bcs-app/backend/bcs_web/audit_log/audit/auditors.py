@@ -13,7 +13,7 @@
 #
 from dataclasses import asdict
 
-from ..constants import BaseActivityStatus, BaseResourceType
+from ..constants import ActivityStatus, ResourceType
 from ..models import UserActivityLog
 from .context import AuditContext
 
@@ -24,14 +24,14 @@ class Auditor:
     def __init__(self, audit_ctx: AuditContext):
         self.audit_ctx = audit_ctx
 
-    def raw_log(self):
+    def log_raw(self):
         UserActivityLog.objects.create(**asdict(self.audit_ctx))
 
     def log_succeed(self):
-        self._log(BaseActivityStatus.Succeed)
+        self._log(ActivityStatus.Succeed)
 
     def log_failed(self, err_msg: str = ''):
-        self._log(BaseActivityStatus.Failed, err_msg)
+        self._log(ActivityStatus.Failed, err_msg)
 
     def _log(self, activity_status: str, err_msg: str = ''):
         self._complete_description(activity_status, err_msg)
@@ -47,15 +47,13 @@ class Auditor:
         else:
             description_prefix = audit_ctx.description
 
+        audit_ctx.description = f'{description_prefix} {ActivityStatus.get_choice_label(activity_status)}'
+
         if err_msg:
-            audit_ctx.description = (
-                f'{description_prefix} {BaseActivityStatus.get_choice_label(activity_status)}: {err_msg}'
-            )
-        else:
-            audit_ctx.description = f'{description_prefix} {BaseActivityStatus.get_choice_label(activity_status)}'
+            audit_ctx.description += f': {err_msg}'
 
 
 class HelmAuditor(Auditor):
     def __init__(self, audit_ctx: AuditContext):
         super().__init__(audit_ctx)
-        self.audit_ctx.resource_type = BaseResourceType.HelmApp
+        self.audit_ctx.resource_type = ResourceType.HelmApp

@@ -21,7 +21,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.bcs_web.audit_log.audit.decorators import log_audit
-from backend.bcs_web.audit_log.constants import BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.templatesets.legacy_apps.instance.utils import has_instance_of_show_version
 from backend.utils.renderers import BKAPIRenderer
 
@@ -51,7 +51,7 @@ def get_draft_show_version(template):
 class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
+    @log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
     def _create_or_update_with_ventity(self, create_data):
         show_version_name = create_data["name"]
         username = create_data["username"]
@@ -173,7 +173,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
 
         return Response({"show_version_id": show_version.id})
 
-    @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
+    @log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
     def _delete_show_version(self, delete_data):
         project_id = delete_data["project_id"]
         template = delete_data["template"]

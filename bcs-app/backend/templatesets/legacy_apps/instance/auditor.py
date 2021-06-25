@@ -13,10 +13,10 @@
 #
 from backend.bcs_web.audit_log.audit.auditors import Auditor
 from backend.bcs_web.audit_log.audit.context import AuditContext
-from backend.bcs_web.audit_log.constants import BaseResourceType
+from backend.bcs_web.audit_log.constants import ResourceType
 
 
 class InstanceAuditor(Auditor):
     def __init__(self, audit_ctx: AuditContext):
         super().__init__(audit_ctx)
-        self.audit_ctx.resource_type = BaseResourceType.Instance
+        self.audit_ctx.resource_type = ResourceType.Instance

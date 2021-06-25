@@ -14,7 +14,7 @@
 import json
 
 from backend.bcs_web.audit_log.audit.decorators import log_audit
-from backend.bcs_web.audit_log.constants import BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.utils.client import KubectlClient
 
 from ..auditor import TemplatesetAuditor
@@ -30,7 +30,7 @@ class DeployController:
             user.token.access_token, release_data.project_id, release_data.namespace_info['cluster_id']
         )
 
-    def _update_audit_ctx(self, activity_type):
+    def _update_audit_ctx(self, activity_type: str):
         show_version = self.release_data.show_version
         template = show_version.related_template
 
@@ -60,10 +60,10 @@ class DeployController:
     def _run_with_kubectl(self, operation):
         manifests = self._to_manifests()
         if operation == 'apply':
-            self._update_audit_ctx(activity_type=BaseActivityType.Modify)
+            self._update_audit_ctx(activity_type=ActivityType.Modify)
             self.kubectl.apply(self.namespace, manifests)
         elif operation == 'delete':
-            self._update_audit_ctx(activity_type=BaseActivityType.Delete)
+            self._update_audit_ctx(activity_type=ActivityType.Delete)
             self.kubectl.delete(self.namespace, manifests)
 
     def apply(self):

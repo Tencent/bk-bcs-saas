@@ -59,12 +59,14 @@ class BaseLogAudit(metaclass=ABCMeta):
         audit_ctx = self._pre_audit_ctx(instance, *args, **kwargs)
         err_msg = ''
 
+        auto_audit = self.auto_audit
+
         try:
             ret = wrapped(*args, **kwargs)
             return ret
         except self.ignore_exceptions:
             # 如果是 ignore_exceptions 中的异常，不做审计记录
-            self.auto_audit = False
+            auto_audit = False
             raise
         except self.err_msg_exceptions as e:
             err_msg = str(e)
@@ -75,7 +77,7 @@ class BaseLogAudit(metaclass=ABCMeta):
             err_msg = "unknown error"
             raise
         finally:
-            if self.auto_audit:
+            if auto_audit:
                 if self.use_raw_audit:
                     self._save_raw_audit(audit_ctx)
                 else:
@@ -100,7 +102,7 @@ class BaseLogAudit(metaclass=ABCMeta):
 
     def _save_raw_audit(self, audit_ctx: AuditContext):
         """保存原始的审计信息"""
-        self.auditor_cls(audit_ctx).raw_log()
+        self.auditor_cls(audit_ctx).log_raw()
 
 
 class log_audit_on_view(BaseLogAudit):

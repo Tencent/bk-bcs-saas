@@ -28,7 +28,7 @@ from backend.apps.constants import ClusterType, ProjectKind
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
-from backend.bcs_web.audit_log.constants import BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
@@ -362,7 +362,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(ns_id, project_id)
         return result
 
-    @log_audit_on_view(NamespaceAuditor, activity_type=BaseActivityType.Add)
+    @log_audit_on_view(NamespaceAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, is_validate_perm=True):
         """新建命名空间
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
