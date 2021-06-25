@@ -17,7 +17,12 @@ from typing import Dict
 import yaml
 from django.utils.crypto import get_random_string
 
-from backend.dashboard.examples.constants import DEMO_RESOURCE_MANIFEST_DIR, EXAMPLE_CONFIG_DIR
+from backend.dashboard.examples.constants import (
+    DEMO_RESOURCE_MANIFEST_DIR,
+    EXAMPLE_CONFIG_DIR,
+    RANDOM_SUFFIX_LENGTH,
+    SUFFIX_ALLOWED_CHARS,
+)
 
 
 def load_resource_template(kind: str) -> Dict:
@@ -32,5 +37,6 @@ def load_demo_manifest(file_path: str) -> Dict:
         manifest = yaml.load(fr.read(), yaml.SafeLoader)
 
     # 避免名称重复，每次默认添加随机后缀
-    manifest['metadata']['name'] = f"{manifest['metadata']['name']}-{get_random_string(length=8)}"
+    random_suffix = get_random_string(length=RANDOM_SUFFIX_LENGTH, allowed_chars=SUFFIX_ALLOWED_CHARS)
+    manifest['metadata']['name'] = f"{manifest['metadata']['name']}-{random_suffix}"
     return manifest

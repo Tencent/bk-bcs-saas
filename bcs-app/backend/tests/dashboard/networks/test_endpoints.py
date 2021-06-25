@@ -31,7 +31,7 @@ class TestEndpoints:
 
     def test_create(self, api_client):
         """ 测试创建资源接口 """
-        response = api_client.post(self.batch_url, data=self.manifest)
+        response = api_client.post(self.batch_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
     def test_list(self, api_client):
@@ -47,7 +47,7 @@ class TestEndpoints:
     def test_update(self, api_client):
         """ 测试更新资源接口 """
         self.manifest['subsets'][0]['addresses'][0]['ip'] = '1.0.0.2'
-        response = api_client.put(self.detail_url, data=self.manifest)
+        response = api_client.put(self.detail_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
     def test_destroy(self, api_client):

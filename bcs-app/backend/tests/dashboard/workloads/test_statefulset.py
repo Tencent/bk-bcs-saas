@@ -31,7 +31,7 @@ class TestStatefulSet:
 
     def test_create(self, api_client):
         """ 测试创建资源接口 """
-        response = api_client.post(self.batch_url, data=self.manifest)
+        response = api_client.post(self.batch_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
     def test_list(self, api_client):
@@ -48,7 +48,7 @@ class TestStatefulSet:
         """ 测试更新资源接口 """
         # 调整调度规则
         self.manifest['spec']['replicas'] = 3
-        response = api_client.put(self.detail_url, data=self.manifest)
+        response = api_client.put(self.detail_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
     def test_destroy(self, api_client):

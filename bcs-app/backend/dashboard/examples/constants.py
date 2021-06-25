@@ -22,6 +22,10 @@ EXAMPLE_CONFIG_DIR = f'{RESOURCE_EXAMPLE_DIR}/configs'
 # Demo 配置文件 目录
 DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_EXAMPLE_DIR}/manifests'
 
+# 资源名称后缀长度
+RANDOM_SUFFIX_LENGTH = 8
+# 后缀可选字符集（小写 + 数字）
+SUFFIX_ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
 RES_KIND_WITH_DEMO_MANIFEST = [
     # workload

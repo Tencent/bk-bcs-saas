@@ -31,7 +31,7 @@ class TestService:
 
     def test_create(self, api_client):
         """ 测试创建资源接口 """
-        response = api_client.post(self.batch_url, data=self.manifest)
+        response = api_client.post(self.batch_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
     def test_list(self, api_client):
