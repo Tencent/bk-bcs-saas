@@ -84,6 +84,14 @@
             '$store.state.curClusterId' () {
                 this.routerKey = +new Date()
                 this.$store.dispatch('getFeatureFlag')
+            },
+            projectId: {
+                immediate: true,
+                async handler (id) {
+                    if (id) {
+                        await this.$store.dispatch('cluster/getClusterList', id)
+                    }
+                }
             }
         },
         async created () {
@@ -112,9 +120,8 @@
                 // 从配置中心拉取项目列表，顶导的项目列表信息里，项目中关于容器服务的信息可能更新不及时
                 await this.$store.dispatch('getProjectList')
                 await this.$store.dispatch('getFeatureFlag')
-                await this.$store.dispatch('cluster/getClusterList', curProjectCode)
                 await this.checkProject()
-
+                console.log(123)
                 this.isLoading = false
             })
         },
