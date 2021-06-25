@@ -63,7 +63,7 @@ class BaseResourceType(str, StructuredEnum):
     HPA = EnumField('hpa', 'HPA')
 
 
-ResourceTypes = dict(BaseActivityType.get_choices())
+ResourceTypes = dict(BaseResourceType.get_choices())
 
 MetaMap = {
     'activity_type': dict(BaseActivityType.get_choices()),
