@@ -300,6 +300,7 @@ export default {
     },
     methods: {
         async fetchNodeList4Copy () {
+            if (!this.projectId || !this.clusterId) return
             try {
                 const res = await this.$store.dispatch('cluster/getNodeList4Copy', {
                     projectId: this.projectId,
@@ -415,6 +416,8 @@ export default {
             }
 
             try {
+                if (!this.projectId || !this.curCluster.cluster_id) return
+
                 const res = await this.$store.dispatch('cluster/getNodeListByLabelAndIp', Object.assign({}, {
                     projectId: this.projectId,
                     clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
