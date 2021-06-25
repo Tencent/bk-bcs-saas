@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+from mock import patch
+
+from backend.uniapps.application.tools.namespace import get_namespace_id
+
+fake_default_namespace = "default"
+fake_default_namespace_id = 1
+
+
+@patch(
+    "backend.components.paas_cc.PaaSCCClient.get_cluster_namespace_list",
+    return_value={
+        "results": [{"name": fake_default_namespace, "id": fake_default_namespace_id}, {"name": "test", "id": 2}]
+    },
+)
+def test_get_namespace_id(mock_get_cluster_namespace_list, ctx_cluster):
+    assert get_namespace_id(ctx_cluster, fake_default_namespace) == fake_default_namespace_id

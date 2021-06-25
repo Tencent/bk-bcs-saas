@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+import json
+import logging
+from dataclasses import dataclass, field
+from typing import Dict, List, Union
+
+from django.utils.translation import ugettext_lazy as _
+
+from backend.container_service.clusters.base import CtxCluster
+from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
+from backend.templatesets.legacy_apps.configuration.models.template import ShowVersion, VersionedEntity
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
+from backend.templatesets.legacy_apps.instance.utils import generate_namespace_config
+from backend.utils.error_codes import error_codes
+
+from .mesos_controller import ResourceController, ResourceData
+from .namespace import get_namespace_id
+
+logger = logging.getLogger(__name__)
+
+
+def get_instance(ns_id: str, name: str, kind: str) -> InstanceConfig:
+    """获取实例
+    注意: 这里ns_id包含了集群id+命名空间名称
+    """
+    try:
+        return InstanceConfig.objects.get(namespace=ns_id, name=name, category=kind, is_deleted=False)
+    except InstanceConfig.DoesNotExist:
+        logger.error("资源: %s 不存在", f"{kind}:{ns_id}:{name}")
+        raise error_codes.RecordNotFound(_("资源{kind}:{ns_id}:{name}不存在").format(kind=kind, ns_id=ns_id, name=name))
+
+
+def get_template_id_list(id: int, kind: str) -> List:
+    """根据实例类型获取版本下模板ID列表"""
+    try:
+        version_entity = VersionedEntity.objects.get(id=id, is_deleted=False)
+    except VersionedEntity.DoesNotExist:
+        logger.error("版本%s下的模板不存在", id)
+        raise error_codes.RecordNotFound(_("版本{}下的模板不存在").format(id))
+    entity = json.loads(version_entity.entity)
+    return entity.get(kind, "").split(",")
+
+
+@dataclass
+class RenderResourceData:
+    instance_id: int
+    name: str
+    username: str
+    templateset_id: int  # 模板集的ID
+    namespace_id: int
+    version_id: int  # 对应的是real_version_id
+    show_version_id: int
+    kind: str
+    variables: dict = field(default_factory=dict)
+
+    def get_template_id(self):
+        id_list = get_template_id_list(self.version_id, self.kind)
+        res_model_cls = get_model_class_by_resource_name(self.kind)
+        qs = res_model_cls.objects.filter(name=self.name, id__in=id_list)
+        if not qs.exists():
+            raise error_codes.RecordNotFound(_("模板{}不存在").format(self.name))
+        return qs.first().id
+
+
+def generate_manifest(ctx_cluster: CtxCluster, data: RenderResourceData) -> Dict:
+    params = {
+        "instance_id": data.instance_id,
+        "version_id": data.version_id,
+        "show_version_id": data.show_version_id,
+        "template_id": data.templateset_id,
+        "project_id": ctx_cluster.project_id,
+        "access_token": ctx_cluster.context.auth.access_token,
+        "username": data.username,
+        "lb_info": {},
+        "variable_dict": data.variables,
+        "is_preview": False,
+    }
+
+    configs = generate_namespace_config(
+        data.namespace_id, {data.kind: [data.get_template_id()]}, is_save=False, **params
+    )
+    return configs[data.kind][0]["config"]
+
+
+def update_instance(instance: InstanceConfig, variables: Dict, manifest: Dict):
+    """更新实例的配置"""
+    instance.variables = json.dumps(variables)
+    # 存储格式兼容历史逻辑
+    instance.last_config = json.dumps({"old_conf": instance.config})
+    instance.config = json.dumps(manifest)
+    instance.save(update_fields=["variables", "last_config", "config"])
+
+
+def update_instance_version(inst_version_id: int, show_version: ShowVersion):
+    """更新实例对应的版本信息"""
+    VersionInstance.objects.filter(id=inst_version_id).update(
+        version_id=show_version.real_version_id, show_version_id=show_version.id, show_version_name=show_version.name
+    )
+
+
+def scale_instance_resource(
+    username: str, inst_data: ResourceData, ctx_cluster: CtxCluster, show_version: Union[ShowVersion]
+):
+    # 针对没有版本控制或者通过非模板集创建的资源进行操作
+    if not show_version:
+        inst_controller = ResourceController(ctx_cluster, inst_data)
+        inst_controller.scale_resource()
+        return
+    # 通过版本获取资源配置
+    ns_id = get_namespace_id(ctx_cluster, inst_data.namespace)
+    instance = get_instance(ns_id, inst_data.name, inst_data.kind)
+    render_data = RenderResourceData(
+        instance_id=instance.id,
+        name=inst_data.name,
+        username=username,
+        templateset_id=show_version.template_id,
+        namespace_id=ns_id,
+        version_id=show_version.real_version_id,
+        show_version_id=show_version.id,
+        kind=inst_data.kind,
+        variables=inst_data.variables,
+    )
+    inst_data.manifest = generate_manifest(ctx_cluster, render_data)
+    inst_controller = ResourceController(ctx_cluster, inst_data)
+    inst_controller.scale_resource()
+    # 更新db中记录
+    update_instance_version(instance.instance_id, show_version)
+    update_instance(instance, inst_data.variables, inst_data.manifest)
