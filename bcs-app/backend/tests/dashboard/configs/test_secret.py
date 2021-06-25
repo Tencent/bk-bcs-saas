@@ -38,17 +38,20 @@ class TestSecret:
         """ 测试获取资源列表接口 """
         response = api_client.get(self.batch_url)
         assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'SecretList'
+
+    def test_update(self, api_client):
+        """ 测试更新资源接口 """
+        self.manifest['metadata']['annotations'] = {'t_key': 't_val'}
+        response = api_client.put(self.detail_url, data={'manifest': self.manifest})
+        assert response.json()['code'] == 0
 
     def test_retrieve(self, api_client):
         """ 测试获取单个资源接口 """
         response = api_client.get(self.detail_url)
         assert response.json()['code'] == 0
-
-    def test_update(self, api_client):
-        """ 测试更新资源接口 """
-        self.manifest['metadata']['labels'] = {'test': 'test'}
-        response = api_client.put(self.detail_url, data={'manifest': self.manifest})
-        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'Secret'
+        assert getitems(response.data, 'manifest.metadata.annotations.t_key') == 't_val'
 
     def test_destroy(self, api_client):
         """ 测试删除单个资源 """

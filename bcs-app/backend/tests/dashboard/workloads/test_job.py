@@ -38,11 +38,13 @@ class TestJob:
         """ 测试获取资源列表接口 """
         response = api_client.get(self.batch_url)
         assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'JobList'
 
     def test_retrieve(self, api_client):
         """ 测试获取单个资源接口 """
         response = api_client.get(self.detail_url)
         assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'Job'
 
     def test_destroy(self, api_client):
         """ 测试删除单个资源 """

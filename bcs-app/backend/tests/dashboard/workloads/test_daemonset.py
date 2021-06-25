@@ -38,11 +38,7 @@ class TestDaemonSet:
         """ 测试获取资源列表接口 """
         response = api_client.get(self.batch_url)
         assert response.json()['code'] == 0
-
-    def test_retrieve(self, api_client):
-        """ 测试获取单个资源接口 """
-        response = api_client.get(self.detail_url)
-        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'DaemonSetList'
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
@@ -50,6 +46,13 @@ class TestDaemonSet:
         self.manifest['spec']['template']['metadata']['labels']['test'] = 'test'
         response = api_client.put(self.detail_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client):
+        """ 测试获取单个资源接口 """
+        response = api_client.get(self.detail_url)
+        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'DaemonSet'
+        assert getitems(response.data, 'manifest.spec.template.metadata.labels.test') == 'test'
 
     def test_destroy(self, api_client):
         """ 测试删除单个资源 """

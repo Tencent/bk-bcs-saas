@@ -38,17 +38,20 @@ class TestEndpoints:
         """ 测试获取资源列表接口 """
         response = api_client.get(self.batch_url)
         assert response.json()['code'] == 0
-
-    def test_retrieve(self, api_client):
-        """ 测试获取单个资源接口 """
-        response = api_client.get(self.detail_url)
-        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'EndpointsList'
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
         self.manifest['subsets'][0]['addresses'][0]['ip'] = '1.0.0.2'
         response = api_client.put(self.detail_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client):
+        """ 测试获取单个资源接口 """
+        response = api_client.get(self.detail_url)
+        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'Endpoints'
+        assert response.data['manifest']['subsets'][0]['addresses'][0]['ip'] == '1.0.0.2'
 
     def test_destroy(self, api_client):
         """ 测试删除单个资源 """
