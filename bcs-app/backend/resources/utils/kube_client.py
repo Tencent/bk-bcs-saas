@@ -26,7 +26,6 @@ from backend.container_service.clusters.base import CtxCluster
 from backend.utils.error_codes import error_codes
 
 from ..client import BcsKubeConfigurationService
-from ..exceptions import ResourceNotExist
 from .discovery import BcsLazyDiscoverer, DiscovererCache
 
 logger = logging.getLogger(__name__)
