@@ -42,6 +42,8 @@ class ResourceClient:
             self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
+        # 保存 ctx_cluster 作为类对象，部分方法会使用
+        self.ctx_cluster = ctx_cluster
 
     def list(
         self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
@@ -105,6 +107,19 @@ class ResourceClient:
         if is_format:
             return self.formatter.format(obj), created
         return obj, created
+
+    def replace(
+        self,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        is_format: bool = True,
+        **kwargs,
+    ) -> Union[ResourceInstance, Dict]:
+        obj = self.api.replace(body=body, name=name, namespace=namespace, **kwargs)
+        if is_format:
+            return self.formatter.format(obj)
+        return obj
 
     def patch(
         self,

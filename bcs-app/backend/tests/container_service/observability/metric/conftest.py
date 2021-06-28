@@ -18,7 +18,7 @@ import pytest
 from django.conf import settings
 
 from backend.container_service.observability.metric.constants import MetricDimension
-from backend.tests.conftest import MOCK_CLUSTER_ID
+from backend.tests.conftest import TEST_CLUSTER_ID
 from backend.tests.resources.formatter.conftest import NETWORK_CONFIG_DIR
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
@@ -138,11 +138,11 @@ def sm_api_patch():
     ), mock.patch(
         f'{common_prefix}.ServiceMonitorMixin._get_cluster_map',
         new=lambda *args, **kwargs: {
-            MOCK_CLUSTER_ID: {'cluster_id': MOCK_CLUSTER_ID, 'name': 'test-cluster', 'environment': 'k8s'}
+            TEST_CLUSTER_ID: {'cluster_id': TEST_CLUSTER_ID, 'name': 'test-cluster', 'environment': 'k8s'}
         },
     ), mock.patch(
         f'{common_prefix}.ServiceMonitorMixin._get_namespace_map',
-        new=lambda *args, **kwargs: {(MOCK_CLUSTER_ID, 'default'): 1},
+        new=lambda *args, **kwargs: {(TEST_CLUSTER_ID, 'default'): 1},
     ), mock.patch(
         f'{common_prefix}.ServiceMonitorMixin._single_service_monitor_operate_handler',
         new=lambda *args, **kwargs: None,

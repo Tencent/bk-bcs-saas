@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
@@ -30,7 +30,7 @@ class TestPodMetric:
     """ Pod 指标相关接口单元测试 """
 
     common_prefix = '/api/metrics/projects/{project_id}/clusters/{cluster_id}/pods'.format(
-        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID
+        project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID
     )
 
     def test_cpu_usage(self, api_client, metric_api_common_patch, pod_metric_api_patch):
