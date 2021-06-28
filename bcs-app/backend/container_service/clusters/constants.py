@@ -13,6 +13,7 @@
 #
 from django.utils.translation import ugettext as _
 
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
 # default node count
@@ -163,3 +164,9 @@ class ClusterNetworkType(ChoicesEnum):
     UNDERLAY = "underlay"
 
     _choices_labels = ((OVERLAY, "overlay"), (UNDERLAY, "underlay"))
+
+
+# Kube-proxy代理模式
+class KubeProxys(str, StructuredEnum):
+    IPTABLES = EnumField("iptables")
+    IPVS = EnumField("IPVS")

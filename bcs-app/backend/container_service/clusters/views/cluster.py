@@ -352,6 +352,8 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         snapshot = json.loads(snapshot)
         cidr_settings = snapshot.get("ClusterCIDRSettings") or {}
         cidr = cidr_settings.get("ClusterCIDR")
+        advanced_settings = snapshot.get("ClusterAdvancedSettings") or {}
+        kube_proxy = cluster_constants.KubeProxys
         config = {
             "max_pod_num": 0,
             "max_service_num": cidr_settings.get("MaxClusterServiceNum") or 0,
@@ -359,6 +361,8 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             "version": snapshot.get("version"),
             "vpc_id": snapshot.get("vpc_id"),
             "network_type": snapshot.get("network_type") or ClusterNetworkType.OVERLAY.value,
+            "kube_proxy": kube_proxy.IPVS if advanced_settings.get("IPVS") else kube_proxy.IPTABLES,
+            "snapshot": snapshot,  # 添加一个集群快照字段，用于前端快速使用
         }
         if cidr:
             config["cluster_cidr"] = cidr
