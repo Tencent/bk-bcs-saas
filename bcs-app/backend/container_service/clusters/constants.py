@@ -169,4 +169,4 @@ class ClusterNetworkType(ChoicesEnum):
 # Kube-proxy代理模式
 class KubeProxy(str, StructuredEnum):
     IPTABLES = EnumField("iptables")
-    IPVS = EnumField("IPVS")
+    IPVS = EnumField("ipvs")
