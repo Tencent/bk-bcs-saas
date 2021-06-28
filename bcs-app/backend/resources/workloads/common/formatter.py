@@ -28,7 +28,7 @@ class WorkloadFormatter(ResourceDefaultFormatter):
         :return: 当前资源容器使用的镜像列表
         """
         containers = getitems(resource_dict, 'spec.template.spec.containers', [])
-        return [c['image'] for c in containers if 'image' in c]
+        return list({c['image'] for c in containers if 'image' in c})
 
     def format_common_dict(self, resource_dict: Dict) -> Dict:
         ret = super().format_common_dict(resource_dict)

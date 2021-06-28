@@ -29,7 +29,7 @@ class CronJobFormatter(WorkloadFormatter):
         :return: 当前资源容器使用的镜像列表
         """
         containers = getitems(resource_dict, 'spec.jobTemplate.spec.template.spec.containers', [])
-        return [c['image'] for c in containers if 'image' in c]
+        return list({c['image'] for c in containers if 'image' in c})
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
