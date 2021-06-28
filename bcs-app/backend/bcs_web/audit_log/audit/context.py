@@ -21,8 +21,8 @@ class AuditContext:
     操作审计上下文(兼容现有的 UserActivityLog 模型)
     """
 
-    user: str
-    project_id: str
+    user: str = ''
+    project_id: str = ''
     description: str = ''
     resource_id: str = ''
     resource: str = ''
@@ -30,6 +30,9 @@ class AuditContext:
     activity_type: str = ''
     activity_status: str = ''
     extra: Dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        self.extra = dict(self.extra)
 
     def update(self, ctx: 'AuditContext'):
         """仅将 ctx 中的非空属性覆盖到当前实例中"""
