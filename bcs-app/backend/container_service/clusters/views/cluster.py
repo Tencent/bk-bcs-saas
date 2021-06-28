@@ -353,7 +353,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         cidr_settings = snapshot.get("ClusterCIDRSettings") or {}
         cidr = cidr_settings.get("ClusterCIDR")
         advanced_settings = snapshot.get("ClusterAdvancedSettings") or {}
-        kube_proxy = cluster_constants.KubeProxys
+        kube_proxy = cluster_constants.KubeProxy
         config = {
             "max_pod_num": 0,
             "max_service_num": cidr_settings.get("MaxClusterServiceNum") or 0,
