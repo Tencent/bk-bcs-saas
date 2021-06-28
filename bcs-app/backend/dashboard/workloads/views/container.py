@@ -46,7 +46,7 @@ class ContainerViewSet(SystemViewSet):
 
         response_data = []
         try:
-            env_resp = Pod(request.ctx_cluster).exec_command(
+            env_resp = Pod(request.ctx_cluster, cache_client=False).exec_command(
                 namespace, pod_name, container_name, ['/bin/sh', '-c', 'env']
             )
             # docker 环境变量格式: key=val

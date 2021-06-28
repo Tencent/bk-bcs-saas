@@ -35,8 +35,17 @@ class FakeKubeConfigurationService:
         return configuration
 
 
-@lru_cache(maxsize=128)
 def get_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
+    """ 获取测试用的 CoreDynamicClient """
+    if kwargs.get('use_cache'):
+        config = FakeKubeConfigurationService().make_configuration()
+        return CoreDynamicClient(client.ApiClient(config))
+    # 测试带缓存的 get_dynamic_client
+    return get_dynamic_client_with_cache(*args, **kwargs)
+
+
+@lru_cache(maxsize=128)
+def get_dynamic_client_with_cache(*args, **kwargs) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = FakeKubeConfigurationService().make_configuration()
     discoverer_cache = DiscovererCache(cache_key=f"osrcp-cluster_id.json")
