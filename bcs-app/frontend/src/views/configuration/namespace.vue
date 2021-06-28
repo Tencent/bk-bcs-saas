@@ -721,18 +721,16 @@
                 immediate: true,
                 handler (val) {
                     if (val) {
-                        setTimeout(() => {
-                            if (this.searchScopeList.length) {
-                                const clusterIds = this.searchScopeList.map(item => item.id)
-                                // 使用当前缓存
-                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
-                                    this.searchScope = sessionStorage['bcs-cluster']
-                                } else {
-                                    this.searchScope = this.searchScopeList[1].id
-                                }
+                        if (this.searchScopeList.length) {
+                            const clusterIds = this.searchScopeList.map(item => item.id)
+                            // 使用当前缓存
+                            if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
+                                this.searchScope = sessionStorage['bcs-cluster']
+                            } else {
+                                this.searchScope = this.searchScopeList[1].id
                             }
-                            this.fetchNamespaceList()
-                        }, 1000)
+                        }
+                        this.fetchNamespaceList()
                     }
                 }
             },

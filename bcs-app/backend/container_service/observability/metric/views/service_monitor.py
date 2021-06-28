@@ -19,7 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType
+from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.observability.metric import constants
@@ -92,7 +92,7 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
             client.create_service_monitor,
             _('创建'),
             project_id,
-            BaseActivityType.Add,
+            ActivityType.Add,
             namespace,
             name,
             manifest,
@@ -110,7 +110,7 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
         client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         for m in svc_monitors:
             self._single_service_monitor_operate_handler(
-                client.delete_service_monitor, _('删除'), project_id, BaseActivityType.Delete, m['namespace'], m['name']
+                client.delete_service_monitor, _('删除'), project_id, ActivityType.Delete, m['namespace'], m['name']
             )
 
         metrics_names = ','.join([f"{sm['namespace']}/{sm['name']}" for sm in svc_monitors])
@@ -120,8 +120,8 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
             request.user.username,
             metrics_names,
             message,
-            BaseActivityType.Delete,
-            BaseActivityStatus.Succeed,
+            ActivityType.Delete,
+            ActivityStatus.Succeed,
         )
         return Response({'successes': svc_monitors})
 
@@ -157,7 +157,7 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
             client.delete_service_monitor,
             _('删除'),
             project_id,
-            BaseActivityType.Delete,
+            ActivityType.Delete,
             namespace,
             name,
             manifest=None,
@@ -170,19 +170,19 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
         params = self.params_validate(ServiceMonitorUpdateSLZ)
         client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = self._single_service_monitor_operate_handler(
-            client.get_service_monitor, _('更新'), project_id, BaseActivityType.Retrieve, namespace, name
+            client.get_service_monitor, _('更新'), project_id, ActivityType.Retrieve, namespace, name
         )
         manifest = self._update_manifest(result, params)
 
         # 更新会合并 selector，因此先删除, 再创建
         self._single_service_monitor_operate_handler(
-            client.delete_service_monitor, _('更新'), project_id, BaseActivityType.Delete, namespace, name
+            client.delete_service_monitor, _('更新'), project_id, ActivityType.Delete, namespace, name
         )
         result = self._single_service_monitor_operate_handler(
             client.create_service_monitor,
             _('更新'),
             project_id,
-            BaseActivityType.Add,
+            ActivityType.Add,
             namespace,
             name,
             manifest,

@@ -13,7 +13,7 @@
                         </div>
                     </div>
                 </div>
-                <bk-button theme="primary" @click="handleShowYamlPanel">To Yaml</bk-button>
+                <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">
@@ -53,30 +53,29 @@
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
                 <bcs-tab-panel name="pod" label="Pod" v-bkloading="{ isLoading: podLoading }">
                     <bk-table :data="pods">
-                        <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                        <bk-table-column :label="$t('名称')" min-width="130" prop="metadata.name" sortable :resizable="false">
                             <template #default="{ row }">
                                 <bk-button class="bcs-button-ellipsis" text @click="gotoPodDetail(row)">{{ row.metadata.name }}</bk-button>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                        <bk-table-column :label="$t('镜像')" width="450" :resizable="false">
+                        <bk-table-column :label="$t('镜像')" min-width="200" :resizable="false" :show-overflow-tooltip="false">
                             <template slot-scope="{ row }">
                                 <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
                                     {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
                                 </span>
                             </template>
                         </bk-table-column>
-                        <bk-table-column label="Status" :resizable="false">
+                        <bk-table-column label="Status" width="120" :resizable="false">
                             <template slot-scope="{ row }">
                                 <StatusIcon :status="handleGetExtData(row.metadata.uid, 'status')"></StatusIcon>
                             </template>
                         </bk-table-column>
-                        <bk-table-column label="Ready" width="110" :resizable="false">
+                        <bk-table-column label="Ready" width="100" :resizable="false">
                             <template slot-scope="{ row }">
                                 {{handleGetExtData(row.metadata.uid, 'readyCnt')}}/{{handleGetExtData(row.metadata.uid, 'totalCnt')}}
                             </template>
                         </bk-table-column>
-                        <bk-table-column label="Restarts" width="110" :resizable="false">
+                        <bk-table-column label="Restarts" width="100" :resizable="false">
                             <template slot-scope="{ row }">{{handleGetExtData(row.metadata.uid, 'restartCnt')}}</template>
                         </bk-table-column>
                         <bk-table-column label="Host IP" width="140" :resizable="false">
@@ -223,22 +222,30 @@
                 }
             }
 
-            onMounted(async () => {
-                // 详情接口前置
-                await handleGetDetail()
-
+            /**
+             * 获取工作负载下的pods数据
+             */
+            const handleGetWorkloadPods = async () => {
                 // 获取工作负载下对应的pod数据
-                podLoading.value = true
                 const matchLabels = detail.value?.manifest?.spec?.selector?.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
                 }, '')
+                if (!labelSelector) return
+
+                podLoading.value = true
                 workloadPods.value = await $store.dispatch('dashboard/listWorkloadPods', {
                     $namespaceId: props.namespace,
                     label_selector: labelSelector
                 })
                 podLoading.value = false
+            }
+
+            onMounted(async () => {
+                // 详情接口前置
+                await handleGetDetail()
+                await handleGetWorkloadPods()
             })
 
             return {

@@ -23,7 +23,7 @@
         </div>
         <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
-                <bk-table :data="handleTransformObjToArr(extData.data)">
+                <bk-table :data="handleTransformObjToArr(data.data)">
                     <bk-table-column label="Key" prop="key"></bk-table-column>
                     <bk-table-column label="Value" prop="value"></bk-table-column>
                 </bk-table>
