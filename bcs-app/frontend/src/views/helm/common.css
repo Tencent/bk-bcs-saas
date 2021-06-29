@@ -1,7 +1,7 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/clearfix.css';
-@import '@open/css/mixins/scroller.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
+@import '@/css/mixins/scroller.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-content-wrapper {
     padding: 20px;
@@ -117,7 +117,7 @@
 
                 .selected-namespace-item {
                     font-size: 0;
-                    border: 1px solid #c3cdd7;
+                    border: 1px solid #c4c6cc;
                     border-radius: 1px;
                     margin-right: 10px;
                     margin-bottom: 9px;
@@ -341,11 +341,12 @@
 
 .biz-helm-cancel-fullscreen {
     position: fixed;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    z-index: 1112;
-    font-size: 40px;
-    padding: 10px;
+    z-index: 5000;
+    font-size: 16px;
+    padding: 7px;
+    color: #fff;
     cursor: pointer;
 
     i.icon-close {

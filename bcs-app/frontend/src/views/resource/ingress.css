@@ -20,7 +20,7 @@
  .biz-resource-table {
      .biz-operate {
          margin-right: 15px;
-         color: #3c96ff;
+         color: #3a84ff;
          cursor: pointer;
      }
  
@@ -65,6 +65,7 @@
      margin: 8px 0 0 0;
      padding: 15px 15px 10px 15px;
      position: relative;
+     border-radius: 2px;
  
      &:after {
          content: '';
@@ -224,7 +225,7 @@
      background: transparent;
      outline: none;
      float: left;
-     .bk-icon {
+     .bcs-icon {
          width: 24px;
          height: 24px;
          line-height: 24px;
@@ -244,60 +245,16 @@
      text-align: center;
  }
  .bk-text-button {
-     .bk-icon {
+     .bcs-icon {
          transition: all ease 0.3s;
      }
      &.rotate {
-         .bk-icon {
+         .bcs-icon {
              transform: rotate(180deg);
          }
      }
  }
- .bk-button-group {
-     @mixin clearfix;
-     .item {
-         position: relative;
-         display: inline-block;
-         float: left;
- 
-         &:hover {
-             z-index: 10;
-             >.bk-icon {
-                 display: inline-block;
-             }
-         }
- 
-         &:first-child {
-             .bk-button {
-                 border-radius: 2px 0 0 2px;
-             }
-         }
- 
-         >.bk-button {
-             border-radius: 0;
-             &.is-selected {
-                 background-color: #c3cdd7 !important;
-                 border-color: #c3cdd7 !important;
-             }
-         }
- 
-         >.bk-icon {
-             cursor: pointer;
-             background: #fff;
-             position: absolute;
-             border-radius: 50%;
-             right: -5px;
-             top: -5px;
-             display: none;
-             font-size: 16px;
-             z-index: 1;
-             color: $primaryColor;
-             &:hover {
-                 color: $primaryColor;
-             }
-         }
-     }
- }
+
  .bk-form .bk-form-content .bk-form-tip {
      overflow: hidden;
      padding: 0;

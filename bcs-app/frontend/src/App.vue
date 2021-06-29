@@ -18,100 +18,28 @@
                 <router-view :key="routerKey" />
             </div>
             <div v-else>
-                <div class="biz-guide-box" style="border: none; box-shadow: none; margin-top: 0;" :style="{ height: `${height}px` }">
-                    <p class="title">{{$t('容器服务未启用')}}{{isIEGProject ? $t('，请完善以下信息') : ''}}</p>
-                    <template v-if="!isIEGProject">
-                        <p class="desc">{{$t('您当前的项目')}}“{{curProject.project_name}}”{{$t('没有启用蓝鲸部署服务')}}</p>
-                        <p style="font-size: 14px">
-                            <a :href="PROJECT_CONFIG.doc.quickStart" target="_blank">{{$t('请点击了解更多')}}<i class="bk-icon icon-angle-double-right"></i></a>
-                        </p>
-                    </template>
-                    <template v-else>
-                        <main class="bk-form biz-app-form">
-                            <div class="form-item">
-                                <label>{{$t('业务编排类型')}}：</label>
-                                <div class="form-item-inner">
-                                    <label class="bk-form-radio">
-                                        <input type="radio" value="1" name="kind" v-model="kind">
-                                        <i class="bk-radio-text">BCS-K8S</i>
-                                    </label>
-                                    <label class="bk-form-radio" v-if="supportMesos === 'true'">
-                                        <input type="radio" value="2" name="kind" v-model="kind">
-                                        <i class="bk-radio-text">BCS-Mesos</i>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-item" v-if="ccList.length" style="margin-bottom: 30px;">
-                                <label>{{$t('关联CMDB业务')}}：<span class="red">*</span></label>
-                                <div class="form-item-inner">
-                                    <div style="display: inline-block;" class="mr5">
-                                        <bk-selector
-                                            style="width: 250px;"
-                                            :placeholder="$t('请选择')"
-                                            :searchable="true"
-                                            :setting-key="'id'"
-                                            :display-key="'name'"
-                                            :selected.sync="ccKey"
-                                            :list="ccList">
-                                        </bk-selector>
-                                    </div>
-                                    <bk-tooltip placement="top" :content="$t('关联业务后，您可以从对应的业务下选择机器，搭建容器集群')">
-                                        <span style="font-size: 12px;cursor: pointer;">
-                                            <i class="bk-icon icon-info-circle"></i>
-                                        </span>
-                                    </bk-tooltip>
-                                </div>
-                            </div>
-                            <div class="form-item" v-else>
-                                <label>{{$t('关联CMDB业务')}}：<span class="red">*</span></label>
-                                <div class="form-item-inner" style="margin-top: -20px;">
-                                    <p class="desc">
-                                        {{$t('当前账号无运维角色权限的业务，请到')}}<a :href="bkIamAppUrl" target="_blank">{{$t('权限中心')}}</a>{{$t('申请，')}}<a href="javascript: void(0)" @click="showGuide">{{$t('查看帮助')}}</a>
-                                    </p>
-                                </div>
-                            </div>
-                            <button class="bk-button bk-primary" :class="enableBtn ? '' : 'is-disabled'"
-                                style="margin-left: -40px;"
-                                @click="updateProject"
-                                :disabled="!enableBtn">
-                                {{$t('启用容器服务')}}
-                            </button>
-                        </main>
-                    </template>
-                </div>
+                <bcs-unregistry :cc-list="ccList"
+                    :default-kind="kind"
+                    @kind-change="handleKindChange"
+                    @cc-change="handleCmdbChange"
+                    @update-project="updateProject">
+                </bcs-unregistry>
             </div>
         </template>
-        <bk-dialog
-            :is-show.sync="guideDialogConf.isShow"
-            :width="guideDialogConf.width"
-            :title="guideDialogConf.title"
-            :close-icon="guideDialogConf.closeIcon"
-            :ext-cls="'perm-guide-dialog'"
-            :quick-close="true"
-            @cancel="hideGuide">
-            <div slot="content" class="content">
-                <div class="tip">{{$t('点击图片放大')}}</div>
-                <img :title="$t('点击图片放大')" src="./images/guide1.jpg" @click="setFullsreenImg(1)" />
-                <img :title="$t('点击图片放大')" src="./images/guide2.jpg" @click="setFullsreenImg(2)" />
-                <img :title="$t('点击图片放大')" src="./images/guide3.jpg" @click="setFullsreenImg(3)" />
-            </div>
-        </bk-dialog>
-        <div class="fullscreen-img" v-if="fullscreenImg">
-            <img :title="$t('点击图片还原')" :src="fullscreenImg" @click="fullscreenImg = ''" />
-        </div>
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
     </div>
 </template>
 <script>
     import { bus } from '@open/common/bus'
     import { getProjectByCode } from '@open/common/util'
-    import Img403 from '@open/images/403.png'
-    import imgGuide1 from './images/guide1.jpg'
-    import imgGuide2 from './images/guide2.jpg'
-    import imgGuide3 from './images/guide3.jpg'
+    import Img403 from '@/images/403.png'
+    import BcsUnregistry from '@open/components/bcs-unregistry/unregistry.vue'
 
     export default {
         name: 'app',
+        components: {
+            BcsUnregistry
+        },
         data () {
             return {
                 routerKey: +new Date(),
@@ -124,21 +52,12 @@
                 ccKey: '',
                 ccList: [],
                 kind: 1, // 业务编排类型
-                runVersion: window.RUN_VERSION,
+                // 前一次选中的编排类型，用于选中 tke 请求失败后，单选框恢复到上一个状态
+                prevKind: 1,
                 enableBtn: false, // 提交按钮是否可用
                 projectId: '',
                 projectCode: '',
-                isLoading: true,
-                bkCCHost: window.BK_CC_HOST + '/#/business',
-                bkIamAppUrl: window.BK_IAM_APP_URL + '/apply-custom-perm',
-                guideDialogConf: {
-                    isShow: false,
-                    width: 1000,
-                    title: this.$t('帮助'),
-                    closeIcon: true
-                },
-                fullscreenImg: '',
-                supportMesos: (window.SUPPORT_MESOS || '').toLowerCase()
+                isLoading: true
             }
         },
         computed: {
@@ -157,6 +76,14 @@
             },
             ccKey (val) {
                 this.enableBtn = val !== null && val !== undefined
+            },
+            kind (v, old) {
+                this.prevKind = old
+                this.fetchCCList()
+            },
+            '$store.state.curClusterId' () {
+                this.routerKey = +new Date()
+                this.$store.dispatch('getFeatureFlag')
             }
         },
         async created () {
@@ -183,17 +110,20 @@
                 }
 
                 // 从配置中心拉取项目列表，顶导的项目列表信息里，项目中关于容器服务的信息可能更新不及时
-                await this.$store.dispatch('getProjectList')
+                const projectList = await this.$store.dispatch('getProjectList')
                 await this.checkProject()
-
+                if (this.isUserBKService) {
+                    await this.$store.dispatch('getFeatureFlag')
+                    const curBcsProject = (projectList || []).find(item => item.project_code === curProjectCode)
+                    if (curBcsProject && curBcsProject.project_id) {
+                        await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
+                    }
+                }
                 this.isLoading = false
             })
         },
         mounted () {
             document.title = this.$t('容器服务')
-            if (window.$changeDocumentTitle) {
-                window.$changeDocumentTitle(this.$t('蓝鲸容器管理平台'))
-            }
 
             this.initContainerSize()
             window.onresize = () => {
@@ -219,15 +149,15 @@
                 const content = ''
                     + '<div class="biz-top-bar">'
                     + '<div class="biz-back-btn" onclick="history.back()">'
-                    + '<i class="bk-icon icon-arrows-left back"></i>'
+                    + '<i class="bcs-icon bcs-icon-arrows-left back"></i>'
                     + '<span></span>'
                     + '</div>'
                     + '</div>'
                     + '<div class="bk-exception bk-exception-center">'
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
-                    + '<p class="f14">Sorry，您的权限不足，请去'
-                    + `<a class="bk-text-button" href="${data.data.apply_url}&project_code=${projectCode}" target="_blank">申请</a>`
+                    + `<p class="f14">${self.$t('Sorry，您的权限不足，请去')}`
+                    + `<a class="bk-text-button" href="${data.data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
@@ -239,33 +169,6 @@
             })
         },
         methods: {
-            /**
-             * 显示指引信息
-             */
-            showGuide () {
-                this.guideDialogConf.isShow = true
-            },
-
-            /**
-             * 隐藏指引信息
-             */
-            hideGuide () {
-                this.guideDialogConf.isShow = false
-                this.fullscreenImg = ''
-            },
-
-            setFullsreenImg (idx) {
-                if (idx === 1) {
-                    this.fullscreenImg = imgGuide1
-                } else if (idx === 2) {
-                    this.fullscreenImg = imgGuide2
-                } else if (idx === 3) {
-                    this.fullscreenImg = imgGuide3
-                } else {
-                    this.fullscreenImg = ''
-                }
-            },
-
             /**
              * 初始化容器最小高度
              */
@@ -291,13 +194,36 @@
                             this.curProject = project
                             this.isUserBKService = project.kind !== 0
                             if (!this.isUserBKService) {
-                                await this.fetchCCList()
-                                if (project.cc_app_id !== 0) {
-                                    this.ccKey = project.cc_app_id
+                                this.checkUser()
+                                // IEG 项目，只有内部版才判断是否是 IEG 项目
+                                if (String(project.bg_id) !== '956') {
+                                    this.isIEGProject = false
+                                } else {
+                                    await this.fetchCCList()
+                                    if (project.cc_app_id !== 0) {
+                                        this.ccKey = project.cc_app_id
+                                    }
                                 }
                             }
                         }
                     }
+                }
+            },
+
+            async checkUser () {
+                try {
+                    const res = await this.$store.dispatch('getUserBgInfo')
+                    if (!res.data.is_ieg) {
+                        this.$bkInfo({
+                            clsName: 'not-ieg-user-infobox',
+                            type: 'default',
+                            quickClose: false,
+                            title: this.$t('非IEG用户请使用对应BG的容器服务平台')
+                        })
+                        return
+                    }
+                } catch (e) {
+                    console.log(e)
                 }
             },
 
@@ -322,15 +248,13 @@
              */
             async fetchCCList () {
                 try {
-                    const res = await this.$store.dispatch('getCCList')
-                    if (res.data) {
-                        this.ccList = [...(res.data || [])]
-                    }
+                    const res = await this.$store.dispatch('getCCList', {
+                        project_kind: this.kind,
+                        project_id: this.curProject.project_id
+                    })
+                    this.ccList = [...(res.data || [])]
                 } catch (e) {
-                    // this.bkMessageInstance = this.$bkMessage({
-                    //     theme: 'error',
-                    //     message: e.message || e.data.msg || e.statusText
-                    // })
+                    this.kind = this.prevKind
                 }
             },
 
@@ -359,11 +283,8 @@
                         // this.isLoading = false
                     })
                 } catch (e) {
+                    console.error(e)
                     this.isLoading = false
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -372,15 +293,20 @@
              */
             reloadCurPage () {
                 this.routerKey = +new Date()
+            },
+            handleKindChange (kind) {
+                this.kind = kind
+            },
+            handleCmdbChange (ccKey) {
+                this.ccKey = ccKey
             }
         }
     }
 </script>
 <style lang="postcss">
-    @import '@open/css/reset.css';
-    @import '@open/css/app.css';
-    @import '@open/css/animation.css';
-    @import '@open/css/mixins/scroller.css';
+    @import '@/css/reset.css';
+    @import '@/css/app.css';
+    @import '@/css/animation.css';
 
     .app-container {
         min-width: 1280px;
@@ -395,41 +321,33 @@
         flex: 1;
         background: #fafbfd;
     }
-
-    .perm-guide-dialog {
-        .bk-dialog-header,
-        .bk-dialog-footer {
-            display: none;
+    .biz-guide-box {
+        .desc {
+            width: auto;
+            margin: 0 auto 25px;
+            position: relative;
+            top: 12px;
         }
-        .content {
-            @mixin scroller #eee;
-            height: 500px;
-            overflow: scroll;
-            .tip {
-                font-size: 14px;
-                color: #737987;
-                position: absolute;
-                top: 20px;
-            }
-            img {
-                cursor: pointer;
-                width: 100%;
+        .biz-app-form {
+            .form-item {
+                .form-item-inner {
+                    width: 340px;
+                    .bk-form-radio {
+                        width: 115px;
+                    }
+                }
             }
         }
     }
+    .biz-list-operation {
+        .item {
+            float: none;
+        }
+    }
 
-    .fullscreen-img {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        z-index: 2500;
-        img {
-            cursor: pointer;
-            width: 100%;
+    .not-ieg-user-infobox {
+        .bk-dialog-style {
+            width: 500px;
         }
     }
 </style>

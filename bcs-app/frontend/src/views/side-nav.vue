@@ -1,10 +1,32 @@
 <template>
     <div>
-        <p class="biz-side-title">
-            <img src="@open/images/bcs2.svg" class="icon">
-            <span>{{$t('容器服务')}}</span>
-            <i class="biz-conf-btn bk-icon icon-cog" v-bktooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
+        <p class="biz-side-title" v-if="kind === 2">
+            <img src="@/images/bcs2.svg" class="all-icon">
+            <span style="font-size: 16px;">{{$t('容器服务')}}</span>
+            <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;" v-bk-tooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
         </p>
+        <div v-else>
+            <div class="biz-side-title cluster-selector">
+                <img v-if="!curClusterInfo.cluster_id" src="@/images/bcs2.svg" class="all-icon">
+                <span v-else class="icon">{{ curClusterInfo.name[0] }}</span>
+                <span v-if="!isHasCluster" class="cluster-name-all">{{$t('全部集群')}}</span>
+                <span v-else>
+                    <span :class="{ 'cluster-name': true, 'cluster-name-all': !curClusterInfo.cluster_id }" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
+                    <br>
+                    <span class="cluster-id" v-if="!!curClusterInfo.cluster_id">{{ curClusterInfo.cluster_id }}</span>
+                </span>
+                <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
+                <cluster-selector v-model="isShowClusterSelector" :cluster-list="clusterList" @change="handleChangeCluster" />
+            </div>
+            <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
+                <span v-for="item in viewList"
+                    :key="item.id"
+                    :class="['tab', { active: curViewType === item.id }]"
+                    @click="handleChangeView(item)">
+                    {{item.name}}
+                </span>
+            </div>
+        </div>
         <div class="side-nav">
             <bk-menu :list="menuList" :menu-change-handler="menuSelected"></bk-menu>
             <p class="biz-copyright">Copyright © 2012-{{curYear}} Tencent BlueKing. All Rights Reserved</p>
@@ -25,18 +47,21 @@
                             <span style="line-height: 34px;">{{englishName}}</span>
                         </div>
                     </div>
-                    <!-- 针对社区版，不展示编排类型，向后端传递参数是标识k8s即可 -->
-                    <div class="bk-form-item is-required" v-if="supportMesos === 'true'">
+                    <div class="bk-form-item is-required">
                         <label class="bk-label" style="width:160px;">{{$t('编排类型')}}：</label>
                         <div class="bk-form-content" style="margin-left:160px;">
-                            <label class="bk-form-radio" style="margin-right: 10px;">
-                                <input type="radio" value="1" name="kind" v-model="kind" @change="changeKind" :disabled="!canFormEdit">
-                                <i class="bk-radio-text">K8S</i>
-                            </label>
-                            <label class="bk-form-radio" style="margin-right: 10px;">
-                                <input type="radio" value="2" name="kind" v-model="kind" @change="changeKind" :disabled="!canFormEdit">
-                                <i class="bk-radio-text">BCS-Mesos</i>
-                            </label>
+                            <bk-radio-group v-model="kind" @change="changeKind" :key="kind" style="display: inline-block; width: 155px; vertical-align: center;">
+                                <bk-radio :value="1" :disabled="!canFormEdit">K8S</bk-radio>
+                                <bk-radio :value="2" disabled>Mesos</bk-radio>
+                            </bk-radio-group>
+                            <bcs-popover :delay="500" placement="top" :key="kind" style="vertical-align: center;">
+                                <i class="bcs-icon bcs-icon-info-circle" style="position: relative; top: 2px;"></i>
+                                <template slot="content">
+                                    <p style="width: 230px;text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">
+                                        {{$t('如需使用，请联系')}}<a :href="PROJECT_CONFIG.doc.contact" target="" class="bk-text-button">【{{$t('蓝鲸容器助手')}}】</a>
+                                    </p>
+                                </template>
+                            </bcs-popover>
                         </div>
                     </div>
 
@@ -57,14 +82,14 @@
                                     </bk-selector>
                                 </template>
                                 <template v-else>
-                                    <input type="text" class="bk-form-input" disabled v-model="curProject.cc_app_name" style="width: 250px;">
+                                    <bkbcs-input disabled v-model="curProject.cc_app_name" style="width: 250px;"></bkbcs-input>
                                 </template>
                             </div>
-                            <bk-tooltip placement="top" :content="$t('关联业务后，您可以从对应的业务下选择机器，搭建容器集群')">
-                                <span style="font-size: 12px;cursor: pointer;">
-                                    <i class="bk-icon icon-info-circle"></i>
+                            <bcs-popover placement="top" :content="$t('关联业务后，您可以从对应的业务下选择机器，搭建容器集群')">
+                                <span style="font-size: 13px;cursor: pointer;">
+                                    <i class="bcs-icon bcs-icon-info-circle"></i>
                                 </span>
-                            </bk-tooltip>
+                            </bcs-popover>
                             <template v-if="!canEdit && !isHasCluster">
                                 <p class="desc mt15" style="text-align: left;">{{$t('当前账号没有管理员权限，不可编辑，')}}<br />{{$t('请')}}<a :href="bkAppHost" target="_blank" class="bk-text-button">{{$t('点击申请权限')}}</a></p>
                             </template>
@@ -76,46 +101,58 @@
                     <div class="bk-form-item" v-if="isHasCluster">
                         <label class="bk-label" style="width:150px;"></label>
                         <div class="bk-form-content" style="margin-left: 150px; width: 260px;">
-                            {{$t('该项目下已有集群信息，如需更改项目绑定的业务信息，请先删除已有集群')}}
+                            {{$t('该项目下已有集群信息，如需更改编排类型和绑定业务信息，请先删除已有集群')}}
                         </div>
                     </div>
                 </form>
             </template>
-            <template slot="footer">
+            <div slot="footer">
                 <div class="biz-footer">
                     <template v-if="!canEdit">
-                        <bk-tooltip :content="$t('没有管理员权限')" placement="top">
+                        <bcs-popover :content="$t('没有管理员权限')" placement="top">
                             <bk-button type="primary" :disabled="true">{{$t('保存')}}</bk-button>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </template>
                     <template v-else-if="!ccList.length">
-                        <bk-tooltip :content="$t('请选择要关联的CMDB业务')" placement="top">
+                        <bcs-popover :content="$t('请选择要关联的CMDB业务')" placement="top">
                             <bk-button type="primary" :disabled="true">{{$t('保存')}}</bk-button>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </template>
                     <template v-else>
                         <bk-button type="primary" :disabled="!canEdit || !ccList.length" @click="updateProject" :loading="isLoading">{{$t('保存')}}</bk-button>
                     </template>
                     <bk-button type="default" @click="projectConfDialog.isShow = false">{{$t('取消')}}</bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
     </div>
 </template>
 
 <script>
     import bkMenu from '@open/components/menu'
+    import clusterSelector from '@open/components/cluster-selector'
+    import { bus } from '@open/common/bus'
     import { catchErrorHandler } from '@open/common/util'
+
+    const BCS_CLUSTER = 'bcs-cluster'
+    const BCS_CLUSTER_NAME = 'bcs-cluster-name'
+    const allClusters = () => {
+        return {
+            name: window.i18n.t('全部集群'),
+            cluster_id: ''
+        }
+    }
 
     export default {
         name: 'side-nav',
         components: {
-            bkMenu
+            bkMenu,
+            clusterSelector
         },
         data () {
             return {
                 isLoading: false,
-                supportMesos: (window.SUPPORT_MESOS || '').toLowerCase(),
+                isShowClusterSelector: false,
                 clusterRouters: [
                     'clusterMain',
                     'clusterCreate',
@@ -155,7 +192,28 @@
                 canEdit: false,
                 ccList: [],
                 englishName: '',
-                kind: -1 // 业务编排类型
+                kind: -1, // 业务编排类型
+                curClusterInfo: {},
+                selectorMenuData: {
+                    isChild: false,
+                    item: {
+                        icon: 'bcs-icon-jq-colony',
+                        name: this.$t('概览'),
+                        pathName: ['clusterOverview', 'clusterNode', 'clusterNodeOverview', 'clusterInfo'],
+                        roleId: 'overview:menu'
+                    },
+                    itemIndex: 0
+                },
+                viewList: [
+                    {
+                        id: 'cluster',
+                        name: this.$t('集群管理')
+                    },
+                    {
+                        id: 'dashboard',
+                        name: this.$t('资源视图')
+                    }
+                ]
             }
         },
         computed: {
@@ -175,6 +233,16 @@
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
             },
+            curClusterId () {
+                const id = localStorage[BCS_CLUSTER]
+                if (id === 'null') {
+                    return null
+                }
+                return localStorage[BCS_CLUSTER]
+            },
+            curClusterName () {
+                return localStorage[BCS_CLUSTER_NAME]
+            },
             curProject () {
                 const project = this.$store.state.curProject
                 if (!project.cc_app_name) {
@@ -186,6 +254,15 @@
                 return this.$store.state.cluster.clusterList
             },
             menuList () {
+                if (this.$route.meta.isDashboard) {
+                    return this.$store.state.sideMenu.dashboardMenuList
+                }
+                if (this.curProject && this.curClusterInfo.cluster_id && this.curProject.kind === PROJECT_MESOS) {
+                    return this.$store.state.sideMenu.clusterMenuList
+                }
+                if (this.curProject && this.curClusterInfo.cluster_id) {
+                    return this.$store.state.sideMenu.clusterk8sMenuList
+                }
                 if (this.curProject && this.curProject.kind === PROJECT_MESOS) {
                     return this.$store.state.sideMenu.menuList
                 }
@@ -203,27 +280,57 @@
             canFormEdit () {
                 // 有权限并且没有集群
                 return this.canEdit && !this.isHasCluster
+            },
+            curViewType () {
+                return this.$route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster'
             }
         },
         watch: {
             '$route' (to, from) {
-                if (to.name !== 'imageDetail') {
+                if (!['imageDetail'].includes(to.name)) {
                     this.$store.dispatch('updateMenuListSelected', {
+                        isDashboard: this.$route.meta.isDashboard,
                         pathName: to.name,
+                        category: to.params.category,
                         idx: 'bcs'
                     })
                 }
             },
             'projectId' () {
                 this.$store.dispatch('updateMenuListSelected', {
+                    isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
+                    category: this.$route.params.category,
+                    idx: 'bcs'
+                })
+            },
+            'curClusterInfo.cluster_id' () {
+                this.$store.dispatch('updateMenuListSelected', {
+                    isDashboard: this.$route.meta.isDashboard,
+                    pathName: this.$route.name,
+                    category: this.$route.params.category,
                     idx: 'bcs'
                 })
             }
         },
-        created () {
+        async created () {
+            if (localStorage['projectCode'] !== this.projectCode) {
+                localStorage.removeItem(BCS_CLUSTER_NAME)
+                localStorage.removeItem(BCS_CLUSTER)
+                localStorage['projectCode'] = this.projectCode
+            }
+            if (this.curClusterId && this.curClusterName) {
+                this.$store.commit('updateCurClusterId', this.curClusterId)
+                this.curClusterInfo = {
+                    cluster_id: this.curClusterId,
+                    name: this.curClusterName
+                }
+            } else {
+                this.curClusterInfo = allClusters()
+            }
             this.$store.commit('updateCurProject', this.projectCode)
             this.$store.dispatch('updateMenuListSelected', {
+                isDashboard: this.$route.meta.isDashboard,
                 pathName: this.$route.name,
                 idx: 'bcs',
                 projectType: (this.curProject && (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE)) ? 'k8s' : ''
@@ -233,6 +340,29 @@
                     this.showProjectConfDialog()
                 })
             }
+            bus.$off('cluster-change')
+            bus.$on('cluster-change', (data) => {
+                // if (sessionStorage['bcs-selected-menu-data']) {
+                //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
+                //     this.menuSelected(menuData)
+                // } else {
+                //     this.menuSelected(data)
+                // }
+                this.menuSelected(data)
+            })
+
+            this.$nextTick(() => {
+                if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
+                    // if (sessionStorage['bcs-selected-menu-data']) {
+                    //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
+                    //     this.menuSelected(menuData)
+                    // } else {
+                    //     this.menuSelected(this.selectorMenuData)
+                    // }
+                    this.menuSelected(this.selectorMenuData)
+                }
+            })
+            await this.getProject()
         },
         methods: {
             /**
@@ -252,7 +382,6 @@
              * 显示项目配置窗口
              */
             async showProjectConfDialog () {
-                await this.getProject()
                 await this.fetchCCList()
                 this.ccKey = this.curProject.cc_app_id
                 this.englishName = this.curProject.english_name
@@ -278,6 +407,9 @@
                     this.$router.push({
                         name: curSelected.pathName[0],
                         params: {
+                            projectId: this.projectId,
+                            projectCode: this.projectCode,
+                            clusterId: this.curClusterInfo.cluster_id,
                             needCheckPermission: true
                         }
                     })
@@ -310,10 +442,6 @@
                         }
                     }
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -327,13 +455,8 @@
                     this.curProject.cc_app_name = res.data.cc_app_name
                     this.curProject.kind = res.data.kind
                     this.kind = res.data.kind
-
                     this.canEdit = res.data.can_edit
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -346,7 +469,7 @@
                 if (!this.ccKey) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请关联CMDB业务'
+                        message: this.$t('请关联CMDB业务')
                     })
                     return false
                 }
@@ -366,7 +489,7 @@
                     this.projectConfDialog.isShow = false
                     this.$bkMessage({
                         theme: 'success',
-                        message: '更新成功！'
+                        message: this.$t('更新成功')
                     })
 
                     setTimeout(() => {
@@ -392,6 +515,62 @@
                 } finally {
                     this.isLoading = false
                 }
+            },
+
+            /**
+             * 显示集群切换选择器弹窗
+             */
+            showClusterSelector () {
+                this.isShowClusterSelector = true
+            },
+
+            /**
+             * 集群切换
+             */
+            handleChangeCluster (cluster) {
+                this.curClusterInfo = cluster
+                this.$store.commit('cluster/forceUpdateCurCluster', cluster.cluster_id ? cluster : {})
+                this.$store.commit('updateCurClusterId', cluster.cluster_id)
+                sessionStorage[BCS_CLUSTER] = cluster.cluster_id
+            },
+
+            handleChangeView (item) {
+                if (item.id === this.curViewType) return
+
+                item.id === 'dashboard' ? this.goDashboard() : this.goCluster()
+            },
+
+            goDashboard () {
+                // 从 metric 管理 router 跳转过来时，url 有 cluster_id 的 query
+                const newQuery = JSON.parse(JSON.stringify(this.$route.query))
+                delete newQuery.cluster_id
+                this.$router.replace({ query: newQuery })
+
+                setTimeout(() => {
+                    const routerUrl = this.$router.resolve({
+                        name: 'dashboard',
+                        params: {
+                            projectId: this.projectId,
+                            projectCode: this.projectCode
+                        }
+                    })
+                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                    sessionStorage.removeItem('bcs-selected-menu-data')
+                }, 0)
+            },
+
+            goCluster () {
+                setTimeout(() => {
+                    const routerUrl = this.$router.resolve({
+                        name: 'clusterMain',
+                        params: {
+                            projectId: this.projectId,
+                            projectCode: this.projectCode
+                        }
+                    })
+                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                    sessionStorage.removeItem('bcs-selected-menu-data')
+                }, 0)
             }
         }
     }
@@ -401,11 +580,45 @@
     .biz-side-title {
         position: relative;
     }
+    .cluster-selector {
+        background: #fafbfd;
+    }
+    .resouce-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0;
+        .tab {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7f8f9;
+            border: 1px solid #dde4eb;
+            margin-left: -1px;
+            font-size: 12px;
+            height: 24px;
+            padding: 0 26px;
+            cursor: pointer;
+            &.active {
+                background: #fff;
+                color: #3a84ff;
+            }
+            &.disabled {
+                cursor: not-allowed;
+            }
+            &:first-child {
+                border-radius: 3px 0 0 3px;
+            }
+            &:last-child {
+                border-radius: 0 3px 3px 0;
+            }
+        }
+    }
     .biz-conf-btn {
         position: absolute;
         right: 10px;
-        top: 13px;
-        font-size: 16px;
+        top: 16px;
+        font-size: 12px;
         cursor: pointer;
         width: 30px;
         height: 30px;
@@ -415,5 +628,16 @@
     .biz-footer {
         text-align: right;
         padding: 0 20px;
+    }
+    .cluster-name {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        white-space: nowrap;
+        margin-top: 2px;
+    }
+    .cluster-name-all {
+        font-size: 16px;
     }
 </style>

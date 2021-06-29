@@ -16,10 +16,10 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="createLoadBlance">
-                            <i class="bk-icon icon-plus"></i>
+                        <bk-button type="primary" @click.stop.prevent="createLoadBlance">
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新建CloudLoadBalancer')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -34,97 +34,72 @@
                 </div>
 
                 <div class="biz-loadbalance">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-loadbalance-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 200px; padding-left: 30px;">{{$t('名称')}}</th>
-                                    <th style="width: 130px;">{{$t('区域')}}</th>
-                                    <th style="width: 130px;">{{$t('类型')}}</th>
-                                    <th>{{$t('所属集群')}}</th>
-                                    <th>{{$t('网络类型')}}</th>
-                                    <th>{{$t('状态')}}</th>
-                                    <th style="min-width: 220px;">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                                <template v-if="loadBalanceList.length">
-                                    <tr v-for="(loadBalance, index) in curPageData" :key="index">
-                                        <td style="width: 200px; padding-left: 30px;">
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="loadBalance.clb_status && loadBalance.clb_status !== 'Running'" style="margin-left: -20px;">
-                                                <div class="rotate rotate1"></div>
-                                                <div class="rotate rotate2"></div>
-                                                <div class="rotate rotate3"></div>
-                                                <div class="rotate rotate4"></div>
-                                                <div class="rotate rotate5"></div>
-                                                <div class="rotate rotate6"></div>
-                                                <div class="rotate rotate7"></div>
-                                                <div class="rotate rotate8"></div>
-                                            </div>
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.clb_name || '--'}}</a>
-                                        </td>
-                                        <td>{{loadBalance.region || '--'}}</td>
-                                        <td>{{loadBalance.clb_type || '--'}}</td>
-                                        <td>
-                                            <bk-tooltip :content="loadBalance.cluster_id" placement="top">
-                                                <div class="cluster-name biz-text-wrapper">{{loadBalance.cluster_id}}</div>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>{{loadBalance.network_type || '--'}}</td>
-                                        <td>{{loadBalance.clb_status || '--'}}</td>
-                                        <td>
-                                            <!--
-                                                1. "notCreated": u"未创建", "deleted": u"已停止"   : 操作：启动、编辑、删除
-                                                2. 'Deploying', 'Running', 'Update', 'UpdatePaused', 'UpdateSuspend'：操作：停止
-                                                3. Deleting : 操作：无
-                                                4. 为空，操作：无
-                                                5. 全部都可以查看
-                                            -->
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{$t('查看')}}</a>
-                                            <template v-if="loadBalance.status === 'not_created' || loadBalance.status === 'deleted'">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(loadBalance, index)">{{$t('启动')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('编辑')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">{{$t('删除')}}</a>
-                                            </template>
-                                            <template v-else-if="loadBalance.status !== ''">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="stopLoadBalance(loadBalance, index)">{{$t('停止')}}</a>
-                                            </template>
-                                        </td>
-                                    </tr>
+                    <div class="biz-table-wrapper">
+                        <bk-table
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            @page-limit-change="handlePageLimitChange"
+                            @page-change="handlePageChange">
+                            <bk-table-column :label="$t('名称')" :show-overflow-tooltip="true" min-width="200">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(row)">{{row.clb_name || '--'}}</a>
                                 </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="7">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('区域')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.region || '--'}}
                                 </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="handlerPageChange">
-                        </bk-paging>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('类型')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.clb_type || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('所属集群')" min-width="200">
+                                <template slot-scope="{ row }">
+                                    <bcs-popover :content="row.cluster_id" placement="top">
+                                        <div class="cluster-name biz-text-wrapper">{{row.cluster_id}}</div>
+                                    </bcs-popover>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('网络类型')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.network_type || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('状态')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.clb_status || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" min-width="200">
+                                <template slot-scope="{ row }">
+                                    <!--
+                                        1. "notCreated": u"未创建", "deleted": u"已停止"   : 操作：启动、编辑、删除
+                                        2. 'Deploying', 'Running', 'Update', 'UpdatePaused', 'UpdateSuspend'：操作：停止
+                                        3. Deleting : 操作：无
+                                        4. 为空，操作：无
+                                        5. 全部都可以查看
+                                    -->
+                                    <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(row)">{{$t('查看')}}</a>
+                                    <template v-if="row.status === 'not_created' || row.status === 'deleted'">
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(row, index)">{{$t('启动')}}</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(row, index)">{{$t('编辑')}}</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(row, index)">{{$t('删除')}}</a>
+                                    </template>
+                                    <template v-else-if="row.status !== ''">
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="stopLoadBalance(row, index)">{{$t('停止')}}</a>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                 </div>
             </template>
 
             <bk-sideslider
-                style="z-index: 150;"
                 :quick-close="false"
                 :is-show.sync="loadBalanceSlider.isShow"
                 :title="loadBalanceSlider.title"
@@ -135,7 +110,6 @@
                     <div class="bk-form bk-form-vertical" @click="handlerHideSideslider">
                         <div class="bk-form-item">
                             <div class="bk-form-content">
-                                
                                 <div class="bk-form-inline-item" style="width: 260px;">
                                     <label class="bk-label">{{$t('区域')}}：</label>
                                     <div class="bk-form-content">
@@ -157,6 +131,7 @@
                                     <div class="bk-form-content">
                                         <bk-selector
                                             :placeholder="$t('请选择')"
+                                            searchable
                                             :selected.sync="curLoadBalance.clb_name"
                                             :list="nameInRegionList">
                                         </bk-selector>
@@ -173,6 +148,7 @@
                                         <bk-selector
                                             :field-type="'cluster'"
                                             :placeholder="$t('请输入')"
+                                            searchable
                                             :setting-key="'cluster_id'"
                                             :display-key="'longName'"
                                             :selected.sync="curLoadBalance.cluster_id"
@@ -185,6 +161,7 @@
                                     <div class="bk-form-content">
                                         <bk-selector
                                             :placeholder="$t('请选择')"
+                                            searchable
                                             :selected.sync="curLoadBalance.clb_type"
                                             :list="types">
                                         </bk-selector>
@@ -198,7 +175,7 @@
                                 <div class="bk-form-inline-item" style="width: 260px;">
                                     <label class="bk-label">{{$t('镜像地址')}}：</label>
                                     <div class="bk-form-content">
-                                        <input class="bk-form-input" readonly :value="curLoadBalance.image_url" />
+                                        <bkbcs-input :readonly="true" :value="curLoadBalance.image_url" />
                                     </div>
                                 </div>
                                 <div class="bk-form-inline-item is-required" style="width: 260px; margin-left: 35px;">
@@ -206,6 +183,7 @@
                                     <div class="bk-form-content">
                                         <bk-selector
                                             :placeholder="$t('请选择')"
+                                            searchable
                                             :setting-key="'_id'"
                                             :display-key="'_name'"
                                             :selected.sync="curLoadBalance.image_version"
@@ -222,6 +200,7 @@
                                     <label class="bk-label">{{$t('网络类型')}}：</label>
                                     <div class="bk-form-content">
                                         <bk-selector
+                                            searchable
                                             :placeholder="$t('请选择')"
                                             :selected.sync="curLoadBalance.network_type"
                                             :list="networkTypes">
@@ -232,6 +211,7 @@
                                     <label class="bk-label">{{$t('服务发现机制')}}：</label>
                                     <div class="bk-form-content">
                                         <bk-selector
+                                            searchable
                                             :placeholder="$t('请选择')"
                                             :selected.sync="curLoadBalance.svc_discovery_type"
                                             :list="serviceDiscoveryList">
@@ -242,8 +222,8 @@
                         </div>
 
                         <div class="bk-form-item mt25">
-                            <button class="bk-button bk-primary" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</button>
-                            <button class="bk-button bk-default" @click.stop.prevent="hideLoadBalanceSlider">{{$t('取消')}}</button>
+                            <bk-button type="primary" :loading="isDataSaveing" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</bk-button>
+                            <bk-button :disabled="isDataSaveing" @click.stop.prevent="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
                         </div>
                     </div>
                 </div>
@@ -268,10 +248,10 @@
                 isDataSaveing: false,
                 prmissions: {},
                 pageConf: {
-                    total: 0,
+                    count: 0,
                     totalPage: 1,
-                    pageSize: 5,
-                    curPage: 1,
+                    limit: 5,
+                    current: 1,
                     show: true
                 },
                 loadBalanceSlider: {
@@ -405,7 +385,7 @@
                 }
             },
             loadBalanceList () {
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
             curPageData () {
                 this.curPageData.forEach(item => {
@@ -460,7 +440,7 @@
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getLoadBalanceList()
             },
@@ -505,11 +485,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.handlerPageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -690,7 +670,8 @@
                 const loadBalanceName = loadBalance.clb_name
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要启动此CloudLoadBalancer')}: ${loadBalanceName}`,
+                    title: this.$t('确认操作'),
+                    content: `${this.$t('确定要启动此CloudLoadBalancer')}: ${loadBalanceName}`,
                     async confirmFn () {
                         const statusTmp = loadBalance.status
                         loadBalance.status = ''
@@ -732,7 +713,8 @@
                 const loadBalanceName = loadBalance.clb_name
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要停止此CloudLoadBalancer')}: ${loadBalanceName}`,
+                    title: this.$t('确认操作'),
+                    content: `${this.$t('确定要停止此CloudLoadBalancer')}: ${loadBalanceName}`,
                     async confirmFn () {
                         const statusTmp = loadBalance.status
                         loadBalance.status = ''
@@ -770,7 +752,7 @@
                 
                 const loadBalanceName = loadBalance.clb_name
                 this.$bkInfo({
-                    title: '',
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -863,9 +845,9 @@
                     }
                 })
                 this.loadBalanceList.splice(0, this.loadBalanceList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -873,9 +855,9 @@
              */
             initPageConf () {
                 const total = this.loadBalanceList.length
-                this.pageConf.total = total
-                this.pageConf.curPage = 1
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.count = total
+                this.pageConf.current = 1
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
             },
 
             /**
@@ -883,7 +865,7 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -894,10 +876,10 @@
             getDataByPage (page) {
                 // 如果没有page，重置
                 if (!page) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 // this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -915,9 +897,9 @@
              * 分页改变回调
              * @param  {number} page 页
              */
-            handlerPageChange (page = 1) {
+            handlePageChange (page = 1) {
                 this.isPageLoading = true
-                this.pageConf.curPage = page
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData = JSON.parse(JSON.stringify(data))
             },
@@ -1018,7 +1000,7 @@
                     this.isPageLoading = true
                     await this.$store.dispatch('network/getCloudLoadBalanceList', { projectId, params })
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
                     // 如果有搜索关键字，继续显示过滤后的结果
                     if (this.searchKeyword) {
                         this.searchLoadBalance()

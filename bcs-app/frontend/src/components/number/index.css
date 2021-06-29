@@ -21,6 +21,7 @@
     padding-right: 0;
 
     ::placeholder {
+        font-size: 12px;
         color: $fnMinorColor;
     }
 
@@ -60,17 +61,13 @@
         vertical-align: middle;
 
         &.bk-number-larger {
-            height: 34px;
-            line-height: 34px;
-
-            .bk-number-icon-content {
-                margin-top: 2px !important;
-            }
+            height: 30px;
+            line-height: 30px;
         }
 
         &.bk-number-small {
-            height: 32px;
-            line-height: 32px;
+            height: 30px;
+            line-height: 30px;
 
             .bk-number-icon-content {
                 margin-top: 1px !important;
@@ -105,6 +102,8 @@
                 font-size: 12px;
                 font-weight: bold;
                 color: #c3cdd7;
+                display: inline-block;
+                transform: scale(0.8);
             }
 
             .btn-disabled {

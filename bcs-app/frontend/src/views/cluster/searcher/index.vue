@@ -11,7 +11,7 @@
                                     <div class="value">
                                         <span class="value-item" v-for="(valueArrItem, valueArrIndex) in sp.valueArr" :key="valueArrIndex">{{valueArrItem}}</span>
                                     </div>
-                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bk-icon icon-close"></i></div>
+                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bcs-icon bcs-icon-close"></i></div>
                                 </div>
                                 <div class="value-container edit" v-if="sp.isEditing">
                                     <input type="text" class="input" v-model="sp.value" :ref="`editInput${spIndex}`" @blur="editInputBlurHandler($event, sp, spIndex)">
@@ -23,7 +23,7 @@
                                     <div class="value-value">
                                         <span class="value-item" v-for="(valueArrItem, valueArrIndex) in sp.valueArr" :key="valueArrIndex">{{valueArrItem}}</span>
                                     </div>
-                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bk-icon icon-close"></i></div>
+                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bcs-icon bcs-icon-close"></i></div>
                                 </div>
                             </template>
                             <template v-else>
@@ -31,7 +31,7 @@
                                     <div class="value">
                                         <span class="value-item">{{sp.value}}</span>
                                     </div>
-                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bk-icon icon-close"></i></div>
+                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bcs-icon bcs-icon-close"></i></div>
                                 </div>
                             </template>
                         </div>
@@ -72,7 +72,7 @@
             <div class="node-searcher-dropdown-content" :class="showEnterTip ? 'is-show' : ''" :style="{ left: `${searcherDropdownLeft}px` }">
                 <ul class="node-searcher-dropdown-list">
                     <li>
-                        <i class="bk-icon icon-search"></i>
+                        <i class="bcs-icon bcs-icon-search"></i>
                         <div>Press Enter to search</div>
                     </li>
                 </ul>
@@ -123,7 +123,7 @@
                         <li v-for="(v, vIndex) in valueList" :key="vIndex">
                             <a href="javascript:void(0);" @click="selectValue(v)">
                                 {{v}}
-                                <i class="bk-icon icon-check-1" v-if="selectedValues[v]"></i>
+                                <i class="bcs-icon bcs-icon-check-1" v-if="selectedValues[v]"></i>
                             </a>
                         </li>
                     </template>
@@ -217,7 +217,16 @@
                 statusList: [
                     { text: this.$t('正常'), value: ['normal'] },
                     { text: this.$t('不可调度'), value: ['to_removed', 'removable'] }
-                ]
+                ],
+                mesosLabelMap: {}
+            }
+        },
+        computed: {
+            curProject () {
+                return this.$store.state.curProject
+            },
+            isMesosProject () {
+                return this.curProject.kind === window.PROJECT_MESOS
             }
         },
         watch: {
@@ -235,6 +244,11 @@
             searcherDropdownLeft (val) {
                 if (val > this.maxLeftOffset) {
                     this.searcherDropdownLeft = this.maxLeftOffset
+                }
+            },
+            params (val) {
+                if (this.params.length) {
+                    this.searchParams.splice(0, this.searchParams.length, ...this.params)
                 }
             }
         },
@@ -302,12 +316,15 @@
                     this.showKey = true
                     this.tagLoading = true
                     try {
-                        const res = await this.$store.dispatch('cluster/getNodeKeyList', {
+                        const api = this.isMesosProject ? 'cluster/getMesosNodeLabels' : 'cluster/getNodeKeyList'
+                        const res = await this.$store.dispatch(api, {
                             projectId: this.projectId,
                             clusterId: this.clusterId
                         })
-                        this.keyList.splice(0, this.keyList.length, ...(res.data || []))
-                        this.keyListTmp.splice(0, this.keyList.length, ...(res.data || []))
+                        const keyList = this.isMesosProject ? Object.keys(res.data || {}) : res.data || []
+                        this.isMesosProject && (this.mesosLabelMap = res.data || {})
+                        this.keyList.splice(0, this.keyList.length, ...keyList)
+                        this.keyListTmp.splice(0, this.keyList.length, ...keyList)
                         this.$nextTick(() => {
                             this.$refs.searchInput.focus()
                             this.isListeningInputKeyup = true
@@ -366,13 +383,19 @@
                     this.tagLoading = true
                     this.curInputValue = ''
                     this.inputPlaceholder = this.$t('请输入要搜索的value')
-                    const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
-                        projectId: this.projectId,
-                        clusterId: this.clusterId,
-                        keyName: k
-                    })
-                    this.valueList.splice(0, this.valueList.length, ...(res.data || []))
-                    this.valueListTmp.splice(0, this.valueList.length, ...(res.data || []))
+                    let valueList = []
+                    if (this.isMesosProject) {
+                        valueList = this.mesosLabelMap[k] || []
+                    } else {
+                        const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
+                            projectId: this.projectId,
+                            clusterId: this.clusterId,
+                            keyName: k
+                        })
+                        valueList = res.data || []
+                    }
+                    this.valueList.splice(0, this.valueList.length, ...valueList)
+                    this.valueListTmp.splice(0, this.valueList.length, ...valueList)
                     this.$refs.searchInput.focus()
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -628,12 +651,16 @@
              * 把数据中的换行符\n 转换成 |
              */
             handleInputPaste (e) {
+                console.log(1, e)
                 const value = e.clipboardData.getData('text')
+                console.log('handleInputPaste', value)
                 if (value && this.curSearchParams && this.curSearchParams.id === 'ip') {
-                    this.$nextTick(() => {
-                        this.curInputValue = value.replace(/\r/g, '').split('\n').join('|')
-                    })
+                    this.curInputValue = value.replace(/\r/g, '').split('\n').join('|')
                 }
+                e.target.blur()
+                setTimeout(() => {
+                    e.target.focus()
+                }, 10)
             },
 
             /**

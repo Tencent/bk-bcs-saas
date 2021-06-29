@@ -13,7 +13,7 @@
     position: fixed;
     right: 10px;
     bottom: 10px;
-    z-index: 1100;
+    z-index: 5100;
 
     &.active {
         .biz-terminal-trigger {
@@ -50,6 +50,7 @@
 
         .terminal-helper {
             display: none;
+            font-size: 14px;
         }
 
         .text {
@@ -69,7 +70,7 @@
         &:hover {
             color: red;
 
-            .bk-icon {
+            .bcs-icon {
                 color: red !important;
             }
         }

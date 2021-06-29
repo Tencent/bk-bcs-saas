@@ -35,17 +35,11 @@
 }
 
 .biz-operate-audit-table {
-    >tbody>tr>th,
-    >tbody>tr>td {
-        height: 50px;
-    }
-
+    width: auto;
+    margin: 0 20px;
     i.bk-icon {
         font-size: 16px;
-        vertical-align: middle;
-        position: relative;
-        top: -1px;
-        margin-right: 7px;
+        margin-right: 4px;
 
         &.success {
             color: $iconSuccessColor;
@@ -59,21 +53,8 @@
     p {
         margin: 0;
         &.extra-info {
-            @mixin ellipsis 200px, block;
-            span {
-                color: #c3cdd7;
-            }
+            @mixin ellipsis 100%, block;
         }
-    }
-
-    tbody {
-        tr.no-hover {
-            background-color: #fff
-        }
-    }
-
-    .description {
-        @mixin ellipsis 200px;
     }
 }
 

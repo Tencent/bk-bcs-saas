@@ -240,7 +240,7 @@
             color: #333;
         }
         .bk-sideslider-closer {
-            background-color: #3c96ff;
+            background-color: #3a84ff;
         }
         .question-json {
             height: 100%;
@@ -254,7 +254,7 @@
             display: block;
         }
         .bk-tip-text {
-            color: #a6b5ca;
+            color: #979ba5;
             line-height: 20px;
             white-space: normal;
             font-size: 13px;

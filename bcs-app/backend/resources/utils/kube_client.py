@@ -129,6 +129,21 @@ class CoreDynamicClient(DynamicClient):
         update_func_obj = getattr(resource, update_method)
         return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
 
+    def replace(
+        self,
+        resource: Resource,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: str = None,
+        auto_add_version: bool = False,
+        **kwargs,
+    ) -> ResourceInstance:
+        if auto_add_version:
+            # get 方法若找不到对应的资源，会抛出 ApiException 给上层捕获
+            obj = self.get(resource, name=name, namespace=namespace, **kwargs)
+            self._add_resource_version(obj, body)
+        return super().replace(resource, body, name, namespace, **kwargs)
+
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
         return super().request(method, path, body=body, **params)
@@ -165,4 +180,4 @@ def wrap_kube_client_exc():
         yield
     except ApiException as e:
         body = json.loads(e.body)
-        raise error_codes.APIError(body['message'])
+        raise error_codes.ResourceError(body['message'])

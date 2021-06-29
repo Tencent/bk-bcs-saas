@@ -295,7 +295,7 @@ class VueTemplateView(TemplateView):
         }
 
         # 增加扩展的字段渲染前端页面，用于多版本
-        ext_context = getattr(settings, 'ext_context', {})
+        ext_context = getattr(settings, 'EXT_CONTEXT', {})
         if ext_context:
             context.update(ext_context)
 

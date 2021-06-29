@@ -37,7 +37,6 @@ export default {
     },
     data () {
         return {
-            REGION: window.REGION,
             tplList: [],
             // 存放给的是模板的 id 集合
             tplIndex: [],
@@ -140,6 +139,9 @@ export default {
         },
         isEn () {
             return this.$store.state.isEn
+        },
+        curClusterId () {
+            return this.$store.state.curClusterId
         }
     },
     created () {
@@ -340,11 +342,6 @@ export default {
                 this.instanceEntity = Object.assign({}, tplData)
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance && this.bkMessageInstance.close()
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             }
         },
 
@@ -482,11 +479,6 @@ export default {
                 this.candidateNamespaceList.splice(0, this.candidateNamespaceList.length, ...list)
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance && this.bkMessageInstance.close()
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             } finally {
                 setTimeout(() => {
                     this.dialogConf.loading = false
@@ -702,7 +694,6 @@ export default {
             })
 
             this.dialogConf.loading = true
-
             try {
                 const res = await this.$store.dispatch('configuration/getLbVariable', {
                     projectId: this.projectId,
@@ -761,11 +752,6 @@ export default {
                 this.previewNamespace(alreadySelected || this.selectedNamespaceList[0], 0, true)
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance && this.bkMessageInstance.close()
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             } finally {
                 setTimeout(() => {
                     this.dialogConf.loading = false
@@ -822,7 +808,7 @@ export default {
                 if (this.lbServiceList.length) {
                     const lbRes = await this.$store.dispatch('configuration/getLbInfo', {
                         projectId: this.projectId,
-                        namespaceId: ns.id
+                        clusterId: ns.cluster_id
                     })
 
                     const lbData = lbRes.data || []
@@ -937,11 +923,6 @@ export default {
                 }
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance && this.bkMessageInstance.close()
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             } finally {
                 this.previewLoading = false
             }
@@ -1238,7 +1219,7 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认创建'),
                 content: me.$createElement('p', this.$t('确定要进行创建操作？')),
                 async confirmFn () {
                     me.createInstanceLoading = true
@@ -1325,13 +1306,11 @@ export default {
         triggerAddNamespace (index) {
             this.namespaceName = ''
             this.$refs.addNamespaceNode.forEach(vnode => {
-                vnode.visiable = false
-                vnode.visible = false
+                vnode.instance.hide()
             })
 
             const vnode = this.$refs.addNamespaceNode[index]
-            vnode.visiable = true
-            vnode.visible = true
+            vnode.instance.show()
         },
 
         /**
@@ -1438,8 +1417,7 @@ export default {
             this.$nextTick(() => {
                 this.namespaceName = ''
                 this.$refs.addNamespaceNode.forEach(vnode => {
-                    vnode.visiable = false
-                    vnode.visible = false
+                    vnode.instance.hide()
                 })
             })
         }

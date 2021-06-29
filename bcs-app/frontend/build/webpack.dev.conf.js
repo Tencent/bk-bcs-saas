@@ -15,10 +15,19 @@ const merge = require('webpack-merge')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+const threadLoader = require('thread-loader')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
 const manifest = require('../static/lib-manifest.json')
+
+const cssWorkerPool = {
+    // 一个 worker 进程中并行执行工作的数量
+    // 默认为 20
+    workerParallelJobs: 2,
+    poolTimeout: 2000
+}
+threadLoader.warmup(cssWorkerPool, ['css-loader', 'postcss-loader'])
 
 const VERSION = process.env.VERSION
 
@@ -32,8 +41,31 @@ const webpackConfig = merge(baseWebpackConfig, {
         rules: [
             {
                 test: /\.(css|postcss)$/,
+                // use: [
+                //     'vue-style-loader',
+                //     {
+                //         loader: 'css-loader',
+                //         options: {
+                //             sourceMap: config.dev.cssSourceMap,
+                //             importLoaders: 1
+                //         }
+                //     },
+                //     {
+                //         loader: 'postcss-loader',
+                //         options: {
+                //             sourceMap: config.dev.cssSourceMap,
+                //             config: {
+                //                 path: resolve(__dirname, '..', 'postcss.config.js')
+                //             }
+                //         }
+                //     }
+                // ]
                 use: [
                     'vue-style-loader',
+                    {
+                        loader: 'thread-loader',
+                        options: cssWorkerPool
+                    },
                     {
                         loader: 'css-loader',
                         options: {
@@ -45,11 +77,27 @@ const webpackConfig = merge(baseWebpackConfig, {
                         loader: 'postcss-loader',
                         options: {
                             sourceMap: config.dev.cssSourceMap,
-                            config: {
-                                path: resolve(__dirname, '..', 'postcss.config.js')
+                            postcssOptions: {
+                                config: resolve(__dirname, '..', 'postcss.config.js')
                             }
                         }
                     }
+                ]
+            },
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    // 'cache-loader',
+                    'style-loader',
+                    // Translates CSS into CommonJS
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            importLoaders: 1
+                        }
+                    },
+                    // Compiles Sass to CSS
+                    'sass-loader'
                 ]
             }
         ]
@@ -68,10 +116,9 @@ const webpackConfig = merge(baseWebpackConfig, {
 
         new HtmlWebpackPlugin({
             filename: 'index.html',
-            template: 'index-dev.html',
+            template: ['ee', 'ce'].includes(VERSION) ? 'index-dev.html' : `index-${VERSION}.html`,
             inject: true,
-            staticUrl: config.dev.env.staticUrl,
-            version: VERSION
+            staticUrl: config.dev.env.staticUrl
         }),
         new FriendlyErrorsPlugin(),
         new MonacoEditorPlugin({

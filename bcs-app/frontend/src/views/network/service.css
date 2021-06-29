@@ -1,6 +1,6 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/clearfix.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-service-title {
     display: inline-block;
@@ -21,7 +21,6 @@
     >tbody>tr>td {
         height: 50px;
     }
-
     .cluster-name {
         @mixin ellipsis 160px;
         vertical-align: bottom;
@@ -52,6 +51,7 @@
 
 .biz-data-table {
     border: 1px solid #dde4eb;
+    border-bottom: none;
     margin-bottom: 25px;
 }
 
@@ -73,20 +73,6 @@
     padding: 15px 15px 10px 15px;
     position: relative;
     border-radius: 2px;
-
-    &:after {
-        content: '';
-        width: 8px;
-        height: 8px;
-        display: inline-block;
-        border-top: 1px solid #dde4eb;
-        border-right: 1px solid #dde4eb;
-        transform: rotate(-45deg);
-        position: absolute;
-        top: -6px;
-        left: 39px;
-        background: #fff;
-    }
 }
 
 .key-tip-wrapper {
@@ -203,10 +189,16 @@
                 margin-left: 0;
             }
         }
-        .bk-dialog-tool {
-            .bk-dialog-close {
-                display: none;
-            }
-        }
     }
+}
+
+.list-input {
+    width: 100px;
+    /deep/ .bk-form-input {
+        width: 100%;
+    }
+}
+
+.cl5-router {
+    font-size: 14px;
 }

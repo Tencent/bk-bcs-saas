@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
-                存储
+                {{$t('存储')}}
             </div>
         </div>
         <div class="biz-content-wrapper p0">

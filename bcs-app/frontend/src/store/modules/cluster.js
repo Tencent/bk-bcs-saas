@@ -13,6 +13,7 @@ import _ from 'lodash'
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
+import { getBizMaintainers } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -26,7 +27,8 @@ export default {
         // 当前的这个集群，如果是从集群首页进入到之后的页面那么这个是有值的，之后可以直接获取不需要再发请求
         // 如果是从浏览器地址栏输入 url 进去的，这个为空，需要根据 clusterId 发送请求来获取当前的集群
         // 同样，当根据 clusterId 获取到集群后，会把获取到的集群赋值给这个变量
-        curCluster: null
+        curCluster: null,
+        cacheRes: {}
     },
     mutations: {
         /**
@@ -48,6 +50,9 @@ export default {
          */
         forceUpdateCurCluster (state, cluster) {
             state.curCluster = Object.assign({}, cluster)
+        },
+        updateCacheRes (state, data) {
+            state.cacheRes = data
         }
     },
     actions: {
@@ -60,13 +65,20 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getClusterList (context, projectId, config = {}) {
+        async getClusterList (context, projectId, config = {}) {
+            if (context.state.clusterList.length && Object.keys(context.state.cacheRes)) {
+                delete context.state.cacheRes.request_id
+                return JSON.parse(JSON.stringify(context.state.cacheRes))
+            }
             // return http.get('/app/cluster?invoke=getClusterList', {}, config)
-            return http.get(
+            const res = await http.get(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters?limit=1000`,
                 {},
                 Object.assign(config, { urlId: 'getClusterList' })
             )
+            context.commit('forceUpdateClusterList', res.data.results)
+            context.commit('updateCacheRes', res)
+            return res
         },
 
         /**
@@ -1413,6 +1425,77 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 获取 SCR 主机
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getSCRHosts (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/cvm_types/`,
+                params,
+                config
+            )
+        },
+
+        /**
+         * 申请主机
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        applySCRHost (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/apply_hosts/`,
+                params,
+                config
+            )
+        },
+
+        /**
+         * 查看主机申请状态
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        checkApplyHostStatus (context, { projectId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/apply_hosts/logs/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 查看主机权限
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async getBizMaintainers (context, params = {}, config = {}) {
+            const data = await getBizMaintainers(params, config).catch(() => ({
+                maintainers: []
+            }))
+            return data
         }
     }
 }

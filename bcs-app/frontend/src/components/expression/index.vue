@@ -3,7 +3,7 @@
         <div class="biz-keys-list mb10" v-if="list.length">
             <div class="biz-key-item" v-for="(keyItem, index) in list" :key="index">
                 <template v-if="varList.length">
-                    <bk-input
+                    <bkbcs-input
                         type="text"
                         :placeholder="keyPlaceholder || $t('键')"
                         :style="{ width: `${keyInputWidth}px` }"
@@ -11,7 +11,7 @@
                         :list="varList"
                         @input="valueChange"
                         @blur="handleBlur">
-                    </bk-input>
+                    </bkbcs-input>
                 </template>
                 <template v-else>
                     <input
@@ -28,7 +28,7 @@
                 <div class="operator">
                     <bk-selector
                         style="width: 132px;"
-                        placeholder="选择"
+                        :placeholder="$t('请选择')"
                         :setting-key="'id'"
                         :display-key="'name'"
                         :selected.sync="keyItem.operator"
@@ -39,7 +39,7 @@
 
                 <template v-if="['In', 'NotIn'].includes(keyItem.operator)">
                     <template v-if="varList.length">
-                        <bk-input
+                        <bkbcs-input
                             type="text"
                             :placeholder="valuePlaceholder || $t('值')"
                             :style="{ width: `${valueInputWidth}px` }"
@@ -48,7 +48,7 @@
                             @input="valueChange"
                             @blur="handleBlur"
                         >
-                        </bk-input>
+                        </bkbcs-input>
                     </template>
                     <template v-else>
                         <input
@@ -66,16 +66,16 @@
                     <span class="holder" :style="{ width: `${valueInputWidth}px` }"></span>
                 </template>
 
-                <button class="action-btn" @click.stop.prevent="addKey">
-                    <i class="bk-icon icon-plus"></i>
-                </button>
-                <button class="action-btn" @click.stop.prevent="removeKey(keyItem, index)">
-                    <i class="bk-icon icon-minus"></i>
-                </button>
+                <bk-button class="action-btn" @click.stop.prevent="addKey">
+                    <i class="bcs-icon bcs-icon-plus"></i>
+                </bk-button>
+                <bk-button class="action-btn" @click.stop.prevent="removeKey(keyItem, index)">
+                    <i class="bcs-icon bcs-icon-minus"></i>
+                </bk-button>
             </div>
         </div>
         <div v-else class="expression-action">
-            <button class="bk-button bk-button-small" @click.stop.prevent="addKey">$t('添加表达式')</button>
+            <bk-button class="bk-button bk-button-small" @click.stop.prevent="addKey">$t('添加表达式')</bk-button>
         </div>
         <slot>
             <p :class="['biz-tip']">{{tip}}</p>
@@ -288,7 +288,7 @@
             cursor: default;
             color: #ddd !important;
             border-color: #ddd !important;
-            .bk-icon {
+            .bcs-icon {
                 color: #ddd !important;
                 border-color: #ddd !important;
             }
@@ -296,7 +296,7 @@
         &:hover {
             color: $primaryColor;
             border-color: $primaryColor;
-            .bk-icon {
+            .bcs-icon {
                 color: $primaryColor;
                 border-color: $primaryColor;
             }

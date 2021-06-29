@@ -10,14 +10,19 @@
  */
 
 $selectorHighlight: #eef6fe;
-$formBorderFocusColor: #3c96ff;
-$borderColor: #c3cdd7;
+$formBorderFocusColor: #3a84ff;
+$borderColor: #c4c6cc;
 $primaryHoverColor: #0082ff;
-$primaryColor: #3c96ff;
+$primaryColor: #3a84ff;
 $selectorZIndex: 100;
-$formBorderColor: #c3cdd7;
+$formBorderColor: #c4c6cc;
 $fnMainColor: #737987;
 
+.bk-selector {
+    ::placeholder {
+        font-size: 12px;
+    }
+}
 .bk-selector-loading {
     padding: 10px;
     text-align: center;
@@ -31,7 +36,7 @@ $fnMainColor: #737987;
 
 .bk-selector .bk-selector-node.bk-selector-selected {
     background-color: #eef6fe;
-    color: #3c96ff;
+    color: #3a84ff;
 }
 
 .bk-selector-list-item .bk-selector-node {
@@ -42,7 +47,7 @@ $fnMainColor: #737987;
 
         &.bk-selector-selected {
             background-color: #eef6fe;
-            color: #3c96ff;
+            color: #3a84ff;
             cursor: default;
         }
     }
@@ -51,6 +56,7 @@ $fnMainColor: #737987;
 .bk-selector .bk-selector-list {
     border-radius: 2px;
     box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dcdee5;
 }
 
 .bk-selector {
@@ -63,7 +69,6 @@ $fnMainColor: #737987;
 
     .no-search-result {
         font-size: 12px;
-        padding: 10px;
     }
 
     ul,
@@ -93,8 +98,8 @@ $fnMainColor: #737987;
 
     &-input {
         width: 100%;
-        height: 36px;
-        line-height: 36px;
+        height: 32px;
+        line-height: 32px;
         padding: 0 10px;
         border: 1px solid $borderColor;
         border-radius: 2px;
@@ -110,19 +115,21 @@ $fnMainColor: #737987;
                 border-color: $primaryHoverColor;
             }
 
-            +.bk-icon {
+            +.bcs-icon {
                 color: $primaryColor;
             }
         }
 
         &.placeholder {
             color: $borderColor;
+            font-size: 12px;
         }
 
         &.active {
             border-color: $primaryHoverColor !important;
+            box-shadow: 0 0 4px rgb(58 132 255 / 40%);
 
-            +.bk-icon {
+            +.bcs-icon {
                 color: $primaryColor;
             }
         }
@@ -143,7 +150,7 @@ $fnMainColor: #737987;
         cursor: pointer;
 
         &.clear-icon {
-            top: 10px;
+            top: 8px;
             right: 7px;
             width: 18px;
             height: 18px;
@@ -171,7 +178,7 @@ $fnMainColor: #737987;
         top: 40px;
         left: 0;
         right: 0;
-        box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 0 6px 0 #dcdee5;
         background-color: #fff;
         z-index: $selectorZIndex;
         overflow-y: hidden;
@@ -229,9 +236,9 @@ $fnMainColor: #737987;
         }
 
         .text {
-            height: 42px;
+            height: 38px;
             padding: 0 10px;
-            line-height: 42px;
+            line-height: 38px;
             font-size: 14px;
         }
 
@@ -250,8 +257,8 @@ $fnMainColor: #737987;
 
     &-create-item {
         cursor: pointer;
-        height: 42px;
-        line-height: 42px;
+        height: 38px;
+        line-height: 38px;
         font-size: 14px;
         background: #fafbfd;
         padding-left: 10px;
@@ -266,7 +273,7 @@ $fnMainColor: #737987;
 
     &-multi-label {
         display: block;
-        line-height: 42px;
+        line-height: 38px;
         cursor: pointer;
     }
 
@@ -281,13 +288,14 @@ $fnMainColor: #737987;
             background-color: #fff;
         }
 
-        &>.bk-icon {
+        &>.bcs-icon {
             position: absolute;
             right: 14px;
-            top: 5px;
+            top: 6px;
             height: 30px;
             line-height: 30px;
             color: #ccc;
+            font-size: 10px;
         }
 
         &>input {

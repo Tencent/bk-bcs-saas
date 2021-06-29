@@ -836,7 +836,7 @@ anyjson = ">=0.3.3"
 
 [[package]]
 name = "kubernetes"
-version = "12.0.1"
+version = "17.17.0"
 description = "Kubernetes python client"
 category = "main"
 optional = false
@@ -1641,6 +1641,14 @@ python-versions = ">=3.5, <4"
 brotli = ["brotli"]
 
 [[package]]
+name = "wrapt"
+version = "1.12.1"
+description = "Module for decorators, wrappers and monkey patching."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "yarl"
 version = "1.6.3"
 description = "Yet another URL library"
@@ -1681,7 +1689,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.6.1,<3.7"
-content-hash = "94841c6b32fb5bc5e3d38f92fc7c5b57466f245702e2abc64c59a5fc36361f17"
+content-hash = "636c80583b372bd0a6c3dd7e73dc77e431de4820c7c9db2e01bbaa3826b9fcca"
 
 [metadata.files]
 aiohttp = [
@@ -2169,8 +2177,8 @@ kombu = [
     {file = "kombu-3.0.37.tar.gz", hash = "sha256:e064a00c66b4d1058cd2b0523fb8d98c82c18450244177b6c0f7913016642650"},
 ]
 kubernetes = [
-    {file = "kubernetes-12.0.1-py2.py3-none-any.whl", hash = "sha256:23c85d8571df8f56e773f1a413bc081537536dc47e2b5e8dc2e6262edb2c57ca"},
-    {file = "kubernetes-12.0.1.tar.gz", hash = "sha256:ec52ea01d52e2ec3da255992f7e859f3a76f2bdb51cf65ba8cd71dfc309d8daa"},
+    {file = "kubernetes-17.17.0-py3-none-any.whl", hash = "sha256:225a95a0aadbd5b645ab389d941a7980db8cdad2a776fde64d1b43fc3299bde9"},
+    {file = "kubernetes-17.17.0.tar.gz", hash = "sha256:c69b318696ba797dcf63eb928a8d4370c52319f4140023c502d7dfdf2080eb79"},
 ]
 mako = [
     {file = "Mako-1.0.7.tar.gz", hash = "sha256:4e02fde57bd4abb5ec400181e4c314f56ac3e49ba4fb8b0d50bba18cb27d25ae"},
@@ -2663,6 +2671,9 @@ werkzeug = [
 whitenoise = [
     {file = "whitenoise-5.2.0-py2.py3-none-any.whl", hash = "sha256:05d00198c777028d72d8b0bbd234db605ef6d60e9410125124002518a48e515d"},
     {file = "whitenoise-5.2.0.tar.gz", hash = "sha256:05ce0be39ad85740a78750c86a93485c40f08ad8c62a6006de0233765996e5c7"},
+]
+wrapt = [
+    {file = "wrapt-1.12.1.tar.gz", hash = "sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7"},
 ]
 yarl = [
     {file = "yarl-1.6.3-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:0355a701b3998dcd832d0dc47cc5dedf3874f966ac7f870e0f3a6788d802d434"},

@@ -82,7 +82,7 @@ class PodStatusParser:
                 if waiting_reason and waiting_reason != 'PodInitializing':
                     self.tol_status = f"Init: {waiting_reason}"
                 else:
-                    self.tol_status = f"Init: {idx}/{getitems(self.pod, 'spec.initContainers')}"
+                    self.tol_status = f"Init: {idx}/{len(getitems(self.pod, 'spec.initContainers', []))}"
             break
 
     def _has_pod_ready_condition(self, conditions: List[Dict]) -> bool:

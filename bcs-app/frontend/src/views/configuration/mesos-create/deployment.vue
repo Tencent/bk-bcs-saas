@@ -20,10 +20,10 @@
                                 {{$t('Deployment是基于bcs-application抽象出的顶层概念，主要满足应用的滚动升级、回滚、暂停、扩缩容等需求')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosDeployment" target="_blank">{{$t('详情查看文档')}}</a>
                             </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalDeployment">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalDeployment">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}Deployment</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
                         <template v-else>
@@ -33,26 +33,26 @@
                                 </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(deployment, index) in deployments" :key="deployment.id">
-                                        <button :class="['bk-button', { 'bk-primary': curDeployment.id === deployment.id }]" @click.stop="setCurDeployment(deployment, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curDeployment.id === deployment.id }]" @click.stop="setCurDeployment(deployment, index)">
                                             {{(deployment && deployment.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="deployment.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeDeployment(deployment, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeDeployment(deployment, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="deployTooltip" :content="$t('添加Deployment')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalDeployment">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="deployTooltip" :content="$t('添加Deployment')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalDeployment">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
                             <div class="biz-configuration-content">
                                 <div class="bk-form biz-configuration-form">
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">{{$t('名称')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 110px;">{{$t('名称')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <input type="text" :placeholder="$t('请输入64个以内的字符')" maxlength="64" :class="['bk-form-input', { 'is-danger': errors.has('deploymentName') }]" v-model="curDeployment.name" name="deploymentName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,63}$/ }">
                                                 <div class="bk-form-tip" v-if="errors.has('deploymentName')">
@@ -62,8 +62,8 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">{{$t('关联')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 110px;">{{$t('关联')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
                                                 <bk-selector
                                                     :placeholder="$t('请选择要关联的Application')"
@@ -78,8 +78,8 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 110px;">{{$t('描述')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
                                             <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" :placeholder="$t('请输入50个以内的字符')" maxlength="50" v-model="curDeployment.desc"></textarea>
                                         </div>
                                     </div>
@@ -91,57 +91,52 @@
 
                                 <div class="bk-form biz-configuration-form">
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('类型')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="type" value="RollingUpdate" v-model="curDeployment.config.strategy.type">
-                                                <i class="bk-radio-text">{{$t('滚动升级')}}</i>
-                                            </label>
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="type" value="Recreate" disabled="disabled">
-                                                <i class="bk-radio-text">{{$t('重新创建')}}</i>
-                                            </label>
+                                        <label class="bk-label" style="width: 110px;">{{$t('类型')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
+                                            <bk-radio-group v-model="curDeployment.config.strategy.type">
+                                                <bk-radio :value="'RollingUpdate'">{{$t('滚动升级')}}</bk-radio>
+                                                <bk-radio :value="'Recreate'" :disabled="true">{{$t('重新创建')}}</bk-radio>
+                                            </bk-radio-group>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('周期删除数')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
-                                            <bk-input
+                                        <label class="bk-label" style="width: 110px;">{{$t('周期删除数')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 250px;"
                                                 :min="0"
                                                 :value.sync="curDeployment.config.strategy.rollingupdate.maxUnavilable"
-                                                :list="varList"
-                                            >
-                                            </bk-input>
-                                            <bk-tooltip :content="$t('决定了每个rolling周期内可以删除的taskgroup数量。如果原有的taskgroup已经全部删除，则后续每一次rolling中不会再删除taskgroup')" placement="top">
+                                                :list="varList">
+                                            </bkbcs-input>
+                                            <bcs-popover width="450" :content="$t('决定了每个rolling周期内可以删除的taskgroup数量。如果原有的taskgroup已经全部删除，则后续每一次rolling中不会再删除taskgroup')" placement="top">
                                                 <span class="bk-badge">
-                                                    <i class="bk-icon icon-question"></i>
+                                                    <i class="bcs-icon bcs-icon-question-circle"></i>
                                                 </span>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </div>
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('周期新增数')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
-                                            <bk-input
+                                        <label class="bk-label" style="width: 110px;">{{$t('周期新增数')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
+                                            <bkbcs-input
                                                 type="number"
-                                                placeholder="请输入"
+                                                :placeholder="$t('请输入')"
                                                 style="width: 250px;"
                                                 :min="0"
                                                 :value.sync="curDeployment.config.strategy.rollingupdate.maxSurge"
                                                 :list="varList"
                                             >
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('更新间隔')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 110px;">{{$t('更新间隔')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
                                             <div class="bk-form-input-group">
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="number"
                                                     :placeholder="$t('请输入')"
                                                     style="width: 215px;"
@@ -149,7 +144,7 @@
                                                     :value.sync="curDeployment.config.strategy.rollingupdate.upgradeDuration"
                                                     :list="varList"
                                                 >
-                                                </bk-input>
+                                                </bkbcs-input>
                                                 <span class="input-group-addon">
                                                     {{$t('秒')}}
                                                 </span>
@@ -157,29 +152,21 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('滚动顺序')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="rollingOrder" value="CreateFirst" v-model="curDeployment.config.strategy.rollingupdate.rollingOrder">
-                                                <i class="bk-radio-text">{{$t('先创建')}}</i>
-                                            </label>
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="rollingOrder" value="DeleteFirst" v-model="curDeployment.config.strategy.rollingupdate.rollingOrder">
-                                                <i class="bk-radio-text">{{$t('先删除')}}</i>
-                                            </label>
+                                        <label class="bk-label" style="width: 110px;">{{$t('滚动顺序')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
+                                            <bk-radio-group v-model="curDeployment.config.strategy.rollingupdate.rollingOrder">
+                                                <bk-radio :value="'CreateFirst'">{{$t('滚动升级')}}</bk-radio>
+                                                <bk-radio :value="'DeleteFirst'">{{$t('先删除')}}</bk-radio>
+                                            </bk-radio-group>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('手动更新')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="rollingManually" :value="true" v-model="curDeployment.config.strategy.rollingupdate.rollingManually">
-                                                <i class="bk-radio-text">{{$t('是')}}</i>
-                                            </label>
-                                            <label class="bk-form-radio">
-                                                <input type="radio" name="rollingManually" :value="false" v-model="curDeployment.config.strategy.rollingupdate.rollingManually">
-                                                <i class="bk-radio-text">{{$t('否')}}</i>
-                                            </label>
+                                        <label class="bk-label" style="width: 110px;">{{$t('手动更新')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 110px;">
+                                            <bk-radio-group v-model="curDeployment.config.strategy.rollingupdate.rollingManually">
+                                                <bk-radio :value="true">{{$t('是')}}</bk-radio>
+                                                <bk-radio :value="false">{{$t('否')}}</bk-radio>
+                                            </bk-radio-group>
                                         </div>
                                     </div>
                                 </div>
@@ -372,8 +359,8 @@
                 const version = this.curVersion
                 const deploymentId = deployment.id
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Deployment')}：${deployment.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除Deployment')}：${deployment.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (deploymentId.indexOf && deploymentId.indexOf('local_') > -1) {
                             self.removeLocalDeployment(deployment, index)

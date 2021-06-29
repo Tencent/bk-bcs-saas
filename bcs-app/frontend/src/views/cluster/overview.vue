@@ -4,12 +4,12 @@
             <div class="biz-cluster-overview-title">
                 <template v-if="exceptionCode">
                     <div @click="goIndex">
-                        <i class="bk-icon icon-arrows-left back"></i>
+                        <i class="bcs-icon bcs-icon-arrows-left back"></i>
                         <span>{{$t('返回')}}</span>
                     </div>
                 </template>
                 <template v-else>
-                    <i class="bk-icon icon-arrows-left back" @click="goIndex"></i>
+                    <i v-if="!curClusterId" class="bcs-icon bcs-icon-arrows-left back" @click="goIndex"></i>
                     <template v-if="curClusterInPage.cluster_id">
                         <span @click="refreshCurRouter">{{curClusterInPage.name}}</span>
                         <span style="font-size: 12px; color: #c3cdd7;cursor:default;margin-left: 10px;">
@@ -29,17 +29,54 @@
             <div v-if="!exceptionCode && !showLoading" class="biz-cluster-overview-wrapper">
                 <div class="biz-cluster-tab-header">
                     <div class="header-item active">
-                        <i class="bk-icon icon-bar-chart"></i>{{$t('总览')}}
+                        <i class="bcs-icon bcs-icon-bar-chart"></i>{{$t('总览')}}
                     </div>
                     <div class="header-item" @click="goNode">
-                        <i class="bk-icon icon-list"></i>{{$t('节点管理')}}
+                        <i class="bcs-icon bcs-icon-list"></i>{{$t('节点管理')}}
                     </div>
                     <div class="header-item" @click="goInfo">
                         <i class="icon-cc icon-cc-machine"></i>{{$t('集群信息')}}
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content">
-                    <div class="biz-cluster-overview-chart">
+                    <div class="biz-cluster-overview-chart" v-if="curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                        <div class="chart-box top">
+                            <div class="info">
+                                <div class="left">
+                                    {{$t('CPU数量(核)')}}
+                                </div>
+                                <div class="right" v-if="!cpuChartLoading">
+                                    <div><span>{{(lastMesosCpuResourceUsedData / lastMesosCpuResourceTotalData * 100).toFixed(2)}}</span><sup>%</sup></div>
+                                    <div class="cpu"><span>{{lastMesosCpuResourceUsedData}} of {{lastMesosCpuResourceTotalData}}（{{ $t('剩余') }}{{(lastMesosCpuResourceTotalData - lastMesosCpuResourceUsedData).toFixed(2)}}）</span></div>
+                                </div>
+                            </div>
+                            <cluster-overview-chart-mesos
+                                :show-loading="cpuChartLoading"
+                                :chart-type="'cpu'"
+                                :used-data="mesosCpuResourceUsedData"
+                                :total-data="mesosCpuResourceTotalData">
+                            </cluster-overview-chart-mesos>
+                        </div>
+
+                        <div class="chart-box top">
+                            <div class="info">
+                                <div class="left">
+                                    {{$t('内存数量(GB)')}}
+                                </div>
+                                <div class="right" v-if="!memChartLoading">
+                                    <div><span>{{(lastMesosMemoryResourceUsedData / lastMesosMemoryResourceTotalData * 100).toFixed(2)}}</span><sup>%</sup></div>
+                                    <div class="cpu"><span>{{lastMesosMemoryResourceUsedData}} of {{lastMesosMemoryResourceTotalData}}（{{ $t('剩余') }}{{(lastMesosMemoryResourceTotalData - lastMesosMemoryResourceUsedData).toFixed(2)}}）</span></div>
+                                </div>
+                            </div>
+                            <cluster-overview-chart-mesos
+                                :show-loading="memChartLoading"
+                                :chart-type="'mem'"
+                                :used-data="mesosMemoryResourceUsedData"
+                                :total-data="mesosMemoryResourceTotalData">
+                            </cluster-overview-chart-mesos>
+                        </div>
+                    </div>
+                    <div class="biz-cluster-overview-chart" v-else>
                         <div class="chart-box top">
                             <div class="info">
                                 <div class="left">
@@ -99,12 +136,12 @@
                                 <div class="left">{{$t('节点')}}</div>
                                 <div class="right">
                                     <div>
-                                        <i class="bk-icon icon-circle"></i>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
                                         <span>{{$t('使用中')}}</span>
                                         <span>{{nodeActived}}</span>
                                     </div>
                                     <div>
-                                        <i class="bk-icon icon-circle"></i>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
                                         <span>{{$t('未使用')}}</span>
                                         <span>{{nodeDisabled}}</span>
                                     </div>
@@ -125,12 +162,12 @@
                                 <div class="left">{{$t('命名空间')}}</div>
                                 <div class="right">
                                     <div>
-                                        <i class="bk-icon icon-circle"></i>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
                                         <span>{{$t('已使用')}}</span>
                                         <span>{{namespaceActived}}</span>
                                     </div>
                                     <div>
-                                        <i class="bk-icon icon-circle"></i>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
                                         <span>{{$t('总量')}}</span>
                                         <span>{{namespaceTotal}}</span>
                                     </div>
@@ -142,6 +179,32 @@
                                 :ext-cls="'biz-cluster-ring'">
                                 <div slot="text" class="ring-text-inner">
                                     <div class="number">{{namespacePercentStr}}</div>
+                                </div>
+                            </Ring>
+                        </div>
+
+                        <div class="chart-box bottom">
+                            <div class="info">
+                                <div class="left">{{$t('集群IP')}}</div>
+                                <div class="right">
+                                    <div>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
+                                        <span>{{$t('可用')}}</span>
+                                        <span>{{ipTotal}}</span>
+                                    </div>
+                                    <div>
+                                        <i class="bcs-icon bcs-icon-circle"></i>
+                                        <span>{{$t('已使用')}}</span>
+                                        <span>{{ipUsed}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <Ring :percent="ipPercent" :size="210" :text="'none'"
+                                :stroke-width="10" :fill-width="10" :fill-color="'#3ede78'"
+                                :percent-change-handler="percentChangeHandler('ip')"
+                                :ext-cls="'biz-cluster-ring'">
+                                <div slot="text" class="ring-text-inner">
+                                    <div class="number">{{ipPercentStr}}</div>
                                 </div>
                             </Ring>
                         </div>
@@ -157,11 +220,13 @@
     import { catchErrorHandler, formatBytes } from '@open/common/util'
 
     import ClusterOverviewChart from './cluster-overview-chart'
+    import ClusterOverviewChartMesos from './cluster-overview-chart-mesos'
 
     export default {
         components: {
             Ring,
-            ClusterOverviewChart
+            ClusterOverviewChart,
+            ClusterOverviewChartMesos
         },
         data () {
             return {
@@ -199,7 +264,15 @@
                 memChartResultType: 'matrix',
                 diskChartData: [],
                 diskChartLoading: true,
-                diskChartResultType: 'matrix'
+                diskChartResultType: 'matrix',
+                mesosCpuResourceUsedData: [],
+                lastMesosCpuResourceUsedData: '-',
+                mesosCpuResourceTotalData: [],
+                lastMesosCpuResourceTotalData: '-',
+                mesosMemoryResourceUsedData: [],
+                lastMesosMemoryResourceUsedData: '-',
+                mesosMemoryResourceTotalData: [],
+                lastMesosMemoryResourceTotalData: '-'
             }
         },
         computed: {
@@ -211,6 +284,9 @@
             },
             clusterId () {
                 return this.$route.params.clusterId
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             },
             curCluster () {
                 this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
@@ -226,11 +302,11 @@
         async created () {
             if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
                 if (this.projectId && this.clusterId) {
-                    this.fetchClusterData()
+                    await this.fetchClusterData()
                 }
-            } else {
+            } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
                 await this.fetchClusterOverview()
-                this.fetchClusterMetrics()
+                await this.fetchClusterMetrics()
                 setTimeout(this.prepareChartData, 0)
             }
         },
@@ -313,41 +389,15 @@
                     })
 
                     this.$store.commit('cluster/forceUpdateCurCluster', res.data)
-                    await this.fetchClusterOverview()
-                    this.fetchClusterMetrics()
-                    setTimeout(this.prepareChartData, 0)
-                } catch (e) {
-                    const data = e.data
-                    if (data) {
-                        if (!data.code || data.code === 404) {
-                            this.exceptionCode = {
-                                code: '404',
-                                msg: this.$t('当前访问的页面不存在')
-                            }
-                        } else if (data.code === 403) {
-                            this.exceptionCode = {
-                                code: '403',
-                                msg: this.$t('Sorry，您的权限不足!')
-                            }
-                        } else if (data.code === 400) {
-                            this.exceptionCode = {
-                                code: '404',
-                                msg: this.$t('当前访问的集群不存在')
-                            }
-                        } else {
-                            console.error(e)
-                            this.bkMessageInstance = this.$bkMessage({
-                                theme: 'error',
-                                message: e.message || e.data.msg || e.statusText
-                            })
+                    this.$nextTick(async () => {
+                        if (this.curCluster && this.curCluster.project_id && this.curCluster.cluster_id) {
+                            await this.fetchClusterOverview()
+                            this.fetchClusterMetrics()
+                            setTimeout(this.prepareChartData, 0)
                         }
-                    } else {
-                        console.error(e)
-                        this.bkMessageInstance = this.$bkMessage({
-                            theme: 'error',
-                            message: e.message || e.data.msg || e.statusText
-                        })
-                    }
+                    })
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.showLoading = false
                 }
@@ -358,38 +408,94 @@
              */
             async prepareChartData () {
                 try {
-                    this.cpuChartLoading = true
-                    this.memChartLoading = true
-                    const promises = [
-                        this.$store.dispatch('cluster/clusterCpuUsage', {
-                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                            clusterId: this.curCluster.cluster_id
-                        }),
-                        this.$store.dispatch('cluster/clusterMemUsage', {
-                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                            clusterId: this.curCluster.cluster_id
-                        }),
-                        this.$store.dispatch('cluster/clusterDiskUsage', {
-                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                            clusterId: this.curCluster.cluster_id
-                        })
-                    ]
+                    if (this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
+                        this.cpuChartLoading = true
+                        this.memChartLoading = true
+                        const promises = [
+                            this.$store.dispatch('cluster/mesosCpuResourceUsed', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            }),
+                            this.$store.dispatch('cluster/mesosCpuResourceTotal', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            }),
+                            this.$store.dispatch('cluster/mesosMemoryResourceUsed', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            }),
+                            this.$store.dispatch('cluster/mesosMemoryResourceTotal', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            })
+                        ]
 
-                    const res = await Promise.all(promises)
-                    // Promise.all 返回的顺序与 promises 数组的顺序是一致的
-                    // 如果为空，那么在 res.data.result 这里就是空数组
-                    // 如果不是空数组，那么 res.data.result 里的任何都是有数据的，所以不判断里面的了
-                    this.cpuChartData.splice(0, this.cpuChartData.length, ...(res[0].data.result || []))
-                    this.cpuChartResultType = res[0].data.resultType
-                    this.cpuChartLoading = false
+                        // eslint-disable-next-line no-unused-vars
+                        const res = await Promise.all(promises)
+                        this.mesosCpuResourceUsedData.splice(0, this.mesosCpuResourceUsedData.length, ...(res[0].data.result || []))
+                        // this.mesosCpuResourceUsedData.splice(0, this.mesosCpuResourceUsedData.length, ...[])
+                        const cpuRemainValues = (this.mesosCpuResourceUsedData[0] || {}).values || ['', '']
+                        this.lastMesosCpuResourceUsedData = parseFloat(cpuRemainValues[cpuRemainValues.length - 1][1] || '').toFixed(2)
+                        this.lastMesosCpuResourceUsedData = isNaN(this.lastMesosCpuResourceUsedData) ? '' : this.lastMesosCpuResourceUsedData
 
-                    this.memChartData.splice(0, this.memChartData.length, ...(res[1].data.result || []))
-                    this.memChartResultType = res[1].data.resultType
-                    this.memChartLoading = false
+                        this.mesosCpuResourceTotalData.splice(0, this.mesosCpuResourceTotalData.length, ...(res[1].data.result || []))
+                        // this.mesosCpuResourceTotalData.splice(0, this.mesosCpuResourceTotalData.length, ...[])
+                        const cpuTotalValues = (this.mesosCpuResourceTotalData[0] || {}).values || ['', '']
+                        this.lastMesosCpuResourceTotalData = parseFloat(cpuTotalValues[cpuTotalValues.length - 1][1] || '').toFixed(2)
+                        this.lastMesosCpuResourceTotalData = isNaN(this.lastMesosCpuResourceTotalData) ? '' : this.lastMesosCpuResourceTotalData
 
-                    this.diskChartData.splice(0, this.diskChartData.length, ...(res[2].data.result || []))
-                    this.diskChartResultType = res[2].data.resultType
-                    this.diskChartLoading = false
+                        this.cpuChartLoading = false
+
+                        this.mesosMemoryResourceUsedData.splice(0, this.mesosMemoryResourceUsedData.length, ...(res[2].data.result || []))
+                        // this.mesosMemoryResourceUsedData.splice(0, this.mesosMemoryResourceUsedData.length, ...[])
+                        const memoryRemainValues = (this.mesosMemoryResourceUsedData[0] || {}).values || ['', '']
+                        this.lastMesosMemoryResourceUsedData = parseFloat(memoryRemainValues[memoryRemainValues.length - 1][1] || '').toFixed(2)
+                        this.lastMesosMemoryResourceUsedData = isNaN(this.lastMesosMemoryResourceUsedData)
+                            ? '' : parseFloat(this.lastMesosMemoryResourceUsedData / 1024).toFixed(2)
+
+                        this.mesosMemoryResourceTotalData.splice(0, this.mesosMemoryResourceTotalData.length, ...(res[3].data.result || []))
+                        // this.mesosMemoryResourceTotalData.splice(0, this.mesosMemoryResourceTotalData.length, ...[])
+                        const memoryTotalValues = (this.mesosMemoryResourceTotalData[0] || {}).values || ['', '']
+                        this.lastMesosMemoryResourceTotalData = parseFloat(memoryTotalValues[memoryTotalValues.length - 1][1] || '').toFixed(2)
+                        this.lastMesosMemoryResourceTotalData = isNaN(this.lastMesosMemoryResourceTotalData)
+                            ? '' : parseFloat(this.lastMesosMemoryResourceTotalData / 1024).toFixed(2)
+
+                        this.memChartLoading = false
+                    } else {
+                        this.cpuChartLoading = true
+                        this.memChartLoading = true
+                        this.diskChartLoading = true
+                        const promises = [
+                            this.$store.dispatch('cluster/clusterCpuUsage', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            }),
+                            this.$store.dispatch('cluster/clusterMemUsage', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            }),
+                            this.$store.dispatch('cluster/clusterDiskUsage', {
+                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                                clusterId: this.curCluster.cluster_id
+                            })
+                        ]
+
+                        const res = await Promise.all(promises)
+                        // Promise.all 返回的顺序与 promises 数组的顺序是一致的
+                        // 如果为空，那么在 res.data.result 这里就是空数组
+                        // 如果不是空数组，那么 res.data.result 里的任何都是有数据的，所以不判断里面的了
+                        this.cpuChartData.splice(0, this.cpuChartData.length, ...(res[0].data.result || []))
+                        this.cpuChartResultType = res[0].data.resultType
+                        this.cpuChartLoading = false
+
+                        this.memChartData.splice(0, this.memChartData.length, ...(res[1].data.result || []))
+                        this.memChartResultType = res[1].data.resultType
+                        this.memChartLoading = false
+
+                        this.diskChartData.splice(0, this.diskChartData.length, ...(res[2].data.result || []))
+                        this.diskChartResultType = res[2].data.resultType
+                        this.diskChartLoading = false
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
@@ -521,8 +627,8 @@
     }
 </script>
 <style scoped lang="postcss">
-    @import '@open/css/variable.css';
-    @import '@open/css/mixins/clearfix.css';
+    @import '@/css/variable.css';
+    @import '@/css/mixins/clearfix.css';
 
     .biz-cluster-overview {
         padding: 20px;
@@ -698,7 +804,7 @@
                 font-size: 14px;
 
                 div:first-child {
-                    font-size: 36px;
+                    font-size: 32px;
 
                     sup {
                         font-size: 20px;
@@ -713,7 +819,7 @@
                     }
 
                     &.memory {
-                        color: #3c96ff;
+                        color: #3a84ff;
                     }
 
                     &.disk {

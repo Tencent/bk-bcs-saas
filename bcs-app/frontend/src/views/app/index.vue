@@ -102,6 +102,9 @@
     const gamestatefulset = () => import(
         /* webpackChunkName: 'app-list' */'./k8s/gamestatefulset'
     )
+    const gamedeployments = () => import(
+        /* webpackChunkName: 'app-list' */'./k8s/gamedeployments'
+    )
     const customobjects = () => import(
         /* webpackChunkName: 'app-list' */'./k8s/customobjects'
     )
@@ -144,6 +147,7 @@
             statefulsetInstantiation,
 
             gamestatefulset,
+            gamedeployments,
             customobjects
         },
         data () {
@@ -183,6 +187,7 @@
                     'statefulsetInstantiation',
 
                     'gamestatefulset',
+                    'gamedeployments',
                     'customobjects'
                 ],
                 isError: false,

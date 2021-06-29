@@ -11,11 +11,12 @@
 
 import axios from 'axios'
 import Clipboard from 'clipboard'
-
+import CheckMode from '@open/components/check-mode/check-mode'
 import { catchErrorHandler } from '@open/common/util'
 
 export default {
     components: {
+        CheckMode
     },
     data () {
         return {
@@ -53,11 +54,10 @@ export default {
             search: '',
             curClusterInPage: {},
             exceptionCode: null,
-            getClusterLoading: false,
             isPageLoading: false,
-            isInitLoading: true,
+            // isInitLoading: true,
             pageConf: {
-                totalPage: 1,
+                total: 1,
                 pageSize: 10,
                 curPage: 1,
                 allCount: 0,
@@ -179,7 +179,7 @@ export default {
             },
             stopDialogConf: {
                 isShow: false,
-                width: 400,
+                width: 550,
                 title: '',
                 closeIcon: false
             },
@@ -216,9 +216,13 @@ export default {
             // 允许批量操作 -> 重新添加的状态
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
-            hostSourceKey: 'bcs_host_pool',
-            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台资源池') }, { id: 'biz_host_pool', name: this.$t('业务资源池') }],
-            nodeList4Copy: []
+            // hostSourceKey: 'biz_host_pool',
+            // hostSourceList: [{ id: 'biz_host_pool', name: this.$t('业务资源池') }, { id: 'bcs_host_pool', name: this.$t('平台资源池') }],
+            nodeList4Copy: [],
+            cpuManagementList: [{ id: 'none', name: 'none' }, { id: 'static', name: 'static' }],
+            cpuManagementKey: 'none',
+            checkMode: 0,
+            modeType: 'page'
         }
     },
     computed: {
@@ -254,6 +258,9 @@ export default {
             }
             this.allowBatch = true
             this.dontAllowBatchMsg = ''
+        },
+        checkAllMode (v) {
+            this.checkMode = ['page', 'all'].includes(v) ? 2 : 0
         }
     },
     beforeDestroy () {
@@ -264,13 +271,13 @@ export default {
         this.release()
         this.cancelLoop = true
     },
-    created () {
+    async created () {
         this.release()
         this.cancelLoop = false
 
         if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
             if (this.projectId && this.clusterId) {
-                this.fetchClusterData()
+                await this.fetchClusterData()
             }
         } else {
             const params = {
@@ -293,6 +300,7 @@ export default {
     },
     methods: {
         async fetchNodeList4Copy () {
+            if (!this.projectId || !this.clusterId) return
             try {
                 const res = await this.$store.dispatch('cluster/getNodeList4Copy', {
                     projectId: this.projectId,
@@ -302,6 +310,24 @@ export default {
             } catch (e) {
                 catchErrorHandler(e, this)
             }
+        },
+
+        /**
+         * 渲染 table header checkbox
+         *
+         */
+        handleRenderCheckboxHeader (h) {
+            return <CheckMode
+                v-model={this.checkMode}
+                mode={this.modeType}
+                disabled={!this.candidateHostList.filter(host => !host.is_used && String(host.agent) === '1' && host.is_valid).length && this.isCreating}
+                on-change={(v) => {
+                    this.checkAll(this.modeType)
+                }}
+                on-mode-change={(mode) => {
+                    this.modeType = mode
+                }}>
+            </CheckMode>
         },
 
         /**
@@ -347,11 +373,11 @@ export default {
                         valueArr: [params.ip]
                     }])
                 }
-                this.getNodeList(params)
+                this.getNodeList(params, true)
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
-                this.isInitLoading = false
+                // this.isInitLoading = false
             }
         },
 
@@ -390,6 +416,8 @@ export default {
             }
 
             try {
+                if (!this.projectId || !this.curCluster.cluster_id) return
+
                 const res = await this.$store.dispatch('cluster/getNodeListByLabelAndIp', Object.assign({}, {
                     projectId: this.projectId,
                     clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
@@ -400,7 +428,7 @@ export default {
                 const list = res.data.results || []
 
                 list.forEach(item => {
-                    item.isChecked = this.checkedNodes[item.id]
+                    item.isChecked = !!this.checkedNodes[item.id]
                 })
 
                 if (!list.length) {
@@ -457,10 +485,9 @@ export default {
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
+                this.isPageLoading = false
                 setTimeout(() => {
-                    this.isPageLoading = false
                     this.isInitLoading = false
-                    this.getClusterLoading = false
                 }, 300)
             }
         },
@@ -499,6 +526,7 @@ export default {
         changePageSize (pageSize) {
             this.nodeListPageConf.pageSize = pageSize
             this.nodeListPageConf.curPage = 1
+            this.checkedNodes = {}
             this.nodeListPageChange(this.pageConf.curPage)
         },
 
@@ -509,9 +537,9 @@ export default {
          */
         nodeListPageChange (page) {
             this.release()
-
             const searchParams = this.getSearchParams()
-
+            this.nodeListPageConf.curPage = page
+            // this.checkedNodes = {}
             this.getNodeList({
                 labels: searchParams.labels,
                 ip: searchParams.ipParams,
@@ -752,7 +780,7 @@ export default {
                 }
                 if (this.curClusterInPage.type === 'tke') {
                     args.node_role = 'node'
-                    args.host_source = this.hostSourceKey
+                    // args.host_source = this.hostSourceKey
                     args.cluster_id = this.clusterId
                 }
                 const res = await this.$store.dispatch('cluster/getCCHostList', args)
@@ -762,8 +790,8 @@ export default {
                 const count = res.data.count
 
                 this.pageConf.show = !!count
-                this.pageConf.totalPage = Math.ceil(count / this.pageConf.pageSize)
-                if (this.pageConf.totalPage < this.pageConf.curPage) {
+                this.pageConf.total = Math.ceil(count / this.pageConf.pageSize)
+                if (this.pageConf.total < this.pageConf.curPage) {
                     this.pageConf.curPage = 1
                 }
                 this.pageConf.show = true
@@ -786,10 +814,7 @@ export default {
                 this.candidateHostList.splice(0, this.candidateHostList.length, ...list)
                 this.selectHost(this.candidateHostList)
             } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
+                console.log(e)
             } finally {
                 this.ccHostLoading = false
             }
@@ -801,6 +826,7 @@ export default {
          * @param {number} page 当前页
          */
         pageChange (page) {
+            this.pageConf.curPage = page
             this.fetchCCData({
                 offset: this.pageConf.pageSize * (page - 1),
                 ipList: this.ccSearchKeys || []
@@ -982,33 +1008,37 @@ export default {
                 })
             }
 
-            if (this.curClusterInPage.type === 'tke') {
-                params.host_source = this.hostSourceKey
-            }
+            // if (this.curClusterInPage.type === 'tke') {
+            //     params.host_source = this.hostSourceKey
+            // }
+
+            params.cpu_manager_policy = this.cpuManagementKey
 
             // alert('打开控制台查看参数')
             // console.warn(params)
             // console.warn('\n')
             // console.warn('JSON.stringify: \n')
             // console.warn(JSON.stringify(params))
-
             this.isCreating = true
             this.$refs.nodeNoticeDialog.hide()
-            try {
-                await this.$store.dispatch('cluster/addNode', params)
 
-                this.cancelLoop = false
-                this.sortIdx = ''
-                this.nodeListPageConf.curPage = 1
-                this.clearSearchParams()
+            setTimeout(async () => {
+                try {
+                    await this.$store.dispatch('cluster/addNode', params)
 
-                this.isCheckCurPageAll = false
-                this.dialogConf.isShow = false
-            } catch (e) {
-                catchErrorHandler(e, this)
-            } finally {
-                this.isCreating = false
-            }
+                    this.cancelLoop = false
+                    this.sortIdx = ''
+                    this.nodeListPageConf.curPage = 1
+                    this.clearSearchParams()
+
+                    this.isCheckCurPageAll = false
+                    this.dialogConf.isShow = false
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.isCreating = false
+                }
+            }, 100)
         },
 
         /**
@@ -1299,10 +1329,20 @@ export default {
             }
 
             this.stopDialogConf.isShow = true
-            this.stopDialogConf.title = ' '
-            this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
-                innerIp: node.inner_ip
-            })
+
+            if (this.curClusterInPage.type === 'mesos') {
+                this.stopDialogConf.title = ' '
+                this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
+            } else {
+                this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
+                this.stopDialogConf.content = this.$t(
+                    '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
+                )
+            }
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1404,10 +1444,6 @@ export default {
                 }
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             }
         },
 
@@ -1628,6 +1664,27 @@ export default {
             this.cancelLoop = false
             this.refreshWithCurCondition()
         },
+        /**
+         * 显示移除记录弹框
+         *
+         * @param {Object} node 节点对象
+         * @param {number} index 节点对象在节点管理中的索引
+         */
+        async showRecordRemove (node, index) {
+            if (!node.permissions.edit) {
+                await this.$store.dispatch('getResourcePermissions', {
+                    project_id: this.projectId,
+                    policy_code: 'edit',
+                    resource_code: this.curClusterInPage.cluster_id,
+                    resource_name: this.curClusterInPage.name,
+                    resource_type: `cluster_${this.curClusterInPage.environment === 'stag' ? 'test' : 'prod'}`
+                })
+            }
+
+            this.curNode = Object.assign({}, node)
+            this.curNodeIndex = index
+            this.$refs.recordRemoveDialog.show()
+        },
 
         /**
          * 显示故障移除节点弹框
@@ -1654,6 +1711,47 @@ export default {
             this.$refs.faultRemoveDialog.show()
         },
 
+        /**
+         * 移除记录
+         */
+        async confirmRecordRemove () {
+            const node = this.curNode
+
+            this.$refs.recordRemoveDialog.isConfirming = true
+            try {
+                await this.$store.dispatch('cluster/faultRemoveNode', {
+                    projectId: node.project_id,
+                    clusterId: node.cluster_id,
+                    nodeId: node.id
+                })
+                this.$refs.recordRemoveDialog.isConfirming = false
+
+                this.$set(this.nodeList, this.curNodeIndex, this.curNode)
+                this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
+                this.cancelLoop = false
+                this.refreshWithCurCondition()
+
+                this.resetBatchStatus()
+
+                setTimeout(() => {
+                    this.curNode = null
+                    this.curNodeIndex = -1
+                }, 200)
+            } catch (e) {
+                this.$refs.recordRemoveDialog.isConfirming = false
+                catchErrorHandler(e, this)
+            }
+        },
+        /**
+         * 移除记录弹层取消
+         */
+        cancelRecordRemove () {
+            this.curNode = null
+            this.curNodeIndex = -1
+            this.$refs.recordRemoveDialog.isConfirming = false
+            this.cancelLoop = false
+            this.refreshWithCurCondition()
+        },
         /**
          * 故障移除节点
          */
@@ -1696,71 +1794,6 @@ export default {
             this.curNode = null
             this.curNodeIndex = -1
             this.$refs.faultRemoveDialog.isConfirming = false
-            this.cancelLoop = false
-            this.refreshWithCurCondition()
-        },
-
-        /**
-         * 显示移除记录弹框
-         *
-         * @param {Object} node 节点对象
-         * @param {number} index 节点对象在节点管理中的索引
-         */
-        async showRecordRemove (node, index) {
-            if (!node.permissions.edit) {
-                await this.$store.dispatch('getResourcePermissions', {
-                    project_id: this.projectId,
-                    policy_code: 'edit',
-                    resource_code: this.curClusterInPage.cluster_id,
-                    resource_name: this.curClusterInPage.name,
-                    resource_type: `cluster_${this.curClusterInPage.environment === 'stag' ? 'test' : 'prod'}`
-                })
-            }
-
-            this.curNode = Object.assign({}, node)
-            this.curNodeIndex = index
-            this.$refs.recordRemoveDialog.show()
-        },
-
-        /**
-         * 移除记录
-         */
-        async confirmRecordRemove () {
-            const node = this.curNode
-
-            this.$refs.recordRemoveDialog.isConfirming = true
-            try {
-                await this.$store.dispatch('cluster/faultRemoveNode', {
-                    projectId: node.project_id,
-                    clusterId: node.cluster_id,
-                    nodeId: node.id
-                })
-                this.$refs.recordRemoveDialog.isConfirming = false
-
-                this.$set(this.nodeList, this.curNodeIndex, this.curNode)
-                this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
-                this.cancelLoop = false
-                this.refreshWithCurCondition()
-
-                this.resetBatchStatus()
-
-                setTimeout(() => {
-                    this.curNode = null
-                    this.curNodeIndex = -1
-                }, 200)
-            } catch (e) {
-                this.$refs.recordRemoveDialog.isConfirming = false
-                catchErrorHandler(e, this)
-            }
-        },
-
-        /**
-         * 移除记录弹层取消
-         */
-        cancelRecordRemove () {
-            this.curNode = null
-            this.curNodeIndex = -1
-            this.$refs.recordRemoveDialog.isConfirming = false
             this.cancelLoop = false
             this.refreshWithCurCondition()
         },
@@ -1845,9 +1878,9 @@ export default {
          * 节点列表多选框选中
          *
          * @param {Object} node 节点对象
-         * @param {number} index 节点对象在节点管理中的索引
+         * @param {boolean} checked 是否选中
          */
-        checkNode (node, index) {
+        checkNode (node, checked) {
             const checkedNodes = Object.assign({}, this.checkedNodes)
             this.$nextTick(() => {
                 if (node.isChecked) {
@@ -1866,10 +1899,9 @@ export default {
         /**
          * 节点列表多选框全选
          *
-         * @param {Object} e 事件对象
+         * @param {boolean} isAllChecked 是否选中
          */
-        checkAllNode (e) {
-            const isAllChecked = e.target.checked
+        checkAllNode (isAllChecked) {
             const checkedNodes = {}
             const nodeList = []
             nodeList.splice(0, 0, ...this.nodeList)
@@ -2148,6 +2180,7 @@ export default {
                     theme: 'success',
                     message: successMsg
                 })
+                this.clipboardInstance.destroy()
             })
         }
     }
