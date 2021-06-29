@@ -676,7 +676,8 @@
                                                 <span @click="handleChangeImageMode">
                                                     <bk-switcher
                                                         :selected="curContainer.webCache.isImageCustomed"
-                                                        size="small">
+                                                        size="small"
+                                                        :key="curContainer.name">
                                                     </bk-switcher>
                                                 </span>
                                                 <span class="vm">{{$t('使用自定义镜像')}}</span>
@@ -3605,6 +3606,7 @@
                 const index = containers.length
                 container.name = 'container-' + (index + 1)
                 containers.push(container)
+                console.log(containers, 11111)
                 this.setCurContainer(container, index)
                 this.$refs.containerTooltip.visible = false
             },
