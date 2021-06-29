@@ -202,6 +202,9 @@
                                         </div>
                                     </div>
                                     <p class="computed-rules">{{$t('计算规则: (IP数量-Service的数量)/(Master数量+Node数量)')}}</p>
+                                    <i18n v-if="isShowTips" path="当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)" class="computed-rules" tag="p">
+                                        <strong place="count" style="color: #222222;">{{ maxClusterCount }}</strong>
+                                    </i18n>
                                 </div>
                             </div>
                         </div>
@@ -748,6 +751,16 @@
             },
             curClusterId () {
                 return this.$store.state.curClusterId
+            },
+            isShowTips () {
+                return !!this.ipNumberKey && !!this.serviceIpNumberKey && !!this.podNumberPerNodeKey
+            },
+            maxClusterCount () {
+                // (IP数量-Service的数量) / Pod 数量  = Node数量
+                if (this.ipNumberKey && this.serviceIpNumberKey && this.podNumberPerNodeKey) {
+                    return Math.floor((this.ipNumberKey - this.serviceIpNumberKey) / this.podNumberPerNodeKey) || 0
+                }
+                return 0
             }
         },
         watch: {
@@ -1388,6 +1401,15 @@
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择奇数个服务器')
+                    })
+                    return
+                }
+
+                if (this.isTkeProject && len < 3) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('最少选择三个服务器')
                     })
                     return
                 }

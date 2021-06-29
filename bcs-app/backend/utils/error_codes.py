@@ -55,6 +55,8 @@ class ErrorCodes:
     ParamMissError = ErrorCode(_('参数缺失'), code_num=40005)
     CheckFailed = ErrorCode(_('校验失败'), code_num=40006)
     ExpiredError = ErrorCode(_('资源已过期'), code_num=40007)
+    # 集群资源相关异常
+    ResourceError = ErrorCode(_('资源异常'), code_num=40008)
     # Helm相关错误码(前端已经在使用)
     HelmNoRegister = ErrorCode(_('集群未注册'), code_num=40031)
     HelmNoNode = ErrorCode(_('集群下没有节点'), code_num=40032)

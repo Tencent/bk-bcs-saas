@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
@@ -30,7 +30,7 @@ class TestContainerMetric:
     """ 容器指标相关接口单元测试 """
 
     common_prefix = '/api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers'.format(
-        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID, pod_name=pod_name
+        project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID, pod_name=pod_name
     )
 
     def test_cpu_limit(self, api_client, metric_api_common_patch, container_metric_api_patch):

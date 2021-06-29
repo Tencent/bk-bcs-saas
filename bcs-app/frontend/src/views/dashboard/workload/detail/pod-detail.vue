@@ -1,21 +1,68 @@
 <template>
-    <div class="workload-detail" v-bkloading="{ isLoading }">
-        <div class="workload-detail-info">
-            <!-- todo -->
+    <div class="workload-detail">
+        <div class="workload-detail-info" v-bkloading="{ isLoading }">
+            <div class="workload-info-basic">
+                <div class="basic-left">
+                    <span class="name mr20">{{ metadata.name }}</span>
+                    <div class="basic-wrapper">
+                        <StatusIcon class="basic-item" :status="manifestExt.status"></StatusIcon>
+                        <div class="basic-item">
+                            <span class="label">Ready</span>
+                            <span class="value">{{ manifestExt.readyCnt }} / {{ manifestExt.totalCnt }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">Host IP</span>
+                            <span class="value">{{ status.hostIP || '--' }}</span>
+                        </div>
+                        <div class="basic-item">
+                            <span class="label">Pod IP</span>
+                            <span class="value">{{ status.podIP || '--' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
+            </div>
+            <div class="workload-main-info">
+                <div class="info-item">
+                    <span class="label">{{ $t('命名空间') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ metadata.namespace }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('镜像') }}</span>
+                    <span class="value" v-bk-overflow-tips="getImagesTips(manifestExt.images)">{{ manifestExt.images && manifestExt.images.join(', ') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('节点') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ spec.nodeName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">UID</span>
+                    <span class="value" v-bk-overflow-tips>{{ metadata.uid }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('创建时间') }}</span>
+                    <span class="value">{{ manifestExt.createTime }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('存在时间') }}</span>
+                    <span class="value">{{ manifestExt.age }}</span>
+                </div>
+            </div>
         </div>
         <div class="workload-detail-body">
             <div class="workload-metric">
                 <Metric :title="$t('CPU使用率')" metric="cpu_usage" :params="params" category="pods" colors="#30d878"></Metric>
-                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" category="pods" colors="#3a84ff"></Metric>
+                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" unit="byte" category="pods" colors="#3a84ff"></Metric>
                 <Metric :title="$t('网络')"
                     :metric="['network_receive', 'network_transmit']"
                     :params="params"
                     category="pods"
+                    unit="byte"
                     :colors="['#853cff', '#30d878']">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
-                <bcs-tab-panel name="container" :label="$t('容器')">
+                <bcs-tab-panel name="container" :label="$t('容器')" v-bkloading="{ isLoading: containerLoading }">
                     <bk-table :data="container">
                         <bk-table-column :label="$t('容器名称')" prop="name">
                             <template #default="{ row }">
@@ -38,22 +85,107 @@
                                 <StatusIcon :status="row.status"></StatusIcon>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('最后迁移时间')" prop="lastTransitionTime"></bk-table-column>
-                        <bk-table-column :label="$t('原因')" prop=""></bk-table-column>
+                        <bk-table-column :label="$t('最后迁移时间')" prop="lastTransitionTime">
+                            <template #default="{ row }">
+                                {{ formatTime(row.lastTransitionTime, 'yyyy-MM-dd hh:mm:ss') }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('原因')">
+                            <template #default="{ row }">
+                                {{ row.reason || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('消息')">
+                            <template #default="{ row }">
+                                {{ row.message || '--' }}
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
-                <bcs-tab-panel name="storage" :label="$t('存储')">
+                <bcs-tab-panel name="storage" :label="$t('存储')" v-bkloading="{ isLoading: storageLoading }">
                     <div class="storage storage-pvcs">
                         <div class="title">PersistentVolumeClaims</div>
-                        <bk-table :data="storageTableData.pvcs"></bk-table>
+                        <bk-table :data="storageTableData.pvcs">
+                            <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                            <bk-table-column label="Status">
+                                <template #default="{ row }">
+                                    <span>{{ row.status.phase || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Volume">
+                                <template #default="{ row }">
+                                    <span>{{ row.spec.volumeName || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Capacity">
+                                <template #default="{ row }">
+                                    <span>{{ row.status.capacity ? row.status.capacity.storage : '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Access Modes">
+                                <template #default="{ row }">
+                                    <span>{{ handleGetExtData(row.metadata.uid, 'pvcs','accessModes').join(', ') }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="StorageClass">
+                                <template #default="{ row }">
+                                    <span>{{ row.spec.storageClassName || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="VolumeMode">
+                                <template #default="{ row }">
+                                    <span>{{ row.spec.volumeMode || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Age" :resizable="false">
+                                <template #default="{ row }">
+                                    <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'pvcs','createTime') }">
+                                        {{ handleGetExtData(row.metadata.uid, 'pvcs','age') }}
+                                    </span>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                     <div class="storage storage-config">
                         <div class="title">ConfigMaps</div>
-                        <bk-table :data="storageTableData.configmaps"></bk-table>
+                        <bk-table :data="storageTableData.configmaps">
+                            <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                            <bk-table-column label="Data">
+                                <template #default="{ row }">
+                                    <span>{{ handleGetExtData(row.metadata.uid, 'configmaps','data').join(', ') || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Age" :resizable="false">
+                                <template #default="{ row }">
+                                    <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'configmaps','createTime') }">
+                                        {{ handleGetExtData(row.metadata.uid, 'configmaps','age') }}
+                                    </span>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                     <div class="storage storage-secrets">
                         <div class="title">Secrets</div>
-                        <bk-table :data="storageTableData.secrets"></bk-table>
+                        <bk-table :data="storageTableData.secrets">
+                            <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                            <bk-table-column label="Type">
+                                <template #default="{ row }">
+                                    <span>{{ row.type || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Data">
+                                <template #default="{ row }">
+                                    <span>{{ handleGetExtData(row.metadata.uid, 'secrets','data').join(', ') || '--' }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column label="Age" :resizable="false">
+                                <template #default="{ row }">
+                                    <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'secrets','createTime') }">
+                                        {{ handleGetExtData(row.metadata.uid, 'secrets','age') }}
+                                    </span>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="label" :label="$t('标签')">
@@ -70,14 +202,22 @@
                 </bcs-tab-panel>
             </bcs-tab>
         </div>
+        <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
+            <template #content>
+                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+            </template>
+        </bcs-sideslider>
     </div>
 </template>
 <script lang="ts">
     /* eslint-disable camelcase */
     import { computed, defineComponent, onMounted, ref, toRefs } from '@vue/composition-api'
+    import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
     import useDetail from './use-detail'
+    import { formatTime } from '@/common/util'
+    import Ace from '@/components/ace-editor'
 
     export interface IDetail {
         manifest: any;
@@ -94,7 +234,11 @@
         name: 'PodDetail',
         components: {
             StatusIcon,
-            Metric
+            Metric,
+            Ace
+        },
+        directives: {
+            bkOverflowTips
         },
         props: {
             namespace: {
@@ -110,19 +254,24 @@
             }
         },
         setup (props, ctx) {
+            const { $store } = ctx.root
             const {
                 isLoading,
                 detail,
                 activePanel,
                 labels,
                 annotations,
-                handleGetDetail
+                metadata,
+                manifestExt,
+                yaml,
+                showYamlPanel,
+                handleGetDetail,
+                handleShowYamlPanel
             } = useDetail(ctx, {
                 ...props,
                 category: 'pods',
                 defaultActivePanel: 'container'
             })
-            const { $store } = ctx.root
             const { name, namespace } = toRefs(props)
             const params = computed(() => {
                 return {
@@ -132,16 +281,24 @@
 
             // 容器
             const container = ref([])
+            const containerLoading = ref(false)
             const handleGetContainer = async () => {
+                containerLoading.value = true
                 container.value = await $store.dispatch('dashboard/listContainers', {
                     $podId: name.value,
                     $namespaceId: namespace.value
                 })
+                containerLoading.value = false
             }
             // 状态
             const conditions = computed(() => {
                 return detail.value?.manifest.status?.conditions || []
             })
+            // status 数据
+            const status = computed(() => detail.value?.manifest?.status || {})
+            // spec 数据
+            const spec = computed(() => detail.value?.manifest?.spec || {})
+
             // 存储
             const storage = ref<IStorage>({
                 pvcs: null,
@@ -155,7 +312,10 @@
                     secrets: storage.value.secrets?.manifest.items || []
                 }
             })
+            // 获取存储数据
+            const storageLoading = ref(false)
             const handleGetStorage = async () => {
+                storageLoading.value = true
                 const types = ['pvcs', 'configmaps', 'secrets']
                 const promises = types.map(type => {
                     return $store.dispatch('dashboard/listStoragePods', {
@@ -170,6 +330,11 @@
                     configmaps,
                     secrets
                 }
+                storageLoading.value = false
+            }
+            // 获取存储manifest_ext的字段
+            const handleGetExtData = (uid, type, prop) => {
+                return storage.value[type]?.manifest_ext?.[uid]?.[prop] || ''
             }
 
             // 跳转容器详情
@@ -177,14 +342,24 @@
                 ctx.emit('container-detail', row)
             }
 
+            // 获取镜像tips
+            const getImagesTips = (images) => {
+                if (!images) {
+                    return {
+                        content: ''
+                    }
+                }
+                return {
+                    allowHTML: true,
+                    maxWidth: 480,
+                    content: images.join('<br />')
+                }
+            }
+
             onMounted(async () => {
-                isLoading.value = true
-                await Promise.all([
-                    await handleGetDetail(),
-                    await handleGetStorage(),
-                    await handleGetContainer()
-                ])
-                isLoading.value = false
+                handleGetDetail()
+                handleGetStorage()
+                handleGetContainer()
             })
 
             return {
@@ -195,21 +370,37 @@
                 storageTableData,
                 isLoading,
                 detail,
+                metadata,
+                manifestExt,
+                spec,
+                status,
                 activePanel,
                 labels,
                 annotations,
+                storageLoading,
+                containerLoading,
+                yaml,
+                showYamlPanel,
+                handleShowYamlPanel,
                 handleGetStorage,
                 handleGetContainer,
-                gotoContainerDetail
+                gotoContainerDetail,
+                handleGetExtData,
+                formatTime,
+                getImagesTips
             }
         }
     })
 </script>
 <style lang="postcss" scoped>
+@import './detail-info.css';
 .workload-detail {
     width: 100%;
+    /deep/ .bk-sideslider .bk-sideslider-content {
+        height: 100%;
+    }
     &-info {
-
+        @mixin detail-info 3;
     }
     &-body {
         background: #FAFBFD;

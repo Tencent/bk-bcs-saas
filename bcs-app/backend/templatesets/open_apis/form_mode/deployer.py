@@ -13,10 +13,14 @@
 #
 import json
 
-from backend.bcs_web.audit_log import client
-from backend.resources.deployment import Deployment
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.resources.workloads.deployment import Deployment
+from backend.templatesets.legacy_apps.configuration.auditor import TemplatesetAuditor
 from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
+from backend.templatesets.legacy_apps.instance.auditor import InstanceAuditor
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
@@ -68,10 +72,14 @@ def generate_manifest(access_token, username, release_data):
 
 
 def _update_resources(access_token, release_data, namespace_info, manifest):
-    project_id = release_data["project_id"]
-    namespace = namespace_info["name"]
-    deploy = Deployment(access_token, project_id, namespace_info["cluster_id"], namespace)
-    deploy.update_deployment(release_data["name"], manifest)
+    ctx_cluster = CtxCluster.create(
+        token=access_token, id=namespace_info['cluster_id'], project_id=release_data['project_id']
+    )
+    return (
+        Deployment(ctx_cluster)
+        .replace(body=manifest, name=release_data['name'], namespace=namespace_info['name'])
+        .to_dict()
+    )
 
 
 def update_resources(access_token, username, release_data, namespace_info):
@@ -95,16 +103,14 @@ class DeployController:
         log_params = {
             "project_id": release_data["project_id"],
             "user": self.username,
-            "resource_type": "template",
             "resource": template_name,
             "resource_id": release_data["template_id"],
-            "extra": json.dumps(
-                {
-                    "variable_info": release_data["variable_info"],
-                    "instance_entity": release_data["instance_entity"],
-                    "ns_list": release_data["ns_list"],
-                }
-            ),
+            "extra": {
+                "variable_info": release_data["variable_info"],
+                "instance_entity": release_data["instance_entity"],
+                "ns_list": release_data["ns_list"],
+            },
+            'activity_type': ActivityType.Add,
         }
 
         # only one namespace
@@ -112,7 +118,8 @@ class DeployController:
             ret = release_result["success"][0]
             release_id = ret["instance_id"]
             log_params["description"] = "实例化模板集[{}]到命名空间[{}]".format(template_name, ret["ns_name"])
-            client.ContextActivityLogClient(**log_params).log_add(activity_status="succeed")
+            log_params['activity_status'] = ActivityStatus.Succeed
+            TemplatesetAuditor(AuditContext(**log_params)).log_raw()
             return release_id
 
         ret = release_result["failed"][0]
@@ -127,7 +134,8 @@ class DeployController:
             )
 
         log_params["description"] = description
-        client.ContextActivityLogClient(**log_params).log_add(activity_status="failed")
+        log_params['activity_status'] = ActivityStatus.Failed
+        TemplatesetAuditor(AuditContext(**log_params)).log_raw()
         return release_id
 
     def update_release(self, release_data):
@@ -139,20 +147,22 @@ class DeployController:
         log_params = {
             "project_id": project_id,
             "user": self.username,
-            "resource_type": "instance",
             "resource": release_data["name"],
             "resource_id": release_id,
-            "extra": json.dumps({"namespace": namespace_info["name"], "variable_info": release_data["variable_info"]}),
+            "extra": {"namespace": namespace_info["name"], "variable_info": release_data["variable_info"]},
+            'activity_type': ActivityType.Modify,
         }
         try:
             update_resources(self.access_token, self.username, release_data, namespace_info)
         except Exception as e:
             log_params["description"] = f"rollupdate failed: {e}"
-            client.ContextActivityLogClient(**log_params).log_modify(activity_status="failed")
+            log_params['activity_status'] = ActivityStatus.Failed
+            InstanceAuditor(AuditContext(**log_params)).log_raw()
             update_inst_params = {"ins_state": InsState.UPDATE_FAILED.value}
         else:
             log_params["description"] = f"rollupdate success"
-            client.ContextActivityLogClient(**log_params).log_modify(activity_status="succeed")
+            log_params['activity_status'] = ActivityStatus.Succeed
+            InstanceAuditor(AuditContext(**log_params)).log_raw()
             update_inst_params = {"ins_state": InsState.UPDATE_SUCCESS.value}
 
         update_inst_params.update(

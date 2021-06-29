@@ -131,41 +131,43 @@
                                                     <p class="updated">{{$t('更新时间')}}：{{app.updated}}</p>
                                                 </td>
                                                 <td class="action" style="width: 215px">
-                                                    <template v-if="app.transitioning_on">
-                                                        <bk-button disabled>
-                                                            <span>{{$t('操作')}}</span>
-                                                            <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                        </bk-button>
-                                                        <bk-button disabled>
-                                                            <span>{{$t('查看状态')}}</span>
-                                                        </bk-button>
-                                                    </template>
-                                                    <template v-else>
-                                                        <bk-dropdown-menu
-                                                            class="dropdown-menu"
-                                                            :align="'left'"
-                                                            ref="dropdown">
-                                                            <bk-button slot="dropdown-trigger" style="position: relative;">
-                                                                <span class="f14">{{$t('操作')}}</span>
+                                                    <div class="action-btn-group">
+                                                        <template v-if="app.transitioning_on">
+                                                            <bk-button disabled>
+                                                                <span>{{$t('操作')}}</span>
                                                                 <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
                                                             </bk-button>
+                                                            <bk-button class="ml5" disabled>
+                                                                <span>{{$t('查看状态')}}</span>
+                                                            </bk-button>
+                                                        </template>
+                                                        <template v-else>
+                                                            <bk-dropdown-menu
+                                                                class="dropdown-menu"
+                                                                :align="'left'"
+                                                                ref="dropdown">
+                                                                <bk-button slot="dropdown-trigger" style="position: relative;">
+                                                                    <span class="f14">{{$t('操作')}}</span>
+                                                                    <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
+                                                                </bk-button>
 
-                                                            <ul class="bk-dropdown-list" slot="dropdown-content">
-                                                                <li>
-                                                                    <a href="javascript:void(0)" @click="showAppDetail(app)">{{$t('更新')}}</a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="javascript:void(0)" @click="showRebackDialog(app)">{{$t('回滚')}}</a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="javascript:void(0)" @click="deleteApp(app)">{{$t('删除')}}</a>
-                                                                </li>
-                                                            </ul>
-                                                        </bk-dropdown-menu>
-                                                        <bk-button @click="showAppInfoSlider(app)">
-                                                            <span>{{$t('查看状态')}}</span>
-                                                        </bk-button>
-                                                    </template>
+                                                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" @click="showAppDetail(app)">{{$t('更新')}}</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" @click="showRebackDialog(app)">{{$t('回滚')}}</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" @click="deleteApp(app)">{{$t('删除')}}</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </bk-dropdown-menu>
+                                                            <bk-button class="ml5" @click="showAppInfoSlider(app)">
+                                                                <span>{{$t('查看状态')}}</span>
+                                                            </bk-button>
+                                                        </template>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </table>

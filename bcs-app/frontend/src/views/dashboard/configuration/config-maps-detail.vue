@@ -4,68 +4,40 @@
             {{ $t('基础信息') }}
         </div>
         <div class="detail-content basic-info">
-            <table class="detail-table" border="1">
-                <tbody>
-                    <tr>
-                        <td>{{ $t('命名空间') }}</td>
-                        <td>{{ data.metadata.namespace || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>UID</td>
-                        <td>{{ data.metadata.uid || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('创建时间') }}</td>
-                        <td>{{ extData.createTime || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('存在时间') }}</td>
-                        <td>{{ extData.age || '--' }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="basic-info-item">
+                <label>{{ $t('命名空间') }}</label>
+                <span>{{ data.metadata.namespace }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>UID</label>
+                <span class="bcs-ellipsis">{{ data.metadata.uid }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('创建时间') }}</label>
+                <span>{{ extData.createTime }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('存在时间') }}</label>
+                <span>{{ extData.age }}</span>
+            </div>
         </div>
         <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
-                <bk-table :data="extData.data">
-                    <bk-table-column label="Key">
-                        <template slot-scope="props">
-                            {{ props.$index }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column label="Value">
-                        <template slot-scope="{ row }">
-                            {{ row }}
-                        </template>
-                    </bk-table-column>
+                <bk-table :data="handleTransformObjToArr(data.data)">
+                    <bk-table-column label="Key" prop="key"></bk-table-column>
+                    <bk-table-column label="Value" prop="value"></bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="lebel" :label="$t('标签')">
-                <bk-table :data="data.metadata.labels">
-                    <bk-table-column label="Key">
-                        <template slot-scope="props">
-                            {{ props.$index }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column label="Value">
-                        <template slot-scope="{ row }">
-                            {{ row }}
-                        </template>
-                    </bk-table-column>
+                <bk-table :data="handleTransformObjToArr(data.metadata.labels)">
+                    <bk-table-column label="Key" prop="key"></bk-table-column>
+                    <bk-table-column label="Value" prop="value"></bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="annotation" :label="$t('注解')">
-                <bk-table :data="data.metadata.annotations">
-                    <bk-table-column label="Key">
-                        <template slot-scope="props">
-                            {{ props.$index }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column label="Value">
-                        <template slot-scope="{ row }">
-                            {{ row }}
-                        </template>
-                    </bk-table-column>
+                <bk-table :data="handleTransformObjToArr(data.metadata.annotations)">
+                    <bk-table-column label="Key" prop="key"></bk-table-column>
+                    <bk-table-column label="Value" prop="value"></bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
         </bcs-tab>
@@ -85,6 +57,23 @@
             extData: {
                 type: Object,
                 default: () => ({})
+            }
+        },
+        setup (props, ctx) {
+            const handleTransformObjToArr = (obj) => {
+                if (!obj) return []
+
+                return Object.keys(obj).reduce<any[]>((data, key) => {
+                    data.push({
+                        key,
+                        value: obj[key]
+                    })
+                    return data
+                }, [])
+            }
+
+            return {
+                handleTransformObjToArr
             }
         }
     })

@@ -15,13 +15,14 @@
                 </ul>
             </bk-dropdown-menu>
         </div>
-        <ECharts class="vue-echarts" :options="echartsOptions" auto-resize></ECharts>
+        <ECharts class="vue-echarts" :options="echartsOptions" auto-resize v-if="!isNoData"></ECharts>
+        <bk-exception class="echarts-empty" type="empty" scene="part" v-else> </bk-exception>
     </div>
 </template>
 <script lang="ts">
-    import { defineComponent, reactive, toRefs, onMounted, ref, watch } from '@vue/composition-api'
+    import { defineComponent, reactive, toRefs, onMounted, ref, watch, computed } from '@vue/composition-api'
     import moment from 'moment'
-    import { createChartOption } from '@/views/cluster/node-overview-chart-opts'
+    import defaultChartOption from './default-echarts-option'
     import ECharts from 'vue-echarts'
     import 'echarts/lib/chart/line'
     import 'echarts/lib/component/tooltip'
@@ -56,7 +57,7 @@
             },
             options: {
                 type: Object,
-                default: () => (createChartOption())
+                default: () => ({})
             },
             category: {
                 type: String,
@@ -75,6 +76,10 @@
             colors: {
                 type: [String, Array],
                 default: '#3a84ff'
+            },
+            unit: {
+                type: String,
+                default: 'percent'
             }
         },
         setup (props, ctx) {
@@ -89,6 +94,22 @@
                 isLoading: false
             })
             const echartsOptions = ref<any>({})
+            const isNoData = computed(() => {
+                return !echartsOptions.value?.series?.some(series => {
+                    return !!series.data?.length
+                })
+            })
+            const metricNameProp = computed(() => {
+                let prop = ''
+                switch (props.category) {
+                    case 'pods':
+                        prop = 'pod_name'
+                        break
+                    case 'containers':
+                        prop = 'container_name'
+                }
+                return prop
+            })
 
             const handleTimeRangeChange = (item) => {
                 if (state.activeTime.range === item.range) return
@@ -102,9 +123,10 @@
 
                 const series: any[] = []
                 data.forEach(item => {
-                    const list = item?.result.map((item, index) => {
+                    const list = item?.result.map((result, index) => {
                         // series 配置
                         return {
+                            name: result.metric?.[metricNameProp.value],
                             type: 'line',
                             showSymbol: false,
                             smooth: true,
@@ -121,18 +143,18 @@
                                         : props.colors
                                 }
                             },
-                            data: item?.values || []
+                            data: result?.values || []
                         }
                     }) || []
                     series.push(...list)
                 })
-                echartsOptions.value = Object.assign({}, props.options, { series })
+                echartsOptions.value = Object.assign(defaultChartOption(props.unit), props.options, { series })
             }
             // 获取图表数据
             const handleGetMetricData = async () => {
                 const timeRange = {
-                    start_at: moment().subtract(state.activeTime.range, 'ms').format('YYYY-MM-DD HH:mm:ss'),
-                    end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                    start_at: moment().subtract(state.activeTime.range, 'ms').utc(),
+                    end_at: moment().utc()
                 }
 
                 let action = ''
@@ -175,8 +197,10 @@
             })
 
             return {
-                echartsOptions,
                 ...toRefs(state),
+                isNoData,
+                metricNameProp,
+                echartsOptions,
                 handleTimeRangeChange,
                 handleGetMetricData,
                 handleSetChartOptions
@@ -222,6 +246,12 @@
         padding-top: 12px;
         width: 100% !important;
         height: 180px;
+    }
+    /deep/ .echarts-empty {
+        margin: 0;
+        height: 180px;
+        justify-content: center;
+        width: 100%;
     }
 }
 </style>

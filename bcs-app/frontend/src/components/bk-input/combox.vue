@@ -598,7 +598,7 @@
                 if (this.type === 'number') {
                     this.curValue = this.value
                 } else if (this.isSelectMode) {
-                    const selectItem = this.getItemByKey(this.curValue)
+                    const selectItem = this.getItemByKey(this.value)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {
                             this.curValue = '{{' + selectItem[this.displayKey] + '}}'

@@ -21,7 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.accounts import bcs_perm
 from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log import client as activity_client
-from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType, BaseResourceType
+from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType, ResourceType
 from backend.components import paas_cc
 from backend.container_service.observability.metric import constants
 from backend.utils.basic import getitems
@@ -116,18 +116,18 @@ class ServiceMonitorMixin:
         username: str,
         resource_name: str,
         description: str,
-        activity_type: BaseActivityType,
-        activity_status: BaseActivityStatus,
+        activity_type: ActivityType,
+        activity_status: ActivityStatus,
     ) -> None:
         """ 操作记录方法 """
         client = activity_client.ContextActivityLogClient(
-            project_id=project_id, user=username, resource_type=BaseResourceType.Metric, resource=resource_name
+            project_id=project_id, user=username, resource_type=ResourceType.Metric, resource=resource_name
         )
         # 根据不同的操作类型，使用不同的记录方法
         log_func = {
-            BaseActivityType.Add: client.log_add,
-            BaseActivityType.Delete: client.log_delete,
-            BaseActivityType.Retrieve: client.log_note,
+            ActivityType.Add: client.log_add,
+            ActivityType.Delete: client.log_delete,
+            ActivityType.Retrieve: client.log_note,
         }[activity_type]
         log_func(activity_status=activity_status, description=description)
 
@@ -158,7 +158,7 @@ class ServiceMonitorMixin:
         client_func: Callable,
         operate_str: str,
         project_id: str,
-        activity_type: BaseActivityType,
+        activity_type: ActivityType,
         namespace: str,
         name: str,
         manifest: Dict = None,
@@ -179,15 +179,15 @@ class ServiceMonitorMixin:
         """
         username = self.request.user.username
         result = (
-            client_func(namespace, manifest) if activity_type == BaseActivityType.Add else client_func(namespace, name)
+            client_func(namespace, manifest) if activity_type == ActivityType.Add else client_func(namespace, name)
         )
         if result.get('status') == 'Failure':
             message = _('{} Metrics [{}/{}] 失败: {}').format(operate_str, namespace, name, result.get('message', ''))
-            self._activity_log(project_id, username, name, message, activity_type, BaseActivityStatus.Failed)
+            self._activity_log(project_id, username, name, message, activity_type, ActivityStatus.Failed)
             raise error_codes.APIError(result.get('message', ''))
 
         # 仅当指定需要记录 成功信息 才记录
         if log_success:
             message = _('{} Metrics [{}/{}] 成功').format(operate_str, namespace, name)
-            self._activity_log(project_id, username, name, message, activity_type, BaseActivityStatus.Succeed)
+            self._activity_log(project_id, username, name, message, activity_type, ActivityStatus.Succeed)
         return result

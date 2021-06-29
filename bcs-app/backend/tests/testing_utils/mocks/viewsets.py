@@ -80,3 +80,10 @@ class FakeSystemViewSet(SimpleGenericMixin, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     # 替换掉原有的权限控制类
     permission_classes = (FakeProjectEnableBCS,)
+
+
+class FakeUserViewSet(FakeSystemViewSet):
+    """ 假的用户基类 ViewSet，单元测试用 """
+
+    renderer_classes = (BKAPIRenderer,)
+    authentication_classes = tuple()

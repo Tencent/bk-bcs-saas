@@ -110,10 +110,15 @@
                 }
 
                 // 从配置中心拉取项目列表，顶导的项目列表信息里，项目中关于容器服务的信息可能更新不及时
-                await this.$store.dispatch('getProjectList')
-                await this.$store.dispatch('getFeatureFlag')
+                const projectList = await this.$store.dispatch('getProjectList')
                 await this.checkProject()
-
+                if (this.isUserBKService) {
+                    await this.$store.dispatch('getFeatureFlag')
+                    const curBcsProject = (projectList || []).find(item => item.project_code === curProjectCode)
+                    if (curBcsProject && curBcsProject.project_id) {
+                        await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
+                    }
+                }
                 this.isLoading = false
             })
         },

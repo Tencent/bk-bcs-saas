@@ -27,7 +27,8 @@ from backend.apps import constants
 from backend.apps.constants import ClusterType, ProjectKind
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
@@ -49,6 +50,7 @@ from backend.utils.response import APIResult
 
 from ..constants import MesosResourceName
 from . import serializers as slz
+from .auditor import NamespaceAuditor
 from .resources import Namespace
 from .tasks import sync_namespace as sync_ns_task
 
@@ -360,6 +362,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(ns_id, project_id)
         return result
 
+    @log_audit_on_view(NamespaceAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, is_validate_perm=True):
         """新建命名空间
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
@@ -375,15 +378,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
         perm.can_create(raise_exception=is_validate_perm)
 
-        description = _('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type='namespace',
-            resource=data['name'],
-            description=description,
-        ).log_add():
-            result = self.create_flow(request, project_id, data, perm)
+        request.audit_ctx.update_fields(
+            resource=data['name'], description=_('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
+        )
+        result = self.create_flow(request, project_id, data, perm)
 
         return response.Response(result)
 

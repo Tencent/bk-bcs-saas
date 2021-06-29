@@ -12,15 +12,14 @@ export default defineComponent({
         }
     },
     setup (props) {
-        // 每种状态对应的颜色
+        // 每种状态对应的颜色, 默认黄色
         const statusMap = {
             running: 'green',
             completed: 'green',
             failed: 'red',
-            terminating: 'red',
-            pending: 'yellow',
-            unknown: 'yellow',
-            notready: 'yellow'
+            terminating: 'blue',
+            true: 'green',
+            false: 'red'
         }
         const statusClass = computed(() => {
             return `status-icon status-${statusMap[props.status.toLowerCase()]}`

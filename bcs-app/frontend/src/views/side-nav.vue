@@ -287,10 +287,11 @@
         },
         watch: {
             '$route' (to, from) {
-                if (!['imageDetail', 'dashboardWorkloadDetail'].includes(to.name)) {
+                if (!['imageDetail'].includes(to.name)) {
                     this.$store.dispatch('updateMenuListSelected', {
                         isDashboard: this.$route.meta.isDashboard,
                         pathName: to.name,
+                        category: to.params.category,
                         idx: 'bcs'
                     })
                 }
@@ -299,6 +300,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
+                    category: this.$route.params.category,
                     idx: 'bcs'
                 })
             },
@@ -306,6 +308,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
+                    category: this.$route.params.category,
                     idx: 'bcs'
                 })
             }

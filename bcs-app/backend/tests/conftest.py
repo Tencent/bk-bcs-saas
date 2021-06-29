@@ -11,6 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+"""
+单元测试可用环境变量说明
+值                          说明                          默认值
+TESTING_API_SERVER_URL  	测试环境/本地集群URL           'http://localhost:28180'
+TESTING_SERVER_API_KEY	    测试环境/本地集群 api_key      None
+TEST_PROJECT_ID		        指定的测试项目 ID              32位随机字符串
+TEST_CLUSTER_ID	            指定的测试集群 ID              8位随机字符串
+TEST_NAMESPACE	            用于单元测试的命名空间          'default'
+TEST_POD_NAME	            用于单元测试的 Pod 名称        8位随机字符串
+TEST_CONTAINER_NAME	        用于单元测试的容器名称          8位随机字符串
+"""
 import os
 from unittest import mock
 
@@ -21,6 +32,8 @@ from rest_framework.test import APIClient
 
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
+from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
+from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet, FakeUserViewSet
 from backend.utils import FancyDict
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
@@ -123,5 +136,24 @@ def use_fake_k8sclient(cluster_id):
 
 
 # 单元测试用常量，用于不便使用 pytest.fixture 的地方
-MOCK_PROJECT_ID = generate_random_string(32)
-MOCK_CLUSTER_ID = generate_random_string(8)
+TEST_PROJECT_ID = os.environ.get("TEST_PROJECT_ID", generate_random_string(32))
+TEST_CLUSTER_ID = os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
+TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
+
+
+@pytest.fixture
+def patch_system_viewset():
+    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def patch_user_viewset():
+    with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
+        yield
+
+
+@pytest.fixture
+def patch_get_dynamic_client():
+    with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
+        yield
