@@ -12,14 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 """Test codes for backend.resources module"""
-from unittest import mock
-
 import pytest
 
 from backend.container_service.clusters.base import CtxCluster
 from backend.resources.client import BcsAPIEnvironmentQuerier, BcsKubeConfigurationService
 from backend.tests.testing_utils.mocks.bcs_api import StubBcsApiClient
-from backend.tests.testing_utils.mocks.collection import StubComponentCollection
 from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 from backend.utils.exceptions import ComponentError
 
@@ -33,10 +30,6 @@ def setup_settings(settings):
         'my_prod': 'https://my-prod-bcs-server.example.com',
     }
     settings.BCS_API_PRE_URL = 'https://bcs-api.example.com'
-
-    # 替换所有 Comp 系统为测试专用的 Stub 系统
-    with mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection):
-        yield
 
 
 fake_cc_get_cluster_result_ok = {'code': 0, 'result': True, 'data': {'environment': 'stag'}}
@@ -52,7 +45,6 @@ class TestBcsAPIEnvironmentQuerier:
 
         assert api_env_name == 'my_stag'
 
-    @mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection)
     def test_failed(self, project_id, cluster_id):
         cluster = CtxCluster.create(cluster_id, project_id, token='token')
         querier = BcsAPIEnvironmentQuerier(cluster)
