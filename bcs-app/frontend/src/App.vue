@@ -106,6 +106,7 @@
                 this.$store.commit('cluster/forceUpdateClusterList', [])
 
                 if (localStorage.getItem('curProjectCode') !== curProjectCode) {
+                    this.$store.commit('updateCurClusterId', '')
                     this.$refs.appHeader.selectProject(curProjectCode)
                 }
 
