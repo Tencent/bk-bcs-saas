@@ -75,24 +75,24 @@ const cancelRequest = async () => {
 }
 
 // 复制链接导致集群不一致问题
-// const handleFirstOpen = (to, from) => {
-//     const { clusterId } = to.params
-//     if (from.name || !clusterId) return
+const handleFirstOpen = (to, from) => {
+    const { clusterId } = to.params
+    if (from.name || !clusterId) return
 
-//     // 首次进入检查集群ID是否存在
-//     const localClusterId = localStorage.getItem('bcs-cluster')
-//     if (localClusterId && localClusterId !== clusterId) {
-//         localStorage.removeItem('bcs-cluster')
-//         localStorage.removeItem('bcs-cluster-name')
-//     }
-// }
+    // 首次进入检查集群ID是否存在
+    const localClusterId = localStorage.getItem('bcs-cluster')
+    if (localClusterId && localClusterId !== clusterId) {
+        localStorage.removeItem('bcs-cluster')
+        localStorage.removeItem('bcs-cluster-name')
+    }
+}
 
 let preloading = true
 let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    // handleFirstOpen(to, from)
+    handleFirstOpen(to, from)
     bus.$emit('close-apply-perm-modal')
 
     canceling = true
