@@ -27,7 +27,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import asdict
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -183,9 +183,7 @@ class KubeHelmClient:
                 template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
                 # 添加命名行参数
-                if kwargs.get("cmd_flags"):
-                    cmd_flags = [f"--{flag}" for flag in kwargs["cmd_flags"]]
-                    template_cmd_args += cmd_flags
+                template_cmd_args = self._make_args(template_cmd_args, kwargs.get("cmd_flags"))
 
                 template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
                 # NOTE: 现阶段不需要helm notes输出
@@ -238,7 +236,7 @@ class KubeHelmClient:
                 with open(values_path, "w") as f:
                     f.write(chart_values)
                 # 组装命令行参数
-                cmd_args = self._compose_cmd_args(
+                cmd_args = self._make_args(
                     cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags") or []
                 )
 
@@ -277,6 +275,28 @@ class KubeHelmClient:
         # NOTE: helm3需要升级到3.3.1版本
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace, "--install"]
         return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
+
+    def _make_args(
+        self,
+        cmd_args: List[str],
+        chart_path: str = None,
+        values_path: str = None,
+        ytt_config_path: str = None,
+        cmd_flags: List[Dict] = None,
+    ):
+        """组装命令行参数
+        NOTE: 这里兼容已经存在的helm的操作
+        """
+        opts = Options(cmd_flags)
+        options = opts.options()
+        # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
+        # --values在其它option前面，保证可以被后续的文件或key=val覆盖
+        if ytt_config_path:
+            cmd_args.extend([chart_path, "--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
+        if "--reuse-values" not in options and values_path:
+            cmd_args.extend(["--values", values_path])
+        cmd_args.extend(options)
+        return cmd_args
 
     def _uninstall_or_rollback(self, cmd_args):
         try:
