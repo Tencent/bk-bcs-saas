@@ -233,7 +233,7 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
     def _add_permissions_field(self, projects, username):
         project_ids = [p["project_id"] for p in projects]
         resource_perm_allowed = self.batch_resource_multi_actions_allowed(
-            username, [self.actions.VIEW.value, self.actions.EDIT.value], project_ids
+            username, [self.actions.VIEW.value, self.actions.EDIT.value, self.actions.MONITOR_VIEW.value], project_ids
         )
         for p in projects:
             p["permissions"] = resource_perm_allowed[p["project_id"]]
@@ -263,7 +263,9 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
     def get_project(self, request, project_id):
         project = Project.get_project(request.user.token.access_token, project_id)
         project["permissions"] = self.resource_inst_multi_actions_allowed(
-            request.user.username, [self.actions.VIEW.value, self.actions.EDIT.value], project_id
+            request.user.username,
+            [self.actions.VIEW.value, self.actions.EDIT.value, self.actions.MONITOR_VIEW.value],
+            project_id,
         )
         return Response(project)
 
