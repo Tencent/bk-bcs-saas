@@ -3328,15 +3328,15 @@
                         return false
                     }
 
-                    if (!nameReg.test(rule.host)) {
-                        megPrefix += this.$t('{host}的规则主机名：', { host: rule.host })
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
-                            delay: 8000
-                        })
-                        return false
-                    }
+                    // if (!nameReg.test(rule.host)) {
+                    //     megPrefix += this.$t('{host}的规则主机名：', { host: rule.host })
+                    //     this.$bkMessage({
+                    //         theme: 'error',
+                    //         message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
+                    //         delay: 8000
+                    //     })
+                    //     return false
+                    // }
 
                     const paths = rule.http.paths
 

@@ -282,7 +282,13 @@
                                                                         </template>
                                                                         <template v-else>
                                                                             <td style="white-space: nowrap;">
-                                                                                <p>{{instance.application_status}}</p>
+                                                                                <bcs-popover placement="top" :delay="500">
+                                                                                    <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;top: -12px;left: -16px;"></i>
+                                                                                    <template slot="content">
+                                                                                        <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.application_status_message || $t('正常')}}</p>
+                                                                                    </template>
+                                                                                </bcs-popover>
+                                                                                <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
                                                                     </template>
