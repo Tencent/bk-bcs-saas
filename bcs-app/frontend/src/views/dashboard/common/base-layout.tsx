@@ -1,4 +1,4 @@
-import { defineComponent, SetupContext, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
+import { defineComponent, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
 import DashboardTopActions from './dashboard-top-actions'
 import useCluster from './use-cluster'
 import useInterval from './use-interval'
