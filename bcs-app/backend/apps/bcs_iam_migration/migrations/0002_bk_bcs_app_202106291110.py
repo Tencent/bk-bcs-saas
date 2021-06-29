@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
-import json
 import codecs
+import json
+import os
 
-from django.db import migrations
 from django.conf import settings
-
+from django.db import migrations
 from iam.contrib.iam_migration.migrator import IAMMigrator
 
 
@@ -18,8 +17,6 @@ def forward_func(apps, schema_editor):
 class Migration(migrations.Migration):
     migration_json = "0002_bk_bcs_app_20210629-1102_iam.json"
 
-    dependencies = [('iam_migration', '0001_initial')]
+    dependencies = [('bcs_iam_migration', '0001_initial')]
 
-    operations = [
-        migrations.RunPython(forward_func)
-    ]
+    operations = [migrations.RunPython(forward_func)]
