@@ -3606,7 +3606,6 @@
                 const index = containers.length
                 container.name = 'container-' + (index + 1)
                 containers.push(container)
-                console.log(containers, 11111)
                 this.setCurContainer(container, index)
                 this.$refs.containerTooltip.visible = false
             },
