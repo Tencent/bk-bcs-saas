@@ -106,6 +106,31 @@
             }
         },
         {
+            "operation": "upsert_action",
+            "data": {
+                "id": "project_monitor_view",
+                "name": "监控中心查看",
+                "name_en": "view project monitor",
+                "description": "用户有权进入监控中心",
+                "description_en": "view project monitor",
+                "type": "view",
+                "related_resource_types": [{
+                    "system_id": "bk_bcs_app",
+                    "id": "project",
+                    "name_alias":  "",
+                    "name_alias_en": "",
+                    "selection_mode": "instance",
+                    "related_instance_selections": [
+                        {
+                            "system_id": "bk_bcs_app",
+                            "id": "project_list"
+                        }
+                    ]
+                }],
+                "version": 1
+            }
+        },
+        {
             "operation": "upsert_resource_creator_actions",
             "data": {
                 "config":[

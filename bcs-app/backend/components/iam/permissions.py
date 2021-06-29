@@ -219,8 +219,14 @@ class ProjectActions(ChoicesEnum):
     CREATE = "project_create"
     VIEW = "project_view"
     EDIT = "project_edit"
+    MONITOR_VIEW = "project_monitor_view"
 
-    _choices_labels = ((CREATE, "project_create"), (VIEW, "project_view"), (EDIT, "project_edit"))
+    _choices_labels = (
+        (CREATE, "project_create"),
+        (VIEW, "project_view"),
+        (EDIT, "project_edit"),
+        (MONITOR_VIEW, "project_monitor_view"),
+    )
 
 
 class ProjectPermission(Permission):
@@ -244,6 +250,10 @@ class ProjectPermission(Permission):
 
     def can_view(self, username, project_id, raise_exception=False):
         action_id = self.actions.VIEW.value
+        return self._allowed_do_project_inst(username, action_id, project_id, raise_exception)
+
+    def can_view_monitor(self, username, project_id, raise_exception=False):
+        action_id = self.actions.MONITOR_VIEW.value
         return self._allowed_do_project_inst(username, action_id, project_id, raise_exception)
 
     def can_edit(self, username, project_id, raise_exception=False):

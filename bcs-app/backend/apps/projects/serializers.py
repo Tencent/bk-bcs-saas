@@ -46,7 +46,9 @@ class ProjectPermsSLZ(serializers.Serializer):
 
 class ProjectInstPermsSLZ(ProjectPermsSLZ):
     action_ids = serializers.ListField(
-        child=serializers.ChoiceField(choices=[ProjectActions.EDIT.value, ProjectActions.VIEW.value]),
+        child=serializers.ChoiceField(
+            choices=[ProjectActions.EDIT.value, ProjectActions.VIEW.value, ProjectActions.MONITOR_VIEW.value]
+        ),
         default=[ProjectActions.EDIT.value, ProjectActions.VIEW.value],
     )
     project_id = serializers.CharField()
@@ -54,7 +56,12 @@ class ProjectInstPermsSLZ(ProjectPermsSLZ):
 
 class QueryAuthorizedUsersSLZ(serializers.Serializer):
     action_id = serializers.ChoiceField(
-        choices=[ProjectActions.CREATE.value, ProjectActions.EDIT.value, ProjectActions.VIEW.value],
+        choices=[
+            ProjectActions.CREATE.value,
+            ProjectActions.EDIT.value,
+            ProjectActions.VIEW.value,
+            ProjectActions.MONITOR_VIEW.value,
+        ],
         default=ProjectActions.VIEW.value,
     )
 
@@ -62,6 +69,11 @@ class QueryAuthorizedUsersSLZ(serializers.Serializer):
 class VerifyUserListSLZ(serializers.Serializer):
     users = serializers.ListField(child=serializers.CharField(), min_length=1)
     action_id = serializers.ChoiceField(
-        choices=[ProjectActions.CREATE.value, ProjectActions.EDIT.value, ProjectActions.VIEW.value],
+        choices=[
+            ProjectActions.CREATE.value,
+            ProjectActions.EDIT.value,
+            ProjectActions.VIEW.value,
+            ProjectActions.MONITOR_VIEW.value,
+        ],
         default=ProjectActions.VIEW.value,
     )
