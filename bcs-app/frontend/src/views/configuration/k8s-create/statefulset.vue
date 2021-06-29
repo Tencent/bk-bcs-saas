@@ -726,7 +726,7 @@
                                                     <bk-switcher
                                                         :selected="curContainer.webCache.isImageCustomed"
                                                         size="small"
-                                                        :key="curContainer.name">>
+                                                        :key="curContainer.name">
                                                     </bk-switcher>
                                                 </span>
                                                 <span class="vm">{{$t('使用自定义镜像')}}</span>
