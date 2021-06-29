@@ -15,8 +15,9 @@ import json
 
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
-from backend.resources.deployment import Deployment
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.resources.workloads.deployment import Deployment
 from backend.templatesets.legacy_apps.configuration.auditor import TemplatesetAuditor
 from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
 from backend.templatesets.legacy_apps.instance.auditor import InstanceAuditor
@@ -71,10 +72,14 @@ def generate_manifest(access_token, username, release_data):
 
 
 def _update_resources(access_token, release_data, namespace_info, manifest):
-    project_id = release_data["project_id"]
-    namespace = namespace_info["name"]
-    deploy = Deployment(access_token, project_id, namespace_info["cluster_id"], namespace)
-    deploy.update_deployment(release_data["name"], manifest)
+    ctx_cluster = CtxCluster.create(
+        token=access_token, id=namespace_info['cluster_id'], project_id=release_data['project_id']
+    )
+    return (
+        Deployment(ctx_cluster)
+        .replace(body=manifest, name=release_data['name'], namespace=namespace_info['name'])
+        .to_dict()
+    )
 
 
 def update_resources(access_token, username, release_data, namespace_info):

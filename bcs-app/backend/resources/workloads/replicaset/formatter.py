@@ -11,4 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-DEPLOYMENT_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
+from typing import Dict
+
+from backend.resources.workloads.common.formatter import WorkloadFormatter
+
+
+class ReplicaSetFormatter(WorkloadFormatter):
+    """ ReplicaSet 格式化 """
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return self.format_common_dict(resource_dict)
