@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 import pytest
 from mock import patch
 
@@ -22,6 +24,7 @@ from backend.uniapps.application.tools import mesos_instance
 
 pytestmark = pytest.mark.django_db
 fake_id = 1
+fake_vars = {"demo": "test"}
 
 
 @pytest.fixture(autouse=True)
@@ -52,12 +55,13 @@ def create_application():
 
 
 def test_get_instance_id():
-    inst = mesos_instance.get_mesos_instance(ns_id=fake_id, name="test", kind=MesosResourceName.deployment.value)
+    inst = mesos_instance.get_instance(ns_id=fake_id, name="test", kind=MesosResourceName.deployment.value)
     assert inst.id == fake_id
 
 
 def test_get_tmpl_id():
-    render_data = mesos_instance.RenderResourceData(
+    render_data = mesos_instance.VersionInstanceData(
+        instance_id=fake_id,
         name="test",
         username="admin",
         templateset_id=fake_id,
@@ -65,6 +69,34 @@ def test_get_tmpl_id():
         version_id=fake_id,
         show_version_id=fake_id,
         kind=MesosResourceName.deployment.value,
-        variable_dict={"test": "test"},
+        variables={"test": "test"},
     )
-    assert render_data.get_tmpl_id() == fake_id
+    assert render_data.get_template_id() == fake_id
+
+
+@patch(
+    "backend.components.bcs.mesos.MesosClient.update_deployment",
+    return_value={"code": 0, "message": "success", "data": {"name": "test"}},
+)
+@patch(
+    "backend.components.paas_cc.PaaSCCClient.get_cluster_namespace_list",
+    return_value={"results": [{"name": "default", "id": fake_id}]},
+)
+@patch(
+    "backend.uniapps.application.tools.mesos_instance.generate_manifest",
+    return_value={"metadata": {"name": "test"}, "kind": MesosResourceName.deployment.value},
+)
+def test_scale_instance_resource(
+    mock_generate_manifest, mock_get_cluster_namespace_list, mock_update_deployment, ctx_cluster
+):
+    inst_data = mesos_instance.InstanceData(
+        kind=MesosResourceName.deployment.value,
+        namespace="default",
+        name="test",
+        manifest={"metadata": {"name": "test"}},
+        variables=fake_vars,
+    )
+    show_version = ShowVersion.objects.get(id=fake_id)
+    mesos_instance.scale_instance_resource("admin", inst_data, ctx_cluster, show_version)
+    inst = InstanceConfig.objects.get(id=fake_id)
+    assert json.loads(inst.variables) == fake_vars

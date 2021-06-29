@@ -23,14 +23,13 @@ class MesosInstanceViewSets(SystemViewSet):
     def scale_resource(self, request, project_id, cluster_id, namespace, name):
         """mesos 实例的资源原地扩缩容"""
         params = self.params_validate(MesosInstSLZ)
-        inst_data = mesos_instance.ResourceData(
+        inst_data = mesos_instance.InstanceData(
             kind=params["kind"],
             namespace=namespace,
             name=name,
             manifest=params["manifest"],
             variables=params["variables"],
         )
-        # TODO：添加操作审计相关
         mesos_instance.scale_instance_resource(
             request.user.username, inst_data, request.ctx_cluster, params.get("show_version")
         )

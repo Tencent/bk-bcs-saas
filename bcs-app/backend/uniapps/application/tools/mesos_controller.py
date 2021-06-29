@@ -21,7 +21,15 @@ from backend.utils.decorators import parse_response_data
 
 
 @dataclass
-class ResourceData:
+class InstanceData:
+    """Mesos 资源属性数据
+    kind: 资源类型
+    namespace: 命名空间名称
+    name: 资源名称
+    manifest: 资源的配置信息
+    variables: 变量信息
+    """
+
     kind: str
     namespace: str
     name: str
@@ -29,10 +37,10 @@ class ResourceData:
     variables: dict = field(default_factory=dict)
 
 
-class ResourceController:
-    def __init__(self, ctx_cluster: CtxCluster, instance_data: ResourceData):
+class InstanceController:
+    def __init__(self, ctx_cluster: CtxCluster, template_data: InstanceData):
         self.ctx_cluster = ctx_cluster
-        self.instance_data = instance_data
+        self.template_data = template_data
 
     def scale_resource(self):
         client = MesosClient(
@@ -43,14 +51,14 @@ class ResourceController:
         )
         # 参数标识只更新应用的资源
         params = {"args": "resource"}
-        if self.instance_data.kind == MesosResourceName.application.value:
+        if self.template_data.kind == MesosResourceName.application.value:
             return self.update_application(client, params)
         return self.update_deployment(client, params)
 
     @parse_response_data()
     def update_application(self, client: MesosClient, params: Union[Dict]) -> Dict:
-        return client.update_application(self.instance_data.namespace, self.instance_data.manifest, params=params)
+        return client.update_application(self.template_data.namespace, self.template_data.manifest, params=params)
 
     @parse_response_data()
     def update_deployment(self, client: MesosClient, params: Union[Dict]) -> Dict:
-        return client.update_deployment(self.instance_data.namespace, self.instance_data.manifest, params=params)
+        return client.update_deployment(self.template_data.namespace, self.template_data.manifest, params=params)

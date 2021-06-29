@@ -13,9 +13,9 @@
 #
 from mock import patch
 
-from backend.uniapps.application.tools.mesos_controller import ResourceController, ResourceData
+from backend.uniapps.application.tools.mesos_controller import InstanceController, InstanceData
 
-fake_resource_data = ResourceData(
+fake_resource_data = InstanceData(
     kind="deployment",
     namespace="default",
     name="test",
@@ -24,12 +24,12 @@ fake_resource_data = ResourceData(
 )
 
 
-class TestResourceController:
+class TestInstanceController:
     @patch(
         "backend.components.bcs.mesos.MesosClient.update_deployment",
         return_value={"code": 0, "message": "success", "data": {"name": "test"}},
     )
-    def test_update_deployment(self, ctx_cluster):
-        controller = ResourceController(ctx_cluster, fake_resource_data)
+    def test_update_deployment(self, mock_update_deployment, ctx_cluster):
+        controller = InstanceController(ctx_cluster, fake_resource_data)
         data = controller.scale_resource()
         assert data["name"] == "test"
