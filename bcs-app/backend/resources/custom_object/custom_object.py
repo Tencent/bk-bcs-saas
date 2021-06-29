@@ -53,5 +53,5 @@ def get_cobj_client_by_crd(ctx_cluster: CtxCluster, crd_name: str) -> CustomObje
     crd_client = CustomResourceDefinition(ctx_cluster)
     crd = crd_client.get(name=crd_name, is_format=False)
     if crd:
-        return CustomObject(ctx_cluster, kind=crd.data.spec.names.kind, api_version=_get_cobj_api_version(crd))
+        return CustomObject(ctx_cluster, kind=crd.data.spec.names.kind, api_version=_get_cobj_api_version(crd.data))
     raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(ctx_cluster.id, crd_name))

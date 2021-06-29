@@ -26,12 +26,12 @@ class DeploymentViewSet(UserViewSet):
     def list_by_namespace(self, request, project_id_or_code, cluster_id, namespace):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验
         deployments = Deployment(request.ctx_cluster).list(namespace=namespace, is_format=False)
-        return Response(deployments.to_dict()['items'])
+        return Response(deployments.data.to_dict()['items'])
 
     def list_pods_by_deployment(self, request, project_id_or_code, cluster_id, namespace, deploy_name):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验(由于粒度没有细化到Deployment)
         deployment = Deployment(request.ctx_cluster).get(namespace=namespace, name=deploy_name, is_format=False)
-        labels_string = make_labels_string(getitems(deployment.to_dict(), 'spec.selector.matchLabels', {}))
+        labels_string = make_labels_string(getitems(deployment.data.to_dict(), 'spec.selector.matchLabels', {}))
         pods = Pod(request.ctx_cluster).list(
             namespace=namespace,
             label_selector=labels_string,

@@ -15,13 +15,12 @@ from typing import Dict, List, Optional, Union
 
 from django.utils.translation import ugettext_lazy as _
 from kubernetes.client import CoreV1Api
-from kubernetes.dynamic import ResourceInstance
 from kubernetes.stream import stream
 
 from backend.dashboard.exceptions import ResourceNotExist
 from backend.dashboard.workloads.constants import VOLUME_RESOURCE_NAME_KEY_MAP
 from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
+from backend.resources.resource import ResourceClient, ResourceList
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.resources.workloads.job import Job
 from backend.resources.workloads.pod.formatter import PodFormatter
@@ -43,7 +42,7 @@ class Pod(ResourceClient):
         owner_kind: Optional[str] = None,
         owner_name: Optional[str] = None,
         **kwargs
-    ) -> Union[ResourceInstance, Dict]:
+    ) -> Union[ResourceList, Dict]:
         """
         查询 Pod 列表
 
@@ -61,9 +60,9 @@ class Pod(ResourceClient):
         pod_owner_references = self._get_pod_owner_references(kwargs['namespace'], owner_kind, owner_name)
 
         # NOTE: Pod 类型 list 若需要支持根据 owner_references 过滤，
-        # 结果不是返回 ResourceInstance 而是 Dict，需要上层进行兼容
+        # 结果不是返回 ResourceList 而是 Dict，需要上层进行兼容
         # 原因是：ResourceInstance 对象属性不支持赋值
-        resp = resp.to_dict()
+        resp = resp.data.to_dict()
         resp['items'] = self._filter_by_owner_references(resp['items'], pod_owner_references)
         return resp
 
@@ -79,7 +78,7 @@ class Pod(ResourceClient):
         pod = self.get(namespace=namespace, name=pod_name, is_format=False)
         if not pod:
             raise ResourceNotExist(_('Pod {}/{} 不存在').format(namespace, pod_name))
-        return pod.to_dict()
+        return pod.data.to_dict()
 
     def filter_related_resources(self, client: ResourceClient, namespace: str, pod_name: str) -> Dict:
         """
@@ -100,7 +99,7 @@ class Pod(ResourceClient):
             if resource_kind in volume
         ]
         # 查询指定命名空间下该资源的所有实例，并根据名称列表过滤
-        resources = client.list(namespace=namespace, is_format=False).to_dict()
+        resources = client.list(namespace=namespace, is_format=False).data.to_dict()
         resources['items'] = [item for item in resources['items'] if item['metadata']['name'] in resource_name_list]
         # 组装展示用扩展信息等
         manifest_ext = {item['metadata']['uid']: client.formatter.format_dict(item) for item in resources['items']}
@@ -146,7 +145,7 @@ class Pod(ResourceClient):
             K8sResourceKind.Deployment.value: ReplicaSet,
             K8sResourceKind.CronJob.value: Job,
         }[owner_kind]
-        sub_res = SubResClient(self.ctx_cluster).list(namespace=namespace, is_format=False).to_dict()
+        sub_res = SubResClient(self.ctx_cluster).list(namespace=namespace, is_format=False).data.to_dict()
         owner_names = [
             getitems(sr, 'metadata.name')
             for sr in self._filter_by_owner_references(sub_res['items'], sub_owner_references)
