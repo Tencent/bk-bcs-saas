@@ -11,7 +11,7 @@
  */
 
 import Vue from 'vue'
-import Router from 'vue-router'
+import Router, { RouteMeta } from 'vue-router'
 import { updateRecentVisitServiceList, urlJoin } from '../utils/util'
 import { getServiceAliasByPath, importScript, importStyle } from '../utils/util'
 import compilePath from '../utils/pathExp'
