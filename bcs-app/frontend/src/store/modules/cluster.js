@@ -76,7 +76,7 @@ export default {
                 {},
                 Object.assign(config, { urlId: 'getClusterList' })
             )
-            context.commit('forceUpdateClusterList', res.data.results)
+            context.commit('forceUpdateClusterList', res?.data?.results || [])
             context.commit('updateCacheRes', res)
             return res
         },

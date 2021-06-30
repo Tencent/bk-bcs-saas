@@ -78,7 +78,7 @@ def _update_resources(access_token, release_data, namespace_info, manifest):
     return (
         Deployment(ctx_cluster)
         .replace(body=manifest, name=release_data['name'], namespace=namespace_info['name'])
-        .to_dict()
+        .data.to_dict()
     )
 
 

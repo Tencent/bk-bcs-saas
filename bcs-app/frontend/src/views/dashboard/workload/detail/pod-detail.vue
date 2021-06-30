@@ -64,12 +64,12 @@
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
                 <bcs-tab-panel name="container" :label="$t('容器')" v-bkloading="{ isLoading: containerLoading }">
                     <bk-table :data="container">
-                        <bk-table-column :label="$t('容器名称')" prop="name">
+                        <bk-table-column :label="$t('容器名称')" width="400" prop="name">
                             <template #default="{ row }">
                                 <bk-button class="bcs-button-ellipsis" text @click="gotoContainerDetail(row)">{{ row.name }}</bk-button>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('状态')" prop="status">
+                        <bk-table-column :label="$t('状态')" width="200" prop="status">
                             <template #default="{ row }">
                                 <StatusIcon :status="row.status"></StatusIcon>
                             </template>

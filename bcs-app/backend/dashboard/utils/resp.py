@@ -14,10 +14,9 @@
 from typing import Dict
 
 from django.utils.translation import ugettext_lazy as _
-from kubernetes.dynamic import ResourceInstance
 
 from backend.dashboard.exceptions import ResourceNotExist
-from backend.resources.resource import ResourceClient
+from backend.resources.resource import ResourceClient, ResourceList
 
 
 class ListApiRespBuilder:
@@ -31,9 +30,9 @@ class ListApiRespBuilder:
         """
         self.client = client
         self.resources = self.client.list(is_format=False, **kwargs)
-        # 兼容处理，若为 ResourceInstance 需要转换成 dict
-        if isinstance(self.resources, ResourceInstance):
-            self.resources = self.resources.to_dict()
+        # 兼容处理，若为 ResourceList 需要将其 data (ResourceInstance) 转换成 dict
+        if isinstance(self.resources, ResourceList):
+            self.resources = self.resources.data.to_dict()
 
     def build(self) -> Dict:
         """ 组装 Dashboard Api 响应内容 """
@@ -61,7 +60,7 @@ class RetrieveApiRespBuilder:
         raw_resource = self.client.get(namespace=namespace, name=name, is_format=False, **kwargs)
         if not raw_resource:
             raise ResourceNotExist(_('资源 {}/{} 不存在').format(namespace, name))
-        self.resource = raw_resource.to_dict()
+        self.resource = raw_resource.data.to_dict()
 
     def build(self) -> Dict:
         """ 组装 Dashboard Api 响应内容 """

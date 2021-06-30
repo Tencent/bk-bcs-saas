@@ -106,6 +106,7 @@
                 this.$store.commit('cluster/forceUpdateClusterList', [])
 
                 if (localStorage.getItem('curProjectCode') !== curProjectCode) {
+                    this.$store.commit('updateCurClusterId', '')
                     this.$refs.appHeader.selectProject(curProjectCode)
                 }
 
@@ -115,7 +116,8 @@
                 if (this.isUserBKService) {
                     await this.$store.dispatch('getFeatureFlag')
                     const curBcsProject = (projectList || []).find(item => item.project_code === curProjectCode)
-                    if (curBcsProject && curBcsProject.project_id) {
+                    // eslint-disable-next-line camelcase
+                    if (curBcsProject?.project_id) {
                         await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
                     }
                 }

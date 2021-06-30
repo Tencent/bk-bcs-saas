@@ -174,12 +174,15 @@ class ResourceClient:
         name: Optional[str] = None,
         namespace: Optional[str] = None,
         is_format: bool = True,
+        formatter: Optional[ResourceFormatter] = None,
         **kwargs,
-    ) -> Union[ResourceInstance, Dict]:
+    ) -> Union[ResourceObj, Dict]:
+        """ 使用 Replace 模式更新某个资源 """
         obj = self.api.replace(body=body, name=name, namespace=namespace, **kwargs)
         if is_format:
-            return self.formatter.format(obj)
-        return obj
+            formatter = formatter or self.formatter
+            return formatter.format(obj)
+        return self.result_type(obj)
 
     def patch(
         self,
