@@ -208,6 +208,9 @@
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
                                                                                 </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
                                                                     </template>
@@ -226,6 +229,9 @@
                                                                                 </li>
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
+                                                                                </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                                 </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
@@ -282,7 +288,8 @@
                                                                         </template>
                                                                         <template v-else>
                                                                             <td style="white-space: nowrap;">
-                                                                                <p>{{instance.application_status}}</p>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                                <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
                                                                     </template>
@@ -363,6 +370,9 @@
                                                                                         <li>
                                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
                                                                                         </li>
+                                                                                        <li>
+                                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                        </li>
                                                                                     </ul>
                                                                                 </bk-dropdown-menu>
                                                                             </template>
@@ -385,6 +395,9 @@
                                                                                         <li>
                                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
                                                                                         </li>
+                                                                                        <li>
+                                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                        </li>
                                                                                     </ul>
                                                                                 </bk-dropdown-menu>
                                                                             </template>
@@ -406,6 +419,9 @@
                                                                                     </li>
                                                                                     <li>
                                                                                         <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                                     </li>
                                                                                 </ul>
                                                                             </bk-dropdown-menu>
@@ -460,7 +476,8 @@
                                                                         </template>
                                                                         <template v-else>
                                                                             <td style="white-space: nowrap;">
-                                                                                <p>{{instance.deployment_status}}</p>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                                <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
                                                                     </template>
@@ -621,6 +638,9 @@
                                                                                         <li>
                                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
                                                                                         </li>
+                                                                                        <li>
+                                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                        </li>
                                                                                     </ul>
                                                                                 </bk-dropdown-menu>
                                                                             </template>
@@ -643,6 +663,9 @@
                                                                                         <li>
                                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
                                                                                         </li>
+                                                                                        <li>
+                                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                        </li>
                                                                                     </ul>
                                                                                 </bk-dropdown-menu>
                                                                             </template>
@@ -660,6 +683,9 @@
                                                                                     </li>
                                                                                     <li>
                                                                                         <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, tpl.instanceList)">{{$t('强制删除')}}</a>
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                                     </li>
                                                                                 </ul>
                                                                             </bk-dropdown-menu>
@@ -837,6 +863,9 @@
                                                                         <li>
                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
                                                                         </li>
+                                                                        <li>
+                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                        </li>
                                                                     </ul>
                                                                 </bk-dropdown-menu>
                                                             </template>
@@ -856,6 +885,9 @@
                                                                         </li>
                                                                         <li>
                                                                             <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                         </li>
                                                                     </ul>
                                                                 </bk-dropdown-menu>
@@ -989,6 +1021,9 @@
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
                                                                                 </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
                                                                     </template>
@@ -1008,6 +1043,9 @@
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
                                                                                 </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
                                                                     </template>
@@ -1022,6 +1060,9 @@
                                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                             <li>
                                                                                 <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
+                                                                            </li>
+                                                                            <li>
+                                                                                <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                             </li>
                                                                         </ul>
                                                                     </bk-dropdown-menu>
@@ -1223,6 +1264,9 @@
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
                                                                                 </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
                                                                     </template>
@@ -1242,6 +1286,9 @@
                                                                                 <li>
                                                                                     <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
                                                                                 </li>
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
+                                                                                </li>
                                                                             </ul>
                                                                         </bk-dropdown-menu>
                                                                     </template>
@@ -1256,6 +1303,9 @@
                                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                             <li>
                                                                                 <a href="javascript:void(0)" @click="showForceDelete(instance, instanceIndex, namespace.appList)">{{$t('强制删除')}}</a>
+                                                                            </li>
+                                                                            <li>
+                                                                                <a href="javascript:void(0)" @click="showSourceExpansion(instance, instanceIndex, tpl.instanceList)">{{$t('原地资源扩容')}}</a>
                                                                             </li>
                                                                         </ul>
                                                                     </bk-dropdown-menu>
@@ -1925,6 +1975,113 @@
                         {{$t('确定')}}
                     </bk-button>
                     <bk-button type="button" @click="hideRollbackPrevious">
+                        {{$t('取消')}}
+                    </bk-button>
+                </template>
+            </div>
+        </div>
+    </bk-dialog>
+    <bk-dialog
+        :position="{ top: 100 }"
+        :is-show.sync="sourceExpansionDialogConf.isShow"
+        :width="sourceExpansionDialogConf.width"
+        :title="sourceExpansionDialogConf.title"
+        :close-icon="sourceExpansionDialogConf.closeIcon"
+        :ext-cls="'biz-rolling-update-dialog'"
+        :quick-close="false"
+        @confirm="sourceExpansionConfirm"
+        @cancel="hideSourceExpansion">
+        <template slot="content">
+            <div v-bkloading="{isLoading: sourceExpansionDialogConf.loading, opacity: 1}" style="min-height: 455px;">
+                <div class="title-wrapper">
+                    <div class="left">
+                        <span style="margin-right: 40px;">{{$t('当前版本：')}}{{sourceExpansionDialogConf.oldVer}}</span>
+                        <span>{{$t('实例数：')}}{{curInstance.instance}}</span>
+                    </div>
+                    <div class="right">
+                        {{$t('更新版本：')}}
+                        <div class="dropdown">
+                            <bk-selector
+                                style="width: 300px;"
+                                :placeholder="$t('请选择项目')"
+                                :list="sourceExpansionDialogConf.verList"
+                                :selected.sync="sourceExpansionDialogConf.selectedVerId"
+                                :setting-key="'id'"
+                                :searchable="true"
+                                :display-key="'name'"
+                                :search-key="'name'"
+                                @item-selected="verSelectedInSourceExpansion">
+                            </bk-selector>
+                        </div>
+                        <a href="javascript:void(0)" class="bk-text-button" style="margin-left: 5px;" @click="toggleVariableInSourceExpansion"
+                            v-if="(sourceExpansionDialogConf.oldVariableList && sourceExpansionDialogConf.oldVariableList.length) || (sourceExpansionDialogConf.newVariableList && sourceExpansionDialogConf.newVariableList.length)">
+                            <i class="bcs-icon bcs-icon-edit2"></i>
+                            {{$t('编辑变量')}}
+                        </a>
+                        <template v-else>
+                            <bcs-popover :content="$t('模板未引用变量')" :delay="500" placement="top">
+                                <a href="javascript:void(0)" class="bk-text-button is-disabled" style="margin-left: 5px;">
+                                    <i class="bcs-icon bcs-icon-edit2"></i>
+                                    {{$t('编辑变量')}}
+                                </a>
+                            </bcs-popover>
+                        </template>
+                    </div>
+                </div>
+                <div class="variable-wrapper" v-if="sourceExpansionDialogConf.isShowVariable">
+                    <div class="left">
+                        <template v-if="sourceExpansionDialogConf.oldVariableList && sourceExpansionDialogConf.oldVariableList.length">
+                            <div class="biz-key-value-wrapper">
+                                <div class="biz-key-value-item" v-for="(variable, index) in sourceExpansionDialogConf.oldVariableList">
+                                    <input type="text" class="bk-form-input" disabled v-model="variable.key">
+                                    <span class="equals-sign">=</span>
+                                    <input type="text" class="bk-form-input right" :placeholder="$t('值')" disabled v-model="variable.value">
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="right">
+                        <template v-if="sourceExpansionDialogConf.newVariableList && sourceExpansionDialogConf.newVariableList.length">
+                            <div class="biz-key-value-wrapper">
+                                <div class="biz-key-value-item" v-for="(variable, index) in sourceExpansionDialogConf.newVariableList">
+                                    <input type="text" class="bk-form-input" disabled v-model="variable.key">
+                                    <span class="equals-sign">=</span>
+                                    <input type="text" class="bk-form-input right" :placeholder="$t('值')" v-model="variable.value">
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="diff-wrapper">
+                    <bk-diff
+                        v-if="sourceExpansionDialogConf.oldContent"
+                        :old-content="sourceExpansionDialogConf.oldContent"
+                        :new-content="sourceExpansionDialogConf.newContent"
+                        :format="'side-by-side'"
+                        :min-height="400"
+                        :context="200"
+                        @change-count="getDiffChangeCount">
+                    </bk-diff>
+                </div>
+            </div>
+        </template>
+        <div slot="footer">
+            <div class="bk-dialog-outer">
+                <div class="no-diff-msg">{{sourceExpansionDialogConf.noDiffMsg}}</div>
+                <template v-if="isUpdating">
+                    <bk-button type="primary" disabled>
+                        {{$t('更新中...')}}
+                    </bk-button>
+                    <bk-button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
+                        {{$t('取消')}}
+                    </bk-button>
+                </template>
+                <template v-else>
+                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        @click="sourceExpansionConfirm">
+                        {{$t('确定')}}
+                    </bk-button>
+                    <bk-button type="button" @click="hideSourceExpansion">
                         {{$t('取消')}}
                     </bk-button>
                 </template>

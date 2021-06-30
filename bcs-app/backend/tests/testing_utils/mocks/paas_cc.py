@@ -31,6 +31,10 @@ class StubPaaSCCClient:
     def get_project(self, project_id: str) -> Dict:
         return self.make_project_data(project_id)
 
+    @mockable_function
+    def get_cluster_namespace_list(self, project_id: str, cluster_id: str) -> Dict:
+        return self.make_cluster_namespace_data(project_id, cluster_id)
+
     @staticmethod
     def wrap_resp(data):
         return {
@@ -108,4 +112,26 @@ class StubPaaSCCClient:
             "use_bk": False,
             "cc_app_name": "demo-app",
             "can_edit": False,
+        }
+
+    @staticmethod
+    def make_cluster_namespace_data(project_id: str, cluster_id: str) -> Dict:
+        _stub_time = '2021-06-30T11:13:00+08:00'
+        return {
+            "count": 1,
+            "results": [
+                {
+                    "cluster_id": cluster_id,
+                    "created_at": _stub_time,
+                    "creator": "admin",
+                    "description": "",
+                    "env_type": "dev",
+                    "has_image_secret": True,
+                    "id": 1,
+                    "name": "default",
+                    "project_id": project_id,
+                    "status": "",
+                    "updated_at": _stub_time,
+                }
+            ],
         }

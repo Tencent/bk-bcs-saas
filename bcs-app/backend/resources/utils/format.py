@@ -11,41 +11,35 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import abc
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import arrow
 from django.utils import timezone
-from kubernetes.dynamic.resource import ResourceField, ResourceInstance
+from kubernetes.dynamic.resource import ResourceInstance
 
 from backend.resources.utils.common import calculate_age
 from backend.utils.basic import normalize_datetime
 
 
-def serialize_resource(field: Union[ResourceInstance, ResourceField, List[ResourceField]]) -> Any:
-    """将 dynamic client 返回的 ResourceField / ResourceInstance 等对象转换为普通数据结构"""
-    if isinstance(field, ResourceField):
-        return {k: serialize_resource(v) for k, v in field.__dict__.items()}
-    elif isinstance(field, (list, tuple)):
-        return [serialize_resource(item) for item in field]
-    elif isinstance(field, ResourceInstance):
-        return field.to_dict()
-    else:
-        return field
+class ResourceFormatter(abc.ABC):
+    """资源格式化抽象类"""
+
+    @abc.abstractmethod
+    def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def format(self, resource: Optional[ResourceInstance]) -> Dict:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        raise NotImplementedError
 
 
-class InstanceAccessor:
-    """方便读取 Kubernetes 资源的工具类，只提供常见方法，不提供完整建模"""
-
-    def __init__(self, data: Dict):
-        self.data = data
-
-    @property
-    def name(self) -> str:
-        return self.data['metadata']['name']
-
-
-class ResourceDefaultFormatter:
+class ResourceDefaultFormatter(ResourceFormatter):
     """格式化 Kubernetes 资源为通用资源格式"""
 
     def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:

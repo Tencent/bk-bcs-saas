@@ -104,6 +104,7 @@ websocket-client==1.0.1
 websockets==9.1
 werkzeug==0.15.3
 whitenoise==5.2.0
+wrapt==1.12.1
 yarl==1.6.3
 zipp==3.4.1
 zope.interface==5.4.0

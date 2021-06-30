@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from backend.dashboard.examples.constants import RES_KIND_WITH_DEMO_MANIFEST
@@ -20,4 +20,4 @@ from backend.dashboard.examples.constants import RES_KIND_WITH_DEMO_MANIFEST
 class FetchResourceDemoManifestSLZ(serializers.Serializer):
     """ 获取指定资源配置模版 """
 
-    kind = serializers.ChoiceField(label='资源类型', choices=RES_KIND_WITH_DEMO_MANIFEST)
+    kind = serializers.ChoiceField(label=_('资源类型'), choices=RES_KIND_WITH_DEMO_MANIFEST)

@@ -11,4 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-DEPLOYMENT_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
+from backend.bcs_web.audit_log.audit.auditors import Auditor
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.audit_log.constants import ResourceType
+
+
+class VariableAuditor(Auditor):
+    def __init__(self, audit_ctx: AuditContext):
+        super().__init__(audit_ctx)
+        self.audit_ctx.resource_type = ResourceType.Variable

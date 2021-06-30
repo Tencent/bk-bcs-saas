@@ -17,7 +17,7 @@ from urllib import parse
 import arrow
 from django.conf import settings
 
-from backend.resources.pod.constants import Log
+from backend.resources.workloads.pod.constants import Log
 
 
 def calc_previous_page(logs: List[Log], slz_data: Dict, url_prefix: str) -> str:

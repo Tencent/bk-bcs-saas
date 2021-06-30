@@ -69,14 +69,14 @@ class MesosClient(BCSClientBase):
         resp = http_post(url, json=data, **kwargs)
         return resp
 
-    def update_application(self, namespace, data):
+    def update_application(self, namespace, data, params=None):
         """更新application"""
         instances = data["spec"]["instance"]
         url = "{host}/mesos/namespaces/{ns}/applications?instances={instances}".format(
             host=self.scheduler_host, ns=namespace, instances=instances
         )
         kwargs = {"headers": self.headers}
-        resp = http_put(url, json=data, **kwargs)
+        resp = http_put(url, params=params, json=data, **kwargs)
         return resp
 
     def get_mesos_app_instances(self, app_name=None, namespace=None, field=None):
@@ -255,11 +255,11 @@ class MesosClient(BCSClientBase):
         resp = http_get(url, params=params, headers=self.headers)
         return resp
 
-    def update_deployment(self, namespace, data):
+    def update_deployment(self, namespace, data, params=None):
         """更新Deployment"""
         url = "{host}/mesos/namespaces/{ns}/deployments".format(host=self.scheduler_host, ns=namespace)
 
-        resp = http_put(url, json=data, headers=self.headers)
+        resp = http_put(url, params=params, json=data, headers=self.headers)
         return resp
 
     def cancel_update_deployment(self, namespace, deployment_name):

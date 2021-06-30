@@ -53,11 +53,11 @@
     display: flex;
     height: 60px;
     align-items: center;
-    font-size: 12px;
+    font-size: 16px;
     padding-left: 12px;
     border-bottom: 1px solid #F3F3F3;
     background: #fff;
-        .icon-wrapper {
+    .icon-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -65,7 +65,7 @@
         height: 32px;
         cursor: pointer;
         .icon-back {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             color: #3A84FF;
         }

@@ -26,7 +26,6 @@ TODO:
 - 实例化失败，再次实例化时，应该更新而不是创建数据
 - mesos/k8s 创建分开调用底层API
 """
-import json
 import logging
 
 from django.utils.translation import ugettext_lazy as _
@@ -36,7 +35,8 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.templatesets.legacy_apps.instance.serializers import (
@@ -56,6 +56,7 @@ from backend.templatesets.legacy_apps.instance.utils import (
 from backend.uniapps.application.base_views import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
+from ..auditor import TemplatesetAuditor
 from ..constants import K8sResourceName, MesosResourceName
 from ..models import CATE_SHOW_NAME, MODULE_DICT
 from ..tasks import check_instance_status
@@ -315,15 +316,18 @@ class VersionInstanceView(viewsets.ViewSet):
         # 添加操作记录
         temp_name = version_entity.get_template_name()
         for i in result['success']:
-            client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="template",
-                resource=temp_name,
-                resource_id=self.template_id,
-                extra=json.dumps(self.instance_entity),
-                description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name']),
-            ).log_add(activity_status="succeed")
+            TemplatesetAuditor(
+                audit_ctx=AuditContext(
+                    project_id=project_id,
+                    user=username,
+                    resource=temp_name,
+                    resource_id=self.template_id,
+                    extra=self.instance_entity,
+                    description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name']),
+                    activity_type=ActivityType.Add,
+                    activity_status=ActivityStatus.Succeed,
+                )
+            ).log_raw()
 
         failed_ns_name_list = []
         failed_msg = []
@@ -350,15 +354,18 @@ class VersionInstanceView(viewsets.ViewSet):
                     failed_msg.append(i['err_msg'])
                     is_show_failed_msg = True
 
-            client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="template",
-                resource=temp_name,
-                resource_id=self.template_id,
-                extra=json.dumps(self.instance_entity),
-                description=description,
-            ).log_add(activity_status="failed")
+            TemplatesetAuditor(
+                audit_ctx=AuditContext(
+                    project_id=project_id,
+                    user=username,
+                    resource=temp_name,
+                    resource_id=self.template_id,
+                    extra=self.instance_entity,
+                    description=description,
+                    activity_type=ActivityType.Add,
+                    activity_status=ActivityStatus.Failed,
+                )
+            ).log_raw()
 
             if is_show_failed_msg:
                 msg = '\n'.join(failed_msg)

@@ -11,4 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .deployment import *  # noqa
+from mock import patch
+
+from backend.resources.namespace.utils import get_namespace_id
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
+
+fake_default_namespace = "default"
+fake_default_namespace_id = 1
+
+
+@patch("backend.components.paas_cc.PaaSCCClient", new=StubPaaSCCClient)
+def test_get_namespace_id(ctx_cluster):
+    assert get_namespace_id(ctx_cluster, fake_default_namespace) == fake_default_namespace_id

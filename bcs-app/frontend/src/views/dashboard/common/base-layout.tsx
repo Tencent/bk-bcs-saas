@@ -1,4 +1,4 @@
-import { defineComponent, SetupContext, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
+import { defineComponent, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
 import DashboardTopActions from './dashboard-top-actions'
 import useCluster from './use-cluster'
 import useInterval from './use-interval'
@@ -71,7 +71,7 @@ export default defineComponent({
                 },
                 {
                     id: 'yaml',
-                    name: 'Yaml'
+                    name: 'YAML'
                 }
             ]
         })
@@ -121,7 +121,7 @@ export default defineComponent({
         // 分页
         const { pagination, curPageData, pageConf, pageChange, pageSizeChange } = usePage(searchData)
         // 搜索时重置分页
-        watch([searchValue, namespaceList], () => {
+        watch([searchValue, namespaceValue], () => {
             pageConf.current = 1
         })
 
@@ -150,7 +150,8 @@ export default defineComponent({
                 params: {
                     category: category.value,
                     name: row.metadata.name,
-                    namespace: row.metadata.namespace
+                    namespace: row.metadata.namespace,
+                    kind: kind.value
                 }
             })
         }
