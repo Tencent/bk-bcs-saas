@@ -20,6 +20,7 @@ from backend.templatesets.legacy_apps.configuration.constants import MesosResour
 from backend.templatesets.legacy_apps.configuration.models.mesos import Deplpyment
 from backend.templatesets.legacy_apps.configuration.models.template import ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 from backend.uniapps.application.tools import mesos_instance
 
 pytestmark = pytest.mark.django_db
@@ -40,17 +41,9 @@ def create_instance():
 
 
 @pytest.fixture(autouse=True)
-def create_show_version():
+def create_deployment_and_versions():
     ShowVersion.objects.create(id=fake_id, real_version_id=fake_id, template_id=fake_id, name="v1")
-
-
-@pytest.fixture(autouse=True)
-def create_version_entity():
     VersionedEntity.objects.create(id=fake_id, template_id=fake_id, entity='{"deployment": "1,2"}')
-
-
-@pytest.fixture(autouse=True)
-def create_application():
     Deplpyment.objects.create(id=fake_id, name="test", config='{"metadata":{"name": "test"}}')
 
 
@@ -78,17 +71,12 @@ def test_get_tmpl_id():
     "backend.components.bcs.mesos.MesosClient.update_deployment",
     return_value={"code": 0, "message": "success", "data": {"name": "test"}},
 )
-@patch(
-    "backend.components.paas_cc.PaaSCCClient.get_cluster_namespace_list",
-    return_value={"results": [{"name": "default", "id": fake_id}]},
-)
+@patch("backend.components.paas_cc.PaaSCCClient", new=StubPaaSCCClient)
 @patch(
     "backend.uniapps.application.tools.mesos_instance.generate_manifest",
     return_value={"metadata": {"name": "test"}, "kind": MesosResourceName.deployment.value},
 )
-def test_scale_instance_resource(
-    mock_generate_manifest, mock_get_cluster_namespace_list, mock_update_deployment, ctx_cluster
-):
+def test_scale_instance_resource(mock_generate_manifest, mock_update_deployment, ctx_cluster):
     inst_data = mesos_instance.InstanceData(
         kind=MesosResourceName.deployment.value,
         namespace="default",

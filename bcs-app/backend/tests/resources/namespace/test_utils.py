@@ -14,16 +14,12 @@
 from mock import patch
 
 from backend.resources.namespace.utils import get_namespace_id
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
 fake_default_namespace = "default"
 fake_default_namespace_id = 1
 
 
-@patch(
-    "backend.components.paas_cc.PaaSCCClient.get_cluster_namespace_list",
-    return_value={
-        "results": [{"name": fake_default_namespace, "id": fake_default_namespace_id}, {"name": "test", "id": 2}]
-    },
-)
-def test_get_namespace_id(mock_get_cluster_namespace_list, ctx_cluster):
+@patch("backend.components.paas_cc.PaaSCCClient", new=StubPaaSCCClient)
+def test_get_namespace_id(ctx_cluster):
     assert get_namespace_id(ctx_cluster, fake_default_namespace) == fake_default_namespace_id
