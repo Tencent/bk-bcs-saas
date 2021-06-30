@@ -31,6 +31,9 @@ class AuditContext:
     activity_status: str = ''
 
     def set_extra(self, value: Any):
+        # another way which allows to have fields without a leading underscore
+        # https://stackoverflow.com/questions/51079503/dataclasses-and-property-decorator
+        # 处理默认值的方式: 未赋值 extra 属性时，value 类型是 property
         if isinstance(value, property):
             self.__dict__['extra'] = dict()
         else:
