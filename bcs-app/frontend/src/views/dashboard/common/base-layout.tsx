@@ -150,7 +150,8 @@ export default defineComponent({
                 params: {
                     category: category.value,
                     name: row.metadata.name,
-                    namespace: row.metadata.namespace
+                    namespace: row.metadata.namespace,
+                    kind: kind.value
                 }
             })
         }
