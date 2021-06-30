@@ -238,7 +238,6 @@
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
                 }, '')
-                if (!labelSelector) return
 
                 podLoading.value = true
                 workloadPods.value = await $store.dispatch('dashboard/listWorkloadPods', {
