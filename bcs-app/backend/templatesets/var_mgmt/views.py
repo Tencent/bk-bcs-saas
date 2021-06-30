@@ -70,17 +70,11 @@ class ListCreateVariableView(generics.ListCreateAPIView):
     @log_audit(VariableAuditor, activity_type=ActivityType.Add)
     def perform_create(self, serializer):
         self.audit_ctx.update_fields(
-            project_id=self.kwargs['project_id'],
-            user=self.request.user.username,
-            extra=serializer.data,
-            description=_("新增变量"),
+            project_id=self.kwargs['project_id'], user=self.request.user.username, description=_("新增变量")
         )
         instance = serializer.save(creator=self.request.user.username)
         # 记录操作日志
-        self.audit_ctx.update_fields(
-            resource=instance.name,
-            resource_id=instance.id,
-        )
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, extra=serializer.data)
 
     def post(self, request, project_id):
         """创建变量"""
@@ -120,15 +114,12 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
     @log_audit(VariableAuditor, activity_type=ActivityType.Modify)
     def perform_update(self, serializer):
         self.audit_ctx.update_fields(
-            project_id=self.kwargs['project_id'],
-            user=self.request.user.username,
-            extra=serializer.data,
-            description=_("更新变量"),
+            project_id=self.kwargs['project_id'], user=self.request.user.username, description=_("更新变量")
         )
         instance = serializer.save(
             updator=self.request.user.username,
         )
-        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id)
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, extra=serializer.data)
 
     # TODO mark refactor 改成put方法, 需要前端同步调整
     def post(self, request, project_id, pk):
