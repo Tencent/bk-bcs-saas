@@ -526,7 +526,7 @@
 
             .key,
             .value {
-                @mixin ellipsis 160px;
+                @mixin ellipsis 60px;
             }
         }
     }
