@@ -10,15 +10,13 @@
                 <img :src='avatarUrl' alt='user' />
                 <span>{{username || "defaultUser"}}</span>
             </p>
-            <slot name='menu'>
-                <ul>
-                    <li v-for='(item, index) in menu' :key='index'>
-                        <router-link v-if='item.to' class='user-menu-item' @click.native='hideUserInfo' :to='item.to'>{{item.label}}</router-link>
-                        <a v-else-if='item.open' :href="item.open" target="_blank" class='user-menu-item' @click.stop='item.cb'>{{item.label}}</a>
-                        <span v-else-if='item.cb' class='user-menu-item' @click.stop='item.cb'>{{item.label}}</span>
-                    </li>
-                </ul>
-            </slot>
+            <ul>
+                <li v-for='(item, index) in menu' :key='index'>
+                    <router-link v-if='item.to' class='user-menu-item' @click.native='hideUserInfo' :to='item.to'>{{item.label}}</router-link>
+                    <a v-else-if='item.open' :href="item.open" target="_blank" class='user-menu-item' @click.stop='item.cb'>{{item.label}}</a>
+                    <span v-else-if='item.cb' class='user-menu-item' @click.stop='item.cb'>{{item.label}}</span>
+                </li>
+            </ul>
         </div>
     </div>
 </template>
