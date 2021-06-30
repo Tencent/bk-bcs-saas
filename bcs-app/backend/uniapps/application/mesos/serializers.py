@@ -31,9 +31,10 @@ class MesosInstSLZ(serializers.Serializer):
                 raise ValidationError(_("版本或资源配置不能同时为空"))
             return data
         # 获取show version信息
-        try:
-            data["show_version"] = ShowVersion.objects.get(id=data["show_version_id"], is_deleted=False)
-        except ShowVersion.DoesNotExist:
+        show_version_qs = ShowVersion.objects.filter(id=data["show_version_id"])
+        show_version = show_version_qs.first()
+        if not show_version:
             raise ValidationError(_("版本{}不存在").format(data["show_version_id"]))
 
+        data["show_version"] = show_version
         return data

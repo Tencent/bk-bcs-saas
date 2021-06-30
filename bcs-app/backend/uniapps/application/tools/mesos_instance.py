@@ -14,11 +14,12 @@
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Union
+from typing import Dict, List, Optional
 
 from django.utils.translation import ugettext_lazy as _
 
 from backend.container_service.clusters.base import CtxCluster
+from backend.resources.namespace.utils import get_namespace_id
 from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
 from backend.templatesets.legacy_apps.configuration.models.template import ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
@@ -26,12 +27,11 @@ from backend.templatesets.legacy_apps.instance.utils import generate_namespace_c
 from backend.utils.error_codes import error_codes
 
 from .mesos_controller import InstanceController, InstanceData
-from .namespace import get_namespace_id
 
 logger = logging.getLogger(__name__)
 
 
-def get_instance(ns_id: str, name: str, kind: str) -> Union[InstanceConfig]:
+def get_instance(ns_id: str, name: str, kind: str) -> Optional[InstanceConfig]:
     """获取实例
     注意: 这里ns_id包含了集群id+命名空间名称
     """
@@ -45,7 +45,7 @@ def get_instance(ns_id: str, name: str, kind: str) -> Union[InstanceConfig]:
 def get_template_id_list(id: int, kind: str) -> List:
     """根据实例类型获取版本下模板ID列表"""
     try:
-        version_entity = VersionedEntity.objects.get(id=id, is_deleted=False)
+        version_entity = VersionedEntity.objects.get(id=id)
     except VersionedEntity.DoesNotExist:
         logger.error("版本%s下的模板不存在", id)
         return []
@@ -110,7 +110,7 @@ def generate_manifest(ctx_cluster: CtxCluster, data: VersionInstanceData) -> Dic
 
 
 def scale_instance_resource(
-    username: str, inst_data: InstanceData, ctx_cluster: CtxCluster, show_version: Union[ShowVersion]
+    username: str, inst_data: InstanceData, ctx_cluster: CtxCluster, show_version: Optional[ShowVersion]
 ):
     # 针对没有版本控制或者通过非模板集创建的资源进行操作
     if not show_version:
@@ -119,6 +119,8 @@ def scale_instance_resource(
         return
     # 通过版本获取资源配置
     ns_id = get_namespace_id(ctx_cluster, inst_data.namespace)
+    if not ns_id:
+        raise error_codes.ResNotFoundError(_("集群:{}下命名空间:{}不存在").format(ctx_cluster.id, inst_data.namespace))
     instance = get_instance(ns_id, inst_data.name, inst_data.kind)
     if not instance:
         raise error_codes.RecordNotFound(

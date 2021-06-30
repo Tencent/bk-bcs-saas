@@ -11,11 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
+from mock import patch
 
-from backend.container_service.clusters.base.models import CtxCluster
+from backend.resources.namespace.utils import get_namespace_id
+
+fake_default_namespace = "default"
+fake_default_namespace_id = 1
 
 
-@pytest.fixture
-def ctx_cluster(cluster_id, project_id):
-    return CtxCluster.create(id=cluster_id, token="token", project_id=project_id)
+@patch(
+    "backend.components.paas_cc.PaaSCCClient.get_cluster_namespace_list",
+    return_value={
+        "results": [{"name": fake_default_namespace, "id": fake_default_namespace_id}, {"name": "test", "id": 2}]
+    },
+)
+def test_get_namespace_id(mock_get_cluster_namespace_list, ctx_cluster):
+    assert get_namespace_id(ctx_cluster, fake_default_namespace) == fake_default_namespace_id

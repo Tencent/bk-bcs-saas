@@ -38,9 +38,9 @@ class InstanceData:
 
 
 class InstanceController:
-    def __init__(self, ctx_cluster: CtxCluster, template_data: InstanceData):
+    def __init__(self, ctx_cluster: CtxCluster, instance_data: InstanceData):
         self.ctx_cluster = ctx_cluster
-        self.template_data = template_data
+        self.instance_data = instance_data
 
     def scale_resource(self):
         client = MesosClient(
@@ -51,14 +51,14 @@ class InstanceController:
         )
         # 参数标识只更新应用的资源
         params = {"args": "resource"}
-        if self.template_data.kind == MesosResourceName.application.value:
+        if self.instance_data.kind == MesosResourceName.application.value:
             return self.update_application(client, params)
         return self.update_deployment(client, params)
 
     @parse_response_data()
     def update_application(self, client: MesosClient, params: Union[Dict]) -> Dict:
-        return client.update_application(self.template_data.namespace, self.template_data.manifest, params=params)
+        return client.update_application(self.instance_data.namespace, self.instance_data.manifest, params=params)
 
     @parse_response_data()
     def update_deployment(self, client: MesosClient, params: Union[Dict]) -> Dict:
-        return client.update_deployment(self.template_data.namespace, self.template_data.manifest, params=params)
+        return client.update_deployment(self.instance_data.namespace, self.instance_data.manifest, params=params)
