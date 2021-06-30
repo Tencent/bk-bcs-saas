@@ -23,10 +23,10 @@
                         <thead>
                             <tr>
                                 <th style="width: 300px;border-bottom:none">{{ $t('projectTable.name') }}</th>
-                                <th style="width: 300px;border-bottom:none">{{ $t('projectTable.englishName') }}</th>
+                                <th style="width: 200px;border-bottom:none">{{ $t('projectTable.englishName') }}</th>
                                 <th>{{ $t('projectTable.desc') }}</th>
                                 <th style="width: 100px;">{{ $t('projectTable.creator') }}</th>
-                                <th style="width: 200px; text-align: center;">{{ $t('projectTable.operation') }}</th>
+                                <th style="width: 300px; text-align: center;">{{ $t('projectTable.operation') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -59,9 +59,9 @@
                                 </td>
                                 <td class="action">
                                     <template>
-                                        <a v-if="project.permissions && !project.permissions.project_edit && !project.permissions.project_view" href="javascript:void(0)" @click="goProject(project)" class="bk-text-button">{{ $t('pageTips.joinProject') }}</a>
-                                        <a v-else href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}, {'en-underline': isEn}]" @click.stop.prevent="togglePMDialog(true, project)">{{ $t('projectTable.edit') }}</a>
-                                        <!--<a href="javascript:void(0)" @click="goUserManager(project.project_code)" class="bk-text-button">{{ $t('projectTable.auth') }}</a>-->
+                                        <a v-if="project.permissions && !project.permissions.project_edit && !project.permissions.project_view" href="javascript:void(0)" @click="goProject(project)" class="bk-text-button">申请容器服务</a>
+                                        <a v-else href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" style="margin-right: 25px" @click.stop.prevent="togglePMDialog(true, project)">编辑项目</a>
+                                        <a href="javascript:void(0)" @click="goMonitor(project)" class="bk-text-button">{{project.permissions && project.permissions.project_monitor_view ? '进入监控中心' : '申请监控中心'}}</a>
                                     </template>
                                 </td>
                             </tr>
@@ -278,10 +278,31 @@ export default class ProjectManage extends Vue {
             if (res.project_view && res.project_view.apply_url) {
                 this.$showAskPermissionDialog({
                     noPermissionList: [{
-                        resource: this.$t('project'), 
+                        resource: '容器服务', 
                         option: this.$t('view')
                     }],
                     applyPermissionUrl: res.project_view.apply_url
+                })
+            }
+        }
+    }
+
+    async goMonitor(project: Project) {
+        // @ts-ignore
+        if (project && project.permissions && project.permissions.project_monitor_view) {
+            window.open(`/console/monitor/${project.project_code}/`, '_self')
+        } else {
+            const res = await this.getProjectPerms({
+                project_id: project.project_id,
+                action_ids: ['project_monitor_view']
+            })
+            if (res.project_monitor_view && res.project_monitor_view.apply_url) {
+                this.$showAskPermissionDialog({
+                    noPermissionList: [{
+                        resource: '监控中心', 
+                        option: this.$t('view')
+                    }],
+                    applyPermissionUrl: res.project_monitor_view.apply_url
                 })
             }
         }
