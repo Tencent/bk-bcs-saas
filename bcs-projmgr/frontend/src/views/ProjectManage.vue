@@ -61,7 +61,7 @@
                                     <template>
                                         <a v-if="project.permissions && !project.permissions.project_edit && !project.permissions.project_view" href="javascript:void(0)" @click="goProject(project)" class="bk-text-button">申请容器服务</a>
                                         <a v-else href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" style="margin-right: 25px" @click.stop.prevent="togglePMDialog(true, project)">编辑项目</a>
-                                        <a href="javascript:void(0)" @click="goMonitor(project)" class="bk-text-button">{{project.permissions && project.permissions.project_monitor_view ? '监控中心' : '申请监控中心'}}</a>
+                                        <a href="javascript:void(0)" @click="goMonitor(project)" class="bk-text-button">{{project.permissions && project.permissions.project_monitor_view ? '进入监控中心' : '申请监控中心'}}</a>
                                     </template>
                                 </td>
                             </tr>
