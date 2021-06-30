@@ -108,9 +108,16 @@ export default class Header extends Vue {
     }
 
     get selectProjectList(): Project[] {
-        let list = this.projectList.filter(
-            item => !item.is_offlined && item.permissions && item.permissions.project_view
-        )
+        let list = []
+        if (this.title === this.$t('monitorName')) {
+            list = this.projectList.filter(
+                item => !item.is_offlined && item.permissions && item.permissions.project_monitor_view
+            )
+        } else {
+            list = this.projectList.filter(
+                item => !item.is_offlined && item.permissions && item.permissions.project_view
+            )
+        }
         // console.log('==========================' + list)
         return list.sort(function(a, b) {
             return a.created_at < b.created_at ? 1 : -1
@@ -160,7 +167,7 @@ export default class Header extends Vue {
         let path = ''
         const projectId = window.localStorage.projectId
         const index = projectId ? this.selectProjectList.findIndex(item => item.project_code === projectId) : -1
-        let id = index > -1 ? projectId : this.selectProjectList[0]['project_code']
+        let id = index > -1 ? projectId : (this.selectProjectList.length ? this.selectProjectList[0]['project_code'] : '')
         if (type === 'bcs') {
             path = `/console/bcs/${id}/cluster?v`
         } else if (type === 'monitor') {
