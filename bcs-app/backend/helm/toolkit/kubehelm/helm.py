@@ -206,26 +206,26 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _compose_cmd_args(
-        self, cmd_args: List[str], chart_path: str, values_path: str, ytt_config_path: str, cmd_flags: List[str]
-    ) -> List[str]:
-        """组装helm命令参数"""
-        cmd_args += [
-            chart_path,
-            "--post-renderer",
-            f"{ytt_config_path}/{YTT_RENDERER_NAME}",
-        ]
+    def _make_args(
+        self,
+        cmd_args: List[str],
+        chart_path: str = None,
+        values_path: str = None,
+        ytt_config_path: str = None,
+        cmd_flags: List[Dict] = None,
+    ):
+        """组装命令行参数
+        NOTE: 这里兼容已经存在的helm的操作
+        """
+        opts = Options(cmd_flags)
+        options = opts.options()
         # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
-        # --values在其它flag前面，保证可以被后续的文件或key=val覆盖
-        flags_list = [flag if flag.startswith("--") else f"--{flag}" for flag in cmd_flags]
-        if "--reuse-values" not in flags_list:
-            cmd_args += [
-                "--values",
-                values_path,
-            ]
-        # 添加flags
-        cmd_args += flags_list
-
+        # --values在其它option前面，保证可以被后续的文件或key=val覆盖
+        if ytt_config_path:
+            cmd_args.extend([chart_path, "--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
+        if "--reuse-values" not in options and values_path:
+            cmd_args.extend(["--values", values_path])
+        cmd_args.extend(options)
         return cmd_args
 
     def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data, **kwargs):
@@ -276,30 +276,9 @@ class KubeHelmClient:
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace, "--install"]
         return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
 
-    def _make_args(
-        self,
-        cmd_args: List[str],
-        chart_path: str = None,
-        values_path: str = None,
-        ytt_config_path: str = None,
-        cmd_flags: List[Dict] = None,
-    ):
-        """组装命令行参数
-        NOTE: 这里兼容已经存在的helm的操作
-        """
-        opts = Options(cmd_flags)
-        options = opts.options()
-        # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
-        # --values在其它option前面，保证可以被后续的文件或key=val覆盖
-        if ytt_config_path:
-            cmd_args.extend([chart_path, "--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
-        if "--reuse-values" not in options and values_path:
-            cmd_args.extend(["--values", values_path])
-        cmd_args.extend(options)
-        return cmd_args
-
-    def _uninstall_or_rollback(self, cmd_args):
+    def _uninstall_or_rollback(self, cmd_args, **kwargs):
         try:
+            cmd_args = self._make_args(cmd_args, kwargs.get("cmd_flags"))
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
             logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
@@ -307,15 +286,15 @@ class KubeHelmClient:
 
         return cmd_out, cmd_err
 
-    def uninstall(self, name, namespace):
+    def uninstall(self, name, namespace, **kwargs):
         """uninstall helm release"""
         uninstall_cmd_args = [settings.HELM3_BIN, "uninstall", name, "--namespace", namespace]
-        return self._uninstall_or_rollback(uninstall_cmd_args)
+        return self._uninstall_or_rollback(uninstall_cmd_args, **kwargs)
 
-    def rollback(self, name, namespace, revision):
+    def rollback(self, name, namespace, revision, **kwargs):
         """rollback helm release by revision"""
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
-        return self._uninstall_or_rollback(rollback_cmd_args)
+        return self._uninstall_or_rollback(rollback_cmd_args, **kwargs)
 
     def _compose_args_and_run(self, cmd_args, options):
         opts = Options(options)
