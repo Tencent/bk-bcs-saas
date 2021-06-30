@@ -30,6 +30,7 @@ from django.contrib.auth import get_user_model
 from kubernetes import client
 from rest_framework.test import APIClient
 
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
@@ -157,3 +158,8 @@ def patch_user_viewset():
 def patch_get_dynamic_client():
     with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
         yield
+
+
+@pytest.fixture
+def ctx_cluster(cluster_id, project_id):
+    return CtxCluster.create(id=cluster_id, token=generate_random_string(12), project_id=project_id)
