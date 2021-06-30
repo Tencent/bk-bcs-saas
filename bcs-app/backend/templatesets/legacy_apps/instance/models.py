@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..configuration.models import BaseModel, Template, VersionedEntity
 from .constants import EventType, InsState
+from .manager import InstanceConfigManager, VersionInstanceManager
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class VersionInstance(BaseModel):
     # 添加用户可见版本
     show_version_id = models.IntegerField(_("用户可见版本ID"), default=0)
     show_version_name = models.CharField(_("用户可见版本Name"), max_length=255, default='')
+
+    objects = VersionInstanceManager()
 
     @property
     def get_entity(self):
@@ -116,6 +119,8 @@ class InstanceConfig(BaseModel):
     last_config = models.TextField(_("滚动升级前的配置"), default='', help_text=_('json格式'))
     # 保存变量信息
     variables = models.TextField(_("变量"), default='{}')
+
+    objects = InstanceConfigManager()
 
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
