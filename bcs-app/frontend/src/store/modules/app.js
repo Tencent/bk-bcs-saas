@@ -11,6 +11,7 @@
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
+import { sourceExpansion } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -1584,6 +1585,23 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * mesos 原地资源扩容
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async sourceExpansion (context, params, config = {}) {
+            const data = await sourceExpansion(params, config = {}).catch(() => ({
+                manifest: {},
+                manifest_ext: {}
+            }))
+            return data
         }
     }
 }

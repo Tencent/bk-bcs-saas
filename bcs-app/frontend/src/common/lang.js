@@ -180,6 +180,8 @@ export default {
     '确定删除【{instanceName}】？': ['Confirm to delete [{instanceName}]?'],
     '确定要强制删除【{instanceName}】？': ['Confirm to force delete [{instanceName}]?'],
     '确定重新创建【{instanceName}】？': ['Confirm to recreate [{instanceName}]?'],
+    '确定原地资源扩容【{instanceName}】？': ['Confirm the in-situ resource expansion [{instanceName}]?'],
+    '{instanceName}原地资源扩容': ['{instanceName} in-situ resource expansion'],
     '还未选择{tmplAppName}下的实例': ['No instances selected under {tmplAppName}'],
     '已选择 {len} 个实例，确定全部删除？': ['Selected {len} instances, Confirm to delete them?'],
     '还未选择{namespaceName}下的应用': ['No apps selected under {namespaceName}'],
