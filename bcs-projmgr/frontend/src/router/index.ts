@@ -176,10 +176,10 @@ const createRouter = (store: any) => {
     return router
 }
 
-function updateHeaderConfig ({ showProjectList, showNav }) {
+function updateHeaderConfig (meta: RouteMeta) {
     return {
-        showProjectList: showProjectList  || (window.currentPage && window.currentPage.show_project_list && typeof showProjectList === 'undefined'),
-        showNav: showNav || (window.currentPage && window.currentPage.show_nav  && typeof showNav === 'undefined')
+        showProjectList: meta.showProjectList || (window.currentPage && window.currentPage.show_project_list && typeof meta.showProjectList === 'undefined'),
+        showNav: meta.showNav || (window.currentPage && window.currentPage.show_nav && typeof meta.showNav === 'undefined')
     }
 }
 
