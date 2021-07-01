@@ -14,6 +14,7 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.container_service.clusters.base.utils import get_cluster
 from backend.container_service.clusters.tools import node
 
 
@@ -26,5 +27,6 @@ class NodeViewSets(SystemViewSet):
         cluster_nodes = node.query_cluster_nodes(request.ctx_cluster)
         bcs_cc_nodes = node.query_bcs_cc_nodes(request.ctx_cluster)
         # 组装数据
-        client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id)
+        cluster = get_cluster(request.user.token.access_token, request.project.project_id, cluster_id)
+        client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id, cluster.get("name", ""))
         return Response(client.nodes())
