@@ -22,6 +22,9 @@ export const fetchContainerEnvInfo = request('get', '/api/dashboard/projects/$pr
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
 
+// application
+export const sourceExpansion = request('put', '/api/app/mesos/projects/$projectId/clusters/$clusterId/namespaces/$namespace/instances/$application/')
+
 export default {
     stdLogs,
     stdLogsDownload,

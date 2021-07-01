@@ -156,7 +156,7 @@
                                                     <span class="key" :title="label.key">{{label.key}}</span>
                                                     <span class="value" :title="label.value">{{label.value}}</span>
                                                 </div>
-                                                <span v-if="row.showExpand" style="line-height: 32px;">...</span>
+                                                <span v-if="row.showExpand" style="position: relative; top: 8px;">...</span>
                                             </div>
                                         </div>
                                         <template slot="content">

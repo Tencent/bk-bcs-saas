@@ -232,6 +232,12 @@
                                 </div>
                                 <div class="right">{{maxNodePodNum}}</div>
                             </div>
+                            <div class="row" v-if="curClusterInPage.type === 'tke'">
+                                <div class="left">
+                                    <p>kube-proxy</p>
+                                </div>
+                                <div class="right">{{kubeProxy}}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -492,7 +498,8 @@
                 maxServiceNum: 0,
                 maxNodePodNum: 0,
                 vpcId: '--',
-                clusterCidr: ''
+                clusterCidr: '',
+                kubeProxy: '--'
             }
         },
         computed: {
@@ -612,6 +619,7 @@
                         this.maxServiceNum = data.max_service_num || '--'
                         this.maxNodePodNum = data.max_node_pod_num || '--'
                         this.vpcId = data.vpc_id || '--'
+                        this.kubeProxy = data.kube_proxy || '--'
                     }
 
                     this.fetchVariableInfo()

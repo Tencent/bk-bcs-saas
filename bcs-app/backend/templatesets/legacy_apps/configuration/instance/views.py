@@ -36,7 +36,7 @@ from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log.audit.context import AuditContext
-from backend.bcs_web.audit_log.constants import ActivityStatus
+from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.templatesets.legacy_apps.instance.serializers import (
@@ -324,6 +324,7 @@ class VersionInstanceView(viewsets.ViewSet):
                     resource_id=self.template_id,
                     extra=self.instance_entity,
                     description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name']),
+                    activity_type=ActivityType.Add,
                     activity_status=ActivityStatus.Succeed,
                 )
             ).log_raw()
@@ -361,6 +362,7 @@ class VersionInstanceView(viewsets.ViewSet):
                     resource_id=self.template_id,
                     extra=self.instance_entity,
                     description=description,
+                    activity_type=ActivityType.Add,
                     activity_status=ActivityStatus.Failed,
                 )
             ).log_raw()

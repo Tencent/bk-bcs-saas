@@ -194,13 +194,9 @@ def update_template(audit_ctx, username, template, tmpl_args):
     serializer = TemplateSLZ(template, data=tmpl_args)
     serializer.is_valid(raise_exception=True)
     # 记录操作日志
-    audit_ctx.update_fields(
-        resource=template.name,
-        resource_id=template.id,
-        extra=serializer.data,
-        description=_("更新模板集"),
-    )
+    audit_ctx.update_fields(resource=template.name, resource_id=template.id, description=_("更新模板集"))
     template = serializer.save(updator=username)
+    audit_ctx.update_fields(extra=serializer.data)
     return template
 
 
