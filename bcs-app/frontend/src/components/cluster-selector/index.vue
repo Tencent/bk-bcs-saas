@@ -121,7 +121,7 @@
             /**
              * 点击除自身元素外，关闭集群选择弹窗
              */
-            handleHideClusterSelector (e) {
+            handleHideClusterSelector () {
                 this.$emit('display-change', false)
             },
 
@@ -132,6 +132,7 @@
             handleToggleCluster (cluster) {
                 this.activeClusterId = cluster.cluster_id
                 this.handleSaveClusterInfo(cluster)
+                this.handleHideClusterSelector()
                 // 抛出选中的集群信息
                 this.$emit('change', cluster)
             },
