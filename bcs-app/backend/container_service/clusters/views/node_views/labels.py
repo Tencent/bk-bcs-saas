@@ -33,7 +33,7 @@ class NodeLabelsViewSet(SystemViewSet):
         """设置节点标签"""
         params = self.params_validate(NodeLabelListSLZ)
         try:
-            label.set_labels(request.ctx_cluster, params["node_labels_list"])
+            label.set_labels(request.ctx_cluster, params["node_label_list"])
         except AsyncRunException as e:
             raise error_codes.APIError(_("节点设置标签失败，{}").format(str(e)))
         return Response()

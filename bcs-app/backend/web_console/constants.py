@@ -63,6 +63,13 @@ NAMESPACE = "web-console"
 DEFAULT_COLS = 211
 DEFAULT_ROWS = 25
 
+# 默认命令, 可以优先使用bash, 如果没有, 回退到sh
+DEFAULT_COMMAND = [
+    '/bin/sh',
+    '-c',
+    'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',  # noqa
+]
+
 
 class WebConsoleMode(Enum):
     # 用户自己集群
