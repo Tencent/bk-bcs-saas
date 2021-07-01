@@ -4,14 +4,12 @@
 <head>
     <title>BCS Console / {{ title }}</title>
 
-    <link rel="stylesheet" href="{{ settings.SITE_STATIC_URL }}/assets/xterm/xterm.css" />
-    <link rel="stylesheet" src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/fullscreen/fullscreen.css" />
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/xterm.js"></script>
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/fit/fit.js"></script>
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/attach/attach.js"></script>
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/webLinks/webLinks.js"></script>
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/fullscreen/fullscreen.js"></script>
-    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/addons/winptyCompat/winptyCompat.js"></script>
+    <link rel="stylesheet" href="{{ settings.SITE_STATIC_URL }}/assets/xterm/css/xterm.css" />
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/lib/xterm.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/throttle-debounce.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/base64.min.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/jquery.min.js"></script>
 
     <style>
@@ -132,28 +130,38 @@
 
     <script>
         var session_url = "{% raw session_url %}"
-        Terminal.applyAddon(attach);
-        Terminal.applyAddon(fit);
-        Terminal.applyAddon(winptyCompat);
-        Terminal.applyAddon(webLinks);
-        Terminal.applyAddon(fullscreen)
-        var term = new Terminal({
-            "fontFamily": "Courier New, courier-new, courier, monospace",
+
+        const term = new Terminal({
+            fontFamily: "Courier New, courier-new, courier, monospace",
+            useStyle:   true,
+            cols:       180,
         });
+
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.loadAddon(new WebLinksAddon.WebLinksAddon());
+
         term.open(document.getElementById('terminal-container'));
-        term.winptyCompatInit();
-        term.webLinksInit()
-        term.fit();
-        // term.toggleFullScreen();
-        term.on('resize', function (size) {
-            set_pty_size(size, ws)
+
+        // debounce 200 毫秒, 减少 resize 事件多次触发问题
+        const debounceFit = throttleDebounce.debounce(200, false, function() {
+            fitAddon.fit();
+        })
+
+        term.onResize(function (size) {
+            data = JSON.stringify({cols: term.cols, rows: term.rows})
+            // set_pty_size()
+            if (typeof ws != "undefined") {
+                // RESIZE_CHANNEL = 4
+                ws.send('4' + Base64.encode(data));
+                console.log('set_pty_size: ' + data)
+            }
         });
-        function set_pty_size(size, ws) {
-            data = size.rows + ',' + size.cols
-            // RESIZE_CHANNEL = 4
-            ws.send('4' + data);
-            console.log('set_pty_size: ' + data)
-        }
+
+        window.onresize = function (event) {
+            debounceFit();
+        };
+
         term.attachCustomKeyEventHandler(function (e) {
             if (e.altKey && (e.code == 'KeyW')) {
                 event.preventDefault();
@@ -187,7 +195,9 @@
         //        console.log(event.keyCode); event.preventDefault();
         //    });
         // }
+
         function get_session_id() {
+            debounceFit()
             term.write('\x1b[32mLaunching BCS Console...\x1b[m');
             $.getJSON(session_url, function (result) {
                 if (result.code != 0) {
@@ -201,27 +211,29 @@
                 term.write("\x1b[31mLaunch Error: " + jqxhr.responseJSON.message + "\x1b[m\r\n");
             })
         }
-        window.onresize = function (event) {
-            term.fit();
-        };
+
         function ws_connect(ws_url) {
             // 初始化就指定rows & cols
             ws_url = ws_url + '&rows=' + term.rows + '&cols=' + term.cols
             ws = new WebSocket(ws_url);
+
             // term handler
-            term.on('data', function (data) {
+            term.onData(function (data) {
                 // STDIN_CHANNEL = 0
-                ws.send('0' + data);
+                ws.send('0' + Base64.encode(data));
             });
+
             ws.onmessage = function (e) {
-                obj = JSON.parse(e.data);
-                term.write(obj.data);
+                // obj = JSON.parse(e.data);
+                term.write(Base64.decode(e.data));
             };
+
             // websocket handler
             ws.onopen = function () {
                 term.reset();
                 term.focus();
             };
+
             ws.onclose = function (e) {
                 console.log("web_console on close: ", e)
                 if (e.reason != "") {
@@ -230,6 +242,7 @@
                 $("#disconnected").show();
             }
         }
+
         get_session_id()
 
         function focusTerminal() {
