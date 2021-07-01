@@ -57,10 +57,15 @@ class BCSClientBase(abc.ABC):
             self.post_connected()
             self.run()
 
+    def encode_console_msg(self, msg):
+        """前后端统一使用base64编码"""
+        encode_msg = base64.b64encode(smart_bytes(msg))
+        return encode_msg
+
     def post_connected(self):
         logger.info("bcs client connected, %s", self.msg_handler.user_pod_name)
-        msg = base64.b64encode(smart_bytes(hello_message(self.msg_handler.source)))
-        self.msg_handler.write_message(msg)
+        msg = hello_message(self.msg_handler.source)
+        self.msg_handler.write_message(self.encode_console_msg(msg))
         self.msg_handler.start_record()
         self.msg_handler.tick_timeout()
         self.set_pty_size(self.init_rows, self.init_cols)
@@ -148,7 +153,7 @@ class BCSClientBase(abc.ABC):
                 # 删除异常回车键
                 # msg = re.sub(r'[\b]+$', '\b', msg)
 
-                self.msg_handler.write_message(base64.b64encode(raw_msg))
+                self.msg_handler.write_message(self.encode_console_msg(raw_msg))
             except Exception as e:
                 logger.exception(e)
                 self.ws.close()
