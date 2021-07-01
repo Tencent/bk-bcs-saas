@@ -156,8 +156,8 @@
                     if (this.clusterList.length) {
                         const clusterIds = this.clusterList.map(item => item.id)
                         // 使用当前缓存
-                        if (localStorage['bcs-cluster'] && clusterIds.includes(localStorage['bcs-cluster'])) {
-                            this.searchClusterId = localStorage['bcs-cluster']
+                        if (this.curClusterId && clusterIds.includes(this.curClusterId)) {
+                            this.searchClusterId = this.curClusterId
                         } else {
                             this.searchClusterId = this.clusterList[0].cluster_id
                         }
@@ -326,8 +326,8 @@
             async refresh () {
                 this.pageConf.curPage = 1
                 this.searchKeyword = ''
-                if (localStorage['bcs-cluster']) {
-                    this.searchClusterId = localStorage['bcs-cluster']
+                if (this.curClusterId) {
+                    this.searchClusterId = this.curClusterId
                 } else {
                     this.searchClusterId = this.clusterList[0].cluster_id
                 }
