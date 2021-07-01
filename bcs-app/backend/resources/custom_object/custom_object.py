@@ -34,8 +34,8 @@ class CustomObject(ResourceClient):
 
 def _get_cobj_api_version(crd: ResourceInstance) -> str:
     # https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions
-    group = crd.spec.group
-    versions = crd.spec.versions
+    group = crd.data.spec.group
+    versions = crd.data.spec.versions
 
     if versions:
         for v in versions:
@@ -43,8 +43,8 @@ def _get_cobj_api_version(crd: ResourceInstance) -> str:
                 return f"{group}/{v.name}"
         return f"{group}/{versions[0].name}"
 
-    if crd.spec.version:
-        return f"{group}/{crd.spec.version}"
+    if crd.data.spec.version:
+        return f"{group}/{crd.data.spec.version}"
 
     return f"{group}/v1alpha1"
 
@@ -53,5 +53,5 @@ def get_cobj_client_by_crd(ctx_cluster: CtxCluster, crd_name: str) -> CustomObje
     crd_client = CustomResourceDefinition(ctx_cluster)
     crd = crd_client.get(name=crd_name, is_format=False)
     if crd:
-        return CustomObject(ctx_cluster, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
+        return CustomObject(ctx_cluster, kind=crd.data.spec.names.kind, api_version=_get_cobj_api_version(crd.data))
     raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(ctx_cluster.id, crd_name))

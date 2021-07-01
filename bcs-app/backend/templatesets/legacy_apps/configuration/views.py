@@ -17,18 +17,21 @@ import time
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import generics, viewsets
+from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
+from backend.bcs_web.audit_log.constants import ActivityType
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.templatesets.legacy_apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
 
 from . import serializers_new
+from .auditor import TemplatesetAuditor
 from .mixins import TemplatePermission
 from .models import (
     Template,
@@ -94,10 +97,9 @@ class TemplatesView(APIView):
         )
 
 
-class CreateTemplateDraftView(APIView, TemplatePermission):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def post(self, request, project_id, template_id):
+class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
+    @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Add)
+    def create_draft(self, request, project_id, template_id):
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
             tpl_args = request.data.get("template", {})
@@ -114,16 +116,10 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
         serializer.save(draft_updator=request.user.username)
 
         validated_data = serializer.validated_data
-        # 记录操作日志
-        client.ContextActivityLogClient(
-            project_id=template.project_id,
-            user=request.user.username,
-            resource_type="template",
-            resource=template.name,
-            resource_id=template.id,
-            extra=json.dumps(validated_data),
-            description=_("保存草稿"),
-        ).log_modify()
+
+        request.audit_ctx.update_fields(
+            resource=template.name, resource_id=template.id, extra=validated_data, description=_("保存草稿")
+        )
 
         return Response(
             {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"]}
@@ -254,41 +250,31 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         return Response({"id": resource_id, "version": new_ventity.id})
 
 
-class LockTemplateView(viewsets.ViewSet, TemplatePermission):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
+class LockTemplateView(SystemViewSet, TemplatePermission):
+    @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Add)
     def lock_template(self, request, project_id, template_id):
         template = get_template_by_project_and_id(project_id, template_id)
         self.validate_template_locked(request, template)
 
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="template",
-            resource=template.name,
-            resource_id=template_id,
-            description=_("加锁模板集"),
-        ).log_add():
-            template.is_locked = True
-            template.locker = request.user.username
-            template.save()
+        request.audit_ctx.update_fields(resource=template.name, resource_id=template_id, description=_("加锁模板集"))
+
+        template.is_locked = True
+        template.locker = request.user.username
+        template.save()
+
         return Response(data={})
 
+    @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Delete)
     def unlock_template(self, request, project_id, template_id):
         template = get_template_by_project_and_id(project_id, template_id)
         self.validate_template_locked(request, template)
 
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="template",
-            resource=template.name,
-            resource_id=template_id,
-            description=_("解锁模板集"),
-        ).log_delete():
-            template.is_locked = False
-            template.locker = ""
-            template.save()
+        request.audit_ctx.update_fields(resource=template.name, resource_id=template_id, description=_("解锁模板集"))
+
+        template.is_locked = False
+        template.locker = ""
+        template.save()
+
         return Response(data={})
 
 
@@ -315,7 +301,7 @@ class TempalteResourceView(generics.RetrieveAPIView):
 
 
 # TODO refactor
-class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
+class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers_new.TemplateSLZ
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
@@ -323,22 +309,17 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         return Template.objects.filter(project_id=self.project_id, id=self.pk)
 
     def get_serializer_context(self):
-        context = super(SingleTempalteView, self).get_serializer_context()
+        context = super(SingleTemplateView, self).get_serializer_context()
         context.update({"request": self.request})
         return context
 
+    @log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
     def perform_update(self, serializer):
+        self.audit_ctx.update_fields(
+            user=self.request.user.username, project_id=self.project_id, description=_("更新模板集")
+        )
         instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
-        # 记录操作日志
-        client.ContextActivityLogClient(
-            project_id=self.project_id,
-            user=self.request.user.username,
-            resource_type="template",
-            resource=instance.name,
-            resource_id=instance.id,
-            extra=json.dumps(serializer.data),
-            description=_("更新模板集"),
-        ).log_modify()
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, extra=serializer.data)
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
 
@@ -367,7 +348,8 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
 
         self.slz = serializers_new.UpdateTemplateSLZ(data=request.data)
         self.slz.is_valid(raise_exception=True)
-        return super(SingleTempalteView, self).update(self.slz)
+
+        return super(SingleTemplateView, self).update(self.slz)
 
     def get(self, request, project_id, pk):
         self.request = request
@@ -388,6 +370,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         data_list = perm.hook_perms([data])
         return Response({"code": 0, "message": "OK", "data": data_list[0]})
 
+    @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Delete)
     def delete(self, request, project_id, pk):
         self.request = request
         self.project_id = project_id
@@ -405,24 +388,19 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         if exist_version:
             return Response({"code": 400, "message": _("模板集已经被实例化过，不能被删除"), "data": {}})
         instance = self.get_queryset().first()
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="template",
-            resource=instance.name,
-            resource_id=instance.id,
-            description=_("删除模板集"),
-        ).log_delete():
-            # 删除后名称添加 [deleted]前缀
-            _del_prefix = "[deleted_%s]" % int(time.time())
-            del_tem_name = "%s%s" % (_del_prefix, instance.name)
-            self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
-            # 直接调用delete删除权限中心的资源
-            perm.delete()
+
+        request.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, description=_("删除模板集"))
+
+        # 删除后名称添加 [deleted]前缀
+        _del_prefix = f"[deleted_{int(time.time())}]"
+        del_tem_name = f"{_del_prefix}{instance.name}"
+        self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
+        # 直接调用delete删除权限中心的资源
+        perm.delete()
 
         return Response({"code": 0, "message": "OK", "data": {"id": pk}})
-        # return super(SingleTempalteView, self).delete(self, request)
 
+    @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Add)
     @transaction.atomic
     def put(self, request, project_id, pk):
         """复制模板"""
@@ -456,14 +434,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         # 注册资源到权限中心
         perm.register(template_id, new_template_name)
         # 记录操作日志
-        client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="template",
-            resource=new_template_name,
-            resource_id=template_id,
-            description=_("复制模板集"),
-        ).log_add()
+        request.audit_ctx.update_fields(resource=new_template_name, resource_id=template_id, description=_("复制模板集"))
         return Response(
             {
                 "code": 0,

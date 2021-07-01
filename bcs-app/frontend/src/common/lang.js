@@ -180,11 +180,15 @@ export default {
     '确定删除【{instanceName}】？': ['Confirm to delete [{instanceName}]?'],
     '确定要强制删除【{instanceName}】？': ['Confirm to force delete [{instanceName}]?'],
     '确定重新创建【{instanceName}】？': ['Confirm to recreate [{instanceName}]?'],
+    '确定原地资源扩容【{instanceName}】？': ['Confirm the in-situ resource expansion [{instanceName}]?'],
+    '{instanceName}原地资源扩容': ['{instanceName} in-situ resource expansion'],
     '还未选择{tmplAppName}下的实例': ['No instances selected under {tmplAppName}'],
     '已选择 {len} 个实例，确定全部删除？': ['Selected {len} instances, Confirm to delete them?'],
     '还未选择{namespaceName}下的应用': ['No apps selected under {namespaceName}'],
     '确定要取消{tmplAppName}实例化操作？': ['Confirm to cancel the {tmplAppName} instantiation?'],
     '创建时间：': ['Create Time：'],
+    '存在时间：': ['Existence Time：'],
+    '注释': ['annotation'],
     '更新时间：': ['Update Time：'],
     '所在命名空间：': ['Namespace：'],
     'Taskgroup管理': ['Taskgroup manage'],
@@ -1892,7 +1896,9 @@ export default {
     '支持 Prometheus 格式的 Metric': ['Support for Metric in Prometheus format'],
     '所属集群: ': ['Cluster: '],
     '命名空间: ': ['Namespace: '],
-    '标签有助于整理你的资源（如 env:prod）': ['Tags help organize your resources (like env:prod)']
+    '标签有助于整理你的资源（如 env:prod）': ['Tags help organize your resources (like env:prod)'],
+    '当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)': ['Under the current container network configuration, the cluster has at most {count} nodes (including Master and Node)'],
+    '最少选择三个服务器': ['Choose at least three servers']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

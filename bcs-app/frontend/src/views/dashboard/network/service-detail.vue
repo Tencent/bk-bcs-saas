@@ -35,7 +35,7 @@
             </div>
             <div class="basic-info-item">
                 <label>{{ $t('存在时间') }}</label>
-                <span>{{ extData.updateTime }}</span>
+                <span>{{ extData.age }}</span>
             </div>
         </div>
         <!-- 配置、标签、注解 -->
@@ -47,7 +47,11 @@
                     <bk-table-column label="Port" prop="port"></bk-table-column>
                     <bk-table-column label="Protocol" prop="protocol"></bk-table-column>
                     <bk-table-column label="TargetPort" prop="targetPort"></bk-table-column>
-                    <bk-table-column label="NodePort" prop="nodePort"></bk-table-column>
+                    <bk-table-column label="NodePort" prop="nodePort">
+                        <template #default="{ row }">
+                            {{ row.nodePort || '--' }}
+                        </template>
+                    </bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="label" :label="$t('标签')">
@@ -102,5 +106,5 @@
     })
 </script>
 <style lang="postcss" scoped>
-@import './detail.css'
+@import './network-detail.css'
 </style>

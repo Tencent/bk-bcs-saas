@@ -676,7 +676,8 @@
                                                 <span @click="handleChangeImageMode">
                                                     <bk-switcher
                                                         :selected="curContainer.webCache.isImageCustomed"
-                                                        size="small">
+                                                        size="small"
+                                                        :key="curContainer.name">
                                                     </bk-switcher>
                                                 </span>
                                                 <span class="vm">{{$t('使用自定义镜像')}}</span>
@@ -746,6 +747,7 @@
                                                         :is-select-mode="true"
                                                         :default-list="imageVersionList"
                                                         :disabled="!curContainer.webCache.imageName"
+                                                        :key="imageVersionKey"
                                                         @item-selected="setImageVersion">
                                                     </bk-combox>
                                                 </div>
@@ -1902,7 +1904,8 @@
                 isMorePanelShow: false,
                 isPodPanelShow: false,
                 strategy: 'Cluster',
-                curApplicationCache: null
+                curApplicationCache: null,
+                imageVersionKey: new Date().getTime()
             }
         },
         computed: {
@@ -3280,6 +3283,7 @@
                 } else if (data.deployment && data.deployment.length) {
                     this.setCurApplication(data.deployment[0], 0)
                 }
+                this.imageVersionKey = new Date().getTime()
             },
 
             exportToYaml (data) {

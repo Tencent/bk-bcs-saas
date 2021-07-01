@@ -21,7 +21,7 @@ class TestSubscribe:
         """ 测试获取资源列表接口 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/subscribe/'
-            + '?kind=Deployment&resource_version=206736'
+            + '?kind=Deployment&resource_version=0'
         )
         assert response.json()['code'] == 0
         response_key = response.json()['data'].keys()

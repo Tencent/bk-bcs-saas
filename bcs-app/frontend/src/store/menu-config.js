@@ -109,6 +109,23 @@ export default function menuConfig () {
                 ]
             },
             {
+                name: resource,
+                isSaveData: true,
+                icon: 'bcs-icon-zy-resource',
+                roleId: 'resource:menu',
+                children: [
+                    {
+                        name: 'ConfigMaps',
+                        pathName: ['dashboardConfigsConfigMaps']
+                    },
+                    {
+                        name: 'Secrets',
+                        pathName: ['dashboardConfigsSecrets']
+                    }
+                ],
+                id: 'CONFIGURATION'
+            },
+            {
                 name: storage,
                 isSaveData: true,
                 icon: 'bcs-icon-data',
@@ -128,23 +145,6 @@ export default function menuConfig () {
                     }
                 ],
                 id: 'STORAGE'
-            },
-            {
-                name: resource,
-                isSaveData: true,
-                icon: 'bcs-icon-zy-resource',
-                roleId: 'resource:menu',
-                children: [
-                    {
-                        name: 'ConfigMaps',
-                        pathName: ['dashboardConfigsConfigMaps']
-                    },
-                    {
-                        name: 'Secrets',
-                        pathName: ['dashboardConfigsSecrets']
-                    }
-                ],
-                id: 'CONFIGURATION'
             },
             {
                 name: 'RBAC',

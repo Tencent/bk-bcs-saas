@@ -18,7 +18,7 @@
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
                 <cluster-selector v-model="isShowClusterSelector" :cluster-list="clusterList" @change="handleChangeCluster" />
             </div>
-            <div class="resouce-toggle" v-if="(curClusterInfo.cluster_id && isShowDashboard) || curViewType === 'dashboard'">
+            <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
                     :key="item.id"
                     :class="['tab', { active: curViewType === item.id }]"
@@ -213,8 +213,7 @@
                         id: 'dashboard',
                         name: this.$t('资源视图')
                     }
-                ],
-                isShowDashboard: false
+                ]
             }
         },
         computed: {
@@ -288,10 +287,11 @@
         },
         watch: {
             '$route' (to, from) {
-                if (!['imageDetail', 'dashboardWorkloadDetail'].includes(to.name)) {
+                if (!['imageDetail'].includes(to.name)) {
                     this.$store.dispatch('updateMenuListSelected', {
                         isDashboard: this.$route.meta.isDashboard,
                         pathName: to.name,
+                        category: to.params.category,
                         idx: 'bcs'
                     })
                 }
@@ -300,6 +300,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
+                    category: this.$route.params.category,
                     idx: 'bcs'
                 })
             },
@@ -307,6 +308,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
+                    category: this.$route.params.category,
                     idx: 'bcs'
                 })
             }
@@ -361,10 +363,6 @@
                 }
             })
             await this.getProject()
-        },
-        mounted () {
-            const arr = ['b37778ec757544868a01e1f01f07037f', '3f4e1f7616fa49b7891fb809b19ab23f', '5805f1b824134fa39318fb0cf59f694b']
-            this.isShowDashboard = arr.indexOf(this.projectId) > -1
         },
         methods: {
             /**

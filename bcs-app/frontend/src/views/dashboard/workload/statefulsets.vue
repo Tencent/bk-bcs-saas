@@ -13,16 +13,11 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column :label="$t('镜像')" prop="extraFE.images" width="450" :resizable="false">
+                <bk-table-column :label="$t('镜像')" prop="extraFE.images" width="450" :resizable="false" :show-overflow-tooltip="false">
                     <template slot-scope="{ row }">
-                        <div class="images-wrapper">
-                            <div class="image-item"
-                                :title="image"
-                                v-for="(image, imageIndex) in handleGetExtData(row.metadata.uid, 'images')"
-                                :key="imageIndex">
-                                {{image}}
-                            </div>
-                        </div>
+                        <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
+                            {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
+                        </span>
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Ready" width="110" :resizable="false">

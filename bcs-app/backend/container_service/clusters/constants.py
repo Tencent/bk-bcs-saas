@@ -207,3 +207,9 @@ class NodeConditionType(str, StructuredEnum):
     DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
     PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
     NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")
+
+
+# Kube-proxy代理模式
+class KubeProxy(str, StructuredEnum):
+    IPTABLES = EnumField("iptables")
+    IPVS = EnumField("ipvs")

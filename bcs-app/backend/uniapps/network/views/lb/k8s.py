@@ -23,23 +23,20 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.bcs_web.audit_log import client as log_client
-from backend.components.bcs import k8s
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base import utils as cluster_utils
-from backend.container_service.clusters.constants import DEFAULT_SYSTEM_LABEL_KEYS
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.models import NodeLabel
-from backend.container_service.clusters.serializers import NodeLabelSLZ, NodeLabelUpdateSLZ
+from backend.container_service.clusters.serializers import NodeLabelSLZ
 from backend.helm.app.models import App
-from backend.helm.app.views import AppViewBase
-from backend.helm.helm.models import Chart, ChartVersion
-from backend.resources.namespace import namespace
+from backend.helm.helm.models import ChartVersion
+from backend.resources.namespace import Namespace
 from backend.resources.namespace import utils as ns_utils
 from backend.uniapps.application.utils import APIResponse
 from backend.uniapps.network import constants, serializers
 from backend.uniapps.network.constants import K8S_LB_CHART_NAME, K8S_LB_LABEL, K8S_LB_NAMESPACE
 from backend.uniapps.network.models import K8SLoadBlance
 from backend.uniapps.network.serializers import NginxIngressSLZ, UpdateK8SLoadBalancerSLZ
-from backend.uniapps.network.utils import render_helm_values
 from backend.uniapps.network.views.charts.releases import HelmReleaseMixin
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
@@ -194,11 +191,8 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
 
     def get_or_create_namespace(self, request, project_id, cluster_id):
         """创建bcs-system命名空间，如果不存在，则创建；如果存在，则直接返回数据"""
-        ns_client = namespace.Namespace(request.user.token.access_token, project_id, cluster_id)
-        ns_info = ns_client.get_namespace(K8S_LB_NAMESPACE)
-        if not ns_info:
-            ns_info = ns_client.create_namespace(request.user.username, K8S_LB_NAMESPACE)
-        return ns_info
+        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, id=cluster_id, project_id=project_id)
+        return Namespace(ctx_cluster).get_or_create_cc_namespace(K8S_LB_NAMESPACE, request.user.username)
 
     @transaction.atomic
     def pre_create(self, request, data):

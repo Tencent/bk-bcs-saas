@@ -21,8 +21,8 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.pod.constants import LogFilter
-from backend.resources.pod.log import LogClient
+from backend.resources.workloads.pod.constants import LogFilter
+from backend.resources.workloads.pod.log import LogClient
 from backend.web_console.session import session_mgr
 
 from . import constants, serializers, utils

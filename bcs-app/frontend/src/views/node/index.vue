@@ -156,7 +156,7 @@
                                                     <span class="key" :title="label.key">{{label.key}}</span>
                                                     <span class="value" :title="label.value">{{label.value}}</span>
                                                 </div>
-                                                <span v-if="row.showExpand" style="line-height: 32px;">...</span>
+                                                <span v-if="row.showExpand" style="position: relative; top: 8px;">...</span>
                                             </div>
                                         </div>
                                         <template slot="content">
@@ -423,7 +423,7 @@
             async getClusters () {
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
-                    const list = res.data.results || []
+                    const list = JSON.parse(JSON.stringify(res.data.results || []))
                     this.$store.commit('cluster/forceUpdateClusterList', list)
                     if (this.curClusterId) {
                         const match = list.find(item => {

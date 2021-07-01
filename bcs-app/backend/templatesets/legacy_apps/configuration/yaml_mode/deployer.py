@@ -13,8 +13,11 @@
 #
 import json
 
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.utils.client import KubectlClient
+
+from ..auditor import TemplatesetAuditor
 
 
 class DeployController:
@@ -27,30 +30,24 @@ class DeployController:
             user.token.access_token, release_data.project_id, release_data.namespace_info['cluster_id']
         )
 
-    def _log_activity(self, status, msg=''):
+    def _update_audit_ctx(self, activity_type: str):
         show_version = self.release_data.show_version
         template = show_version.related_template
-
-        if status == 'succeed':
-            description = f'deploy template [{template.name}] in ns [{self.namespace}] success'
-        else:
-            description = f'deploy template [{template.name}] in ns [{self.namespace}] failed: {msg}'
 
         extra = {}
         for res_file in self.release_data.template_files:
             files_ids = [str(f['id']) for f in res_file['files']]
             extra[res_file['resource_name']] = ','.join(files_ids)
 
-        log_params = {
-            'project_id': self.release_data.project_id,
-            'user': self.username,
-            'resource_type': 'template',
-            'resource': template.name,
-            'resource_id': template.id,
-            'extra': json.dumps(extra),
-            'description': description,
-        }
-        client.ContextActivityLogClient(**log_params).log_add(activity_status=status)
+        self.audit_ctx.update_fields(
+            project_id=self.release_data.project_id,
+            user=self.username,
+            activity_type=activity_type,
+            resource=template.name,
+            resource_id=template.id,
+            description=f'deploy template [{template.name}] in ns [{self.namespace}]',
+            extra=extra,
+        )
 
     def _to_manifests(self):
         template_files = self.release_data.template_files
@@ -59,18 +56,15 @@ class DeployController:
             manifest_list += [f['content'] for f in res_file['files']]
         return '---\n'.join(manifest_list)
 
+    @log_audit(TemplatesetAuditor)
     def _run_with_kubectl(self, operation):
-        try:
-            manifests = self._to_manifests()
-            if operation == 'apply':
-                self.kubectl.apply(self.namespace, manifests)
-            elif operation == 'delete':
-                self.kubectl.delete(self.namespace, manifests)
-        except Exception as e:
-            self._log_activity('failed', str(e))
-            raise
-        else:
-            self._log_activity('succeed')
+        manifests = self._to_manifests()
+        if operation == 'apply':
+            self._update_audit_ctx(activity_type=ActivityType.Modify)
+            self.kubectl.apply(self.namespace, manifests)
+        elif operation == 'delete':
+            self._update_audit_ctx(activity_type=ActivityType.Delete)
+            self.kubectl.delete(self.namespace, manifests)
 
     def apply(self):
         self._run_with_kubectl('apply')

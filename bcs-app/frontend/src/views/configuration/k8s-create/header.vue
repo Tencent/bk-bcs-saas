@@ -1447,24 +1447,22 @@
                         const services = this.services
                         // 对service资源数据检测
                         for (const service of services) {
-                            if (service.isEdited) {
-                                const isValid = await this.checkServiceData(service)
-                                if (isValid) {
-                                    const result = await this.saveService(service)
-                                    this.$store.state.k8sTemplate.services.forEach(service => {
-                                        if (service.id === result.id) {
-                                            service.cache.deploy_tag_list = service.deploy_tag_list
-                                        }
-                                    })
-                                    if (result) {
-                                        this.$store.commit('k8sTemplate/updateBindVersion', true)
-                                        if (result.template_id) {
-                                            this.newTemplateId = result.template_id
-                                            this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
-                                        }
+                            const isValid = await this.checkServiceData(service)
+                            if (isValid) {
+                                const result = await this.saveService(service)
+                                this.$store.state.k8sTemplate.services.forEach(service => {
+                                    if (service.id === result.id) {
+                                        service.cache.deploy_tag_list = service.deploy_tag_list
                                     }
-                                    return true
+                                })
+                                if (result) {
+                                    this.$store.commit('k8sTemplate/updateBindVersion', true)
+                                    if (result.template_id) {
+                                        this.newTemplateId = result.template_id
+                                        this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
+                                    }
                                 }
+                                return true
                             }
                         }
                         break
@@ -3330,15 +3328,15 @@
                         return false
                     }
 
-                    if (!nameReg.test(rule.host)) {
-                        megPrefix += this.$t('{host}的规则主机名：', { host: rule.host })
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
-                            delay: 8000
-                        })
-                        return false
-                    }
+                    // if (!nameReg.test(rule.host)) {
+                    //     megPrefix += this.$t('{host}的规则主机名：', { host: rule.host })
+                    //     this.$bkMessage({
+                    //         theme: 'error',
+                    //         message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
+                    //         delay: 8000
+                    //     })
+                    //     return false
+                    // }
 
                     const paths = rule.http.paths
 

@@ -7,38 +7,36 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                <bk-table-column :label="$t('名称')" min-width="130" prop="metadata.name" sortable :resizable="false">
                     <template #default="{ row }">
                         <bk-button class="bcs-button-ellipsis" text @click="gotoDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column :label="$t('镜像')" width="450" :resizable="false">
+                <bk-table-column :label="$t('命名空间')" width="150" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('镜像')" min-width="200" :resizable="false" :show-overflow-tooltip="false">
                     <template slot-scope="{ row }">
-                        <div class="images-wrapper">
-                            <div class="image-item"
-                                :title="image"
-                                v-for="(image, imageIndex) in handleGetExtData(row.metadata.uid, 'images')"
-                                :key="imageIndex">
-                                {{image}}
-                            </div>
-                        </div>
+                        <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
+                            {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
+                        </span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Status" :resizable="false">
+                <bk-table-column label="Status" width="120" :resizable="false">
                     <template slot-scope="{ row }">
                         <StatusIcon :status="handleGetExtData(row.metadata.uid, 'status')"></StatusIcon>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Ready" width="110" :resizable="false">
+                <bk-table-column label="Ready" width="100" :resizable="false">
                     <template slot-scope="{ row }">
                         {{handleGetExtData(row.metadata.uid, 'readyCnt')}}/{{handleGetExtData(row.metadata.uid, 'totalCnt')}}
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Restarts" width="110" :resizable="false">
+                <bk-table-column label="Restarts" width="100" :resizable="false">
                     <template slot-scope="{ row }">{{handleGetExtData(row.metadata.uid, 'restartCnt')}}</template>
                 </bk-table-column>
-                <bk-table-column label="IP" :resizable="false">
+                <bk-table-column label="Host IP" width="140" :resizable="false">
+                    <template slot-scope="{ row }">{{row.status.hostIP || '--'}}</template>
+                </bk-table-column>
+                <bk-table-column label="Pod IP" width="140" :resizable="false">
                     <template slot-scope="{ row }">{{row.status.podIP || '--'}}</template>
                 </bk-table-column>
                 <bk-table-column label="Node" :resizable="false">

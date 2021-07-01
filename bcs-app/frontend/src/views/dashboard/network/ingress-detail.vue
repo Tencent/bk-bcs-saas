@@ -19,7 +19,7 @@
             </div>
             <div class="basic-info-item">
                 <label>Hosts</label>
-                <span>{{ extData.hosts.join('/') || '--' }}</span>
+                <span>{{ extData.hosts.join('/') || '*' }}</span>
             </div>
             <div class="basic-info-item">
                 <label>Address</label>
@@ -35,23 +35,27 @@
             </div>
             <div class="basic-info-item">
                 <label>{{ $t('存在时间') }}</label>
-                <span>{{ extData.updateTime }}</span>
+                <span>{{ extData.age }}</span>
             </div>
         </div>
         <!-- 配置、标签、注解 -->
-        <bcs-tab class="mt20" :label-height="40">
+        <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="config" :label="$t('配置')">
                 <p class="detail-title">{{ $t('主机列表') }}（spec.tls）</p>
                 <bk-table :data="data.spec.tls" class="mb20">
-                    <bk-table-column label="Hosts" prop="hosts"></bk-table-column>
+                    <bk-table-column label="Hosts" prop="hosts">
+                        <template #default="{ row }">
+                            {{ (row.hosts || []).join(', ') }}
+                        </template>
+                    </bk-table-column>
                     <bk-table-column label="SecretName" prop="secretName"></bk-table-column>
                 </bk-table>
                 <p class="detail-title">{{ $t('规则') }}（spec.rules）</p>
-                <bk-table :data="data.spec.rules">
-                    <bk-table-column label="Host" prop="hosts"></bk-table-column>
-                    <bk-table-column label="Path"></bk-table-column>
-                    <bk-table-column label="ServiceName"></bk-table-column>
-                    <bk-table-column label="Port"></bk-table-column>
+                <bk-table :data="extData.rules">
+                    <bk-table-column label="Host" prop="host"></bk-table-column>
+                    <bk-table-column label="Path" prop="path"></bk-table-column>
+                    <bk-table-column label="ServiceName" prop="serviceName"></bk-table-column>
+                    <bk-table-column label="Port" prop="port"></bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="label" :label="$t('标签')">
@@ -86,7 +90,7 @@
                 default: () => ({})
             }
         },
-        setup (props, ctx) {
+        setup () {
             const handleTransformObjToArr = (obj) => {
                 if (!obj) return []
 
@@ -106,5 +110,5 @@
     })
 </script>
 <style lang="postcss" scoped>
-@import './detail.css';
+@import './network-detail.css';
 </style>

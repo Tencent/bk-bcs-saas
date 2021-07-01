@@ -75,7 +75,7 @@
                                                             <span class="value">{{label.value}}</span>
                                                         </template>
                                                     </div>
-                                                    <span v-if="row.showExpand" style="line-height: 32px;">...</span>
+                                                    <span v-if="row.showExpand" style="position: relative; top: 8px;">...</span>
                                                 </div>
                                             </div>
                                             <template slot="content">
@@ -721,18 +721,16 @@
                 immediate: true,
                 handler (val) {
                     if (val) {
-                        setTimeout(() => {
-                            if (this.searchScopeList.length) {
-                                const clusterIds = this.searchScopeList.map(item => item.id)
-                                // 使用当前缓存
-                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
-                                    this.searchScope = sessionStorage['bcs-cluster']
-                                } else {
-                                    this.searchScope = this.searchScopeList[1].id
-                                }
+                        if (this.searchScopeList.length) {
+                            const clusterIds = this.searchScopeList.map(item => item.id)
+                            // 使用当前缓存
+                            if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
+                                this.searchScope = sessionStorage['bcs-cluster']
+                            } else {
+                                this.searchScope = this.searchScopeList[1].id
                             }
-                            this.fetchNamespaceList()
-                        }, 1000)
+                        }
+                        this.fetchNamespaceList()
                     }
                 }
             },
@@ -917,10 +915,9 @@
                 this.isPageLoading = true
                 setTimeout(() => {
                     this.curPageData.forEach((item, index) => {
-                        const fake = this.$refs[`${this.pageConf.curPage}-fake${index}`]
                         const real = this.$refs[`${this.pageConf.curPage}-real${index}`]
-                        if (fake && real && fake[0] && real[0]) {
-                            if (fake[0].offsetHeight > real[0].offsetHeight * 2) {
+                        if (real) {
+                            if (real.offsetHeight > 24 + 5) {
                                 item.showExpand = true
                             }
                         }

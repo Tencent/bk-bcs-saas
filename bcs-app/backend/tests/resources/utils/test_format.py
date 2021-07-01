@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.resources.utils.format import InstanceAccessor, ResourceDefaultFormatter
+from backend.resources.utils.format import ResourceDefaultFormatter
 
 
 @pytest.fixture
@@ -51,8 +51,3 @@ class TestResourceDefaultFormatter:
         assert formatted_data['resourceName'] == 'demo-pod'
         assert formatted_data['namespace'] == 'demo-pod-ns'
         assert formatted_data['data']['metadata']['annotations'] == {}
-
-
-class TestInstanceAccessor:
-    def test_normal(self, pod_resource):
-        assert InstanceAccessor(pod_resource).name == 'demo-pod'

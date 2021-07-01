@@ -444,6 +444,8 @@ export const chartColors = [
  * @return {str} 格式化后的日期
  */
 export function formatDate (date, formatStr = 'YYYY-MM-DD hh:mm:ss') {
+    if (!date) return ''
+
     const dateObj = new Date(date)
     const o = {
         'M+': dateObj.getMonth() + 1, // 月份
@@ -564,4 +566,29 @@ export const sort = (arr, key, order = 'ascending') => {
         return (`${pre}`).toString().localeCompare((`${pre}`))
     })
     return order === 'ascending' ? data : data.reverse()
+}
+
+// 格式化时间
+export const formatTime = (timestamp, fmt) => {
+    const time = new Date(timestamp)
+    const opt = {
+        "M+": time.getMonth() + 1, // 月份
+        "d+": time.getDate(), // 日
+        "h+": time.getHours(), // 小时
+        "m+": time.getMinutes(), // 分
+        "s+": time.getSeconds(), // 秒
+        "q+": Math.floor((time.getMonth() + 3) / 3), // 季度
+        "S": time.getMilliseconds() // 毫秒
+    }
+    if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (time.getFullYear() + "").substr(4 - RegExp.$1.length))
+    }
+    for (const k in opt) {
+        if (new RegExp("(" + k + ")").test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1)
+                ? opt[k]
+                : (`00${opt[k]}`).substr(String(opt[k]).length))
+        }
+    }
+    return fmt
 }

@@ -3,6 +3,7 @@ import { defineComponent, ref, computed, PropType, watch, onMounted } from '@vue
 import AnsiParser from '../common/ansi-parser'
 import TransformStringPixel from '../common/transform-string-pixel'
 import { debounce } from 'throttle-debounce'
+import { formatTime } from '@/common/util'
 import '../style/log.scss'
 
 export interface ILogData {
@@ -135,30 +136,6 @@ export default defineComponent({
             const index = hoverIds.value.findIndex(time => data.time === time)
             index > -1 && hoverIds.value.splice(index, 1)
         }
-        // 格式化时间
-        const handleFormatTime = (timestamp: number, fmt: string) => {
-            const time = new Date(timestamp)
-            const opt = {
-                "M+": time.getMonth() + 1, // 月份
-                "d+": time.getDate(), // 日
-                "h+": time.getHours(), // 小时
-                "m+": time.getMinutes(), // 分
-                "s+": time.getSeconds(), // 秒
-                "q+": Math.floor((time.getMonth() + 3) / 3), // 季度
-                "S": time.getMilliseconds() // 毫秒
-            }
-            if (/(y+)/.test(fmt)) {
-                fmt = fmt.replace(RegExp.$1, (time.getFullYear() + "").substr(4 - RegExp.$1.length))
-            }
-            for (const k in opt) {
-                if (new RegExp("(" + k + ")").test(fmt)) {
-                    fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1)
-                        ? (opt as any)[k]
-                        : (`00${(opt as any)[k]}`).substr(String((opt as any)[k]).length))
-                }
-            }
-            return fmt
-        }
 
         const lastText = computed(() => {
             return showLastContainer.value ? ctx.root.$i18n.t('返回最新日志') : ctx.root.$i18n.t('最近一次重启日志')
@@ -197,7 +174,7 @@ export default defineComponent({
             lastText,
             handleMouseEnter,
             handleMouseleave,
-            handleFormatTime,
+            formatTime,
             initStatus,
             scrollIntoIndex,
             handleToggleLast,
@@ -243,7 +220,7 @@ export default defineComponent({
                                             ? (
                                                 <span class="log-item-time mr5">
                                                     {
-                                                        `[${this.handleFormatTime(data.time, 'yyyy-MM-dd hh:mm:ss')}]`
+                                                        `[${this.formatTime(data.time, 'yyyy-MM-dd hh:mm:ss')}]`
                                                     }
                                                 </span>
                                             )
