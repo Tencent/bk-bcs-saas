@@ -435,11 +435,12 @@
                         this.curSelectedClusterName = list.length ? list[0].name : this.$t('全部集群')
                         this.curSelectedClusterId = list.length ? list[0].cluster_id : 'all'
                     }
-
-                    list.unshift({
-                        name: this.$t('全部集群'),
-                        cluster_id: 'all'
-                    })
+                    if (this.isMesosProject) {
+                        list.unshift({
+                            name: this.$t('全部集群'),
+                            cluster_id: 'all'
+                        })
+                    }
 
                     this.clusterList.splice(0, this.clusterList.length, ...list)
                 } catch (e) {
@@ -456,12 +457,8 @@
                 this.curSelectedClusterName = cluster.name
                 this.curSelectedClusterId = clusterId
                 this.pageConf.current = 1
-                if (this.isMesosProject) {
-                    this.showLoading = true
-                    await this.fetchData(true)
-                } else {
-                    this.searchNodeList()
-                }
+                this.showLoading = true
+                await this.fetchData(true)
             },
 
             /**
