@@ -506,8 +506,9 @@
                 return this.$route.params.clusterId
             },
             curCluster () {
-                this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
-                return this.$store.state.cluster.curCluster || {}
+                const data = this.$store.state.cluster.clusterList.find(item => item.cluster_id === this.clusterId) || {}
+                this.curClusterInPage = Object.assign({}, data)
+                return JSON.parse(JSON.stringify(data))
             },
             curProject () {
                 return this.$store.state.curProject
@@ -523,13 +524,14 @@
             this.bkMessageInstance && this.bkMessageInstance.close()
         },
         created () {
-            if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-                if (this.projectId && this.clusterId) {
-                    this.fetchData()
-                }
-            } else {
-                this.fetchClusterInfo()
-            }
+            this.fetchClusterInfo()
+            // if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
+            //     if (this.projectId && this.clusterId) {
+            //         this.fetchData()
+            //     }
+            // } else {
+            //     this.fetchClusterInfo()
+            // }
         },
         mounted () {
             this.winHeight = window.innerHeight
@@ -558,12 +560,11 @@
             async fetchData () {
                 this.containerLoading = true
                 try {
-                    const res = await this.$store.dispatch('cluster/getCluster', {
+                    await this.$store.dispatch('cluster/getCluster', {
                         projectId: this.projectId,
                         clusterId: this.clusterId
                     })
 
-                    this.$store.commit('cluster/forceUpdateCurCluster', res.data)
                     this.fetchClusterInfo()
                 } catch (e) {
                     catchErrorHandler(e, this)

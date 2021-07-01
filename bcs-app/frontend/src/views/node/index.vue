@@ -1278,7 +1278,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterOverview',
                     params: {
@@ -1308,7 +1307,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterNode',
                     params: {

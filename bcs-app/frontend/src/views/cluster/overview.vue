@@ -289,8 +289,9 @@
                 return this.$store.state.curClusterId
             },
             curCluster () {
-                this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
-                return this.$store.state.cluster.curCluster
+                const data = this.$store.state.cluster.clusterList.find(item => item.cluster_id === this.clusterId) || {}
+                this.curClusterInPage = Object.assign({}, data)
+                return JSON.parse(JSON.stringify(data))
             },
             isEn () {
                 return this.$store.state.isEn
@@ -300,15 +301,20 @@
             }
         },
         async created () {
-            if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-                if (this.projectId && this.clusterId) {
-                    await this.fetchClusterData()
-                }
-            } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
+            if (this.curCluster.project_id && this.curCluster.cluster_id) {
                 await this.fetchClusterOverview()
                 await this.fetchClusterMetrics()
                 setTimeout(this.prepareChartData, 0)
             }
+            // if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
+            //     if (this.projectId && this.clusterId) {
+            //         await this.fetchClusterData()
+            //     }
+            // } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
+            //     await this.fetchClusterOverview()
+            //     await this.fetchClusterMetrics()
+            //     setTimeout(this.prepareChartData, 0)
+            // }
         },
         destroyed () {
         },
@@ -380,28 +386,26 @@
             /**
              * 获取集群数据
              */
-            async fetchClusterData () {
-                this.showLoading = true
-                try {
-                    const res = await this.$store.dispatch('cluster/getCluster', {
-                        projectId: this.projectId,
-                        clusterId: this.clusterId
-                    })
-
-                    this.$store.commit('cluster/forceUpdateCurCluster', res.data)
-                    this.$nextTick(async () => {
-                        if (this.curCluster && this.curCluster.project_id && this.curCluster.cluster_id) {
-                            await this.fetchClusterOverview()
-                            this.fetchClusterMetrics()
-                            setTimeout(this.prepareChartData, 0)
-                        }
-                    })
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.showLoading = false
-                }
-            },
+            // async fetchClusterData () {
+            //     this.showLoading = true
+            //     try {
+            //         await this.$store.dispatch('cluster/getCluster', {
+            //             projectId: this.projectId,
+            //             clusterId: this.clusterId
+            //         })
+            //         this.$nextTick(async () => {
+            //             if (this.curCluster && this.curCluster.project_id && this.curCluster.cluster_id) {
+            //                 await this.fetchClusterOverview()
+            //                 this.fetchClusterMetrics()
+            //                 setTimeout(this.prepareChartData, 0)
+            //             }
+            //         })
+            //     } catch (e) {
+            //         console.log(e)
+            //     } finally {
+            //         this.showLoading = false
+            //     }
+            // },
 
             /**
              * 构建图表数据
