@@ -47,6 +47,12 @@
             name: {
                 type: String,
                 default: ''
+            },
+            // kind类型
+            kind: {
+                type: String,
+                default: '',
+                required: true
             }
         },
         setup (props, ctx) {

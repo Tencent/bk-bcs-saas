@@ -69,7 +69,7 @@
                                 <bk-button class="bcs-button-ellipsis" text @click="gotoContainerDetail(row)">{{ row.name }}</bk-button>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('状态')" prop="status">
+                        <bk-table-column :label="$t('状态')" width="200" prop="status">
                             <template #default="{ row }">
                                 <StatusIcon :status="row.status"></StatusIcon>
                             </template>

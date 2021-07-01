@@ -23,16 +23,20 @@ class UserActivityLog(models.Model):
 
     activity_time = models.DateTimeField(auto_now_add=True)
     activity_type = models.CharField(
-        help_text='操作类型', choices=constants.ActivityTypeChoices.items(), max_length=32, default=''
+        help_text='操作类型', choices=constants.ActivityType.get_django_choices(), max_length=32, default=''
     )
     activity_status = models.CharField(
-        help_text='操作状态', choices=constants.ActivityStatusChoices.items(), max_length=32, default=''
+        help_text='操作状态', choices=constants.ActivityStatus.get_django_choices(), max_length=32, default=''
     )
 
     resource = models.CharField(help_text='操作对象', null=True, blank=True, max_length=512)
     resource_id = models.CharField(help_text='操作对象id', null=True, blank=True, max_length=256)
     resource_type = models.CharField(
-        help_text='操作对象类型', null=True, blank=True, max_length=32, choices=constants.ResourceTypeChoices.items()
+        help_text='操作对象类型',
+        null=True,
+        blank=True,
+        max_length=32,
+        choices=constants.ResourceType.get_django_choices(),
     )
 
     user = models.CharField(help_text='发起者', max_length=64)

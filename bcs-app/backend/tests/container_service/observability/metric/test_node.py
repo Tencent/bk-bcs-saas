@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
@@ -22,7 +22,7 @@ class TestNodeMetric:
     """ 节点指标相关接口单元测试 """
 
     common_prefix = '/api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}'.format(
-        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID, node_ip='127.0.0.1'
+        project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID, node_ip='127.0.0.1'
     )
 
     def test_overview(self, api_client, metric_api_common_patch, node_overview_api_patch):

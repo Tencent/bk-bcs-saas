@@ -14,12 +14,16 @@
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
+# k8s 资源名称格式
+KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
+
 # cronjob 不在 preferred resource 中，需要指定 api_version
 DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
 
 
 class WorkloadTypes(ChoicesEnum):
     Deployment = "Deployment"
+    ReplicaSet = "ReplicaSet"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     Job = "Job"
@@ -28,6 +32,7 @@ class WorkloadTypes(ChoicesEnum):
 
     _choices_labels = (
         (Deployment, "Deployment"),
+        (ReplicaSet, "ReplicaSet"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (Job, "Job"),
@@ -39,6 +44,7 @@ class WorkloadTypes(ChoicesEnum):
 class K8sResourceKind(ChoicesEnum):
     # workload
     Deployment = "Deployment"
+    ReplicaSet = "ReplicaSet"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     CronJob = "CronJob"
@@ -65,6 +71,7 @@ class K8sResourceKind(ChoicesEnum):
     _choices_labels = (
         # workload
         (Deployment, "Deployment"),
+        (ReplicaSet, "ReplicaSet"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (CronJob, "CronJob"),

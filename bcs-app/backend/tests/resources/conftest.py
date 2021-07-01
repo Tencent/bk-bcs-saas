@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import uuid
+from unittest import mock
 
+import pytest
 from kubernetes import client
 
 from backend.tests.conftest import TESTING_API_SERVER_URL
+from backend.tests.testing_utils.mocks.collection import StubComponentCollection
 
 
 class FakeBcsKubeConfigurationService:
@@ -21,80 +24,12 @@ class FakeBcsKubeConfigurationService:
         return configuration
 
 
-def construct_deployment(name, replicas=1):
-    """Construct a fake deployment body"""
-    return client.V1beta2Deployment(
-        api_version='extensions/v1beta1',
-        kind='Deployment',
-        metadata=client.V1ObjectMeta(name=name),
-        spec=client.V1beta2DeploymentSpec(
-            selector=client.V1LabelSelector(match_labels={'deployment-name': name}),
-            template=client.V1PodTemplateSpec(
-                spec=client.V1PodSpec(
-                    containers=[client.V1Container(image="busybox", name="main", command=["sleep", "3600"])]
-                ),
-                metadata=client.V1ObjectMeta(labels={"deployment-name": name}, name=name),
-            ),
-            replicas=replicas,
-        ),
-    )
-
-
-def construct_replica_set(name, owner_deployment=None):
-    """Construct a fake ReplicaSet body"""
-    if owner_deployment:
-        owner_references = [
-            client.V1OwnerReference(
-                api_version=owner_deployment.api_version,
-                uid=uuid.uuid4().hex,
-                name=owner_deployment.metadata.name,
-                kind='Deployment',
-            )
-        ]
-        match_labels = owner_deployment.spec.selector.match_labels
-    else:
-        owner_references = []
-        match_labels = {'rs-name': name}
-
-    return client.V1ReplicaSet(
-        api_version='extensions/v1beta1',
-        kind='ReplicaSet',
-        metadata=client.V1ObjectMeta(
-            name=name,
-            # Set owner reference to deployment
-            owner_references=owner_references,
-        ),
-        spec=client.V1ReplicaSetSpec(
-            replicas=1,
-            selector=client.V1LabelSelector(match_labels=match_labels),
-            template=client.V1PodTemplateSpec(
-                spec=client.V1PodSpec(
-                    containers=[client.V1Container(image="busybox", name="main", command=["sleep", "3600"])]
-                ),
-                metadata=client.V1ObjectMeta(labels=match_labels, name=name),
-            ),
-        ),
-    )
-
-
-def construct_pod(name, labels=None, owner_replicaset=None):
-    """Construct a fake Pod body"""
-    if owner_replicaset:
-        owner_references = [
-            client.V1OwnerReference(
-                api_version=owner_replicaset.api_version,
-                uid=uuid.uuid4().hex,
-                name=owner_replicaset.metadata.name,
-                kind='ReplicaSet',
-            )
-        ]
-        labels = owner_replicaset.spec.selector.match_labels
-    else:
-        owner_references = []
-
-    return client.V1Pod(
-        api_version='v1',
-        kind='Pod',
-        metadata=client.V1ObjectMeta(name=name, labels=labels, owner_references=owner_references),
-        spec=client.V1PodSpec(containers=[client.V1Container(name="main", image="busybox")]),
-    )
+@pytest.fixture(autouse=True)
+def setup_fake_cluster_dependencies():
+    # 替换所有 Comp 系统为测试专用的 Stub 系统；替换集群地址为测试用 API Server
+    with mock.patch(
+        'backend.container_service.core.ctx_models.ComponentCollection', new=StubComponentCollection
+    ), mock.patch(
+        'backend.resources.utils.kube_client.BcsKubeConfigurationService', new=FakeBcsKubeConfigurationService
+    ):
+        yield

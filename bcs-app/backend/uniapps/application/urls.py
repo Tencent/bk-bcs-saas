@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 
-from django.conf.urls import url
+from django.conf.urls import include, url
 
 from . import instance_views, views
 from .all_views import views as ns_views
@@ -248,5 +248,12 @@ urlpatterns = [
     url(
         r'^api/projects/(?P<project_id>\w{32})/pods/reschedule/$',
         operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'}),
+    ),
+]
+
+urlpatterns += [
+    url(
+        r"^api/app/mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
+        include("backend.uniapps.application.mesos.urls"),
     ),
 ]

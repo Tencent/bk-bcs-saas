@@ -30,7 +30,15 @@ class TestIngressFormatter:
     def test_format_dict(self, ingress_configs):
         """ 测试 format_dict 方法 """
         result = IngressFormatter().format_dict(ingress_configs['normal'])
-        assert set(result.keys()) == {'hosts', 'addresses', 'default_ports', 'age', 'createTime', 'updateTime'}
+        assert set(result.keys()) == {
+            'hosts',
+            'addresses',
+            'default_ports',
+            'rules',
+            'age',
+            'createTime',
+            'updateTime',
+        }
         assert result['hosts'] == ['foo.bar.com']
         assert result['addresses'] == ['127.xxx.xxx.xx9']
         assert result['default_ports'] == '80, 443'

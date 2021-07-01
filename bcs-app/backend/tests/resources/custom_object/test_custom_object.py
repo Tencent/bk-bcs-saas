@@ -66,9 +66,10 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def update_or_create_crd(self, crd_client):
-        crd_client.update_or_create(body=sample_crd, namespace='default')
+        name = sample_crd['metadata']['name']
+        crd_client.update_or_create(body=sample_crd, namespace='default', name=name)
         yield
-        crd_client.delete_wait_finished(name=getitems(sample_crd, "metadata.name"), namespace="default")
+        crd_client.delete_wait_finished(namespace="default", name=name)
 
     @pytest.fixture
     def cobj_client(self, project_id, cluster_id):
@@ -91,7 +92,7 @@ class TestCRDAndCustomObject:
 
     def test_crd_get(self, crd_client, update_or_create_crd):
         crd = crd_client.get(name=getitems(sample_crd, "metadata.name"), is_format=False)
-        assert crd.spec.scope == "Namespaced"
+        assert crd.data.spec.scope == "Namespaced"
 
         crd = crd_client.get(name="no.k3s.cattle.io", is_format=False)
         assert crd is None
@@ -104,4 +105,4 @@ class TestCRDAndCustomObject:
             is_format=False,
             content_type=PatchType.MERGE_PATCH_JSON.value,
         )
-        assert cobj.spec.replicas == 2
+        assert cobj.data.spec.replicas == 2

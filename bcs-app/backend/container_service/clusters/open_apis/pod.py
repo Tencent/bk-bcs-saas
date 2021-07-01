@@ -13,11 +13,15 @@
 #
 from rest_framework.response import Response
 
-from backend.bcs_web.apis.views import BaseAPIViewSet
-from backend.resources.pod.pod import Pod
+from backend.bcs_web.viewsets import UserViewSet
+from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.resources.workloads.pod import Pod
 
 
-class PodViewSet(BaseAPIViewSet):
+class PodViewSet(UserViewSet):
     def get_pod(self, request, project_id_or_code, cluster_id, namespace, pod_name):
-        p = Pod(request.user.token.access_token, request.project.project_id, cluster_id, namespace)
-        return Response(p.get_pod(pod_name))
+        """ 获取指定 Pod 信息，以列表格式返回 """
+        pod = Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, formatter=ResourceDefaultFormatter())
+        # 保持接口格式不变，如果查询不到则返回空列表
+        response_data = [pod] if pod else []
+        return Response(response_data)
