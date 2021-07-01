@@ -13,7 +13,7 @@
 #
 from dataclasses import asdict
 
-from ..constants import ActivityStatus, ResourceType
+from ..constants import ActivityStatus, ActivityType, ResourceType
 from ..models import UserActivityLog
 from .context import AuditContext
 
@@ -41,7 +41,9 @@ class Auditor:
     def _complete_description(self, activity_status: str, err_msg: str):
         audit_ctx = self.audit_ctx
         if not audit_ctx.description:
-            description_prefix = f'{audit_ctx.activity_type} {audit_ctx.resource_type}'
+            activity_type = ActivityType.get_choice_label(audit_ctx.activity_type)
+            resource_type = ResourceType.get_choice_label(audit_ctx.resource_type)
+            description_prefix = f'{activity_type} {resource_type}'  # noqa
             if audit_ctx.resource:
                 description_prefix = f'{description_prefix} {audit_ctx.resource}'
         else:
