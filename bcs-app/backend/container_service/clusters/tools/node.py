@@ -106,6 +106,7 @@ class NodesData:
     bcs_cc_nodes: Dict  # bcs cc中存储的节点数据
     cluster_nodes: Dict  # 集群中实际存在的节点数据
     cluster_id: str
+    cluster_name: str
 
     @property
     def _normal_status(self) -> List:
@@ -146,13 +147,15 @@ class NodesData:
                     **{
                         "status": transform_status(
                             node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
-                        )
+                        ),
+                        "cluster_name": self.cluster_name,
                     }
                 )
                 node_list.append(item)
             else:
                 # TODO: 这里先不添加集群名称，以ID展示是否合适
                 node["cluster_id"] = self.cluster_id
+                node["cluster_name"] = self.cluster_name
                 node["status"] = transform_status(node["status"], node["unschedulable"])
                 node_list.append(node)
         return node_list
