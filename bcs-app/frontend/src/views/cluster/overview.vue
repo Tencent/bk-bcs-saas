@@ -300,21 +300,23 @@
                 return this.$store.state.curProject
             }
         },
-        async created () {
+        // async created () {
+        //     if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
+        //         if (this.projectId && this.clusterId) {
+        //             await this.fetchClusterData()
+        //         }
+        //     } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
+        //         await this.fetchClusterOverview()
+        //         await this.fetchClusterMetrics()
+        //         setTimeout(this.prepareChartData, 0)
+        //     }
+        // },
+        async mounted () {
             if (this.curCluster.project_id && this.curCluster.cluster_id) {
                 await this.fetchClusterOverview()
                 await this.fetchClusterMetrics()
                 setTimeout(this.prepareChartData, 0)
             }
-            // if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-            //     if (this.projectId && this.clusterId) {
-            //         await this.fetchClusterData()
-            //     }
-            // } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
-            //     await this.fetchClusterOverview()
-            //     await this.fetchClusterMetrics()
-            //     setTimeout(this.prepareChartData, 0)
-            // }
         },
         destroyed () {
         },
@@ -323,6 +325,8 @@
              * 集群使用率概览
              */
             async fetchClusterOverview () {
+                if (!this.curCluster.project_id || !this.curCluster.cluster_id) return
+
                 try {
                     const res = await this.$store.dispatch('cluster/clusterOverview', {
                         projectId: this.curCluster.project_id,
@@ -411,6 +415,7 @@
              * 构建图表数据
              */
             async prepareChartData () {
+                if (!this.curCluster.project_id || !this.curCluster.cluster_id) return
                 try {
                     if (this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
                         this.cpuChartLoading = true
@@ -509,6 +514,8 @@
              * 获取下面三个圈的数据
              */
             async fetchClusterMetrics () {
+                if (!this.curCluster.project_id || !this.curCluster.cluster_id) return
+
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterMetrics', {
                         projectId: this.curCluster.project_id,

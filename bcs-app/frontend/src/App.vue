@@ -197,6 +197,13 @@
                     curClusterId = ''
                 }
 
+                localStorage.setItem('bcs-cluster', curClusterId)
+                sessionStorage.setItem('bcs-cluster', curClusterId)
+                this.$store.commit('updateCurClusterId', curClusterId)
+                this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
+                // 更新菜单
+                this.$store.commit('updateCurProject', projectCode)
+
                 // 集群ID不存在时，单集群路由界面需要跳回首页
                 if (!curClusterId && ['dashboardNamespace', 'clusterOverview', 'clusterNode', 'clusterInfo'].includes(this.$route.name)) {
                     this.$router.replace({
@@ -206,13 +213,6 @@
                         }
                     })
                 }
-
-                localStorage.setItem('bcs-cluster', curClusterId)
-                sessionStorage.setItem('bcs-cluster', curClusterId)
-                this.$store.commit('updateCurClusterId', curClusterId)
-                this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
-                // 更新菜单
-                this.$store.commit('updateCurProject', projectCode)
             },
             /**
              * 初始化容器最小高度
