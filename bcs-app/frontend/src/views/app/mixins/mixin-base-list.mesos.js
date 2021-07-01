@@ -202,6 +202,16 @@ export default {
                 newVariableList: [],
                 isShowVariable: false,
                 noDiffMsg: ''
+            },
+            sourceExpansionInNotPlatformDialogConf: {
+                isShow: false,
+                width: 1050,
+                title: '',
+                closeIcon: true,
+                loading: false,
+                content: '',
+                showType: 'edit',
+                toggleStr: this.$t('查看对比')
             }
         }
     },
@@ -3686,18 +3696,78 @@ export default {
             this.curInstance.instanceList = instanceList
             this.curInstance.instanceIndex = instanceIndex
 
-            this.sourceExpansionDialogConf.isShow = true
-            this.sourceExpansionDialogConf.loading = true
-            this.sourceExpansionDialogConf.title = this.$t('{instanceName}原地资源扩容', {
-                instanceName: instance.name
-            })
+            if (!this.curInstance.from_platform && this.curInstance.id === 0) {
+                this.sourceExpansionInNotPlatformDialogConf.isShow = true
+                this.sourceExpansionInNotPlatformDialogConf.loading = true
+                this.sourceExpansionInNotPlatformDialogConf.title = this.$t('{instanceName}原地资源扩容', {
+                    instanceName: instance.name
+                })
 
-            this.sourceExpansionDialogConf.oldVer = this.curInstance.version
-            this.sourceExpansionDialogConf.verList.splice(0, this.sourceExpansionDialogConf.verList.length, ...[])
-            this.sourceExpansionDialogConf.selectedVerId = -1
-            this.sourceExpansionDialogConf.instanceNum = this.curInstance.instance
+                try {
+                    const params = {
+                        projectId: this.projectId,
+                        instanceId: this.curInstance.id,
+                        name: this.curInstance.name,
+                        namespace: this.curInstance.namespace,
+                        category: this.curInstance.category,
+                        cluster_id: this.curInstance.cluster_id
+                    }
+                    if (this.CATEGORY) {
+                        params.category = this.CATEGORY
+                    }
+                    // 当前版本信息
+                    const res = await this.$store.dispatch('app/getVersionInRollingUpdateInNotPlatform', params)
+                    const content = JSON.stringify(res.data.json, null, 2)
 
-            this.fetchVersionInfo(this.curInstance, this.sourceExpansionDialogConf)
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            this.compareEditorConfig.editor.gotoLine(0, 0, true)
+
+                            this.editorConfig.editor.gotoLine(0, 0, true)
+                            this.editorConfig.editor.focus()
+
+                            // ace editor 同步滚动
+                            const session = this.editorConfig.editor.getSession()
+                            const compareSession = this.compareEditorConfig.editor.getSession()
+                            session.on('changeScrollTop', scroll => {
+                                compareSession.setScrollTop(parseInt(scroll, 10) || 0)
+                            })
+                            session.on('changeScrollLeft', scroll => {
+                                compareSession.setScrollLeft(parseInt(scroll, 10) || 0)
+                            })
+
+                            compareSession.on('changeScrollTop', scroll => {
+                                session.setScrollTop(parseInt(scroll, 10) || 0)
+                            })
+                            compareSession.on('changeScrollLeft', scroll => {
+                                session.setScrollLeft(parseInt(scroll, 10) || 0)
+                            })
+                        }, 10)
+
+                        this.editorValue = content
+                        this.sourceExpansionInNotPlatformDialogConf.content = content
+                        this.editorConfig.value = content
+                        this.compareEditorConfig.value = content
+                    })
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.sourceExpansionInNotPlatformDialogConf.loading = false
+                }
+            } else {
+                this.sourceExpansionDialogConf.isShow = true
+                this.sourceExpansionDialogConf.loading = true
+                this.sourceExpansionDialogConf.title = this.$t('{instanceName}原地资源扩容', {
+                    instanceName: instance.name
+                })
+    
+                this.sourceExpansionDialogConf.oldVer = this.curInstance.version
+                this.sourceExpansionDialogConf.verList.splice(0, this.sourceExpansionDialogConf.verList.length, ...[])
+                this.sourceExpansionDialogConf.selectedVerId = -1
+                this.sourceExpansionDialogConf.instanceNum = this.curInstance.instance
+    
+                this.fetchVersionInfo(this.curInstance, this.sourceExpansionDialogConf)
+            }
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -3734,12 +3804,13 @@ export default {
                         $namespace: me.curInstance.namespace,
                         $application: me.curInstance.name,
                         kind: me.curInstance.category,
-                        show_version_id: me.sourceExpansionDialogConf.selectedVerId,
                         variables: variable
                     }
 
                     if (!me.curInstance.from_platform) {
-                        params.manifest = me.curInstance.manifest
+                        params.manifest = JSON.parse(me.editorValue)
+                    } else {
+                        params.show_version_id = me.sourceExpansionDialogConf.selectedVerId
                     }
 
                     me.isUpdating = true
@@ -3843,6 +3914,71 @@ export default {
                 console.error(e)
             } finally {
                 this.sourceExpansionDialogConf.loading = false
+            }
+        },
+
+        hideSourceExpansionInNotPlatform () {
+            this.sourceExpansionInNotPlatformDialogConf.isShow = false
+            this.sourceExpansionInNotPlatformDialogConf.loading = false
+    
+            this.curInstance = Object.assign({}, {})
+            setTimeout(() => {
+                this.editorConfig.value = ''
+                this.editorValue = ''
+                this.sourceExpansionInNotPlatformDialogConf.showType = 'edit'
+                this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
+    
+                this.cancelLoop = false
+                if (this.viewMode === 'namespace') {
+                    this.fetchAppListInNamespaceViewMode(...this.loopAppListParams)
+                } else {
+                    this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
+                }
+                this.useEditorDiff = false
+            }, 100)
+        },
+        
+        toggleSourceExpansionDiffEdit () {
+            if (this.sourceExpansionInNotPlatformDialogConf.showType === 'edit') {
+                if (this.compareEditorConfig.value === this.editorValue) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'primary',
+                        delay: 2000,
+                        message: this.$t('当前内容一致，没有差异')
+                    })
+                } else {
+                    this.sourceExpansionInNotPlatformDialogConf.showType = 'diff'
+                    this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('开始编辑')
+                }
+            } else {
+                this.sourceExpansionInNotPlatformDialogConf.showType = 'edit'
+                this.editorConfig.value = this.editorValue
+                setTimeout(() => {
+                    this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
+
+                    this.compareEditorConfig.editor.gotoLine(0, 0, true)
+
+                    this.editorConfig.editor.gotoLine(0, 0, true)
+                    this.editorConfig.editor.focus()
+
+                    // ace editor 同步滚动
+                    const session = this.editorConfig.editor.getSession()
+                    const compareSession = this.compareEditorConfig.editor.getSession()
+                    session.on('changeScrollTop', scroll => {
+                        compareSession.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    session.on('changeScrollLeft', scroll => {
+                        compareSession.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+
+                    compareSession.on('changeScrollTop', scroll => {
+                        session.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    compareSession.on('changeScrollLeft', scroll => {
+                        session.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+                }, 10)
             }
         }
     }
