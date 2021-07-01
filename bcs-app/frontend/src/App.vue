@@ -83,7 +83,6 @@
                 this.fetchCCList()
             },
             '$store.state.curClusterId' () {
-                this.routerKey = +new Date()
                 this.$store.dispatch('getFeatureFlag')
             }
         },
