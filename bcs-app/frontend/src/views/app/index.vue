@@ -200,6 +200,12 @@
         computed: {
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
+            },
+            curProjectId () {
+                return this.$store.state.curProjectId
             }
         },
         mounted () {
@@ -214,11 +220,11 @@
                 if (len) {
                     const firstProject = this.onlineProjectList[0]
                     this.projectId = this.$route.params.projectId
-                        || localStorage.getItem('curProjectId')
+                        || this.curProjectId
                         || firstProject.project_id
 
                     this.projectCode = this.$route.params.projectCode
-                        || localStorage.getItem('curProjectCode')
+                        || this.curProjectCode
                         || firstProject.english_name
 
                     this.curProject = this.onlineProjectList.find(p => p.project_id === this.projectId)
