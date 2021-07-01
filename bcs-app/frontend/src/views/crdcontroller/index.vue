@@ -421,8 +421,8 @@
                     const res = await this.$store.dispatch('cluster/getClusterList', projectId)
                     this.clusterList = res.data.results
                     if (this.clusterList.length) {
-                        if (window.localStorage && window.localStorage['bcs-cluster']) {
-                            this.searchScope = window.localStorage['bcs-cluster']
+                        if (this.curClusterId) {
+                            this.searchScope = this.curClusterId
                         } else {
                             this.searchScope = this.clusterList[0].cluster_id
                         }

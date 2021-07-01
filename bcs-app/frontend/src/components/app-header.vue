@@ -14,20 +14,22 @@
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
             },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
+            },
             projectCode () {
                 const route = this.$route
                 // 从路由获取 projectCode
                 if (route.params.projectCode) {
-                    this.setLocalStorage(route.params.projectCode)
+                    // this.setLocalStorage(route.params.projectCode)
                     return route.params.projectCode
                 }
 
                 // 从缓存获取projectId
-                if (localStorage.curProjectCode) {
-                    const projectCode = localStorage.curProjectCode
+                if (this.curProjectCode) {
                     for (const item of this.onlineProjectList) {
-                        if (item.project_code === projectCode) {
-                            return projectCode
+                        if (item.project_code === this.curProjectCode) {
+                            return this.curProjectCode
                         }
                     }
                 }
@@ -43,7 +45,7 @@
                 const route = this.$route
                 // 从路由获取projectId
                 if (route.params.projectId) {
-                    this.setLocalStorage(route.params.projectId)
+                    // this.setLocalStorage(route.params.projectId)
                     return route.params.projectId
                 }
 
@@ -60,7 +62,7 @@
                 // 直接显示第一个项目
                 if (this.onlineProjectList.length) {
                     const projectId = this.onlineProjectList[0].project_id
-                    this.setLocalStorage(projectId)
+                    // this.setLocalStorage(projectId)
                     return projectId
                 }
 

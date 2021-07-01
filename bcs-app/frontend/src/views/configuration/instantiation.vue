@@ -507,6 +507,9 @@
             curClusterId () {
                 return this.$store.state.curClusterId
             },
+            curProjectId () {
+                return this.$store.state.curProjectId
+            },
             isEn () {
                 return this.$store.state.isEn
             }
@@ -516,7 +519,7 @@
             const len = this.onlineProjectList.length
             if (len) {
                 this.projectId = this.$route.params.projectId
-                    || localStorage.getItem('curProjectId')
+                    || this.curProjectId
                     || this.onlineProjectList[0].project_id
 
                 for (let i = 0; i < len; i++) {
