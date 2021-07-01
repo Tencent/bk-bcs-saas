@@ -12,12 +12,11 @@
                     <div class="left">
                         <bk-selector :placeholder="$t('集群')"
                             :selected.sync="clusterIndex"
-                            :disabled="curClusterId"
+                            :disabled="!!curClusterId"
                             :list="dropdownClusterList"
                             :setting-key="'cluster_id'"
                             :display-key="'name'"
                             :allow-clear="true"
-                            v-if="!curClusterId"
                             @clear="clusterClear">
                         </bk-selector>
                     </div>
