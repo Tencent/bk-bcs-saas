@@ -35,11 +35,11 @@
             }
         },
         watch: {
-            'projectCode' () {
-                if (this.projectCode) {
-                    this.$store.commit('updateCurProject', this.projectCode)
-                }
-            },
+            // 'projectCode' () {
+            //     if (this.projectCode) {
+            //         this.$store.commit('updateCurProject', this.projectCode)
+            //     }
+            // },
             '$route' (to, from) {
                 if (to.params.needCheckPermission) {
                     this.checkPermission(to.name)

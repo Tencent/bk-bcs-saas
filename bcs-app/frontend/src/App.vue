@@ -30,6 +30,7 @@
     </div>
 </template>
 <script>
+    /* eslint-disable camelcase */
     import { bus } from '@open/common/bus'
     import { getProjectByCode } from '@open/common/util'
     import Img403 from '@/images/403.png'
@@ -100,26 +101,8 @@
 
                 const curProjectCode = e.detail.currentProjectId
                 this.initProjectId(curProjectCode)
+                await this.initBcsBaseData(curProjectCode)
 
-                // 项目切换时，先将集群列表清空
-                this.$store.commit('cluster/forceUpdateClusterList', [])
-
-                if (localStorage.getItem('curProjectCode') !== curProjectCode) {
-                    this.$store.commit('updateCurClusterId', '')
-                    this.$refs.appHeader.selectProject(curProjectCode)
-                }
-
-                // 从配置中心拉取项目列表，顶导的项目列表信息里，项目中关于容器服务的信息可能更新不及时
-                const projectList = await this.$store.dispatch('getProjectList')
-                await this.checkProject()
-                if (this.isUserBKService) {
-                    await this.$store.dispatch('getFeatureFlag')
-                    const curBcsProject = (projectList || []).find(item => item.project_code === curProjectCode)
-                    // eslint-disable-next-line camelcase
-                    if (curBcsProject?.project_id) {
-                        await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
-                    }
-                }
                 this.isLoading = false
             })
         },
@@ -170,6 +153,55 @@
             })
         },
         methods: {
+            // 初始化BCS基本数据（有先后顺序，请勿乱动）
+            async initBcsBaseData (projectCode) {
+                // 清空集群列表
+                this.$store.commit('cluster/forceUpdateClusterList', [])
+                // 切换不同项目时清空单集群信息
+                if (localStorage.getItem('curProjectCode') !== projectCode) {
+                    localStorage.setItem('bcs-cluster', '')
+                    this.$store.commit('updateCurClusterId', '')
+                }
+                const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
+                // 检查是否开启容器服务
+                await this.checkProject()
+                if (!this.isUserBKService) return
+
+                // 获取项目全局数据
+                await this.$store.dispatch('getFeatureFlag')
+                const curBcsProject = projectList.find(item => item.project_code === projectCode)
+                if (curBcsProject?.project_id) {
+                    await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
+                }
+
+                // 设置全局存储信息
+                localStorage.setItem('curProjectCode', projectCode)
+                localStorage.setItem('curProjectId', curBcsProject?.project_id || '')
+                this.$store.commit('updateProjectCode', projectCode)
+                this.$store.commit('updateProjectId', curBcsProject?.project_id || '')
+
+                // 设置当前集群ID
+                let curClusterId = ''
+                if (this.$route.params.clusterId && this.$route.path.indexOf('dashboard') > -1) {
+                    curClusterId = this.$route.params.clusterId
+                } else {
+                    curClusterId = localStorage.getItem('bcs-cluster') || ''
+                }
+
+                // 判断集群ID是否存在当前项目的集群列表中
+                const stateClusterList = this.$store.state.cluster.clusterList || []
+                const curCluster = stateClusterList?.find(cluster => cluster.cluster_id === curClusterId)
+
+                if (!curCluster) {
+                    curClusterId = ''
+                }
+
+                localStorage.setItem('bcs-cluster', curClusterId)
+                this.$store.commit('updateCurClusterId', curClusterId)
+                this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
+                // 更新菜单
+                this.$store.commit('updateCurProject', projectCode)
+            },
             /**
              * 初始化容器最小高度
              */
