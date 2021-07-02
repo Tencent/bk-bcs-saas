@@ -5,7 +5,7 @@
             <span style="font-size: 16px;">{{$t('容器服务')}}</span>
             <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;" v-bk-tooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
         </p>
-        <div v-else>
+        <div v-else-if="kind !== -1">
             <div class="biz-side-title cluster-selector">
                 <!-- 全部集群 -->
                 <template v-if="!curClusterInfo.cluster_id">
