@@ -35,7 +35,7 @@ class FakeKubeConfigurationService:
         return configuration
 
 
-def generate_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
+def generate_core_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
     """ 生成测试用的 DynamicClient """
     config = FakeKubeConfigurationService().make_configuration()
     discoverer_cache = DiscovererCache(cache_key=f"osrcp-cluster_id.json")
@@ -47,10 +47,10 @@ def get_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
     if kwargs.get('use_cache'):
         return _get_dynamic_client(*args, **kwargs)
     # 直接生成新的 DynamicClient
-    return generate_dynamic_client(*args, **kwargs)
+    return generate_core_dynamic_client(*args, **kwargs)
 
 
 @lru_cache(maxsize=128)
 def _get_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
-    return generate_dynamic_client(*args, **kwargs)
+    return generate_core_dynamic_client(*args, **kwargs)
