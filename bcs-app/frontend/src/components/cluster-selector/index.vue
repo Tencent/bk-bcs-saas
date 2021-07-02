@@ -133,6 +133,7 @@
                 this.activeClusterId = cluster.cluster_id
                 this.handleSaveClusterInfo(cluster)
                 this.handleHideClusterSelector()
+                this.$store.dispatch('getFeatureFlag')
                 // 抛出选中的集群信息
                 this.$emit('change', cluster)
             },
@@ -142,6 +143,7 @@
              */
             handleSaveClusterInfo (cluster) {
                 localStorage.setItem(BCS_CLUSTER, cluster.cluster_id)
+                sessionStorage.setItem(BCS_CLUSTER, cluster.cluster_id)
                 this.$store.commit('cluster/forceUpdateCurCluster', cluster.cluster_id ? cluster : {})
                 this.$store.commit('updateCurClusterId', cluster.cluster_id)
             },
