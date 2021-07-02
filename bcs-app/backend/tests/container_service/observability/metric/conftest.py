@@ -20,17 +20,9 @@ from django.conf import settings
 from backend.container_service.observability.metric.constants import MetricDimension
 from backend.tests.conftest import TEST_CLUSTER_ID
 from backend.tests.resources.formatter.conftest import NETWORK_CONFIG_DIR
-from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 # 指标相关配置 目录
 METRIC_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/container_service/observability/metric/contents/'
-
-
-@pytest.fixture
-def metric_api_common_patch():
-    """ 指标类 API 通用 mock patch """
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
-        yield
 
 
 @pytest.fixture
