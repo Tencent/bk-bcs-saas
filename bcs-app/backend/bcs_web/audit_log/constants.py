@@ -52,15 +52,31 @@ class ResourceType(str, StructuredEnum):
     Template = EnumField('template', _('模板集'))
     Variable = EnumField('variable', _('变量'))
     Instance = EnumField('instance', _('应用'))
-    Service = EnumField('service', 'Service')
-    Ingress = EnumField('ingress', 'Ingress')
     LB = EnumField('lb', 'LoadBalancer')
-    ConfigMap = EnumField('configmap', 'Configmap')
-    Secret = EnumField('secret', 'Secret')
     Metric = EnumField('metric', 'Metric')
     WebConsole = EnumField('web_console', 'WebConsole')
     HelmApp = EnumField('helm_app', 'Helm')
     HPA = EnumField('hpa', 'HPA')
+    # workloads
+    Deployment = EnumField('deployment', 'Deployment')
+    DaemonSet = EnumField('daemonset', 'DaemonSet')
+    StatefulSet = EnumField('statefulset', 'StatefulSet')
+    CronJob = EnumField('cronjob', 'CronJob')
+    Job = EnumField('job', 'Job')
+    Pod = EnumField('pod', 'Pod')
+    # networks
+    Ingress = EnumField('ingress', 'Ingress')
+    Service = EnumField('service', 'Service')
+    Endpoints = EnumField('endpoints', 'Endpoints')
+    # configurations
+    ConfigMap = EnumField('configmap', 'Configmap')
+    Secret = EnumField('secret', 'Secret')
+    # storages
+    PersistentVolume = EnumField('persistentvolume', 'PersistentVolume')
+    PersistentVolumeClaim = EnumField('persistentvolumeclaim', 'PersistentVolumeClaim')
+    StorageClass = EnumField('storageclass', 'StorageClass')
+    # rbac
+    ServiceAccount = EnumField('serviceaccount', 'ServiceAccount')
 
 
 ResourceTypes = dict(ResourceType.get_choices())

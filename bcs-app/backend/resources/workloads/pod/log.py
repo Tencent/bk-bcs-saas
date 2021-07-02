@@ -32,7 +32,7 @@ class LogClient:
     def __init__(self, ctx_cluster: CtxCluster, namespace: str, pod_name: str):
         self.ctx_cluster = ctx_cluster
         self.dynamic_client = get_dynamic_client(
-            ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id
+            ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id, use_cache=False
         )
 
         pod_resource = self.dynamic_client.get_preferred_resource("Pod")

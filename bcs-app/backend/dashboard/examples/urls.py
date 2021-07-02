@@ -11,19 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from rest_framework import routers
 
+from . import views
 
-class MockRetrieveApiRespBuilder:
-    """ Mock 用详情请求结果构造器 """
+router = routers.DefaultRouter(trailing_slash=True)
 
-    def __init__(self, *args, **kwargs):
-        """ 构造器初始化 """
-        pass
-
-    def build(self) -> Dict:
-        """ 构造 Mock 用响应内容 """
-        return {
-            'manifest': {},
-            'manifest_ext': {},
-        }
+router.register(r'', views.TemplateViewSet, basename='template')

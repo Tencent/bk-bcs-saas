@@ -1,0 +1,18 @@
+{
+  "kind": "DaemonSet",
+  "class": "workloads",
+  "references": [
+    {
+      "name": "Kubernetes DaemonSet 字段说明",
+      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#daemonset-v1-apps"
+    }
+  ],
+  "items": [
+    {
+      "name": "simple_daemonset",
+      "alias": "DaemonSet 简单示例",
+      "description": "简单的 DaemonSet 示例，仅包含基础配置",
+      "manifest": null
+    }
+  ]
+}

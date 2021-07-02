@@ -101,9 +101,11 @@ class ResourceClient:
     # 将结果转换为对应 ResourceObj 类型
     result_type: Type['ResourceObj'] = ResourceObj
 
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = None):
+    def __init__(
+        self, ctx_cluster: CtxCluster, api_version: Optional[str] = None, cache_client: Optional[bool] = True
+    ):
         self.dynamic_client = get_dynamic_client(
-            ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id
+            ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id, use_cache=cache_client
         )
         if api_version:
             self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
