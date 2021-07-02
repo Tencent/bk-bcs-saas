@@ -5,7 +5,7 @@
             <span style="font-size: 16px;">{{$t('容器服务')}}</span>
             <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;" v-bk-tooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
         </p>
-        <div v-else-if="kind !== -1">
+        <div v-else>
             <div class="biz-side-title cluster-selector">
                 <!-- 全部集群 -->
                 <template v-if="!curClusterInfo.cluster_id">
@@ -27,7 +27,7 @@
                     <span class="cluster-name-all">{{$t('容器服务')}}</span>
                 </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
+                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" v-if="kind !== -1" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
