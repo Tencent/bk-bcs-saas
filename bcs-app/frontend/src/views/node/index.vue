@@ -390,10 +390,10 @@
             'checkedNodeList.length' (len) {
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
-            },
-            async curClusterId (v) {
-                await this.fetchData()
             }
+            // async curClusterId (v) {
+            //     await this.fetchData()
+            // }
         },
         beforeDestroy () {
             clearTimeout(this.timer) && (this.timer = null)
@@ -512,7 +512,7 @@
                         params.$clusterId = this.curSelectedClusterId
                     }
                     const res = await this.$store.dispatch(api, params)
-            
+
                     const list = this.isMesosProject ? res?.data?.results || [] : res
 
                     const nodeList = []

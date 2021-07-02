@@ -315,6 +315,7 @@
                 isDashboard: this.$route.meta.isDashboard,
                 pathName: this.$route.name,
                 idx: 'bcs',
+                category: this.$route.params.category,
                 projectType: (this.curProject && (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE)) ? 'k8s' : ''
             })
             if (window.bus) {

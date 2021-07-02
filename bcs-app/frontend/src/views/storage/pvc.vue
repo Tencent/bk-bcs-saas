@@ -120,7 +120,7 @@
         async created () {
             await this.getClusters()
         },
-        
+
         methods: {
             /**
              * 获取所有的集群

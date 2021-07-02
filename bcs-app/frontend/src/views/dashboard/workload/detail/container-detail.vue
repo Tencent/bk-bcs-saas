@@ -90,7 +90,7 @@
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="env" :label="$t('环境变量')">
-                    <bk-table :data="envs">
+                    <bk-table :data="envs" v-bkloading="{ isLoading: envsTableLoading }">
                         <bk-table-column label="Key" prop="name"></bk-table-column>
                         <bk-table-column label="Value" prop="value"></bk-table-column>
                     </bk-table>
@@ -172,7 +172,10 @@
             const { name, id, namespace, pod } = toRefs(props)
             const { $store } = ctx.root
 
+            // 详情loading
             const isLoading = ref(false)
+            // 环境变量表格loading
+            const envsTableLoading = ref(false)
             // 详情数据
             const detail = ref<IContainerDetail|null>(null)
             const activePanel = ref('ports')
@@ -210,32 +213,32 @@
 
             // 容器详情
             const handleGetDetail = async () => {
+                isLoading.value = true
                 detail.value = await $store.dispatch('dashboard/retrieveContainerDetail', {
                     $namespaceId: namespace.value,
                     $category: 'pods',
                     $name: pod.value,
                     $containerName: name.value
                 })
+                isLoading.value = false
                 return detail.value
             }
 
             // 容器环境变量
             const handleGetContainerEnv = async () => {
+                envsTableLoading.value = true
                 envs.value = await $store.dispatch('dashboard/fetchContainerEnvInfo', {
                     $namespaceId: namespace.value,
                     $podId: pod.value,
                     $containerName: name.value
                 })
+                envsTableLoading.value = false
                 return envs.value
             }
 
-            onMounted(async () => {
-                isLoading.value = true
-                await Promise.all([
-                    handleGetDetail(),
-                    handleGetContainerEnv()
-                ])
-                isLoading.value = false
+            onMounted(() => {
+                handleGetDetail()
+                handleGetContainerEnv()
             })
 
             return {
