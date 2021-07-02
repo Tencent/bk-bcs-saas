@@ -34,3 +34,21 @@ class ResourceNotExist(DashboardBaseError):
     """ 指定资源不存在 """
 
     message = 'Resource not exist'
+
+
+class CreateResourceError(DashboardBaseError):
+    """ 创建资源失败 """
+
+    message = 'Create Resource Error'
+
+
+class UpdateResourceError(DashboardBaseError):
+    """ 更新资源失败 """
+
+    message = 'Update Resource Error'
+
+
+class DeleteResourceError(DashboardBaseError):
+    """ 删除资源失败 """
+
+    message = 'Delete Resource Error'
