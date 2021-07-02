@@ -47,7 +47,7 @@ class K8SClientBase(BCSClientBase):
             return
 
         # bash长度需要比页面长度，否则换行有问题
-        message = json.dumps({"Height": rows + 20, "Width": cols + 2000})
+        message = json.dumps({"Width": cols, "Height": rows})
         message = chr(constants.RESIZE_CHANNEL) + message
         self.ws.write_message(message)
 
