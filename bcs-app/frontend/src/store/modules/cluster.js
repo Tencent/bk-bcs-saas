@@ -13,7 +13,7 @@ import _ from 'lodash'
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
-import { getBizMaintainers } from '@open/api/base'
+import { getBizMaintainers, getK8sNodes, fetchK8sNodeLabels, setK8sNodeLabels } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -1495,6 +1495,48 @@ export default {
             const data = await getBizMaintainers(params, config).catch(() => ({
                 maintainers: []
             }))
+            return data
+        },
+
+        /**
+         * 获取 k8s节点列表
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async getK8sNodes (context, params = {}, config = {}) {
+            const data = await getK8sNodes(params, config).catch(() => ([]))
+            return data
+        },
+
+        /**
+         * 获取 k8s节点labels列表
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async fetchK8sNodeLabels (context, params = {}, config = {}) {
+            const data = await fetchK8sNodeLabels(params, config).catch(() => ({}))
+            return data
+        },
+
+        /**
+         * 设置 k8s节点labels列表
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async setK8sNodeLabels (context, params = {}, config = {}) {
+            const data = await setK8sNodeLabels(params, config).catch(() => ([]))
             return data
         }
     }

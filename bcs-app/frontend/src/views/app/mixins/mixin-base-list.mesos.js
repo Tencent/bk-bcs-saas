@@ -180,6 +180,38 @@ export default {
                 isShow: false,
                 list: [],
                 tpl: null
+            },
+            sourceExpansionDialogConf: {
+                isShow: false,
+                width: 1050,
+                title: '',
+                closeIcon: true,
+                loading: false,
+                oldContent: '',
+                newContent: '',
+                oldVer: '',
+                verList: [],
+                selectedVerId: '',
+                instanceNum: '',
+                newVersion: {
+                    instance_num: '',
+                    instance_num_key: '',
+                    instance_num_var_flag: false
+                },
+                oldVariableList: [],
+                newVariableList: [],
+                isShowVariable: false,
+                noDiffMsg: ''
+            },
+            sourceExpansionInNotPlatformDialogConf: {
+                isShow: false,
+                width: 1050,
+                title: '',
+                closeIcon: true,
+                loading: false,
+                content: '',
+                showType: 'edit',
+                toggleStr: this.$t('查看对比')
             }
         }
     },
@@ -3624,6 +3656,329 @@ export default {
                 setTimeout(() => {
                     this.curInstance.state && this.curInstance.state.unlock()
                 }, 1000)
+            }
+        },
+
+        /**
+         * 原地资源扩容
+         *
+         * @param {Object} instance 当前实例
+         * @param {number} instanceIndex 当前实例的索引
+         * @param {Array} instanceList 当前 tpl 下的实例集合
+         */
+        async showSourceExpansion (instance, instanceIndex, instanceList) {
+            if (!instance.permissions.use) {
+                const resourceList = [
+                    {
+                        policy_code: 'use',
+                        resource_code: instance.namespace_id,
+                        resource_name: instance.namespace,
+                        resource_type: 'namespace'
+                    }
+                ]
+                if (instance.from_platform) {
+                    resourceList.push({
+                        policy_code: 'use',
+                        resource_code: instance.muster_id,
+                        resource_name: instance.muster_name,
+                        resource_type: 'templates'
+                    })
+                }
+                await this.$store.dispatch('getMultiResourcePermissions', {
+                    project_id: this.projectId,
+                    operator: 'and',
+                    resource_list: resourceList
+                })
+            }
+
+            this.curInstance = Object.assign({}, instance)
+
+            this.curInstance.instanceList = instanceList
+            this.curInstance.instanceIndex = instanceIndex
+
+            if (!this.curInstance.from_platform && this.curInstance.id === 0) {
+                this.sourceExpansionInNotPlatformDialogConf.isShow = true
+                this.sourceExpansionInNotPlatformDialogConf.loading = true
+                this.sourceExpansionInNotPlatformDialogConf.title = this.$t('{instanceName}原地资源扩容', {
+                    instanceName: instance.name
+                })
+
+                try {
+                    const params = {
+                        projectId: this.projectId,
+                        instanceId: this.curInstance.id,
+                        name: this.curInstance.name,
+                        namespace: this.curInstance.namespace,
+                        category: this.curInstance.category,
+                        cluster_id: this.curInstance.cluster_id
+                    }
+                    if (this.CATEGORY) {
+                        params.category = this.CATEGORY
+                    }
+                    // 当前版本信息
+                    const res = await this.$store.dispatch('app/getVersionInRollingUpdateInNotPlatform', params)
+                    const content = JSON.stringify(res.data.json, null, 2)
+
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            this.compareEditorConfig.editor.gotoLine(0, 0, true)
+
+                            this.editorConfig.editor.gotoLine(0, 0, true)
+                            this.editorConfig.editor.focus()
+
+                            // ace editor 同步滚动
+                            const session = this.editorConfig.editor.getSession()
+                            const compareSession = this.compareEditorConfig.editor.getSession()
+                            session.on('changeScrollTop', scroll => {
+                                compareSession.setScrollTop(parseInt(scroll, 10) || 0)
+                            })
+                            session.on('changeScrollLeft', scroll => {
+                                compareSession.setScrollLeft(parseInt(scroll, 10) || 0)
+                            })
+
+                            compareSession.on('changeScrollTop', scroll => {
+                                session.setScrollTop(parseInt(scroll, 10) || 0)
+                            })
+                            compareSession.on('changeScrollLeft', scroll => {
+                                session.setScrollLeft(parseInt(scroll, 10) || 0)
+                            })
+                        }, 10)
+
+                        this.editorValue = content
+                        this.sourceExpansionInNotPlatformDialogConf.content = content
+                        this.editorConfig.value = content
+                        this.compareEditorConfig.value = content
+                    })
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.sourceExpansionInNotPlatformDialogConf.loading = false
+                }
+            } else {
+                this.sourceExpansionDialogConf.isShow = true
+                this.sourceExpansionDialogConf.loading = true
+                this.sourceExpansionDialogConf.title = this.$t('{instanceName}原地资源扩容', {
+                    instanceName: instance.name
+                })
+    
+                this.sourceExpansionDialogConf.oldVer = this.curInstance.version
+                this.sourceExpansionDialogConf.verList.splice(0, this.sourceExpansionDialogConf.verList.length, ...[])
+                this.sourceExpansionDialogConf.selectedVerId = -1
+                this.sourceExpansionDialogConf.instanceNum = this.curInstance.instance
+    
+                this.fetchVersionInfo(this.curInstance, this.sourceExpansionDialogConf)
+            }
+
+            if (this.viewMode === 'namespace') {
+                this.cancelLoopAppList()
+            } else {
+                this.cancelLoopInstanceList()
+            }
+        },
+
+        /**
+         * 原地资源扩容确认
+         */
+        sourceExpansionConfirm () {
+            const me = this
+
+            const variable = {}
+            me.sourceExpansionDialogConf.newVariableList.forEach(vari => {
+                variable[vari.key] = vari.value
+            })
+
+            me.$bkInfo({
+                title: this.$t('确认操作'),
+                clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
+                content: me.$createElement('p', {
+                    style: {
+                        color: '#666',
+                        fontSize: '14px',
+                        marginLeft: '-7px'
+                    }
+                }, this.$t('确定原地资源扩容【{instanceName}】？', { instanceName: me.curInstance.name })),
+                async confirmFn () {
+                    const params = {
+                        $clusterId: me.curInstance.cluster_id,
+                        $namespace: me.curInstance.namespace,
+                        $application: me.curInstance.name,
+                        kind: me.curInstance.category,
+                        variables: variable
+                    }
+
+                    if (!me.curInstance.from_platform) {
+                        params.manifest = JSON.parse(me.editorValue)
+                    } else {
+                        params.show_version_id = me.sourceExpansionDialogConf.selectedVerId
+                    }
+
+                    me.isUpdating = true
+                    me.curInstance.state && me.curInstance.state.lock()
+                    try {
+                        await me.$store.dispatch('app/sourceExpansion', params)
+                        me.hideSourceExpansion()
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        me.isUpdating = false
+                        setTimeout(() => {
+                            me.curInstance.state && me.curInstance.state.unlock()
+                        }, 1000)
+                    }
+                }
+            })
+        },
+
+        /**
+         * 关闭原地资源扩容
+         */
+        hideSourceExpansion () {
+            this.sourceExpansionDialogConf.isShow = false
+            this.sourceExpansionDialogConf.loading = false
+
+            this.curInstance = Object.assign({}, {})
+            setTimeout(() => {
+                this.sourceExpansionDialogConf.oldContent = ''
+                this.sourceExpansionDialogConf.newContent = ''
+                this.sourceExpansionDialogConf.oldVer = ''
+                this.sourceExpansionDialogConf.verList.splice(0, this.sourceExpansionDialogConf.verList.length, ...[])
+                this.sourceExpansionDialogConf.selectedVerId = ''
+                this.sourceExpansionDialogConf.instanceNum = ''
+                this.sourceExpansionDialogConf.noDiffMsg = ''
+
+                this.sourceExpansionDialogConf.oldVariableList.splice(0, this.sourceExpansionDialogConf.oldVariableList.length, ...[])
+                this.sourceExpansionDialogConf.newVariableList.splice(0, this.sourceExpansionDialogConf.newVariableList.length, ...[])
+                this.sourceExpansionDialogConf.isShowVariable = false
+
+                this.cancelLoop = false
+                if (this.viewMode === 'namespace') {
+                    this.fetchAppListInNamespaceViewMode(...this.loopAppListParams)
+                } else {
+                    this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
+                }
+            }, 100)
+        },
+
+        /**
+         * 原地资源扩容切换编辑变量的元素
+         */
+        toggleVariableInSourceExpansion () {
+            this.sourceExpansionDialogConf.isShowVariable = !this.sourceExpansionDialogConf.isShowVariable
+        },
+
+        /**
+         * 原地资源扩容版本下拉框选择事件
+         *
+         * @param {number} id ver id
+         * @param {Object} data ver 对象数据
+         */
+        async verSelectedInSourceExpansion (id, data) {
+            this.sourceExpansionDialogConf.loading = true
+            this.sourceExpansionDialogConf.selectedVerId = id
+
+            const lastNoDiffMsg = this.sourceExpansionDialogConf.noDiffMsg
+            this.sourceExpansionDialogConf.noDiffMsg = ''
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    instanceId: this.curInstance.id,
+                    showVersionId: id,
+                    cluster_id: this.curInstance.cluster_id
+                }
+
+                if (this.CATEGORY) {
+                    params.category = this.CATEGORY
+                }
+
+                const newRes = await this.$store.dispatch('app/getVersionInRollingUpdate', params)
+
+                // 返回的内容和上次的一致，不会自动触发 diff 的 render
+                if (newRes.data.yaml === this.sourceExpansionDialogConf.newContent) {
+                    this.sourceExpansionDialogConf.noDiffMsg = lastNoDiffMsg
+                }
+
+                this.sourceExpansionDialogConf.newContent = newRes.data.yaml
+                this.sourceExpansionDialogConf.instanceNum = newRes.data.instance_num
+                this.sourceExpansionDialogConf.newVersion.instance_num = newRes.data.instance_num
+                this.sourceExpansionDialogConf.newVersion.instance_num_key = newRes.data.instance_num_key
+                this.sourceExpansionDialogConf.newVersion.instance_num_var_flag = newRes.data.instance_num_var_flag
+
+                this.sourceExpansionDialogConf.newVariableList.splice(
+                    0,
+                    this.sourceExpansionDialogConf.newVariableList.length,
+                    ...(newRes.data.variable || [])
+                )
+                this.sourceExpansionDialogConf.isShowVariable = false
+            } catch (e) {
+                console.error(e)
+            } finally {
+                this.sourceExpansionDialogConf.loading = false
+            }
+        },
+
+        hideSourceExpansionInNotPlatform () {
+            this.sourceExpansionInNotPlatformDialogConf.isShow = false
+            this.sourceExpansionInNotPlatformDialogConf.loading = false
+    
+            this.curInstance = Object.assign({}, {})
+            setTimeout(() => {
+                this.editorConfig.value = ''
+                this.editorValue = ''
+                this.sourceExpansionInNotPlatformDialogConf.showType = 'edit'
+                this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
+    
+                this.cancelLoop = false
+                if (this.viewMode === 'namespace') {
+                    this.fetchAppListInNamespaceViewMode(...this.loopAppListParams)
+                } else {
+                    this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
+                }
+                this.useEditorDiff = false
+            }, 100)
+        },
+        
+        toggleSourceExpansionDiffEdit () {
+            if (this.sourceExpansionInNotPlatformDialogConf.showType === 'edit') {
+                if (this.compareEditorConfig.value === this.editorValue) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'primary',
+                        delay: 2000,
+                        message: this.$t('当前内容一致，没有差异')
+                    })
+                } else {
+                    this.sourceExpansionInNotPlatformDialogConf.showType = 'diff'
+                    this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('开始编辑')
+                }
+            } else {
+                this.sourceExpansionInNotPlatformDialogConf.showType = 'edit'
+                this.editorConfig.value = this.editorValue
+                setTimeout(() => {
+                    this.sourceExpansionInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
+
+                    this.compareEditorConfig.editor.gotoLine(0, 0, true)
+
+                    this.editorConfig.editor.gotoLine(0, 0, true)
+                    this.editorConfig.editor.focus()
+
+                    // ace editor 同步滚动
+                    const session = this.editorConfig.editor.getSession()
+                    const compareSession = this.compareEditorConfig.editor.getSession()
+                    session.on('changeScrollTop', scroll => {
+                        compareSession.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    session.on('changeScrollLeft', scroll => {
+                        compareSession.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+
+                    compareSession.on('changeScrollTop', scroll => {
+                        session.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    compareSession.on('changeScrollLeft', scroll => {
+                        session.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+                }, 10)
             }
         }
     }

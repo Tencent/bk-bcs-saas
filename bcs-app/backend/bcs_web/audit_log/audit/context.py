@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field, fields
-from typing import Dict
+from dataclasses import dataclass, fields
+from typing import Any, Dict
 
 
 @dataclass
@@ -29,10 +29,20 @@ class AuditContext:
     resource_type: str = ''
     activity_type: str = ''
     activity_status: str = ''
-    extra: Dict = field(default_factory=dict)
 
-    def __post_init__(self):
-        self.extra = dict(self.extra)
+    def set_extra(self, value: Any):
+        # another way which allows to have fields without a leading underscore
+        # https://stackoverflow.com/questions/51079503/dataclasses-and-property-decorator
+        # 处理默认值的方式: 未赋值 extra 属性时，value 类型是 property
+        if isinstance(value, property):
+            self.__dict__['extra'] = dict()
+        else:
+            self.__dict__['extra'] = dict(value)
+
+    def get_extra(self) -> Dict:
+        return self.__dict__.get('extra')
+
+    extra: Dict = property(get_extra, set_extra)
 
     def update(self, ctx: 'AuditContext'):
         """仅将 ctx 中的非空属性覆盖到当前实例中"""

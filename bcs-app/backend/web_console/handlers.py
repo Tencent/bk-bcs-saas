@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import base64
 import json
 import logging
 
@@ -19,6 +20,7 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings
 from django.utils import translation
+from django.utils.encoding import smart_str
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation.trans_real import get_supported_language_variant
 from tornado import locale
@@ -150,14 +152,12 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
     def on_message(self, message):
         self.last_input_ts = IOLoop.current().time()
         channel = int(message[0])
-        message = message[1:]
+        message = base64.b64decode(message[1:])
         if channel == constants.RESIZE_CHANNEL:
-            rows, cols = message.split(",")
-            rows = int(rows)
-            cols = int(rows)
-            self.bcs_client.set_pty_size(rows, cols)
+            size = json.loads(message)
+            self.bcs_client.set_pty_size(size["rows"], size["cols"])
         else:
-            self.send_message(message)
+            self.send_message(smart_str(message))
 
     def on_close(self):
         if self.tick_callback:

@@ -15,6 +15,7 @@ import copy
 import json
 import logging
 import re
+from typing import Dict, List
 
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
@@ -23,19 +24,23 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log import client
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import data as data_api
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters import utils as cluster_utils
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.clusters.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.container_service.clusters.driver import BaseDriver
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
 from backend.container_service.clusters.serializers import NodeLabelParamsSLZ
+from backend.container_service.clusters.tools.node import query_cluster_nodes
 from backend.container_service.clusters.utils import cluster_env_transfer, custom_paginator, status_transfer
+from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
@@ -969,10 +974,10 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         return response.Response({"code": 0, "message": _("创建成功!")})
 
 
-class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def compose_node_with_label(self, node_id_info, label_info, project_code, cluster_name_env):
+class NodeLabelListViewSet(NodeBase, NodeLabelBase, SystemViewSet):
+    def compose_nodes(
+        self, node_id_info: Dict, label_info: List, project_code: str, cluster_name_env: Dict, nodes: Dict
+    ) -> List:
         # map for node id and node label
         label_info_dict = {info['node_id']: info for info in label_info}
         node_info_with_label = []
@@ -986,6 +991,12 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 label_slz = json.loads(label_info.get('labels') or '{}')
                 label_list = [{key: val} for key, val in label_slz.items()]
                 info['labels'] = label_list
+
+            # 添加集群 host name和污点信息
+            node_info = nodes.get(info["inner_ip"], {})
+            info["host_name"] = node_info.get("host_name", "")
+            info["taints"] = node_info.get("taints", {})
+
             node_info_with_label.append(info)
         return node_info_with_label
 
@@ -1025,8 +1036,11 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         node_label_list = self.get_labels_by_node(request, project_id, node_id_info_map.keys())
         # render cluster id, cluster name and cluster environment
         cluster_name_env = self.get_cluster_id_info_map(request, project_id)
-        node_list = self.compose_node_with_label(
-            node_id_info_map, node_label_list, request.project['english_name'], cluster_name_env
+        # 获取节点的taint
+        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, id=cluster_id, project_id=project_id)
+        nodes = query_cluster_nodes(ctx_cluster)
+        node_list = self.compose_nodes(
+            node_id_info_map, node_label_list, request.project['english_name'], cluster_name_env, nodes
         )
         # add perm for node
         nodes_results = bcs_perm.Cluster.hook_perms(request, project_id, node_list)

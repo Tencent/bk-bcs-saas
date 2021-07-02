@@ -156,6 +156,12 @@
                 default: '',
                 required: true
             },
+            // kind类型
+            kind: {
+                type: String,
+                default: '',
+                required: true
+            },
             // 名称
             name: {
                 type: String,
@@ -232,12 +238,13 @@
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
                     return pre
                 }, '')
-                if (!labelSelector) return
 
                 podLoading.value = true
                 workloadPods.value = await $store.dispatch('dashboard/listWorkloadPods', {
                     $namespaceId: props.namespace,
-                    label_selector: labelSelector
+                    label_selector: labelSelector,
+                    owner_kind: props.kind,
+                    owner_name: props.name
                 })
                 podLoading.value = false
             }

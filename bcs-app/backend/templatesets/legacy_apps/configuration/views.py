@@ -316,13 +316,10 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
     @log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
     def perform_update(self, serializer):
         self.audit_ctx.update_fields(
-            user=self.request.user.username,
-            project_id=self.project_id,
-            extra=serializer.data,
-            description=_("更新模板集"),
+            user=self.request.user.username, project_id=self.project_id, description=_("更新模板集")
         )
         instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
-        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id)
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, extra=serializer.data)
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
 

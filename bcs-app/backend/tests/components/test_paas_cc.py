@@ -62,3 +62,11 @@ class TestPaaSCCClient:
         ]
         assert requests_mock.called
         assert requests_mock.request_history[0].method == "PATCH"
+
+    def test_get_node_list(self, project_id, cluster_id, requests_mock):
+        requests_mock.get(ANY, json={"code": 0, "data": {"count": 1, "results": [{"inner_ip": "127.0.0.1"}]}})
+        client = PaaSCCClient(ComponentAuth("token"))
+        resp = client.get_node_list(project_id, cluster_id)
+
+        assert resp == {"count": 1, "results": [{"inner_ip": "127.0.0.1"}]}
+        assert "desire_all_data" in requests_mock.last_request.qs

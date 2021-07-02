@@ -22,6 +22,14 @@ export const fetchContainerEnvInfo = request('get', '/api/dashboard/projects/$pr
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
 
+// application
+export const sourceExpansion = request('put', '/api/app/mesos/projects/$projectId/clusters/$clusterId/namespaces/$namespace/instances/$application/')
+
+// node
+export const getK8sNodes = request('get', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/')
+export const fetchK8sNodeLabels = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
+export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
+
 export default {
     stdLogs,
     stdLogsDownload,
@@ -36,5 +44,8 @@ export default {
     listStoragePods,
     listContainers,
     retrieveContainerDetail,
-    fetchContainerEnvInfo
+    fetchContainerEnvInfo,
+    getK8sNodes,
+    fetchK8sNodeLabels,
+    setK8sNodeLabels
 }
