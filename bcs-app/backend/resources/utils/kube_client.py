@@ -183,13 +183,13 @@ def get_dynamic_client(
     :return: 指定集群的 CoreDynamicClient
     """
     if use_cache:
-        return get_dynamic_client_with_cache(access_token, project_id, cluster_id)
+        return _get_dynamic_client(access_token, project_id, cluster_id)
     # 若不使用缓存，则直接生成新的实例返回
     return generate_core_dynamic_client(access_token, project_id, cluster_id)
 
 
 @lru_cache(maxsize=128)
-def get_dynamic_client_with_cache(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
+def _get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
     """ 获取 Kubernetes Client 对象（带缓存）"""
     return generate_core_dynamic_client(access_token, project_id, cluster_id)
 
