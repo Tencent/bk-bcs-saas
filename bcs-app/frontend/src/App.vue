@@ -149,7 +149,8 @@
                 // 判断集群ID是否存在当前项目的集群列表中
                 const stateClusterList = this.$store.state.cluster.clusterList || []
                 const curCluster = stateClusterList?.find(cluster => cluster.cluster_id === clusterId)
-                if (!curCluster) {
+                const notInClusterList = clusterId && !curCluster
+                if (notInClusterList) {
                     clusterId = ''
                 }
                 localStorage.setItem('bcs-cluster', clusterId)
@@ -157,7 +158,7 @@
                 this.$store.commit('updateCurClusterId', clusterId)
                 this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
                 // url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
-                if (this.$route.params.clusterId && !clusterId) {
+                if (this.$route.params.clusterId && notInClusterList) {
                     this.$router.replace({
                         name: 'clusterMain',
                         params: {
