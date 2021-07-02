@@ -162,6 +162,14 @@ def generate_api_client(access_token: str, project_id: str, cluster_id: str) -> 
     )
 
 
+def generate_core_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
+    """ 根据指定参数，生成 CoreDynamicClient """
+    api_client = generate_api_client(access_token, project_id, cluster_id)
+    # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
+    discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
+    return CoreDynamicClient(api_client, cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
+
+
 def get_dynamic_client(
     access_token: str, project_id: str, cluster_id: str, use_cache: bool = True
 ) -> CoreDynamicClient:
@@ -177,16 +185,13 @@ def get_dynamic_client(
     if use_cache:
         return get_dynamic_client_with_cache(access_token, project_id, cluster_id)
     # 若不使用缓存，则直接生成新的实例返回
-    return CoreDynamicClient(generate_api_client(access_token, project_id, cluster_id))
+    return generate_core_dynamic_client(access_token, project_id, cluster_id)
 
 
 @lru_cache(maxsize=128)
 def get_dynamic_client_with_cache(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
     """ 获取 Kubernetes Client 对象（带缓存）"""
-    api_client = generate_api_client(access_token, project_id, cluster_id)
-    # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
-    discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
-    return CoreDynamicClient(api_client, cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
+    return generate_core_dynamic_client(access_token, project_id, cluster_id)
 
 
 def make_labels_string(labels: Dict) -> str:
