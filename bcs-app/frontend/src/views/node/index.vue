@@ -360,7 +360,8 @@
                 curSelectedClusterId: '',
                 alreadySelectedNums: 0,
                 searchParams: [],
-                clipboardInstance: null
+                clipboardInstance: null,
+                vueInstanceIsDestroy: false
             }
         },
         computed: {
@@ -390,13 +391,14 @@
             'checkedNodeList.length' (len) {
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
-            },
-            async curClusterId (v) {
-                await this.fetchData()
             }
         },
         beforeDestroy () {
-            clearTimeout(this.timer) && (this.timer = null)
+            this.vueInstanceIsDestroy = true
+            if (this.timer) {
+                clearTimeout(this.timer)
+                this.timer = null
+            }
 
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
@@ -404,14 +406,13 @@
             }
         },
         destroyed () {
-            clearTimeout(this.timer) && (this.timer = null)
-
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
                 this.clipboardInstance.off('success')
             }
         },
         async created () {
+            this.vueInstanceIsDestroy = false
             this.pageConf.current = 1
             this.pageLoading = true
             await this.fetchData()
@@ -496,6 +497,7 @@
              * @param {boolean} isPolling 是否是轮询
              */
             async fetchData (isPolling) {
+                if (this.vueInstanceIsDestroy) return
                 if (!isPolling) {
                     await this.getClusters()
                 }
@@ -606,8 +608,10 @@
                     )
                     this.isCheckAllNode = selectedNodeList.length === validList.length
 
-                    clearTimeout(this.timer)
-                    this.timer = null
+                    if (this.timer) {
+                        clearTimeout(this.timer)
+                        this.timer = null
+                    }
                     this.timer = setTimeout(() => {
                         this.fetchData(true)
                     }, 30000)
