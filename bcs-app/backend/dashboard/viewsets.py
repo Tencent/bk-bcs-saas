@@ -46,7 +46,9 @@ class DestroyMixin:
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Delete)
     def destroy(self, request, project_id, cluster_id, namespace, name):
         client = self.resource_client(request.ctx_cluster)
-        request.audit_ctx.update_fields(resource_type=self.resource_client.kind, resource=f'{namespace}/{name}')
+        request.audit_ctx.update_fields(
+            resource_type=self.resource_client.kind.lower(), resource=f'{namespace}/{name}'
+        )
         try:
             response_data = client.delete(name=name, namespace=namespace).to_dict()
         except DynamicApiError as e:
@@ -63,7 +65,7 @@ class CreateMixin:
         client = self.resource_client(request.ctx_cluster)
         namespace = namespace or getitems(params, 'manifest.metadata.namespace')
         request.audit_ctx.update_fields(
-            resource_type=self.resource_client.kind,
+            resource_type=self.resource_client.kind.lower(),
             resource=f"{namespace}/{getitems(params, 'manifest.metadata.name')}",
         )
         try:
@@ -80,7 +82,9 @@ class UpdateMixin:
     def update(self, request, project_id, cluster_id, namespace, name):
         params = self.params_validate(UpdateResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
-        request.audit_ctx.update_fields(resource_type=self.resource_client.kind, resource=f'{namespace}/{name}')
+        request.audit_ctx.update_fields(
+            resource_type=self.resource_client.kind.lower(), resource=f'{namespace}/{name}'
+        )
         try:
             response_data = client.replace(
                 body=params['manifest'], namespace=namespace, name=name, is_format=False
