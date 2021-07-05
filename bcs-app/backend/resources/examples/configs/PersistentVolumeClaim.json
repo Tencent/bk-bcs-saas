@@ -1,0 +1,18 @@
+{
+  "kind": "PersistentVolumeClaim",
+  "class": "storages",
+  "references":[
+    {
+      "name": "Kubernetes PersistentVolumeClaim 字段说明",
+      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#persistentvolumeclaim-v1-core"
+    }
+  ],
+  "items": [
+    {
+      "name": "simple_persistent_volume_claim",
+      "alias": "PersistentVolumeClaim 简单示例",
+      "description": "简单的 PersistentVolumeClaim 示例，仅包含基础配置",
+      "manifest": null
+    }
+  ]
+}

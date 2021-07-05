@@ -13,24 +13,48 @@
 #
 import pytest
 
+from backend.dashboard.examples.utils import load_demo_manifest
+from backend.tests.conftest import TEST_NAMESPACE
+from backend.tests.dashboard.conftest import DASHBOARD_API_URL_COMMON_PREFIX as DAU_PREFIX
+from backend.utils.basic import getitems
+
 pytestmark = pytest.mark.django_db
 
 
 class TestPersistentVolumeClaim:
     """ 测试 PersistentVolumeClaim 相关接口 """
 
-    def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/storages/persistent_volume_claims/'
-        )
+    manifest = load_demo_manifest('storages/simple_persistent_volume_claim')
+    name = getitems(manifest, 'metadata.name')
+    batch_url = f'{DAU_PREFIX}/storages/persistent_volume_claims/'
+    detail_url = f'{DAU_PREFIX}/namespaces/{TEST_NAMESPACE}/storages/persistent_volume_claims/{name}/'
+
+    def test_create(self, api_client):
+        """ 测试创建资源接口 """
+        response = api_client.post(self.batch_url, data={'manifest': self.manifest})
         assert response.json()['code'] == 0
 
-    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+    def test_list(self, api_client):
+        """ 测试获取资源列表接口 """
+        response = api_client.get(self.batch_url)
+        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'PersistentVolumeClaimList'
+
+    def test_update(self, api_client):
+        """ 测试更新资源接口 """
+        self.manifest['metadata']['annotations'] = {'t_key': 't_val'}
+        response = api_client.put(self.detail_url, data={'manifest': self.manifest})
+        print(response.data, response.json()['message'])
+        assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client):
         """ 测试获取单个资源接口 """
-        namespace, pvc_name = 'default', 'test_pvc_name'
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
-            + f'namespaces/{namespace}/storages/persistent_volume_claims/{pvc_name}/'
-        )
+        response = api_client.get(self.detail_url)
+        assert response.json()['code'] == 0
+        assert response.data['manifest']['kind'] == 'PersistentVolumeClaim'
+        assert getitems(response.data, 'manifest.metadata.annotations.t_key') == 't_val'
+
+    def test_destroy(self, api_client):
+        """ 测试删除单个资源 """
+        response = api_client.delete(self.detail_url)
         assert response.json()['code'] == 0

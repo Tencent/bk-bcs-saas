@@ -1,0 +1,18 @@
+{
+  "kind": "CronJob",
+  "class": "workloads",
+  "references": [
+    {
+      "name": "Kubernetes CronJob 字段说明",
+      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#cronjob-v1-batch"
+    }
+  ],
+  "items": [
+    {
+      "name": "simple_cronjob",
+      "alias": "CronJob 简单示例",
+      "description": "简单的 CronJob 示例，仅包含基础配置",
+      "manifest": null
+    }
+  ]
+}

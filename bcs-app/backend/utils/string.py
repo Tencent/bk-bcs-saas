@@ -11,8 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-
-
 def decapitalize(s: str) -> str:
     """ 首字母转小写（暂不考虑去除空白字符） """
     return s[:1].lower() + s[1:]
