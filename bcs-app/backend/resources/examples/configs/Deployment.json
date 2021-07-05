@@ -1,12 +1,7 @@
 {
   "kind": "Deployment",
   "class": "workloads",
-  "references":[
-    {
-      "name": "Kubernetes Deployment 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#deployment-v1-apps"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_deployment",
