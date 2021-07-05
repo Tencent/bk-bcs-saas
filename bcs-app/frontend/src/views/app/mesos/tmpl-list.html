@@ -166,12 +166,7 @@
                                                                     </bcs-popover>
                                                                 </td>
                                                                 <td style="white-space: nowrap;">
-                                                                    <bcs-popover placement="top" :delay="500">
-                                                                        <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                        <template slot="content">
-                                                                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || $t('异常')}}</p>
-                                                                        </template>
-                                                                    </bcs-popover>
+                                                                    <i v-bk-tooltips="instance.backend_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                                     <p style="display: inline-block;color: #ff5656;">CreateError</p>
                                                                 </td>
                                                                 <td>{{instance.category}}</td>
@@ -277,18 +272,13 @@
                                                                         </td>
                                                                         <template v-if="instance.state.getRet().showError === true">
                                                                             <td style="white-space: nowrap;">
-                                                                                <bcs-popover placement="top" :delay="500">
-                                                                                    <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                                    <template slot="content">
-                                                                                        <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.application_status_message || $t('异常')}}</p>
-                                                                                    </template>
-                                                                                </bcs-popover>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                                                 <p style="display: inline-block;color: #ff5656;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
                                                                         <template v-else>
                                                                             <td style="white-space: nowrap;">
-                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -10px;"></i>
                                                                                 <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
@@ -465,18 +455,13 @@
                                                                         </td>
                                                                         <template v-if="instance.state.getRet().showError === true">
                                                                             <td style="white-space: nowrap;">
-                                                                                <bcs-popover placement="top" :delay="500">
-                                                                                    <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                                    <template slot="content">
-                                                                                        <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.application_status_message || $t('异常')}}</p>
-                                                                                    </template>
-                                                                                </bcs-popover>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                                                 <p style="display: inline-block;color: #ff5656;">{{instance.deployment_status}}</p>
                                                                             </td>
                                                                         </template>
                                                                         <template v-else>
                                                                             <td style="white-space: nowrap;">
-                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                                <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -10px;"></i>
                                                                                 <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                             </td>
                                                                         </template>
@@ -825,12 +810,7 @@
                                                             </bcs-popover>
                                                         </td>
                                                         <td style="white-space: nowrap;">
-                                                            <bcs-popover placement="top-start" :delay="500">
-                                                                <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                <template slot="content">
-                                                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || $t('异常')}}</p>
-                                                                </template>
-                                                            </bcs-popover>
+                                                            <i v-bk-tooltips="instance.backend_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                             <p style="display: inline-block;color: #ff5656;">CreateError</p>
                                                         </td>
                                                         <td>{{instance.category}}</td>
@@ -899,7 +879,7 @@
                                                     <template v-else>
                                                         <!-- application -->
                                                         <template v-if="instance.category === 'application'">
-                                                            <template v-if="instance.state.getRet().showLoading === true">
+                                                            <template v-if="instance.state.getRet().showLoading === false">
                                                                 <td style="text-align: left;">
                                                                     <bcs-popover placement="top">
                                                                         <a href="javascript:void(0);" class="bk-text-button instance-name" style="font-weight: 700;" @click="goInstanceDetail(instance, namespace)">{{instance.name}}</a>
@@ -933,12 +913,7 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <bcs-popover placement="top" :delay="500">
-                                                                            <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                            <template slot="content">
-                                                                                <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.application_status_message || $t('异常')}}</p>
-                                                                            </template>
-                                                                        </bcs-popover>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                                         <p style="display: inline-block;color: #ff5656;">{{instance.application_status}}</p>
                                                                     </td>
                                                                 </template>
@@ -952,7 +927,7 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -10px;"></i>
                                                                         <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                     </td>
                                                                 </template>
@@ -1106,12 +1081,7 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <bcs-popover placement="top" :delay="500">
-                                                                            <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
-                                                                            <template slot="content">
-                                                                                <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.application_status_message || $t('异常')}}</p>
-                                                                            </template>
-                                                                        </bcs-popover>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('异常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;left: -10px;"></i>
                                                                         <p style="display: inline-block;color: #ff5656;">{{instance.deployment_status}}</p>
                                                                     </td>
                                                                 </template>
@@ -1125,7 +1095,7 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -10px;"></i>
                                                                         <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                     </td>
                                                                 </template>
