@@ -1204,14 +1204,13 @@
                     }
                 }
 
-                const nodeNameList = []
                 const resNodeList = []
 
                 if (this.curRowNode && Object.keys(this.curRowNode).length) {
-                    this.isMesosProject ? resNodeList.push(this.curRowNode) : nodeNameList.push(this.curRowNode.name)
+                    resNodeList.push(this.curRowNode)
                 } else {
                     if (this.checkedNodeList.length) {
-                        this.isMesosProject ? resNodeList.push(...this.checkedNodeList) : nodeNameList.push(...this.checkedNodeList.map(checkedNode => checkedNode.name))
+                        resNodeList.push(...this.checkedNodeList)
                     }
                 }
 
@@ -1220,10 +1219,20 @@
                     let api = 'cluster/setK8sNodeLabels'
                     let params = {
                         $clusterId: this.curSelectedClusterId,
-                        node_label_list: nodeNameList.map(name => ({
-                            node_name: name,
-                            labels: labelInfo
-                        }))
+                        node_label_list: resNodeList.map(node => {
+                            const nodeLabelInfo = {}
+                            Object.keys(labelInfo).forEach(key => {
+                                if (labelInfo[key] === '*****-----$$$$$' && node.labels[key]) {
+                                    nodeLabelInfo[key] = node.labels[key]
+                                } else if (labelInfo[key] !== '*****-----$$$$$') {
+                                    nodeLabelInfo[key] = labelInfo[key]
+                                }
+                            })
+                            return {
+                                node_name: node.name,
+                                labels: nodeLabelInfo
+                            }
+                        })
                     }
                     if (this.isMesosProject) {
                         api = 'cluster/updateMesosNodeLabel'
