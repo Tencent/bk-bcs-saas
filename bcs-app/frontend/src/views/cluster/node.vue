@@ -52,7 +52,7 @@
                                 <span>{{$t('添加节点')}}</span>
                             </bk-button>
                             <template v-if="curClusterInPage.type === 'tke' && $INTERNAL">
-                                <apply-host theme="primary" style="display: inline-block;" :is-backfill="true" />
+                                <apply-host theme="primary" style="display: inline-block;" :cluster-id="clusterId" :is-backfill="true" />
                             </template>
                             <bcs-popover v-if="!allowBatch" :content="dontAllowBatchMsg" placement="top">
                                 <bk-dropdown-menu :align="'center'" ref="toggleFilterDropdownMenu" class="batch-operate-dropdown" :disabled="true">
