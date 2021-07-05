@@ -107,7 +107,7 @@ class TestCustomPermissions:
         p_view = ProjectEnableBCSView.as_view({'get': 'get'})
 
         # 未启用BCS的项目
-        response = p_view(request, project_id=project_id)
+        response = p_view(request, project_id=generate_random_string(32))
         assert response.data.get('message') == "project does not enable bcs"
         # 启用BCS的项目
         response = p_view(request, project_id=HAS_PERM_PROJECT_ID)

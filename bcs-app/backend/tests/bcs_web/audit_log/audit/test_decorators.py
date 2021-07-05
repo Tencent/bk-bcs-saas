@@ -96,10 +96,7 @@ class TestAuditDecorator:
             project_id=project_id, user=bk_user.username, activity_type=ActivityType.Retrieve
         )
         assert activity_log.activity_status == ActivityStatus.Succeed
-        assert (
-            activity_log.description
-            == f'{ActivityType.Retrieve} template {ActivityStatus.get_choice_label(ActivityStatus.Succeed)}'
-        )
+        assert activity_log.description == f'查询 模板集 成功'
 
     def test_log_audit_on_view_failed(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'post': 'create'})
@@ -112,10 +109,7 @@ class TestAuditDecorator:
         )
         assert activity_log.activity_status == ActivityStatus.Failed
         assert json.loads(activity_log.extra)['version'] == '1.6.0'
-        assert (
-            activity_log.description == f"{ActivityType.Add} template nginx "
-            f"{ActivityStatus.get_choice_label(ActivityStatus.Failed)}: {ValidationError('invalid manifest')}"
-        )
+        assert activity_log.description == f"创建 模板集 nginx 失败: {ValidationError('invalid manifest')}"
 
     def test_log_audit_ignore_exceptions(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'delete': 'delete'})

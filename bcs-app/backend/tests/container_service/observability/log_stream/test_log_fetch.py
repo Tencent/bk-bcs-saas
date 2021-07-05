@@ -20,11 +20,6 @@ from backend.container_service.observability.log_stream import utils
 
 @pytest.mark.django_db
 class TestLogStream:
-    @pytest.fixture
-    def log_content(self):
-        with open(os.path.join(os.path.dirname(__file__), "fake_log.txt"), 'rb') as f:
-            return f.read().decode('utf-8')
-
     def test_fetch(self, api_client, project_id, cluster_id, namespace, pod_name, container_name):
         """测试获取日志"""
         response = api_client.get(
