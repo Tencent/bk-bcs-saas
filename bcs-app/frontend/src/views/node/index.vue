@@ -392,6 +392,9 @@
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
             }
+            // async curClusterId (v) {
+            //     await this.fetchData()
+            // }
         },
         beforeDestroy () {
             this.vueInstanceIsDestroy = true
@@ -514,7 +517,7 @@
                         params.$clusterId = this.curSelectedClusterId
                     }
                     const res = await this.$store.dispatch(api, params)
-            
+
                     const list = this.isMesosProject ? res?.data?.results || [] : res
 
                     const nodeList = []
@@ -1315,7 +1318,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterOverview',
                     params: {
@@ -1345,7 +1347,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterNode',
                     params: {

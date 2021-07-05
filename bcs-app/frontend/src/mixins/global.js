@@ -13,6 +13,9 @@ export default {
     computed: {
         onlineProjectList () {
             return this.$store.state.sideMenu.onlineProjectList || []
+        },
+        curProjectId () {
+            return this.$store.state.curProjectId
         }
     },
     methods: {
@@ -24,7 +27,7 @@ export default {
         initCurProject (callback) {
             if (this.onlineProjectList.length) {
                 this.projectId = this.$route.params.projectId
-                    || localStorage.getItem('curProjectId')
+                    || this.curProjectId
                     || this.onlineProjectList[0].project_id
 
                 const curProject = this.onlineProjectList.find(project => {

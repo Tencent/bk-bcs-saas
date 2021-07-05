@@ -730,7 +730,6 @@
                                 this.searchScope = this.searchScopeList[1].id
                             }
                         }
-                        this.fetchNamespaceList()
                     }
                 }
             },

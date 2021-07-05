@@ -4,120 +4,32 @@
 
 <script>
     import { bus } from '@open/common/bus'
-    import { getProjectById, getProjectByCode } from '@open/common/util'
+    import { getProjectById } from '@open/common/util'
 
     export default {
         data () {
-            // 切换顶导项目时，如果 router 是如下数组中的，那么就会跳转到特定的 router
-            // 如果希望切换项目时 router 保持，那么这里就不需要配置
-            return {
-                clusterRouters: [
-                    'clusterMain',
-                    'clusterCreate',
-                    'clusterOverview',
-                    'clusterInfo',
-                    'clusterNode',
-                    'clusterNodeOverview',
-                    'containerDetailForNode',
-                    '404'
-                ],
-                configurationRouters: [
-                    'mesosTemplatesetApplication',
-                    'mesosTemplatesetDeployment',
-                    'mesosTemplatesetService',
-                    'mesosTemplatesetConfigmap',
-                    'mesosTemplatesetSecret',
-                    'mesosTemplatesetIngress',
-                    'mesosTemplatesetHPA',
-                    'instantiation',
-
-                    'k8sTemplatesetDeployment',
-                    'k8sTemplatesetService',
-                    'k8sTemplatesetConfigmap',
-                    'k8sTemplatesetSecret',
-                    'k8sTemplatesetDaemonset',
-                    'k8sTemplatesetJob',
-                    'k8sTemplatesetStatefulset',
-                    'k8sTemplatesetIngress',
-                    'k8sTemplatesetHPA'
-                ],
-                loadBalanceRouters: [
-                    'loadBalance',
-                    'loadBalanceDetail'
-                ],
-                depotRouters: [
-                    'imageDetail'
-                ],
-                helmRouters: [
-                    'helms',
-                    'helmTplList',
-                    'helmTplDetail',
-                    'helmTplInstance',
-                    'helmAppDetail'
-                ],
-                metricRouters: [
-                    'metricManage'
-                ],
-                // mesos 应用 router
-                mesosAppRouters: [
-                    'instanceDetail',
-                    'instanceDetail2',
-                    'containerDetail',
-                    'containerDetail2',
-                    'mesosInstantiation'
-                ],
-                // k8s 应用 deployments router
-                deploymentsRouters: [
-                    'deploymentsInstanceDetail',
-                    'deploymentsInstanceDetail2',
-                    'deploymentsContainerDetail',
-                    'deploymentsContainerDetail2',
-                    'deploymentsInstantiation'
-                ],
-                // k8s 应用 daemonset router
-                daemonsetRouters: [
-                    'daemonsetInstanceDetail',
-                    'daemonsetInstanceDetail2',
-                    'daemonsetContainerDetail',
-                    'daemonsetContainerDetail2',
-                    'daemonsetInstantiation'
-                ],
-                // k8s 应用 job router
-                jobRouters: [
-                    'jobInstanceDetail',
-                    'jobInstanceDetail2',
-                    'jobContainerDetail',
-                    'jobContainerDetail2',
-                    'jobInstantiation'
-                ],
-                // k8s 应用 statefulset router
-                statefulsetRouters: [
-                    'statefulsetInstanceDetail',
-                    'statefulsetInstanceDetail2',
-                    'statefulsetContainerDetail',
-                    'statefulsetContainerDetail2',
-                    'statefulsetInstantiation'
-                ]
-            }
+            return {}
         },
         computed: {
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
             },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
+            },
             projectCode () {
                 const route = this.$route
                 // 从路由获取 projectCode
                 if (route.params.projectCode) {
-                    this.setLocalStorage(route.params.projectCode)
+                    // this.setLocalStorage(route.params.projectCode)
                     return route.params.projectCode
                 }
 
                 // 从缓存获取projectId
-                if (localStorage.curProjectCode) {
-                    const projectCode = localStorage.curProjectCode
+                if (this.curProjectCode) {
                     for (const item of this.onlineProjectList) {
-                        if (item.project_code === projectCode) {
-                            return projectCode
+                        if (item.project_code === this.curProjectCode) {
+                            return this.curProjectCode
                         }
                     }
                 }
@@ -133,7 +45,7 @@
                 const route = this.$route
                 // 从路由获取projectId
                 if (route.params.projectId) {
-                    this.setLocalStorage(route.params.projectId)
+                    // this.setLocalStorage(route.params.projectId)
                     return route.params.projectId
                 }
 
@@ -150,7 +62,7 @@
                 // 直接显示第一个项目
                 if (this.onlineProjectList.length) {
                     const projectId = this.onlineProjectList[0].project_id
-                    this.setLocalStorage(projectId)
+                    // this.setLocalStorage(projectId)
                     return projectId
                 }
 
@@ -266,12 +178,12 @@
              *
              * @param {string} projectId 项目 id
              */
-            setLocalStorage (projectId) {
-                const project = getProjectById(projectId)
-                const projectCode = project.project_code
-                localStorage.setItem('curProjectId', projectId)
-                localStorage.setItem('curProjectCode', projectCode)
-            },
+            // setLocalStorage (projectId) {
+            //     const project = getProjectById(projectId)
+            //     const projectCode = project.project_code
+            //     localStorage.setItem('curProjectId', projectId)
+            //     localStorage.setItem('curProjectCode', projectCode)
+            // },
 
             /**
              * 刷新当前页
@@ -294,138 +206,36 @@
                         }
                     })
                 }
-            },
+            }
 
             /**
              * 选中项目
              *
              * @param {string} projectCode 项目 code
              */
-            selectProject (projectCode) {
-                const routeName = this.$route.name
-                if (!routeName) {
-                    return false
-                }
-                // console.error('selectProject', projectCode)
-                const projectId = getProjectByCode(projectCode).project_id
+            // selectProject (projectCode) {
+            //     const routeName = this.$route.name
+            //     if (!routeName) {
+            //         return false
+            //     }
+            //     // console.error('selectProject', projectCode)
+            //     const projectId = getProjectByCode(projectCode).project_id
 
-                this.setLocalStorage(projectId)
+            //     this.setLocalStorage(projectId)
 
-                // 这么做是因为如果在总览页面或者节点列表页面或者节点详情页面时，切换项目的时候，新切换的项目可能会没有当前的 clusterId
-                if (this.clusterRouters.indexOf(routeName) > -1 || this.curViewType === 'dashboard') {
-                    this.$router.push({
-                        name: 'clusterMain',
-                        params: {
-                            projectCode: projectCode,
-                            projectId: projectId,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.configurationRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'templateset',
-                        params: {
-                            projectCode: projectCode,
-                            projectId: projectId,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.loadBalanceRouters.indexOf(routeName) > -1) {
-                    // 如果当前是LoadBalance下，返回到LoadBalance 列表
-                    this.$router.push({
-                        name: 'loadBalance',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.depotRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'imageLibrary',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.helmRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'helms',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.mesosAppRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'mesos',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.deploymentsRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'deployments',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.daemonsetRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'daemonset',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.jobRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'job',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.statefulsetRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'statefulset',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        query: this.$route.query || {}
-                    })
-                } else if (this.metricRouters.indexOf(routeName) > -1) {
-                    this.$router.push({
-                        name: 'metricManage',
-                        params: {
-                            projectId: projectId,
-                            projectCode: projectCode,
-                            needCheckPermission: true
-                        },
-                        // 这里去掉 url 参数
-                        query: {}
-                    })
-                }
-            }
+            //     // 切换项目统一路由返回集群列表页面
+            //     const routerUrl = this.$router.resolve({ name: 'clusterMain' })
+            //     // 通过path跳转，规避导航刚好处于cluster内页
+            //     this.$router.push({
+            //         path: routerUrl.href,
+            //         params: {
+            //             projectCode: projectCode,
+            //             projectId: projectId,
+            //             needCheckPermission: true
+            //         },
+            //         query: {}
+            //     })
+            // }
         }
     }
 </script>
