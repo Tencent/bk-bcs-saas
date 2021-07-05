@@ -68,6 +68,8 @@ const store = new Vuex.Store({
     // 公共 store
     state: {
         curProject: null,
+        curProjectCode: '', // 项目代码
+        curProjectId: '', // 项目ID
         curClusterId: null,
         mainContentLoading: false,
         // 系统当前登录用户
@@ -103,10 +105,19 @@ const store = new Vuex.Store({
         user: state => state.user,
         lang: state => state.lang,
         featureFlag: state => state.featureFlag,
-        curNavName: state => state.curNavName
+        curNavName: state => state.curNavName,
+        curProjectCode: state => state.curProjectCode,
+        curProjectId: state => state.curProjectId,
+        curClusterId: state => state.curClusterId
     },
     // 公共 mutations
     mutations: {
+        updateProjectCode (state, code) {
+            state.curProjectCode = code
+        },
+        updateProjectId (state, id) {
+            state.curProjectId = id
+        },
         /**
          * 设置内容区的 loading 是否显示
          *

@@ -6,7 +6,7 @@ export interface IUseClusterListResult {
 }
 
 /**
- * 获取集群列表
+ * 获取集群列表（入口文件统一获取，此处不再调用）
  * @param ctx
  * @returns
  */

@@ -1,6 +1,6 @@
 import { defineComponent, computed, ref, watch, onMounted } from '@vue/composition-api'
 import DashboardTopActions from './common/dashboard-top-actions'
-import useCluster from './common/use-cluster'
+// import useCluster from './common/use-cluster'
 import useInterval from './common/use-interval'
 import useNamespace from './common/use-namespace'
 import usePage from './common/use-page'
@@ -18,7 +18,7 @@ export default defineComponent({
         const keys = ref(['metadata.name'])
 
         // 初始化集群列表信息
-        useCluster(ctx)
+        // useCluster(ctx)
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
 
