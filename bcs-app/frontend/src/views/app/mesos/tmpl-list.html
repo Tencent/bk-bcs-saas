@@ -2177,4 +2177,9 @@
             </div>
         </div>
     </bk-dialog>
+
+    <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
+        v-if="editorConfig.fullScreen || compareEditorConfig.fullScreen">
+        <i class="bcs-icon bcs-icon-close"></i>
+    </div>
 </div>
