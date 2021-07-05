@@ -183,7 +183,7 @@ class KubeHelmClient:
                 template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
                 # 添加命名行参数
-                template_cmd_args = self._compose_args(template_cmd_args, kwargs.get("cmd_flags"))
+                template_cmd_args = self._compose_cmd_args(template_cmd_args, kwargs.get("cmd_flags"))
 
                 template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
                 # NOTE: 现阶段不需要helm notes输出
@@ -214,7 +214,9 @@ class KubeHelmClient:
                 with open(values_path, "w") as f:
                     f.write(chart_values)
                 # 组装命令行参数
-                cmd_args = self._compose_args(cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags"))
+                cmd_args = self._compose_cmd_args(
+                    cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags")
+                )
 
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
@@ -254,7 +256,7 @@ class KubeHelmClient:
 
     def _uninstall_or_rollback(self, cmd_args, **kwargs):
         try:
-            cmd_args = self._compose_args(cmd_args, kwargs.get("cmd_flags"))
+            cmd_args = self._compose_cmd_args(cmd_args, kwargs.get("cmd_flags"))
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
             logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
@@ -320,7 +322,7 @@ class KubeHelmClient:
             logger.exception("Unable to run helm command")
             raise HelmError("run helm command failed: {}".format(err))
 
-    def _compose_args(
+    def _compose_cmd_args(
         self,
         cmd_args: List[str],
         chart_path: str = None,
@@ -329,16 +331,20 @@ class KubeHelmClient:
         cmd_flags: List[Dict] = None,
     ):
         """组装下发的helm命令
-        NOTE: 这里先兼容上层已经使用的helm操作
+        NOTE: 这里兼容已经存在的helm的操作
         """
+        if chart_path:
+            cmd_args.append(chart_path)
+        if ytt_config_path:
+            cmd_args.extend(["--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
+
         opts = Options(cmd_flags)
         options = opts.options()
-        if ytt_config_path:
-            cmd_args.extend([chart_path, "--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
         # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
         # 并且--values在其它option前面，保证可以被后续的文件或key=val覆盖
         if "--reuse-values" not in options and values_path:
             cmd_args.extend(["--values", values_path])
+
         cmd_args.extend(options)
         return cmd_args
 

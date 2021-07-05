@@ -24,18 +24,58 @@ fake_cmd_with_values = fake_cmd + ["--values", fake_values_path]
 
 
 @pytest.mark.parametrize(
-    "cmd_flags, expect_args",
+    "chart_path, values_path, post_renderer_config_path, cmd_flags, expect_args",
     [
-        (["--reuse-values"], fake_cmd + ["--reuse-values"]),
-        ([{"--reuse-values": True}], fake_cmd + ["--reuse-values"]),
-        (["--set a=v1"], fake_cmd_with_values + ["--set a=v1"]),
-        ([{"--set": "a=v1"}], fake_cmd_with_values + ["--set", "a=v1"]),
+        (
+            fake_chart_path,
+            fake_values_path,
+            fake_post_renderer_config_path,
+            ["--reuse-values"],
+            fake_cmd + ["--reuse-values"],
+        ),
+        (
+            fake_chart_path,
+            fake_values_path,
+            fake_post_renderer_config_path,
+            [{"--reuse-values": True}],
+            fake_cmd + ["--reuse-values"],
+        ),
+        (
+            None,
+            fake_values_path,
+            fake_post_renderer_config_path,
+            [{"--reuse-values": True}],
+            fake_init_cmd_args
+            + ["--post-renderer", f"{fake_post_renderer_config_path}/ytt_renderer"]
+            + ["--reuse-values"],
+        ),
+        (
+            fake_chart_path,
+            fake_values_path,
+            fake_post_renderer_config_path,
+            ["--set a=v1"],
+            fake_cmd_with_values + ["--set a=v1"],
+        ),
+        (
+            fake_chart_path,
+            fake_values_path,
+            fake_post_renderer_config_path,
+            [{"--set": "a=v1"}],
+            fake_cmd_with_values + ["--set", "a=v1"],
+        ),
+        (
+            None,
+            fake_values_path,
+            None,
+            [{"--set": "a=v1"}],
+            fake_init_cmd_args + ["--values", fake_values_path] + ["--set", "a=v1"],
+        ),
     ],
 )
-def test_compose_args(cmd_flags, expect_args):
+def test_compose_cmd_args(chart_path, values_path, post_renderer_config_path, cmd_flags, expect_args):
     client = KubeHelmClient()
     init_cmd_args = fake_init_cmd_args.copy()
     composed_cmd_args = client._compose_args(
-        init_cmd_args, fake_chart_path, fake_values_path, fake_post_renderer_config_path, cmd_flags
+        init_cmd_args, chart_path, values_path, post_renderer_config_path, cmd_flags
     )
     assert composed_cmd_args == expect_args
