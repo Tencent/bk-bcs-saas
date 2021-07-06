@@ -42,6 +42,7 @@ class CreateResourceError(DashboardBaseError):
     """ 创建资源失败 """
 
     message = 'Create Resource Error'
+    # NOTE 前端对此错误码有特殊逻辑
     code = 4005002
 
 
@@ -49,6 +50,7 @@ class UpdateResourceError(DashboardBaseError):
     """ 更新资源失败 """
 
     message = 'Update Resource Error'
+    # NOTE 前端对此错误码有特殊逻辑
     code = 4005003
 
 
