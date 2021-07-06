@@ -275,20 +275,20 @@
 
                                         <template v-if="labelList.length === 1">
                                             <button class="action-btn">
-                                                <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
+                                                <i class="bk-icon icon-plus-circle" @click.stop.prevent="addLabel"></i>
                                             </button>
                                         </template>
                                         <template v-else>
                                             <template v-if="index === labelList.length - 1">
                                                 <button class="action-btn" @click.stop.prevent>
-                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bk-icon icon-minus-circle" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                             <template v-else>
                                                 <button class="action-btn">
-                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bk-icon icon-minus-circle" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                         </template>
