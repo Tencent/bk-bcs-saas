@@ -157,11 +157,23 @@
                 sessionStorage.setItem('bcs-cluster', clusterId)
                 this.$store.commit('updateCurClusterId', clusterId)
                 this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
-                // url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
+
                 if (this.$route.params.clusterId && notInClusterList) {
+                    // url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
                     this.$router.replace({
                         name: 'clusterMain',
                         params: {
+                            needCheckPermission: true
+                        }
+                    })
+                } else if (this.$route.name === 'clusterMain' && clusterId) {
+                    // 集群ID存在，但是当前处于全部集群首页时需要跳回集群概览页
+                    this.$router.replace({
+                        name: 'clusterOverview',
+                        params: {
+                            projectId: this.$store.state.curProjectId,
+                            projectCode: this.$store.state.curProjectCode,
+                            clusterId,
                             needCheckPermission: true
                         }
                     })
