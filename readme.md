@@ -1,7 +1,7 @@
 # 蓝鲸智云容器管理平台SaaS
 ![](docs/resource/logo/bk_bcs.png)
 ---
-[![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![BK Pipelines Status](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/cc/p-c02db56ac633447eb2e740b3fd0b6d2b/badge?X-DEVOPS-PROJECT-ID=cc)](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/bcs/p-c03c759b697f494ab14e01018eccb052/badge?X-DEVOPS-PROJECT-ID=bcs) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
+[![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.3.23-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![BK Pipelines Status](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/cc/p-c02db56ac633447eb2e740b3fd0b6d2b/badge?X-DEVOPS-PROJECT-ID=cc)](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/bcs/p-c03c759b697f494ab14e01018eccb052/badge?X-DEVOPS-PROJECT-ID=bcs) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
 
 
 [(English Documents Available)](readme_en.md)
@@ -36,12 +36,6 @@
 
 
 ## Getting started
-> 容器管理平台SaaS是蓝鲸智云社区版V5.1以上推出的产品，需要与蓝鲸社区版后台软件配合使用
-
-> 目前社区版5.1在灰度内测中，若想体验，请填写问卷留下邮箱等信息，蓝鲸将在1-2个工作日通过邮箱方式，交付软件。感谢对蓝鲸的支持与理解
-> 问卷链接：[https://wj.qq.com/s2/3830461/a8bc/](https://wj.qq.com/s2/3830461/a8bc/)
-
-> 蓝鲸社区版5.1会在后续开放下载，敬请期待
 
 - [本地安装部署指引](/docs/install/dev-install-overview.md)
 - [用开源版替换社区版](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
