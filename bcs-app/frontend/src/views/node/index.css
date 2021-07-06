@@ -228,14 +228,9 @@
         }
     }
 
-    .bk-text-button {
-        +.bk-text-button {
-            margin-left: 10px;
-        }
-        &.disabled {
-            color: #ccc;
-            cursor: not-allowed;
-        }
+    button.bk-button-text {
+        font-size: 14px;
+        margin-right: 4px;
     }
 
     .labels-container {

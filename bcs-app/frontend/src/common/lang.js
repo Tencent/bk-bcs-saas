@@ -1899,7 +1899,9 @@ export default {
     '命名空间: ': ['Namespace: '],
     '标签有助于整理你的资源（如 env:prod）': ['Tags help organize your resources (like env:prod)'],
     '当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)': ['Under the current container network configuration, the cluster has at most {count} nodes (including Master and Node)'],
-    '最少选择三个服务器': ['Choose at least three servers']
+    '最少选择三个服务器': ['Choose at least three servers'],
+    '设置污点': ['Set Taint'],
+    '影响': ['Effect']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
