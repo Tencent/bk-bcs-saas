@@ -25,12 +25,7 @@
             <div v-else class="cluster-nodata">{{ $t('暂无数据') }}</div>
         </div>
         <div class="biz-cluster-action" v-if="curViewType === 'cluster'">
-            <span class="action-item"
-                v-bk-tooltips="{
-                    content: $t('无权限'),
-                    disabled: createPermission
-                }"
-                @click="gotCreateCluster">
+            <span class="action-item" @click="gotCreateCluster">
                 <i class="bcs-icon bcs-icon-plus-circle"></i>
                 {{ $t('新增集群') }}
             </span>
@@ -99,7 +94,6 @@
         },
         created () {
             this.activeClusterId = this.$store.state.curClusterId
-            this.getClusterCreatePermission()
         },
         methods: {
             async getClusterCreatePermission () {
@@ -152,6 +146,8 @@
              * 新建集群
              */
             async gotCreateCluster () {
+                await this.getClusterCreatePermission()
+
                 if (!this.createPermission) return
 
                 this.handleHideClusterSelector()
