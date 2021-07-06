@@ -51,7 +51,7 @@ class NamespaceQuota:
         """
         try:
             quota = self.api.get(name=name, namespace=name)
-            return {"hard": quota.status.hard, "used": quota.status.used}
+            return {"hard": dict(quota.status.hard), "used": dict(quota.status.used)}
         except ApiException as e:
             logger.error("query namespace quota error, namespace: %s, name: %s, error: %s", name, name, e)
             return {}
@@ -63,7 +63,7 @@ class NamespaceQuota:
             {
                 "name": i.metadata.name,
                 "namespace": i.metadata.namespace,
-                "quota": {"hard": i.status.hard, "used": i.status.used},
+                "quota": {"hard": dict(i.status.hard), "used": dict(i.status.used)},
             }
             for i in items
         ]
