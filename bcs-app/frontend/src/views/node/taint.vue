@@ -184,7 +184,7 @@
                 button {
                     font-size: 0;
                     padding: 0;
-                    color: #63656e;
+                    color: #999999;
                     margin-left: 10px;
                     &:hover {
                         color: #3a84ff;
