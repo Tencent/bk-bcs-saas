@@ -664,14 +664,16 @@
                 return this.curProject.kind === PROJECT_MESOS
             }
         },
-        async created () {
+        created () {
             console.log(this.isK8SProject)
             // created 时也需要执行一次 release，因为如果仅仅只在 destroyed 中执行的话，有时候不会 clearTimeout，
             // 在 getClusters 请求完毕正要执行 setTimeout 的时候切换，有可能不会 clearTimeout，所以在 created 里再执行一次
             this.release()
             this.cancelLoop = false
             this.getClusters()
-            await this.getProject()
+            this.getProject()
+        },
+        mounted () {
             const guide = this.$refs.clusterGuide
             guide && guide.hide()
         },
@@ -935,6 +937,7 @@
                             }
                         })
                     }
+                    this.showLoading = false // 关闭loading，让集群列表先出来，指标慢慢加载（后面重构）
 
                     for (const [index, item] of list.entries()) {
                         if (!notLoading) {
@@ -1050,7 +1053,6 @@
                     })
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', cluster)
                 this.$router.push({
                     name: target,
                     params: {
@@ -1096,7 +1098,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', cluster)
                 this.$router.push({
                     name: 'clusterInfo',
                     params: {

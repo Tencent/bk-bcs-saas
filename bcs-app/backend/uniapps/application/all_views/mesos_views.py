@@ -545,6 +545,9 @@ class GetInstances(object):
                     app_status_info.pop("deployment_status_message", None)
                     # APP重新赋值HPA
                     app_status_info['hpa'] = deploy_val['hpa']
+                    # NOTE: 滚动升级时，中间态可能会存在两个application(会有名称差异，如添加上版本)，为防止出现中间态时匹配不正确问题，名称强制更改为instance的名称
+                    # 其中，deploy的格式为元组(命名空间, 实例名称)
+                    app_status_info["name"] = deploy[-1]
                     deploy_val.update(app_status_info)
         all_status.update(deployment_status)
         all_status.update(copy_application_status)

@@ -265,11 +265,12 @@ export default {
     },
     created () {
         let clusterId = ''
+        const sessionStorageClusterId = sessionStorage['bcs-cluster']
         if (this.curClusterId) {
             clusterId = this.curClusterId
-        } else if (sessionStorage['bcs-cluster']) {
+        } else if (sessionStorageClusterId && this.clusterList.length && this.clusterList.find(item => item.cluster_id === sessionStorageClusterId)) {
             // 应用进到pod页面，点击返回，回到记录的集群下,而不是选中第一个集群
-            clusterId = sessionStorage['bcs-cluster']
+            clusterId = sessionStorageClusterId
         } else if (this.clusterList.length) {
             clusterId = this.clusterList[0].cluster_id
         }
