@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-cluster-node-title">
                 <i class="bcs-icon bcs-icon-arrows-left back" @click="goIndex" v-if="!curClusterId"></i>
-                <template v-if="exceptionCode"><span>{{$t('返回')}}</span></template>
+                <template v-if="exceptionCode && exceptionCode.code !== 4005"><span>{{$t('返回')}}</span></template>
                 <template v-else>
                     <template v-if="curClusterInPage.cluster_id">
                         <span @click="refreshCurRouter">{{curClusterInPage.name}}</span>
