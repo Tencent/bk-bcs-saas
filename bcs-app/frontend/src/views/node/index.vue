@@ -220,7 +220,7 @@
                                     @click.stop="showSetLabelInRow(row)">
                                     {{$t('设置标签')}}
                                 </bk-button>
-                                <bk-button text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
+                                <bk-button v-if="!isMesosProject" text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
                                 <bk-button text @click.stop="goClusterNode(row)">{{$t('更多操作')}}</bk-button>
                             </template>
                         </bk-table-column>
