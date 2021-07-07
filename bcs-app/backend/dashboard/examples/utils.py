@@ -21,6 +21,7 @@ from backend.dashboard.examples.constants import (
     DEMO_RESOURCE_MANIFEST_DIR,
     EXAMPLE_CONFIG_DIR,
     RANDOM_SUFFIX_LENGTH,
+    RESOURCE_REFERENCES_DIR,
     SUFFIX_ALLOWED_CHARS,
 )
 
@@ -29,6 +30,12 @@ def load_resource_template(kind: str) -> Dict:
     """ 获取指定 资源类型模版 信息 """
     with open(f'{EXAMPLE_CONFIG_DIR}/{kind}.json') as fr:
         return json.loads(fr.read())
+
+
+def load_resource_references(kind: str) -> str:
+    """ 获取指定 资源类型参考资料 """
+    with open(f'{RESOURCE_REFERENCES_DIR}/{kind}.md') as fr:
+        return fr.read()
 
 
 def load_demo_manifest(file_path: str) -> Dict:
