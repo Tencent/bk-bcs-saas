@@ -144,112 +144,99 @@
                     </div>
                 </div>
                 <template v-if="tplsetVerIndex">
-                    <div class="biz-expand-panel mt20 mb10">
-                        <div class="header" @click="isShowCommandParams = !isShowCommandParams" style="line-height: 40px;">
-                            {{$t('Helm命令行参数')}}
-                            <div class="expand">
-                                <i class="bcs-icon bcs-icon-angle-down" v-if="isShowCommandParams"></i>
-                                <i class="bcs-icon bcs-icon-angle-up" v-else></i>
-                            </div>
-                        </div>
-                        <div class="content p0 m0 biz-table-wrapper" style="border: none;">
-                            <table class="bk-table has-table-hover" style="border: none;" v-if="isShowCommandParams">
-                                <thead>
-                                    <tr>
-                                        <th class="pl20 f12" style="width: 400px; height: 42px; border-right: 1px solid #E9EDF2;">{{$t('参数')}}</th>
-                                        <th class="pl25 f12" style="height: 42px; border-right: 1px solid #E9EDF2;">{{$t('是否启用')}}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
-                                        <td class="pl20 pt5 pb5" style="height: auto; border-right: 1px solid #E9EDF2;">
-                                            {{command.id}}
-                                            <bcs-popover placement="top" :content="command.desc" width="300">
-                                                <span style="font-size: 12px;cursor: pointer;">
-                                                    <i class="bcs-icon bcs-icon-info-circle"></i>
-                                                </span>
-                                            </bcs-popover>
-                                        </td>
-                                        <td class="pl25 pt5 pb5" style="height: auto;">
-                                            <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="action-box">
-                        <div class="title fn">
-                            Chart Values
-                        </div>
-                    </div>
-                    <div slot="content" class="mt10" style="min-height: 180px;">
-                        <section class="value-file-wrapper">
-                            {{$t('Values文件：')}}
-                            <bk-selector
-                                style="width: 300px;"
-                                :placeholder="$t('请选择')"
-                                :searchable="true"
-                                :selected.sync="curValueFile"
-                                :list="curValueFileList"
-                                :setting-key="'name'"
-                                :display-key="'name'"
-                                @item-selected="changeValueFile">
-                            </bk-selector>
-                            <bcs-popover placement="top">
-                                <span class="bk-badge ml5">
-                                    <i class="bcs-icon bcs-icon-question-circle f14"></i>
-                                </span>
-                                <div slot="content">
-                                    <p>{{ $t('Values文件包含两类:') }}</p>
-                                    <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
-                                    <p>{{ $t('- bcs-values目录下的文件') }}</p>
-                                </div>
-                            </bcs-popover>
-                        </section>
-                        <bk-tab
-                            :type="'fill'"
-                            :size="'small'"
-                            :active-name.sync="curEditMode"
-                            class="biz-tab-container"
-                            @tab-changed="helmModeChangeHandler">
-                            <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
-                                <div style="width: 100%; min-height: 600px;" v-bkloading="{ isLoading: isSyncYamlLoading }">
-                                    <p class="biz-tip p15" style="color: #63656E; overflow: hidden;">
-                                        <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
-                                        {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，YAML内容最终通过`--values`选项传递给`helm template`命令')}}
-                                    </p>
-                                    <ace
-                                        v-if="curEditMode === 'yaml-mode'"
-                                        :value="curTplYaml"
-                                        :width="yamlConfig.width"
-                                        :height="yamlConfig.height"
-                                        :lang="yamlConfig.lang"
-                                        :read-only="yamlConfig.readOnly"
-                                        :full-screen="yamlConfig.fullScreen"
-                                        @init="editorInit">
-                                    </ace>
-                                </div>
-                            </bk-tab-panel>
-                            <bk-tab-panel name="form-mode" :title="$t('表单模式')">
-                                <p class="biz-tip p15" style="color: #63656E;">
-                                    <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
-                                </p>
-                                <template v-if="formData.questions">
-                                    <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
-                                </template>
-                                <template v-else>
-                                    <div class="biz-guard-box" v-if="!isQuestionsLoading">
-                                        <span>{{$t('您可以参考')}}
-                                            <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
-                                            {{$t('通过表单模式配置您的Helm Release 参数')}}，
+                    <bk-tab type="border-card" active-name="chart" class="mt20">
+                        <bk-tab-panel name="chart" :title="$t('Chart配置选项')">
+                            <div slot="content" class="mt10" style="min-height: 180px;">
+                                <section class="value-file-wrapper">
+                                    {{$t('Values文件：')}}
+                                    <bk-selector
+                                        style="width: 300px;"
+                                        :placeholder="$t('请选择')"
+                                        :searchable="true"
+                                        :selected.sync="curValueFile"
+                                        :list="curValueFileList"
+                                        :setting-key="'name'"
+                                        :display-key="'name'"
+                                        @item-selected="changeValueFile">
+                                    </bk-selector>
+                                    <bcs-popover placement="top">
+                                        <span class="bk-badge ml5">
+                                            <i class="bcs-icon bcs-icon-question-circle f14"></i>
                                         </span>
-                                        <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml"></a>{{$t('直接修改Helm Release参数')}}</span>
+                                        <div slot="content">
+                                            <p>{{ $t('Values文件包含两类:') }}</p>
+                                            <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
+                                            <p>{{ $t('- bcs-values目录下的文件') }}</p>
+                                        </div>
+                                    </bcs-popover>
+                                </section>
+                                <bk-tab
+                                    type="border-card"
+                                    size="small"
+                                    :active-name.sync="curEditMode"
+                                    class="biz-tab-container"
+                                    @tab-changed="helmModeChangeHandler">
+                                    <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
+                                        <div style="width: 100%; min-height: 600px;" v-bkloading="{ isLoading: isSyncYamlLoading }">
+                                            <p class="biz-tip p15" style="color: #63656E; overflow: hidden;">
+                                                <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
+                                                {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，YAML内容最终通过`--values`选项传递给`helm template`命令')}}
+                                            </p>
+                                            <ace
+                                                v-if="curEditMode === 'yaml-mode'"
+                                                :value="curTplYaml"
+                                                :width="yamlConfig.width"
+                                                :height="yamlConfig.height"
+                                                :lang="yamlConfig.lang"
+                                                :read-only="yamlConfig.readOnly"
+                                                :full-screen="yamlConfig.fullScreen"
+                                                @init="editorInit">
+                                            </ace>
+                                        </div>
+                                    </bk-tab-panel>
+                                    <bk-tab-panel name="form-mode" :title="$t('表单模式')">
+                                        <p class="biz-tip p15" style="color: #63656E;">
+                                            <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
+                                        </p>
+                                        <template v-if="formData.questions">
+                                            <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
+                                        </template>
+                                        <template v-else>
+                                            <div class="biz-guard-box" v-if="!isQuestionsLoading">
+                                                <span>{{$t('您可以参考')}}
+                                                    <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
+                                                    {{$t('通过表单模式配置您的Helm Release 参数')}}，
+                                                </span>
+                                                <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml"></a>{{$t('直接修改Helm Release参数')}}</span>
+                                            </div>
+                                        </template>
+                                    </bk-tab-panel>
+                                </bk-tab>
+                            </div>
+                        </bk-tab-panel>
+                        <bk-tab-panel name="helm" :title="$t('Helm配置选项')">
+                            <!-- <div class="header mb10" style="font-size: 14px;">
+                                {{$t('Helm命令行参数')}}
+                            </div> -->
+                            <form class="bk-form bk-form-vertical set-label-form">
+                                <div class="bk-form-item">
+                                    <div class="bk-form-content" style="position: relative;" v-for="(item, index) in commandList" :key="index">
+                                        <div class="biz-key-value-wrapper mb10">
+                                            <div class="biz-key-value-item">
+                                                <bk-input style="width: 280px;" :placeholder="$t('请输入参数')" :disabled="item.disabled" v-model="item.key" />
+                                            </div>
+                                            <span class="equals-sign">=</span>
+                                            <bk-input style="width: 280px;" maxlength="30" :placeholder="$t('请输入值')" v-model="item.value" />
+                                        </div>
+                                        <button class="action-btn">
+                                            <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
+                                            <i v-if="!item.disabled" class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(index)"></i>
+                                        </button>
                                     </div>
-                                </template>
-                            </bk-tab-panel>
-                        </bk-tab>
-                    </div>
+                                </div>
+                            </form>
+                        </bk-tab-panel>
+                    </bk-tab>
                 </template>
 
                 <div class="create-wrapper">
@@ -459,31 +446,47 @@
                 curValueFile: 'values.yaml',
                 isShowCommandParams: false,
                 commandList: [
+                    // {
+                    //     id: 'disable-openapi-validation',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
+                    // },
+                    // {
+                    //     id: 'no-hooks',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
+                    // },
                     {
-                        id: 'disable-openapi-validation',
-                        disabled: false,
-                        desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
-                    },
-                    {
-                        id: 'no-hooks',
-                        disabled: false,
-                        desc: this.$t('如果选择，部署或更新时，忽略hooks')
-                    },
-                    {
-                        id: 'skip-crds',
-                        disabled: false,
+                        key: '--skip-crds',
+                        value: 'false',
+                        disabled: true,
                         desc: this.$t('如果选择，部署或更新时，跳过crds')
                     },
                     {
-                        id: 'wait',
-                        disabled: false,
+                        key: '--timeout',
+                        value: 'false',
+                        disabled: true,
+                        desc: this.$t('超时时间')
+                    },
+                    {
+                        key: '--wait-for-jobs',
+                        value: 'false',
+                        disabled: true,
+                        desc: this.$t('等待所以Jobs完成')
+                    },
+                    {
+                        key: '--wait',
+                        value: 'false',
+                        disabled: true,
                         desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
                     }
                 ],
                 helmCommandParams: {
-                    'disable-openapi-validation': false,
-                    'no-hooks': false,
+                    // 'disable-openapi-validation': false,
+                    // 'no-hooks': false,
                     'skip-crds': false,
+                    'timeout': false,
+                    'wait-for-jobs': false,
                     'wait': false
                 }
             }
@@ -1033,12 +1036,18 @@
                         type: 'string'
                     })
                 }
+                this.commandList.forEach(item => {
+                    const { key, value } = item
+                    const obj = {}
+                    obj[key] = value
+                    commands.push(obj)
+                })
 
-                for (const key in this.helmCommandParams) {
-                    if (this.helmCommandParams[key]) {
-                        commands.push(key)
-                    }
-                }
+                // for (const key in this.helmCommandParams) {
+                //     if (this.helmCommandParams[key]) {
+                //         commands.push(key)
+                //     }
+                // }
 
                 if (this.curEditMode === 'yaml-mode') {
                     this.saveYaml()
@@ -1224,6 +1233,22 @@
                 } finally {
                     this.previewInstanceLoading = false
                 }
+            },
+            addLabel () {
+                const commandList = []
+                commandList.splice(0, commandList.length, ...this.commandList)
+                commandList.push({
+                    key: '',
+                    value: '',
+                    disabled: false
+                })
+                this.commandList.splice(0, this.commandList.length, ...commandList)
+            },
+            delLabel (index) {
+                const commandList = []
+                commandList.splice(0, commandList.length, ...this.commandList)
+                commandList.splice(index, 1)
+                this.commandList.splice(0, this.commandList.length, ...commandList)
             }
         }
     }
