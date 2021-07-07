@@ -24,7 +24,12 @@ class JSONEncoder(encoders.JSONEncoder):
 
     def default(self, obj):
         if dataclasses.is_dataclass(obj):
-            return dataclasses.asdict(obj)
+            # 如果 asdict 出现异常，则使用默认的 encoder 逻辑
+            try:
+                return dataclasses.asdict(obj)
+            except Exception:
+                return super().default(obj)
+
         return super().default(obj)
 
 
