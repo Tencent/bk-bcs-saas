@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-cluster-overview-title">
-                <template v-if="exceptionCode">
+                <template v-if="exceptionCode && exceptionCode.code !== 4005">
                     <div @click="goIndex">
                         <i class="bcs-icon bcs-icon-arrows-left back"></i>
                         <span>{{$t('返回')}}</span>
@@ -298,6 +298,23 @@
             },
             curProject () {
                 return this.$store.state.curProject
+            }
+        },
+        async created () {
+            if (!this.curCluster?.permissions?.view) {
+                await this.$store.dispatch('getResourcePermissions', {
+                    project_id: this.projectId,
+                    policy_code: 'view',
+                    // eslint-disable-next-line camelcase
+                    resource_code: this.curCluster?.cluster_id,
+                    resource_name: this.curCluster?.name,
+                    resource_type: `cluster_${this.curCluster?.environment === 'stag' ? 'test' : 'prod'}`
+                }).catch(err => {
+                    this.exceptionCode = {
+                        code: err.code,
+                        msg: err.message
+                    }
+                })
             }
         },
         // async created () {
