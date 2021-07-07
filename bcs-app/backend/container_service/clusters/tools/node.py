@@ -21,55 +21,42 @@ from backend.container_service.clusters import constants as node_constants
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.models import NodeStatus
 from backend.resources.node.client import Node
-from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
 
 
-def get_node_status(conditions: List) -> str:
-    """获取节点状态
-    ref: https://github.com/kubernetes/dashboard/blob/0de61860f8d24e5a268268b1fbadf327a9bb6013/src/app/backend/resource/node/list.go#L106  # noqa
+def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:
+    """查询节点数据
+    包含标签、污点、状态等供前端展示数据
     """
-    for condition in conditions:
-        if condition["type"] != node_constants.NodeConditionType.Ready:
-            continue
-        # 正常可用状态
-        if condition["status"] == "True":
-            return node_constants.NodeConditionStatus.Ready
-        # 节点不健康而且不能接收 Pod
-        return node_constants.NodeConditionStatus.NotReady
-    # 节点控制器在最近 node-monitor-grace-period 期间（默认 40 秒）没有收到节点的消息
-    return node_constants.NodeConditionStatus.Unknown
-
-
-def query_cluster_nodes(ctx_cluster: CtxCluster) -> Dict[str, Dict]:
-    # 查询集群下node信息
     client = Node(ctx_cluster)
-    nodes = client.list()
-    # 根据传入的inner_ip过滤节点信息
-    data = {}
-    for node in nodes:
-        node_data = node.data
-        # 解析数据用于前端展示
-        metadata = node_data.get("metadata", {})
+    cluster_node_list = client.list()
+    nodes = {}
+    for node in cluster_node_list:
+        metadata = node.get("metadata", {})
+        # 获取label
         labels = metadata.get("labels", {})
-
-        # 过滤掉master
-        if labels.get("node-role.kubernetes.io/master") == "true":
+        # 现阶段节点页面展示及操作，需要排除master
+        if exclude_master and is_master(labels):
             continue
 
-        taints = getitems(node_data, ["spec", "taints"], [])
-
-        # 组装数据，用于展示
-        data[node.inner_ip] = {
-            "inner_ip": node.inner_ip,
-            "name": node.name,
+        node_data = node["data"]
+        # 使用inner_ip作为key，主要是方便匹配及获取值
+        nodes[node["inner_ip"]] = {
+            "inner_ip": node["inner_ip"],
+            "name": node["name"],
+            "status": node["status"],
             "labels": labels,
-            "taints": taints,
-            "status": get_node_status(getitems(node_data, ["status", "conditions"], [])),
+            "taints": getitems(node_data, ["spec", "taints"], []),
             "unschedulable": getitems(node_data, ["spec", "unschedulable"], False),
         }
+    return nodes
 
-    return data
+
+def is_master(labels: Dict) -> bool:
+    """判断是否为master"""
+    if labels.get("node-role.kubernetes.io/master") == "true":
+        return True
+    return False
 
 
 def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
@@ -132,6 +119,7 @@ class NodesData:
             node = self.bcs_cc_nodes[inner_ip]
             if (inner_ip in self.cluster_nodes) or (node["status"] in self._normal_status):
                 continue
+            node["cluster_name"] = self.cluster_name
             node_list.append(node)
         return node_list
 
@@ -139,23 +127,16 @@ class NodesData:
         node_list = []
         # 以集群中数据为准
         for inner_ip, node in self.cluster_nodes.items():
+            # 添加集群名称
+            node["cluster_name"] = self.cluster_name
             # 如果bcs cc中存在节点信息，则从bcs cc获取节点的额外数据
             if inner_ip in self.bcs_cc_nodes:
-                item = self.bcs_cc_nodes[inner_ip].copy()
-                item.update(
-                    node,
-                    **{
-                        "status": transform_status(
-                            node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
-                        ),
-                        "cluster_name": self.cluster_name,
-                    }
+                node["status"] = transform_status(
+                    node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
                 )
-                node_list.append(item)
+                node.update(self.bcs_cc_nodes[inner_ip])
             else:
-                # TODO: 这里先不添加集群名称，以ID展示是否合适
                 node["cluster_id"] = self.cluster_id
-                node["cluster_name"] = self.cluster_name
                 node["status"] = transform_status(node["status"], node["unschedulable"])
-                node_list.append(node)
+            node_list.append(node)
         return node_list

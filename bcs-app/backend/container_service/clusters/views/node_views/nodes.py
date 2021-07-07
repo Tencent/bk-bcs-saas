@@ -16,6 +16,9 @@ from rest_framework.response import Response
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.clusters.base.utils import get_cluster
 from backend.container_service.clusters.tools import node
+from backend.resources.node.client import Node
+
+from . import serializers as slz
 
 
 class NodeViewSets(SystemViewSet):
@@ -30,3 +33,32 @@ class NodeViewSets(SystemViewSet):
         cluster = get_cluster(request.user.token.access_token, request.project.project_id, cluster_id)
         client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id, cluster.get("name", ""))
         return Response(client.nodes())
+
+    def query_labels(self, request, project_id, cluster_id):
+        """查询node的标签
+
+        TODO：关于labels和taints是否有必要合成一个，通过前端传递参数判断查询类型
+        """
+        params = self.params_validate(slz.QueryNodeListSLZ)
+        client = Node(request.ctx_cluster)
+        return Response(client.query_labels(params["node_name_list"]))
+
+    def query_taints(self, request, project_id, cluster_id):
+        """查询node的污点"""
+        params = self.params_validate(slz.QueryNodeListSLZ)
+        client = Node(request.ctx_cluster)
+        return Response(client.query_taints(params["node_name_list"]))
+
+    def set_labels(self, request, project_id, cluster_id):
+        """设置节点标签"""
+        params = self.params_validate(slz.NodeLabelListSLZ)
+        client = Node(request.ctx_cluster)
+        client.set_labels(params["node_label_list"])
+        return Response()
+
+    def set_taints(self, request, project_id, cluster_id):
+        """设置污点"""
+        params = self.params_validate(slz.NodeTaintListSLZ)
+        client = Node(request.ctx_cluster)
+        client.set_taints(params["node_taint_list"])
+        return Response()
