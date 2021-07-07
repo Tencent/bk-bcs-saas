@@ -689,7 +689,7 @@
                         key: '--wait-for-jobs',
                         value: 'false',
                         disabled: true,
-                        desc: this.$t('等待所以Jobs完成')
+                        desc: this.$t('等待所有Jobs完成')
                     },
                     {
                         key: '--wait',
@@ -725,12 +725,12 @@
                 //         desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
                 //     }
                 // ],
-                helmCommandParams: {
-                    'disable-openapi-validation': false,
-                    'no-hooks': false,
-                    'skip-crds': false,
-                    'wait': false
-                },
+                // helmCommandParams: {
+                //     'disable-openapi-validation': false,
+                //     'no-hooks': false,
+                //     'skip-crds': false,
+                //     'wait': false
+                // },
                 notesdialog: {
                     isShow: false,
                     notes: '',
@@ -1099,7 +1099,15 @@
                     this.originReleaseData.cmd_flags.forEach(item => {
                         const key = Object.keys(item)[0]
                         const comment = this.commandList.find(val => val.key === key)
-                        comment.value = item[key]
+                        if (comment) {
+                            comment.value = item[key]
+                        } else {
+                            const obj = {}
+                            obj.key = key
+                            obj.value = item[key]
+                            obj.disabled = false
+                            this.commandList.push(obj)
+                        }
                         // this.helmCommandParams[key] = true
                     })
                 }

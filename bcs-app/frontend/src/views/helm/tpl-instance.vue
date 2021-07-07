@@ -472,7 +472,7 @@
                         key: '--wait-for-jobs',
                         value: 'false',
                         disabled: true,
-                        desc: this.$t('等待所以Jobs完成')
+                        desc: this.$t('等待所有Jobs完成')
                     },
                     {
                         key: '--wait',
