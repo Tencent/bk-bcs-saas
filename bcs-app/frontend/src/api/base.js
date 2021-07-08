@@ -59,9 +59,5 @@ export default {
     resourceDelete,
     exampleManifests,
     getNodeTaints,
-    setNodeTaints,
-    resourceCreate,
-    resourceUpdate,
-    resourceDelete,
-    exampleManifests
+    setNodeTaints
 }
