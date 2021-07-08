@@ -1,12 +1,7 @@
 {
   "kind": "StatefulSet",
   "class": "workloads",
-  "references": [
-    {
-      "name": "Kubernetes StatefulSet 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#statefulset-v1-apps"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_statefulset",

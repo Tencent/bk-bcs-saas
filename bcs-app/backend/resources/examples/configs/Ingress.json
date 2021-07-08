@@ -1,12 +1,7 @@
 {
   "kind": "Ingress",
   "class": "networks",
-  "references":[
-    {
-      "name": "Kubernetes Ingress 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#ingress-v1-networking-k8s-io"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_ingress",

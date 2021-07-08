@@ -17,6 +17,7 @@ class DashboardBaseError(Exception):
     """ Dashboard 模块基础异常类 """
 
     message = 'Dashboard module exception'
+    # 子异常在基类基础上，自带两位错误码后缀
     code = 40050
 
     def __init__(self, message=None, code=None):
@@ -34,21 +35,27 @@ class ResourceNotExist(DashboardBaseError):
     """ 指定资源不存在 """
 
     message = 'Resource not exist'
+    code = 4005001
 
 
 class CreateResourceError(DashboardBaseError):
     """ 创建资源失败 """
 
     message = 'Create Resource Error'
+    # NOTE 前端对此错误码有特殊逻辑
+    code = 4005002
 
 
 class UpdateResourceError(DashboardBaseError):
     """ 更新资源失败 """
 
     message = 'Update Resource Error'
+    # NOTE 前端对此错误码有特殊逻辑
+    code = 4005003
 
 
 class DeleteResourceError(DashboardBaseError):
     """ 删除资源失败 """
 
     message = 'Delete Resource Error'
+    code = 4005004

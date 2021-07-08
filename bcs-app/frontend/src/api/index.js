@@ -171,6 +171,8 @@ function handleResponse ({ config, response, resolve, reject }) {
     http.queue.delete(config.requestId)
 }
 
+// 不弹tips的特殊状态码
+export const CUSTOM_HANDLE_CODE = [4005, 4003, 4005002, 4005003]
 /**
  * 处理 http 请求失败结果
  *
@@ -239,7 +241,7 @@ function handleReject (error, config) {
         }
 
         error.message = message
-        messageError(message)
+        !CUSTOM_HANDLE_CODE.includes(code) && messageError(message)
         return Promise.reject(error)
     }
     messageError(error.message)

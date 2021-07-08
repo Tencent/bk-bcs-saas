@@ -1,12 +1,7 @@
 {
   "kind": "Pod",
   "class": "workloads",
-  "references": [
-    {
-      "name": "Kubernetes Pod 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#pod-v1-core"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_pod",

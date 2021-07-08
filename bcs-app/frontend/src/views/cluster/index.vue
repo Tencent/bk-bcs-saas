@@ -901,6 +901,8 @@
                     this.showLoading = true
                 }
 
+                // 清空缓存，重新拉取数据
+                this.$store.commit('cluster/forceUpdateClusterList', [])
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
