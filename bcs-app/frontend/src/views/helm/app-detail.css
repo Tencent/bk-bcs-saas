@@ -140,12 +140,7 @@
 }
 
 .value-file-wrapper {
-    padding: 15px 16px;
-    border: 1px solid #dcdee5;
-    border-radius: 2px;
-    background: #f9fbfd;
-    position: relative;
-    bottom: -1px;
+    padding: 0 0 16px 15px;
     font-size: 13px;
 }
 
@@ -179,5 +174,41 @@
         position: absolute;
         bottom: 4px;
         right: 4px;
+    }
+}
+
+.biz-key-value-item {
+    display: inline-block;
+}
+
+.action-btn {
+    position: absolute;
+    left: 585px;
+    top: 0;
+    width: auto;
+    padding: 0;
+    height: 30px;
+    text-align: center;
+    display: inline-block;
+    border: none;
+    background: transparent;
+    outline: none;
+    margin-left: 5px;
+
+    .bcs-icon {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 50%;
+        vertical-align: middle;
+        color: $fontWeightColor;
+        font-size: 14px;
+        display: inline-block;
+        border: 1px solid $borderWeightColor;
+
+        &:hover {
+            color: $primaryColor;
+            border-color: $primaryColor;
+        }
     }
 }
