@@ -1,12 +1,7 @@
 {
   "kind": "Endpoints",
   "class": "networks",
-  "references":[
-    {
-      "name": "Kubernetes Endpoints 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#endpoints-v1-core"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_endpoints",
