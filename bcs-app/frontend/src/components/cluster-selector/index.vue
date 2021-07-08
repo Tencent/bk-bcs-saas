@@ -6,10 +6,9 @@
                 :placeholder="$t('请输入关键字')"
                 behavior="simplicity"
                 v-model="searchValue"
-                :clearable="true"
-                :show-word-limit="true"
-                right-icon="bk-icon icon-search"
-                @change="handleChangeSearchValue">
+                clearable
+                show-word-limit
+                right-icon="bk-icon icon-search">
             </bk-input>
         </div>
         <div class="biz-cluster-list">
@@ -17,7 +16,7 @@
                 <li
                     v-for="(cluster, index) in filterClusterList"
                     :key="index"
-                    :class="{ 'active': activeCluster === cluster.name }"
+                    :class="{ 'active': activeClusterId === cluster.cluster_id }"
                     @click="handleToggleCluster(cluster)">
                     {{ cluster.name }}
                     <p style="color: #979ba5;">{{ cluster.cluster_id }}</p>
@@ -43,14 +42,15 @@
 </template>
 
 <script>
-    import { bus } from '@open/common/bus'
-    import { catchErrorHandler } from '@open/common/util'
-
+    import { isEmpty } from '@open/common/util'
     const BCS_CLUSTER = 'bcs-cluster'
-    const BCS_CLUSTER_NAME = 'bcs-cluster-name'
 
     export default {
         name: 'cluster-selector',
+        model: {
+            event: 'display-change',
+            prop: 'value'
+        },
         props: {
             value: {
                 type: Boolean,
@@ -60,10 +60,8 @@
         data () {
             return {
                 searchValue: '',
-                clusterList: [],
-                filterClusterList: [],
-                permissions: {},
-                activeCluster: localStorage[BCS_CLUSTER_NAME] || ''
+                createPermission: false,
+                activeClusterId: ''
             }
         },
         computed: {
@@ -74,69 +72,51 @@
                 return this.$route.params.projectCode
             },
             curClusterList () {
-                return this.$store.state.cluster.clusterList
+                return this.$store.state.cluster.clusterList || []
+            },
+            filterClusterList () {
+                return isEmpty(this.searchValue) ? this.curClusterList : this.curClusterList.filter(item => item.name.includes(this.searchValue))
             },
             curViewType () {
                 return this.$route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster'
             }
         },
         watch: {
-            value (n) {
-                if (n) {
-                    this.filterClusterList = this.clusterList
+            value (show) {
+                if (show) {
                     this.$nextTick(() => {
                         this.$refs.searchInput.focus()
                     })
                 } else {
                     this.searchValue = ''
                 }
-            },
-            curClusterList (n) {
-                this.clusterList = n
             }
         },
         created () {
-            this.clusterList = this.curClusterList
-            this.getClusters()
+            this.activeClusterId = this.$store.state.curClusterId
         },
         methods: {
-            /**
-             * 获取所有的集群
-             */
-            getClusters () {
-                this.$nextTick(async () => {
-                    try {
-                        const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
-                        this.clusterList = res.data.results
-                        if (!this.$store.state.cluster.clusterList.length) {
-                            this.$store.commit('cluster/forceUpdateClusterList', this.clusterList)
+            async getClusterCreatePermission () {
+                this.createPermission = await this.$store.dispatch('getMultiResourcePermissions', {
+                    project_id: this.projectId,
+                    operator: 'or',
+                    resource_list: [
+                        {
+                            policy_code: 'create',
+                            resource_type: 'cluster_test'
+                        },
+                        {
+                            policy_code: 'create',
+                            resource_type: 'cluster_prod'
                         }
-                    } catch (e) {
-                        catchErrorHandler(e, this)
-                    }
-                })
+                    ]
+                }).then(() => true).catch(() => false)
             },
-
             /**
              * 点击除自身元素外，关闭集群选择弹窗
              */
-            handleHideClusterSelector (e) {
-                this.$emit('input', false)
-            },
-
-            /**
-             * 搜索过滤集群列表
-             */
-            handleChangeSearchValue () {
-                if (this.searchValue === '') {
-                    this.filterClusterList = this.clusterList
-                } else {
-                    this.filterClusterList = this.clusterList.filter(item => {
-                        if (item.name.includes(this.searchValue)) {
-                            return item
-                        }
-                    })
-                }
+            handleHideClusterSelector () {
+                this.$emit('display-change', false)
             },
 
             /**
@@ -144,57 +124,12 @@
              * @param {Object} cluster 集群信息
              */
             handleToggleCluster (cluster) {
-                this.activeCluster = cluster.name
+                this.activeClusterId = cluster.cluster_id
                 this.handleSaveClusterInfo(cluster)
+                this.handleHideClusterSelector()
+                this.$store.dispatch('getFeatureFlag')
                 // 抛出选中的集群信息
                 this.$emit('change', cluster)
-                // 关闭集群选择弹窗
-                this.$emit('input', false)
-                if (!cluster.cluster_id) {
-                    sessionStorage.removeItem('bcs-selected-menu-data')
-                    if (this.$route.meta.isDashboard) {
-                        this.$router.push({
-                            name: 'dashboard',
-                            params: {
-                                projectId: this.projectId,
-                                projectCode: this.projectCode
-                            }
-                        })
-                    } else {
-                        this.$router.push({
-                            name: 'clusterMain',
-                            params: {
-                                needCheckPermission: true
-                            }
-                        })
-                    }
-                } else {
-                    const data = this.$route.meta.isDashboard
-                        ? {
-                            isChild: true,
-                            item: {
-                                name: this.$t('命名空间'),
-                                isSaveData: true,
-                                icon: "bcs-icon-namespace",
-                                roleId: "workload:menu",
-                                pathName: ["dashboardNamespace"],
-                                isSelected: true,
-                                isOpen: false
-                            },
-                            itemIndex: 0
-                        }
-                        : {
-                            isChild: false,
-                            item: {
-                                icon: 'bcs-icon-jq-colony',
-                                name: this.$t('概览'),
-                                pathName: ['clusterOverview', 'clusterNode', 'clusterInfo'],
-                                roleId: 'overview:menu'
-                            },
-                            itemIndex: 0
-                        }
-                    bus.$emit('cluster-change', data)
-                }
             },
 
             /**
@@ -202,30 +137,20 @@
              */
             handleSaveClusterInfo (cluster) {
                 localStorage.setItem(BCS_CLUSTER, cluster.cluster_id)
-                localStorage.setItem(BCS_CLUSTER_NAME, cluster.name)
+                sessionStorage.setItem(BCS_CLUSTER, cluster.cluster_id)
+                this.$store.commit('cluster/forceUpdateCurCluster', cluster.cluster_id ? cluster : {})
+                this.$store.commit('updateCurClusterId', cluster.cluster_id)
             },
 
             /**
              * 新建集群
              */
             async gotCreateCluster () {
-                if (!this.permissions.create) {
-                    await this.$store.dispatch('getMultiResourcePermissions', {
-                        project_id: this.projectId,
-                        operator: 'or',
-                        resource_list: [
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_test'
-                            },
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_prod'
-                            }
-                        ]
-                    })
-                }
+                await this.getClusterCreatePermission()
 
+                if (!this.createPermission) return
+
+                this.handleHideClusterSelector()
                 this.$router.push({
                     name: 'clusterCreate',
                     params: {
@@ -233,9 +158,6 @@
                         projectCode: this.projectCode
                     }
                 })
-
-                // 关闭集群选择弹窗
-                this.$emit('input', false)
             }
         }
     }

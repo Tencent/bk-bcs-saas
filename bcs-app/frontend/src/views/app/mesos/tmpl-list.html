@@ -952,7 +952,8 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <p>{{instance.application_status}}</p>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                        <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                     </td>
                                                                 </template>
                                                             </template>
@@ -1124,7 +1125,8 @@
                                                                         </bcs-popover>
                                                                     </td>
                                                                     <td style="white-space: nowrap;">
-                                                                        <p>{{instance.deployment_status}}</p>
+                                                                        <i v-bk-tooltips="instance.application_status_message || $t('正常')" class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;position: absolute;left: -16px;"></i>
+                                                                        <p style="display: inline-block;">{{instance.application_status}}</p>
                                                                     </td>
                                                                 </template>
                                                             </template>
@@ -2175,4 +2177,9 @@
             </div>
         </div>
     </bk-dialog>
+
+    <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
+        v-if="editorConfig.fullScreen || compareEditorConfig.fullScreen">
+        <i class="bcs-icon bcs-icon-close"></i>
+    </div>
 </div>

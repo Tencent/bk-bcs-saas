@@ -52,7 +52,7 @@ export default {
             permissions: {},
             // 弹出层搜索
             search: '',
-            curClusterInPage: {},
+            // curClusterInPage: {},
             exceptionCode: null,
             isPageLoading: false,
             // isInitLoading: true,
@@ -236,8 +236,13 @@ export default {
             return this.$route.params.clusterId
         },
         curCluster () {
-            this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
-            return this.$store.state.cluster.curCluster
+            const data = this.$store.state.cluster.clusterList.find(item => item.cluster_id === this.clusterId) || {}
+            // this.curClusterInPage = Object.assign({}, data)
+            return JSON.parse(JSON.stringify(data))
+        },
+        curClusterInPage () {
+            // 兼容以前代码变量
+            return JSON.parse(JSON.stringify(this.curCluster))
         },
         curProject () {
             const project = this.$store.state.curProject
@@ -275,28 +280,58 @@ export default {
         this.release()
         this.cancelLoop = false
 
-        if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-            if (this.projectId && this.clusterId) {
-                await this.fetchClusterData()
-            }
-        } else {
-            const params = {
-                limit: this.nodeListPageConf.pageSize,
-                offset: 0,
-                with_containers: '1'
-            }
-            if (this.$route.query.inner_ip) {
-                params.ip = this.$route.query.inner_ip
-                this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
-                    id: 'ip',
-                    text: this.$t('IP地址'),
-                    value: params.ip,
-                    valueArr: [params.ip]
-                }])
-            }
-            this.getNodeList(params)
+        // if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
+        //     if (this.projectId && this.clusterId) {
+        //         await this.fetchClusterData()
+        //     }
+        // } else {
+        //     const params = {
+        //         limit: this.nodeListPageConf.pageSize,
+        //         offset: 0,
+        //         with_containers: '1'
+        //     }
+        //     if (this.$route.query.inner_ip) {
+        //         params.ip = this.$route.query.inner_ip
+        //         this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
+        //             id: 'ip',
+        //             text: this.$t('IP地址'),
+        //             value: params.ip,
+        //             valueArr: [params.ip]
+        //         }])
+        //     }
+        //     this.getNodeList(params)
+        // }
+        const params = {
+            limit: this.nodeListPageConf.pageSize,
+            offset: 0,
+            with_containers: '1'
         }
+        if (this.$route.query.inner_ip) {
+            params.ip = this.$route.query.inner_ip
+            this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
+                id: 'ip',
+                text: this.$t('IP地址'),
+                value: params.ip,
+                valueArr: [params.ip]
+            }])
+        }
+        this.getNodeList(params)
         this.fetchNodeList4Copy()
+        if (!this.curCluster?.permissions?.view) {
+            await this.$store.dispatch('getResourcePermissions', {
+                project_id: this.projectId,
+                policy_code: 'view',
+                // eslint-disable-next-line camelcase
+                resource_code: this.curCluster?.cluster_id,
+                resource_name: this.curCluster?.name,
+                resource_type: `cluster_${this.curCluster?.environment === 'stag' ? 'test' : 'prod'}`
+            }).catch(err => {
+                this.exceptionCode = {
+                    code: err.code,
+                    msg: err.message
+                }
+            })
+        }
     },
     methods: {
         async fetchNodeList4Copy () {
@@ -352,12 +387,10 @@ export default {
         async fetchClusterData () {
             this.isPageLoading = true
             try {
-                const res = await this.$store.dispatch('cluster/getCluster', {
+                await this.$store.dispatch('cluster/getCluster', {
                     projectId: this.projectId,
                     clusterId: this.clusterId
                 })
-
-                this.$store.commit('cluster/forceUpdateCurCluster', res.data)
 
                 const params = {
                     limit: this.nodeListPageConf.pageSize,

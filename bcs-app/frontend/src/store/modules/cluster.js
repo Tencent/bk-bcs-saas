@@ -13,7 +13,14 @@ import _ from 'lodash'
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
-import { getBizMaintainers, getK8sNodes, fetchK8sNodeLabels, setK8sNodeLabels } from '@open/api/base'
+import {
+    getBizMaintainers,
+    getK8sNodes,
+    fetchK8sNodeLabels,
+    setK8sNodeLabels,
+    getNodeTaints,
+    setNodeTaints
+} from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -1537,6 +1544,34 @@ export default {
          */
         async setK8sNodeLabels (context, params = {}, config = {}) {
             const data = await setK8sNodeLabels(params, config).catch(() => ([]))
+            return data
+        },
+
+        /**
+         * 设置节点污点
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async setNodeTaints (context, params = {}, config = {}) {
+            const data = await setNodeTaints(params, config).catch(() => ([]))
+            return data
+        },
+
+        /**
+         * 获取节点污点
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async getNodeTaints (context, params = {}, config = {}) {
+            const data = await getNodeTaints(params, config).catch(() => ({}))
             return data
         }
     }

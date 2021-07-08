@@ -141,6 +141,10 @@
             isBackfill: {
                 type: Boolean,
                 default: false
+            },
+            clusterId: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -275,9 +279,6 @@
             projectId () {
                 return this.$route.params.projectId
             },
-            curCluster () {
-                return this.$store.state.cluster.curCluster
-            },
             getHostInfoString () {
                 if (!this.formdata.cvm_type) return ''
                 return `${this.checkedHostInfo.specifications} （${this.checkedHostInfo.model}，${this.checkedHostInfo.cpu + this.checkedHostInfo.mem}）`
@@ -311,6 +312,14 @@
                         await this.fetchVPC()
                     }
                 }
+            },
+            clusterId: {
+                immediate: true,
+                async handler (value, old) {
+                    if (value && value !== old) {
+                        await this.fetchClusterInfo()
+                    }
+                }
             }
         },
         async created () {
@@ -322,7 +331,6 @@
                     vpcDesc: this.$t('和集群所属vpc一致'),
                     disabled: true
                 }
-                await this.fetchClusterInfo()
             }
             this.getApplyHostStatus()
         },
@@ -342,10 +350,12 @@
              * 获取当前集群数据
              */
             async fetchClusterInfo () {
+                if (!this.clusterId) return
+
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterInfo', {
                         projectId: this.projectId,
-                        clusterId: this.curCluster.cluster_id
+                        clusterId: this.clusterId
                     })
                     this.clusterInfo = res.data || {}
                 } catch (e) {

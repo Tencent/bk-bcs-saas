@@ -30,6 +30,7 @@
     </div>
 </template>
 <script>
+    /* eslint-disable camelcase */
     import { bus } from '@open/common/bus'
     import { getProjectByCode } from '@open/common/util'
     import Img403 from '@/images/403.png'
@@ -80,10 +81,6 @@
             kind (v, old) {
                 this.prevKind = old
                 this.fetchCCList()
-            },
-            '$store.state.curClusterId' () {
-                this.routerKey = +new Date()
-                this.$store.dispatch('getFeatureFlag')
             }
         },
         async created () {
@@ -97,31 +94,7 @@
             }
 
             window.addEventListener('change::$currentProjectId', async e => {
-                this.isLoading = true
-
-                const curProjectCode = e.detail.currentProjectId
-                this.initProjectId(curProjectCode)
-
-                // 项目切换时，先将集群列表清空
-                this.$store.commit('cluster/forceUpdateClusterList', [])
-
-                if (localStorage.getItem('curProjectCode') !== curProjectCode) {
-                    this.$store.commit('updateCurClusterId', '')
-                    this.$refs.appHeader.selectProject(curProjectCode)
-                }
-
-                // 从配置中心拉取项目列表，顶导的项目列表信息里，项目中关于容器服务的信息可能更新不及时
-                const projectList = await this.$store.dispatch('getProjectList')
-                await this.checkProject()
-                if (this.isUserBKService) {
-                    await this.$store.dispatch('getFeatureFlag')
-                    const curBcsProject = (projectList || []).find(item => item.project_code === curProjectCode)
-                    // eslint-disable-next-line camelcase
-                    if (curBcsProject?.project_id) {
-                        await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
-                    }
-                }
-                this.isLoading = false
+                await this.initBcsBaseData(e.detail.currentProjectId)
             })
         },
         mounted () {
@@ -171,6 +144,91 @@
             })
         },
         methods: {
+            // 设置单集群信息
+            handleSetClusterInfo (clusterId = '') {
+                // 判断集群ID是否存在当前项目的集群列表中
+                const stateClusterList = this.$store.state.cluster.clusterList || []
+                const curCluster = stateClusterList?.find(cluster => cluster.cluster_id === clusterId)
+                const notInClusterList = clusterId && !curCluster
+                if (notInClusterList) {
+                    clusterId = ''
+                }
+                localStorage.setItem('bcs-cluster', clusterId)
+                sessionStorage.setItem('bcs-cluster', clusterId)
+                this.$store.commit('updateCurClusterId', clusterId)
+                this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
+
+                if (this.$route.params.clusterId && notInClusterList) {
+                    // url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
+                    this.$router.replace({
+                        name: 'clusterMain',
+                        params: {
+                            needCheckPermission: true
+                        }
+                    })
+                } else if (this.$route.name === 'clusterMain' && clusterId) {
+                    // 集群ID存在，但是当前处于全部集群首页时需要跳回集群概览页
+                    this.$router.replace({
+                        name: 'clusterOverview',
+                        params: {
+                            projectId: this.$store.state.curProjectId,
+                            projectCode: this.$store.state.curProjectCode,
+                            clusterId,
+                            needCheckPermission: true
+                        }
+                    })
+                }
+            },
+            // 设置项目信息
+            handleSetProjectInfo (projectCode, projectId) {
+                localStorage.setItem('curProjectCode', projectCode)
+                localStorage.setItem('curProjectId', projectId)
+                this.$store.commit('updateProjectCode', projectCode)
+                this.$store.commit('updateProjectId', projectId)
+            },
+            // 初始化BCS基本数据（有先后顺序，请勿乱动）
+            async initBcsBaseData (projectCode) {
+                this.isLoading = true
+                this.initProjectId(projectCode)
+                // 清空集群列表
+                this.$store.commit('cluster/forceUpdateClusterList', [])
+                // 切换不同项目时清空单集群信息
+                if (localStorage.getItem('curProjectCode') !== projectCode) {
+                    localStorage.removeItem('bcs-cluster')
+                    sessionStorage.removeItem('bcs-cluster')
+                    this.$store.commit('updateCurClusterId', '')
+                }
+                const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
+                // 检查是否开启容器服务
+                await this.checkProject()
+                if (!this.isUserBKService) return
+
+                const curBcsProject = projectList.find(item => item.project_code === projectCode)
+                if (curBcsProject?.project_id) {
+                    await this.$store.dispatch('cluster/getClusterList', curBcsProject.project_id)
+                }
+
+                // 设置项目存储信息
+                this.handleSetProjectInfo(projectCode, curBcsProject?.project_id || '')
+
+                // 设置当前集群ID
+                let curClusterId = ''
+                const pathClusterId = this.$route.params.clusterId
+                const storageClusterId = localStorage.getItem('bcs-cluster') || ''
+                if (pathClusterId && (this.$route.path.indexOf('dashboard') > -1 || storageClusterId)) {
+                    // 资源视图或者以前切换过单集群就以url上面的集群ID为主
+                    curClusterId = pathClusterId
+                } else {
+                    curClusterId = storageClusterId
+                }
+
+                this.handleSetClusterInfo(curClusterId)
+                // 获取菜单配置信息
+                await this.$store.dispatch('getFeatureFlag')
+                // 更新菜单
+                this.$store.commit('updateCurProject', projectCode)
+                this.isLoading = false
+            },
             /**
              * 初始化容器最小高度
              */

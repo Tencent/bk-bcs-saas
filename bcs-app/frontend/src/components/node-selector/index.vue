@@ -352,21 +352,15 @@
                     return
                 }
 
-                this.$nextTick(() => {
-                    const selectedHosts = hosts.filter(host =>
-                        host.isChecked === true
-                    )
+                setTimeout(() => {
+                    const selectedHosts = hosts.filter(host => host.isChecked)
 
                     const canSelectedHosts = hosts.filter(host =>
                         host.status === 'normal'
                     )
 
-                    if (selectedHosts.length === canSelectedHosts.length) {
-                        this.isCheckCurPageAll = true
-                    } else {
-                        this.isCheckCurPageAll = false
-                    }
-
+                    this.isCheckCurPageAll = selectedHosts.length === canSelectedHosts.length
+                    
                     // 清除 hostListCache
                     hosts.forEach(item => {
                         delete this.hostListCache[`${item.inner_ip}-${item.asset_id}`]
@@ -378,7 +372,7 @@
                     })
 
                     this.remainCount = Object.keys(this.hostListCache).length
-                })
+                }, 0)
             },
 
             /**

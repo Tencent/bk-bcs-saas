@@ -125,7 +125,7 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('所属集群')" prop="cluster_name" width="200">
+                        <bk-table-column v-if="isMesosProject" :label="$t('所属集群')" prop="cluster_name" width="200">
                             <template slot-scope="{ row }">
                                 <div v-if="ingStatus.includes(row.status)">
                                     <bk-tooltip :content="`${row.cluster_id}`" placement="top">
@@ -148,50 +148,61 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('标签')" prop="source_type" :show-overflow-tooltip="false">
                             <template slot-scope="{ row, $index }">
-                                <div v-if="row.transformLabels.length">
-                                    <bcs-popover :delay="300" placement="left">
-                                        <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
-                                            <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${$index}`">
-                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                    <span class="key" :title="label.key">{{label.key}}</span>
-                                                    <span class="value" :title="label.value">{{label.value}}</span>
-                                                </div>
-                                                <span v-if="row.showExpand" style="position: relative; top: 8px;">...</span>
+                                <bcs-popover v-if="row.transformLabels.length" :delay="300" placement="left-end">
+                                    <div class="label-list" :ref="`label_${pageConf.current}_${$index}`">
+                                        <div v-for="(item, index) in row.transformLabels"
+                                            class="label-item"
+                                            :key="index">
+                                            <span class="key">{{item.key}}</span> =
+                                            <span class="value">{{item.value}}</span>
+                                        </div>
+                                        <span v-if="row.showExpand" class="ellipsis">...</span>
+                                    </div>
+                                    <template slot="content">
+                                        <div class="label-tips">
+                                            <div class="label-item" v-for="(taint, index) in row.transformLabels" :key="index">
+                                                <span class="key">{{taint.key}}</span> =
+                                                <span class="value">{{taint.value}}</span>
                                             </div>
                                         </div>
-                                        <template slot="content">
-                                            <div class="labels-wrapper fake" :ref="`${pageConf.current}-fake${index}`">
-                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                    <div>
-                                                        <span class="key">{{label.key}}</span>:
-                                                        <span class="value">{{label.value}}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </bcs-popover>
-
-                                    <!-- <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
-                                        <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${index}`">
-                                            <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                            </div>
-                                        </div>
-                                    </div> -->
-                                </div>
+                                    </template>
+                                </bcs-popover>
                                 <template v-else>--</template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" prop="permissions" width="200">
+                        <bk-table-column v-if="!isMesosProject" :label="$t('污点')" :show-overflow-tooltip="false">
+                            <template slot-scope="{ row, $index }">
+                                <bcs-popover v-if="row.transformTaints.length" :delay="300" placement="left">
+                                    <div class="label-list" :ref="`taint_${pageConf.current}_${$index}`">
+                                        <div v-for="(item, index) in row.transformTaints"
+                                            class="label-item"
+                                            :key="index">
+                                            <span class="key">{{item.key}}</span>=
+                                            <span class="value">{{item.displayValue}}</span>
+                                        </div>
+                                        <span v-if="row.showTaintExpand" class="ellipsis">...</span>
+                                    </div>
+                                    <template slot="content">
+                                        <div class="label-tips">
+                                            <div class="label-item" v-for="(taint, index) in row.transformTaints" :key="index">
+                                                <span class="key">{{taint.key}}</span> =
+                                                <span class="value">{{taint.displayValue}}</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </bcs-popover>
+                                <template v-else>--</template>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" prop="permissions" width="240">
                             <template slot-scope="{ row }">
-                                <span v-if="row.status === 'normal'">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showSetLabelInRow(row)">{{$t('设置标签')}}</a>
-                                </span>
-                                <span v-else>
-                                    <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                </span>
-                                <a href="javascript:void(0);" class="bk-text-button ml5" @click.stop="goClusterNode(row)">{{$t('更多操作')}}</a>
+                                <bk-button text
+                                    :disabled="row.status !== 'normal'"
+                                    @click.stop="showSetLabelInRow(row)">
+                                    {{$t('设置标签')}}
+                                </bk-button>
+                                <bk-button v-if="!isMesosProject" text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
+                                <bk-button text @click.stop="goClusterNode(row)">{{$t('更多操作')}}</bk-button>
                             </template>
                         </bk-table-column>
                     </bk-table>
@@ -245,20 +256,20 @@
 
                                         <template v-if="labelList.length === 1">
                                             <button class="action-btn">
-                                                <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
+                                                <i class="bk-icon icon-plus-circle" @click.stop.prevent="addLabel"></i>
                                             </button>
                                         </template>
                                         <template v-else>
                                             <template v-if="index === labelList.length - 1">
                                                 <button class="action-btn" @click.stop.prevent>
-                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bk-icon icon-minus-circle" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                             <template v-else>
                                                 <button class="action-btn">
-                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bk-icon icon-minus-circle" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                         </template>
@@ -278,6 +289,19 @@
                 </div>
             </div>
         </bk-sideslider>
+
+        <bk-sideslider
+            :is-show.sync="taintDialog.isShow"
+            :title="$t('设置污点')"
+            :width="750"
+            :quick-close="false">
+            <div slot="content">
+                <TaintContent
+                    :cluster-id="curSelectedClusterId"
+                    :nodes="taintDialog.nodes"
+                    @cancel="handleHideTaintDialog" />
+            </div>
+        </bk-sideslider>
     </div>
 </template>
 
@@ -287,11 +311,13 @@
     import { catchErrorHandler } from '@open/common/util'
     import LoadingCell from '../cluster/loading-cell'
     import nodeSearcher from '../cluster/searcher'
+    import TaintContent from './taint.vue'
 
     export default {
         components: {
             LoadingCell,
-            nodeSearcher
+            nodeSearcher,
+            TaintContent
         },
         data () {
             return {
@@ -360,7 +386,22 @@
                 curSelectedClusterId: '',
                 alreadySelectedNums: 0,
                 searchParams: [],
-                clipboardInstance: null
+                clipboardInstance: null,
+                vueInstanceIsDestroy: false,
+                taintDialog: {
+                    isShow: false,
+                    nodes: []
+                },
+                setInfos: [
+                    {
+                        key: 'showExpand',
+                        label: 'label'
+                    },
+                    {
+                        key: 'showTaintExpand',
+                        label: 'taint'
+                    }
+                ]
             }
         },
         computed: {
@@ -390,13 +431,17 @@
             'checkedNodeList.length' (len) {
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
-            },
-            async curClusterId (v) {
-                await this.fetchData()
             }
+            // async curClusterId (v) {
+            //     await this.fetchData()
+            // }
         },
         beforeDestroy () {
-            clearTimeout(this.timer) && (this.timer = null)
+            this.vueInstanceIsDestroy = true
+            if (this.timer) {
+                clearTimeout(this.timer)
+                this.timer = null
+            }
 
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
@@ -404,14 +449,13 @@
             }
         },
         destroyed () {
-            clearTimeout(this.timer) && (this.timer = null)
-
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
                 this.clipboardInstance.off('success')
             }
         },
         async created () {
+            this.vueInstanceIsDestroy = false
             this.pageConf.current = 1
             this.pageLoading = true
             await this.fetchData()
@@ -496,6 +540,7 @@
              * @param {boolean} isPolling 是否是轮询
              */
             async fetchData (isPolling) {
+                if (this.vueInstanceIsDestroy) return
                 if (!isPolling) {
                     await this.getClusters()
                 }
@@ -512,7 +557,7 @@
                         params.$clusterId = this.curSelectedClusterId
                     }
                     const res = await this.$store.dispatch(api, params)
-            
+
                     const list = this.isMesosProject ? res?.data?.results || [] : res
 
                     const nodeList = []
@@ -546,10 +591,19 @@
                                 view: true
                             }
                         }
+                        if (!this.isMesosProject) {
+                            item.transformTaints = []
+                            for (const taint of item.taints) {
+                                item.transformTaints.push(Object.assign({}, taint, {
+                                    displayValue: taint.value && taint.effect ? taint.value + ' : ' + taint.effect : taint.value || taint.effect
+                                }))
+                            }
+                        }
 
                         item.isExpandLabels = false
                         // 是否显示标签的展开按钮
                         item.showExpand = false
+                        item.showTaintExpand = false
                         nodeList.push(item)
                     })
 
@@ -581,13 +635,10 @@
 
                     setTimeout(() => {
                         this.curPageData.forEach((item, index) => {
-                            const real = this.$refs[`${this.pageConf.current}-real${index}`]
-                            if (real) {
-                                // .labels-inner 高度 24px, margin-bottom 5px
-                                if (real.offsetHeight > 24 + 5) {
-                                    item.showExpand = true
-                                }
-                            }
+                            this.setInfos.forEach(info => {
+                                const el = this.$refs[`${info.label}_${this.pageConf.current}_${index}`]
+                                item[info.key] = el && (el.offsetHeight < el.scrollHeight)
+                            })
                         })
                     }, 0)
 
@@ -606,8 +657,10 @@
                     )
                     this.isCheckAllNode = selectedNodeList.length === validList.length
 
-                    clearTimeout(this.timer)
-                    this.timer = null
+                    if (this.timer) {
+                        clearTimeout(this.timer)
+                        this.timer = null
+                    }
                     this.timer = setTimeout(() => {
                         this.fetchData(true)
                     }, 30000)
@@ -672,13 +725,10 @@
 
                 setTimeout(() => {
                     this.curPageData.forEach((item, index) => {
-                        const real = this.$refs[`${this.pageConf.current}-real${index}`]
-                        if (real && real[0]) {
-                            // .labels-inner 高度 24px, margin-bottom 5px
-                            if (real[0].offsetHeight > 24 + 5) {
-                                item.showExpand = true
-                            }
-                        }
+                        this.setInfos.forEach(info => {
+                            const el = this.$refs[`${info.label}_${this.pageConf.current}_${index}`]
+                            item[info.key] = el && (el.offsetHeight < el.scrollHeight)
+                        })
                     })
                 }, 0)
             },
@@ -1197,14 +1247,13 @@
                     }
                 }
 
-                const nodeNameList = []
                 const resNodeList = []
 
                 if (this.curRowNode && Object.keys(this.curRowNode).length) {
-                    this.isMesosProject ? resNodeList.push(this.curRowNode) : nodeNameList.push(this.curRowNode.name)
+                    resNodeList.push(this.curRowNode)
                 } else {
                     if (this.checkedNodeList.length) {
-                        this.isMesosProject ? resNodeList.push(...this.checkedNodeList) : nodeNameList.push(...this.checkedNodeList.map(checkedNode => checkedNode.name))
+                        resNodeList.push(...this.checkedNodeList)
                     }
                 }
 
@@ -1213,10 +1262,20 @@
                     let api = 'cluster/setK8sNodeLabels'
                     let params = {
                         $clusterId: this.curSelectedClusterId,
-                        node_label_list: nodeNameList.map(name => ({
-                            node_name: name,
-                            labels: labelInfo
-                        }))
+                        node_label_list: resNodeList.map(node => {
+                            const nodeLabelInfo = {}
+                            Object.keys(labelInfo).forEach(key => {
+                                if (labelInfo[key] === '*****-----$$$$$' && node.labels[key]) {
+                                    nodeLabelInfo[key] = node.labels[key]
+                                } else if (labelInfo[key] !== '*****-----$$$$$') {
+                                    nodeLabelInfo[key] = labelInfo[key]
+                                }
+                            })
+                            return {
+                                node_name: node.name,
+                                labels: nodeLabelInfo
+                            }
+                        })
                     }
                     if (this.isMesosProject) {
                         api = 'cluster/updateMesosNodeLabel'
@@ -1311,7 +1370,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterOverview',
                     params: {
@@ -1341,7 +1399,6 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                this.$store.commit('cluster/forceUpdateCurCluster', {})
                 this.$router.push({
                     name: 'clusterNode',
                     params: {
@@ -1422,6 +1479,23 @@
              */
             handlePageSelectAll (selection, row) {
                 this.checkedNodeList = selection
+            },
+
+            /**
+             * 设置污点
+             */
+            showTaintDialog (row) {
+                this.taintDialog.isShow = true
+                this.taintDialog.nodes = [row]
+            },
+
+            /**
+             * 关闭设置污点
+             */
+            handleHideTaintDialog (isRefetch) {
+                this.taintDialog.isShow = false
+                this.taintDialog.nodes = []
+                isRefetch && this.fetchData(true)
             }
         }
     }

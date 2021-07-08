@@ -1,6 +1,6 @@
 import { defineComponent, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
 import DashboardTopActions from './dashboard-top-actions'
-import useCluster from './use-cluster'
+// import useCluster from './use-cluster'
 import useInterval from './use-interval'
 import useNamespace from './use-namespace'
 import usePage from './use-page'
@@ -48,7 +48,7 @@ export default defineComponent({
         }
     },
     setup (props, ctx) {
-        const { $router, $i18n } = ctx.root
+        const { $router, $i18n, $bkInfo, $store, $bkMessage } = ctx.root
         const { type, category, kind, showNameSpace } = toRefs(props)
         // 模糊搜索字段
         const keys = ref(['metadata.name'])
@@ -77,7 +77,7 @@ export default defineComponent({
         })
 
         // 初始化集群列表信息
-        useCluster(ctx)
+        // useCluster(ctx)
 
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
@@ -150,7 +150,9 @@ export default defineComponent({
                 params: {
                     category: category.value,
                     name: row.metadata.name,
-                    namespace: row.metadata.namespace,
+                    namespace: row.metadata.namespace
+                },
+                query: {
                     kind: kind.value
                 }
             })
@@ -174,11 +176,63 @@ export default defineComponent({
         const yaml = computed(() => {
             return yamljs.dump(curDetailRow.value.data || {})
         })
+        // 创建资源
+        const handleCreateResource = () => {
+            $router.push({
+                name: 'dashboardResourceUpdate',
+                params: {
+                    type: type.value,
+                    category: category.value
+                },
+                query: {
+                    kind: kind.value
+                }
+            })
+        }
+        // 更新资源
+        const handleUpdateResource = (row) => {
+            const { name, namespace } = row.metadata || {}
+            $router.push({
+                name: 'dashboardResourceUpdate',
+                params: {
+                    namespace,
+                    type: type.value,
+                    category: category.value,
+                    name
+                },
+                query: {
+                    kind: kind.value
+                }
+            })
+        }
+        // 删除资源
+        const handleDeleteResource = (row) => {
+            const { name, namespace } = row.metadata || {}
+            $bkInfo({
+                type: 'warning',
+                title: $i18n.t('确认删除当前资源吗'),
+                defaultInfo: true,
+                confirmFn: async (vm) => {
+                    const result = await $store.dispatch('dashboard/resourceDelete', {
+                        $namespaceId: namespace,
+                        $type: type.value,
+                        $category: category.value,
+                        $name: name
+                    })
+                    result && $bkMessage({
+                        theme: 'success',
+                        message: $i18n.t('删除成功')
+                    })
+                    fetchList(type.value, category.value)
+                }
+            })
+        }
 
         onMounted(() => {
             showNameSpace.value && getNamespaceData()
             fetchList(type.value, category.value)
         })
+
         return {
             namespaceValue,
             namespaceLoading,
@@ -199,7 +253,10 @@ export default defineComponent({
             handleSortChange,
             gotoDetail,
             handleShowDetail,
-            handleChangeDetailType
+            handleChangeDetailType,
+            handleUpdateResource,
+            handleDeleteResource,
+            handleCreateResource
         }
     },
     render () {
@@ -212,35 +269,40 @@ export default defineComponent({
                     <DashboardTopActions />
                 </div>
                 <div class="biz-content-wrapper" v-bkloading={{ isLoading: this.isLoading }}>
-                    <div class="search-wapper mb20">
-                        {
-                            this.showNameSpace
-                                ? (
-                                    <bcs-select
-                                        loading={this.namespaceLoading}
-                                        class="namespace-select"
-                                        v-model={this.namespaceValue}
-                                        searchable
-                                        placeholder={this.$t('请选择命名空间')}>
-                                        {
-                                            this.namespaceList.map(option => (
-                                                <bcs-option
-                                                    key={option.metadata.name}
-                                                    id={option.metadata.name}
-                                                    name={option.metadata.name}>
-                                                </bcs-option>
-                                            ))
-                                        }
-                                    </bcs-select>
-                                )
-                                : null
-                        }
-                        <bk-input
-                            class="search-input"
-                            clearable
-                            v-model={this.nameValue}
-                            placeholder={this.$t('输入名称搜索')}>
-                        </bk-input>
+                    <div class="operate mb20">
+                        <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
+                            { this.$t('创建') }
+                        </bk-button>
+                        <div class="search-wapper">
+                            {
+                                this.showNameSpace
+                                    ? (
+                                        <bcs-select
+                                            loading={this.namespaceLoading}
+                                            class="namespace-select"
+                                            v-model={this.namespaceValue}
+                                            searchable
+                                            placeholder={this.$t('请选择命名空间')}>
+                                            {
+                                                this.namespaceList.map(option => (
+                                                    <bcs-option
+                                                        key={option.metadata.name}
+                                                        id={option.metadata.name}
+                                                        name={option.metadata.name}>
+                                                    </bcs-option>
+                                                ))
+                                            }
+                                        </bcs-select>
+                                    )
+                                    : null
+                            }
+                            <bk-input
+                                class="search-input"
+                                clearable
+                                v-model={this.nameValue}
+                                placeholder={this.$t('输入名称搜索')}>
+                            </bk-input>
+                        </div>
                     </div>
                     {
                         this.$scopedSlots.default && this.$scopedSlots.default({
@@ -253,7 +315,9 @@ export default defineComponent({
                             handleGetExtData: this.handleGetExtData,
                             handleSortChange: this.handleSortChange,
                             gotoDetail: this.gotoDetail,
-                            handleShowDetail: this.handleShowDetail
+                            handleShowDetail: this.handleShowDetail,
+                            handleUpdateResource: this.handleUpdateResource,
+                            handleDeleteResource: this.handleDeleteResource
                         })
                     }
                 </div>

@@ -68,6 +68,8 @@ const store = new Vuex.Store({
     // 公共 store
     state: {
         curProject: null,
+        curProjectCode: '', // 项目代码
+        curProjectId: '', // 项目ID
         curClusterId: null,
         mainContentLoading: false,
         // 系统当前登录用户
@@ -103,10 +105,19 @@ const store = new Vuex.Store({
         user: state => state.user,
         lang: state => state.lang,
         featureFlag: state => state.featureFlag,
-        curNavName: state => state.curNavName
+        curNavName: state => state.curNavName,
+        curProjectCode: state => state.curProjectCode,
+        curProjectId: state => state.curProjectId,
+        curClusterId: state => state.curClusterId
     },
     // 公共 mutations
     mutations: {
+        updateProjectCode (state, code) {
+            state.curProjectCode = code
+        },
+        updateProjectId (state, id) {
+            state.curProjectId = id
+        },
         /**
          * 设置内容区的 loading 是否显示
          *
@@ -321,7 +332,7 @@ const store = new Vuex.Store({
          *
          * @return {Promise} promise 对象
          */
-        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard, category }) {
+        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard, kind }) {
             return new Promise((resolve, reject) => {
                 const list = []
                 const tmp = []
@@ -381,7 +392,7 @@ const store = new Vuex.Store({
                         for (let j = childrenLen - 1; j >= 0; j--) {
                             const tmpPathName = menu.children[j].pathName || []
                             // 资源视图工作负载详情路由刷新界面后无法选中父级的问题
-                            const dashboardWorkloadDetail = isDashboard && tmpPathName.some(path => path.toLowerCase().indexOf(category) > -1)
+                            const dashboardWorkloadDetail = isDashboard && tmpPathName.some(path => path.toLowerCase().indexOf(kind?.toLowerCase()) > -1)
                             if ((tmpPathName.indexOf(pathName) > -1) || dashboardWorkloadDetail) {
                                 // clearMenuListSelected(list)
                                 menu.isOpen = true

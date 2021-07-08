@@ -32,6 +32,8 @@ const DashboardStorageStorageClass = () => import(/* webpackChunkName: 'dashboar
 // rbac
 const DashboardRbacServiceAccounts = () => import(/* webpackChunkName: 'dashboard-rbac' */'@/views/dashboard/rbac/service-accounts.vue')
 
+const DashboardResourceUpdate = () => import(/* webpackChunkName: 'dashboard-resource' */'@/views/dashboard/resource-update/resource-update.vue')
+
 const childRoutes = [
     // dashboard 首页
     // {
@@ -40,7 +42,7 @@ const childRoutes = [
     //     component: DashboardIndex
     // },
     {
-        path: ':projectCode/dashboard',
+        path: ':projectCode/:clusterId/dashboard',
         name: 'dashboard',
         redirect: {
             name: 'dashboardNamespace'
@@ -49,14 +51,14 @@ const childRoutes = [
     },
     // dashboard 命名空间
     {
-        path: ':projectCode/dashboard/namespace',
+        path: ':projectCode/:clusterId/dashboard/namespace',
         name: 'dashboardNamespace',
         component: DashboardNamespace,
         meta: { isDashboard: true }
     },
     // dashboard workload
     {
-        path: ':projectCode/dashboard/workload',
+        path: ':projectCode/:clusterId/dashboard/workload',
         name: 'dashboardWorkload',
         redirect: {
             name: 'dashboardWorkloadDeployments'
@@ -65,78 +67,78 @@ const childRoutes = [
     },
     // dashboard workload deployments
     {
-        path: ':projectCode/dashboard/workload/deployments',
+        path: ':projectCode/:clusterId/dashboard/workload/deployments',
         name: 'dashboardWorkloadDeployments',
         component: DashboardWorkloadDeployments,
         meta: { isDashboard: true }
     },
     // dashboard workload daemonsets
     {
-        path: ':projectCode/dashboard/workload/daemonsets',
+        path: ':projectCode/:clusterId/dashboard/workload/daemonsets',
         name: 'dashboardWorkloadDaemonSets',
         component: DashboardWorkloadDaemonSets,
         meta: { isDashboard: true }
     },
     // dashboard workload statefulsets
     {
-        path: ':projectCode/dashboard/workload/statefulsets',
+        path: ':projectCode/:clusterId/dashboard/workload/statefulsets',
         name: 'dashboardWorkloadStatefulSets',
         component: DashboardWorkloadStatefulSets,
         meta: { isDashboard: true }
     },
     // dashboard workload cronjobs
     {
-        path: ':projectCode/dashboard/workload/cronjobs',
+        path: ':projectCode/:clusterId/dashboard/workload/cronjobs',
         name: 'dashboardWorkloadCronJobs',
         component: DashboardWorkloadCronJobs,
         meta: { isDashboard: true }
     },
     // dashboard workload jobs
     {
-        path: ':projectCode/dashboard/workload/jobs',
+        path: ':projectCode/:clusterId/dashboard/workload/jobs',
         name: 'dashboardWorkloadJobs',
         component: DashboardWorkloadJobs,
         meta: { isDashboard: true }
     },
     // dashboard workload pods
     {
-        path: ':projectCode/dashboard/workload/pods',
+        path: ':projectCode/:clusterId/dashboard/workload/pods',
         name: 'dashboardWorkloadPods',
         component: DashboardWorkloadPods,
         meta: { isDashboard: true }
     },
     // dashboard workload gamestatefulsets
     {
-        path: ':projectCode/dashboard/workload/gamestatefulsets',
+        path: ':projectCode/:clusterId/dashboard/workload/gamestatefulsets',
         name: 'dashboardWorkloadGameStatefulSets',
         component: DashboardWorkloadGameStatefulSets,
         meta: { isDashboard: true }
     },
     // dashboard workload gamedeployments
     {
-        path: ':projectCode/dashboard/workload/gamedeployments',
+        path: ':projectCode/:clusterId/dashboard/workload/gamedeployments',
         name: 'dashboardWorkloadGameDeployments',
         component: DashboardWorkloadGameDeployments,
         meta: { isDashboard: true }
     },
     // dashboard workload customobjects
     {
-        path: ':projectCode/dashboard/workload/customobjects',
+        path: ':projectCode/:clusterId/dashboard/workload/customobjects',
         name: 'dashboardWorkloadCustomObjects',
         component: DashboardWorkloadCustomObjects,
         meta: { isDashboard: true }
     },
     // dashboard workload detail
     {
-        path: ':projectCode/dashboard/workload/:category/:namespace/:name/detail',
+        path: ':projectCode/:clusterId/dashboard/workload/:category/:namespace/:name/detail',
         name: 'dashboardWorkloadDetail',
-        props: true,
+        props: (route) => ({ ...route.params, kind: route.query.kind }),
         component: DashboardWorkloadDetail,
         meta: { isDashboard: true }
     },
     // network
     {
-        path: ':projectCode/dashboard/network',
+        path: ':projectCode/:clusterId/dashboard/network',
         name: 'dashboardNetwork',
         redirect: {
             name: 'dashboardNetworkIngress'
@@ -145,28 +147,28 @@ const childRoutes = [
     },
     // network ingress
     {
-        path: ':projectCode/dashboard/network/ingress',
+        path: ':projectCode/:clusterId/dashboard/network/ingress',
         name: 'dashboardNetworkIngress',
         component: DashboardNetworkIngress,
         meta: { isDashboard: true }
     },
     // network service
     {
-        path: ':projectCode/dashboard/network/service',
+        path: ':projectCode/:clusterId/dashboard/network/service',
         name: 'dashboardNetworkService',
         component: DashboardNetworkService,
         meta: { isDashboard: true }
     },
     // network endpoints
     {
-        path: ':projectCode/dashboard/network/endpoints',
+        path: ':projectCode/:clusterId/dashboard/network/endpoints',
         name: 'dashboardNetworkEndpoints',
         component: DashboardNetworkEndpoints,
         meta: { isDashboard: true }
     },
     // storage
     {
-        path: ':projectCode/dashboard/storage',
+        path: ':projectCode/:clusterId/dashboard/storage',
         name: 'dashboardStorage',
         redirect: {
             name: 'dashboardStoragePersistentVolumes'
@@ -175,28 +177,28 @@ const childRoutes = [
     },
     // storage persistent-volumes
     {
-        path: ':projectCode/dashboard/storage/persistent-volumes',
+        path: ':projectCode/:clusterId/dashboard/storage/persistent-volumes',
         name: 'dashboardStoragePersistentVolumes',
         component: DashboardStoragePersistentVolumes,
         meta: { isDashboard: true }
     },
     // storage persistent-volumes-claims
     {
-        path: ':projectCode/dashboard/storage/persistent-volumes-claims',
+        path: ':projectCode/:clusterId/dashboard/storage/persistent-volumes-claims',
         name: 'dashboardStoragePersistentVolumesClaims',
         component: DashboardStoragePersistentVolumesClaims,
         meta: { isDashboard: true }
     },
     // storage storage-class
     {
-        path: ':projectCode/dashboard/storage/storage-class',
+        path: ':projectCode/:clusterId/dashboard/storage/storage-class',
         name: 'dashboardStorageStorageClass',
         component: DashboardStorageStorageClass,
         meta: { isDashboard: true }
     },
     // configs
     {
-        path: ':projectCode/dashboard/configs',
+        path: ':projectCode/:clusterId/dashboard/configs',
         name: 'dashboardConfigs',
         redirect: {
             name: 'dashboardConfigsConfigMaps'
@@ -205,21 +207,21 @@ const childRoutes = [
     },
     // configs config-maps
     {
-        path: ':projectCode/dashboard/configs/config-maps',
+        path: ':projectCode/:clusterId/dashboard/configs/config-maps',
         name: 'dashboardConfigsConfigMaps',
         component: DashboardConfigsConfigMaps,
         meta: { isDashboard: true }
     },
     // configs secrets
     {
-        path: ':projectCode/dashboard/configs/secrets',
+        path: ':projectCode/:clusterId/dashboard/configs/secrets',
         name: 'dashboardConfigsSecrets',
         component: DashboardConfigsSecrets,
         meta: { isDashboard: true }
     },
     // rbac
     {
-        path: ':projectCode/dashboard/rbac',
+        path: ':projectCode/:clusterId/dashboard/rbac',
         name: 'dashboardRbac',
         redirect: {
             name: 'dashboardRbacServiceAccounts'
@@ -228,9 +230,17 @@ const childRoutes = [
     },
     // rbac service accounts
     {
-        path: ':projectCode/dashboard/rbac/service-accounts',
+        path: ':projectCode/:clusterId/dashboard/rbac/service-accounts',
         name: 'dashboardRbacServiceAccounts',
         component: DashboardRbacServiceAccounts,
+        meta: { isDashboard: true }
+    },
+    // resource update
+    {
+        path: ':projectCode/:clusterId/dashboard/:type/:category/:namespace?/:name?',
+        name: 'dashboardResourceUpdate',
+        props: (route) => ({ ...route.params, kind: route.query.kind }),
+        component: DashboardResourceUpdate,
         meta: { isDashboard: true }
     }
 ]

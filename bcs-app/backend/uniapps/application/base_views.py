@@ -15,6 +15,7 @@ import base64
 import json
 import logging
 from datetime import datetime
+from typing import Dict, List
 
 import yaml
 from django.utils.translation import ugettext_lazy as _
@@ -27,7 +28,7 @@ from backend.celery_app.tasks.application import delete_instance_task
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
-from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
+from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.templatesets.legacy_apps.instance.constants import EventType
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, InstanceEvent
@@ -571,13 +572,22 @@ class BaseAPI(views.APIView):
             )
         return APIResponse({"message": _("更新成功!")})
 
+    def update_mesos_instance(
+        self, access_token: str, project_id: str, cluster_id: str, ns: str, data: Dict, kind: str
+    ) -> Dict:
+        """更新 mesos 应用"""
+        client = MesosClient(access_token, project_id, cluster_id, None)
+        if kind == MesosResourceName.deployment.value:
+            return client.update_deployment(ns, data)
+        return client.update_application(ns, data)
+
     def update_deployment(self, request, project_id, cluster_id, ns, data, kind=2, category=None, app_name=None):
         """滚动升级"""
+        access_token = request.user.token.access_token
         if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.update_deployment(ns, data)
+            resp = self.update_mesos_instance(access_token, project_id, cluster_id, ns, data, category)
         else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+            client = K8SClient(access_token, project_id, cluster_id, None)
             curr_func = getattr(client, FUNC_MAP[category] % "update")
             resp = curr_func(ns, app_name, data)
 
@@ -961,3 +971,17 @@ class InstanceAPI(BaseAPI):
         if resource_kind.lower() in K8sResourceName.K8sStatefulSet.value.lower():
             raise ValidationError(_("StatefulSet类型不允许此操作"))
         return True
+
+    def _get_mesos_app_names_by_deployment(
+        self, request, cluster_id: str, name: str, namespace: str, kind: str
+    ) -> List:
+        # mesos deployment资源，需要查询deployment下的application，再通过application查询taskgroup
+        app_name_list = self.get_rc_name_by_deployment_base(
+            request,
+            request.project.project_id,
+            cluster_id,
+            name,
+            project_kind=request.project.kind,
+            namespace=namespace,
+        )
+        return list(set(app_name_list))

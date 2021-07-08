@@ -21,6 +21,8 @@ RESOURCE_EXAMPLE_DIR = f'{settings.BASE_DIR}/backend/resources/examples'
 EXAMPLE_CONFIG_DIR = f'{RESOURCE_EXAMPLE_DIR}/configs'
 # Demo 配置文件 目录
 DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_EXAMPLE_DIR}/manifests'
+# 参考资料 目录
+RESOURCE_REFERENCES_DIR = f'{RESOURCE_EXAMPLE_DIR}/references'
 
 # 资源名称后缀长度
 RANDOM_SUFFIX_LENGTH = 8

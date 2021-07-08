@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-cluster-node-title">
                 <i class="bcs-icon bcs-icon-arrows-left back" @click="goIndex" v-if="!curClusterId"></i>
-                <template v-if="exceptionCode"><span>{{$t('返回')}}</span></template>
+                <template v-if="exceptionCode && exceptionCode.code !== 4005"><span>{{$t('返回')}}</span></template>
                 <template v-else>
                     <template v-if="curClusterInPage.cluster_id">
                         <span @click="refreshCurRouter">{{curClusterInPage.name}}</span>
@@ -52,7 +52,7 @@
                                 <span>{{$t('添加节点')}}</span>
                             </bk-button>
                             <template v-if="curClusterInPage.type === 'tke' && $INTERNAL">
-                                <apply-host theme="primary" style="display: inline-block;" :is-backfill="true" />
+                                <apply-host theme="primary" style="display: inline-block;" :cluster-id="clusterId" :is-backfill="true" />
                             </template>
                             <bcs-popover v-if="!allowBatch" :content="dontAllowBatchMsg" placement="top">
                                 <bk-dropdown-menu :align="'center'" ref="toggleFilterDropdownMenu" class="batch-operate-dropdown" :disabled="true">

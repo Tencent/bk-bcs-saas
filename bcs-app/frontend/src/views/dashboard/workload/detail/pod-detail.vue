@@ -270,7 +270,8 @@
             } = useDetail(ctx, {
                 ...props,
                 category: 'pods',
-                defaultActivePanel: 'container'
+                defaultActivePanel: 'container',
+                type: 'workloads'
             })
             const { name, namespace } = toRefs(props)
             const params = computed(() => {

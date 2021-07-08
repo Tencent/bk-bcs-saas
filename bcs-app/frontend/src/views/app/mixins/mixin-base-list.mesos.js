@@ -3817,7 +3817,7 @@ export default {
                     me.curInstance.state && me.curInstance.state.lock()
                     try {
                         await me.$store.dispatch('app/sourceExpansion', params)
-                        me.hideSourceExpansion()
+                        me.curInstance.from_platform ? me.hideSourceExpansion() : me.hideSourceExpansionInNotPlatform()
                     } catch (e) {
                         console.error(e)
                     } finally {

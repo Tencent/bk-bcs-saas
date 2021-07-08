@@ -7,16 +7,27 @@
         </p>
         <div v-else>
             <div class="biz-side-title cluster-selector">
-                <img v-if="!curClusterInfo.cluster_id" src="@/images/bcs2.svg" class="all-icon">
-                <span v-else class="icon">{{ curClusterInfo.name[0] }}</span>
-                <span v-if="!isHasCluster" class="cluster-name-all">{{$t('全部集群')}}</span>
-                <span v-else>
-                    <span :class="{ 'cluster-name': true, 'cluster-name-all': !curClusterInfo.cluster_id }" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
-                    <br>
-                    <span class="cluster-id" v-if="!!curClusterInfo.cluster_id">{{ curClusterInfo.cluster_id }}</span>
-                </span>
+                <!-- 全部集群 -->
+                <template v-if="!curClusterInfo.cluster_id">
+                    <img src="@/images/bcs2.svg" class="all-icon">
+                    <span class="cluster-name-all">{{$t('全部集群')}}</span>
+                </template>
+                <!-- 单集群 -->
+                <template v-else-if="curClusterInfo.cluster_id && curClusterInfo.name">
+                    <span class="icon">{{ curClusterInfo.name[0] }}</span>
+                    <span>
+                        <span class="cluster-name" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
+                        <br>
+                        <span class="cluster-id">{{ curClusterInfo.cluster_id }}</span>
+                    </span>
+                </template>
+                <!-- 异常情况 -->
+                <template v-else>
+                    <img src="@/images/bcs2.svg" class="all-icon">
+                    <span class="cluster-name-all">{{$t('容器服务')}}</span>
+                </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <cluster-selector v-model="isShowClusterSelector" :cluster-list="clusterList" @change="handleChangeCluster" />
+                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
@@ -134,15 +145,6 @@
     import { bus } from '@open/common/bus'
     import { catchErrorHandler } from '@open/common/util'
 
-    const BCS_CLUSTER = 'bcs-cluster'
-    const BCS_CLUSTER_NAME = 'bcs-cluster-name'
-    const allClusters = () => {
-        return {
-            name: window.i18n.t('全部集群'),
-            cluster_id: ''
-        }
-    }
-
     export default {
         name: 'side-nav',
         components: {
@@ -193,7 +195,6 @@
                 ccList: [],
                 englishName: '',
                 kind: -1, // 业务编排类型
-                curClusterInfo: {},
                 selectorMenuData: {
                     isChild: false,
                     item: {
@@ -217,6 +218,9 @@
             }
         },
         computed: {
+            curClusterInfo () {
+                return this.$store.state.cluster.curCluster || {}
+            },
             bkAppHost () {
                 // bkApplyHost: window.BK_IAM_APP_URL,
                 if (window.BK_IAM_APP_URL) {
@@ -234,14 +238,7 @@
                 return this.$store.state.sideMenu.onlineProjectList
             },
             curClusterId () {
-                const id = localStorage[BCS_CLUSTER]
-                if (id === 'null') {
-                    return null
-                }
-                return localStorage[BCS_CLUSTER]
-            },
-            curClusterName () {
-                return localStorage[BCS_CLUSTER_NAME]
+                return this.$store.state.curClusterId
             },
             curProject () {
                 const project = this.$store.state.curProject
@@ -291,7 +288,7 @@
                     this.$store.dispatch('updateMenuListSelected', {
                         isDashboard: this.$route.meta.isDashboard,
                         pathName: to.name,
-                        category: to.params.category,
+                        kind: to.query.kind,
                         idx: 'bcs'
                     })
                 }
@@ -300,39 +297,25 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
-                    category: this.$route.params.category,
+                    kind: this.$route.query.kind,
                     idx: 'bcs'
                 })
             },
-            'curClusterInfo.cluster_id' () {
+            curClusterId () {
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
-                    category: this.$route.params.category,
+                    kind: this.$route.query.kind,
                     idx: 'bcs'
                 })
             }
         },
         async created () {
-            if (localStorage['projectCode'] !== this.projectCode) {
-                localStorage.removeItem(BCS_CLUSTER_NAME)
-                localStorage.removeItem(BCS_CLUSTER)
-                localStorage['projectCode'] = this.projectCode
-            }
-            if (this.curClusterId && this.curClusterName) {
-                this.$store.commit('updateCurClusterId', this.curClusterId)
-                this.curClusterInfo = {
-                    cluster_id: this.curClusterId,
-                    name: this.curClusterName
-                }
-            } else {
-                this.curClusterInfo = allClusters()
-            }
-            this.$store.commit('updateCurProject', this.projectCode)
             this.$store.dispatch('updateMenuListSelected', {
                 isDashboard: this.$route.meta.isDashboard,
                 pathName: this.$route.name,
                 idx: 'bcs',
+                kind: this.$route.query.kind,
                 projectType: (this.curProject && (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE)) ? 'k8s' : ''
             })
             if (window.bus) {
@@ -351,17 +334,17 @@
                 this.menuSelected(data)
             })
 
-            this.$nextTick(() => {
-                if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
-                    // if (sessionStorage['bcs-selected-menu-data']) {
-                    //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
-                    //     this.menuSelected(menuData)
-                    // } else {
-                    //     this.menuSelected(this.selectorMenuData)
-                    // }
-                    this.menuSelected(this.selectorMenuData)
-                }
-            })
+            // this.$nextTick(() => {
+            //     if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
+            //         // if (sessionStorage['bcs-selected-menu-data']) {
+            //         //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
+            //         //     this.menuSelected(menuData)
+            //         // } else {
+            //         //     this.menuSelected(this.selectorMenuData)
+            //         // }
+            //         this.menuSelected(this.selectorMenuData)
+            //     }
+            // })
             await this.getProject()
         },
         methods: {
@@ -528,10 +511,51 @@
              * 集群切换
              */
             handleChangeCluster (cluster) {
-                this.curClusterInfo = cluster
-                this.$store.commit('cluster/forceUpdateCurCluster', cluster.cluster_id ? cluster : {})
-                this.$store.commit('updateCurClusterId', cluster.cluster_id)
-                sessionStorage[BCS_CLUSTER] = cluster.cluster_id
+                if (!cluster.cluster_id) {
+                    sessionStorage.removeItem('bcs-selected-menu-data')
+                    if (this.$route.meta.isDashboard) {
+                        this.$router.push({
+                            name: 'dashboard',
+                            params: {
+                                projectId: this.projectId,
+                                projectCode: this.projectCode
+                            }
+                        })
+                    } else {
+                        this.$router.push({
+                            name: 'clusterMain',
+                            params: {
+                                needCheckPermission: true
+                            }
+                        })
+                    }
+                } else {
+                    const data = this.$route.meta.isDashboard
+                        ? {
+                            isChild: true,
+                            item: {
+                                name: this.$t('命名空间'),
+                                isSaveData: true,
+                                icon: "bcs-icon-namespace",
+                                roleId: "workload:menu",
+                                pathName: ["dashboardNamespace"],
+                                isSelected: true,
+                                isOpen: false
+                            },
+                            itemIndex: 0
+                        }
+                        : {
+                            isChild: false,
+                            item: {
+                                icon: 'bcs-icon-jq-colony',
+                                name: this.$t('概览'),
+                                pathName: ['clusterOverview', 'clusterNode', 'clusterInfo'],
+                                roleId: 'overview:menu'
+                            },
+                            itemIndex: 0
+                        }
+                    bus.$emit('cluster-change', data)
+                }
             },
 
             handleChangeView (item) {
