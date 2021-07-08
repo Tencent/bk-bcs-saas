@@ -227,11 +227,19 @@
             const handleReset = async () => { // 重置代码编辑器
                 if (isLoading.value || !isEdit.value) return
 
-                editorErr.value = {
-                    type: '',
-                    message: ''
-                }
-                setDetail(JSON.parse(JSON.stringify(original.value)))
+                $bkInfo({
+                    type: 'warning',
+                    title: $i18n.t('确认重置当前编辑状态'),
+                    subTitle: $i18n.t('重置后，你修改的内容将丢失'),
+                    defaultInfo: true,
+                    confirmFn: () => {
+                        editorErr.value = {
+                            type: '',
+                            message: ''
+                        }
+                        setDetail(JSON.parse(JSON.stringify(original.value)))
+                    }
+                })
             }
             const handleFileChange = (event) => { // 文件上传
                 const [file] = event.target?.files || []
