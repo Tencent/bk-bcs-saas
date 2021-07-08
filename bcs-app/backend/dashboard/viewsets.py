@@ -85,9 +85,13 @@ class UpdateMixin:
         request.audit_ctx.update_fields(
             resource_type=self.resource_client.kind.lower(), resource=f'{namespace}/{name}'
         )
+        manifest = params['manifest']
+        # replace 模式下无需指定 resourceVersion
+        if getitems(manifest, 'metadata.resourceVersion'):
+            manifest['metadata'].pop('resourceVersion')
         try:
             response_data = client.replace(
-                body=params['manifest'], namespace=namespace, name=name, is_format=False
+                body=manifest, namespace=namespace, name=name, is_format=False
             ).data.to_dict()
         except DynamicApiError as e:
             raise UpdateResourceError(_('更新资源失败: {}').format(e.summary()))
