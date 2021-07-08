@@ -32,6 +32,8 @@ const DashboardStorageStorageClass = () => import(/* webpackChunkName: 'dashboar
 // rbac
 const DashboardRbacServiceAccounts = () => import(/* webpackChunkName: 'dashboard-rbac' */'@/views/dashboard/rbac/service-accounts.vue')
 
+const DashboardResourceUpdate = () => import(/* webpackChunkName: 'dashboard-resource' */'@/views/dashboard/resource-update/resource-update.vue')
+
 const childRoutes = [
     // dashboard 首页
     // {
@@ -130,7 +132,7 @@ const childRoutes = [
     {
         path: ':projectCode/:clusterId/dashboard/workload/:category/:namespace/:name/detail',
         name: 'dashboardWorkloadDetail',
-        props: true,
+        props: (route) => ({ ...route.params, kind: route.query.kind }),
         component: DashboardWorkloadDetail,
         meta: { isDashboard: true }
     },
@@ -231,6 +233,14 @@ const childRoutes = [
         path: ':projectCode/:clusterId/dashboard/rbac/service-accounts',
         name: 'dashboardRbacServiceAccounts',
         component: DashboardRbacServiceAccounts,
+        meta: { isDashboard: true }
+    },
+    // resource update
+    {
+        path: ':projectCode/:clusterId/dashboard/:type/:category/:namespace?/:name?',
+        name: 'dashboardResourceUpdate',
+        props: (route) => ({ ...route.params, kind: route.query.kind }),
+        component: DashboardResourceUpdate,
         meta: { isDashboard: true }
     }
 ]

@@ -288,7 +288,7 @@
                     this.$store.dispatch('updateMenuListSelected', {
                         isDashboard: this.$route.meta.isDashboard,
                         pathName: to.name,
-                        category: to.params.category,
+                        kind: to.query.kind,
                         idx: 'bcs'
                     })
                 }
@@ -297,7 +297,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
-                    category: this.$route.params.category,
+                    kind: this.$route.query.kind,
                     idx: 'bcs'
                 })
             },
@@ -305,7 +305,7 @@
                 this.$store.dispatch('updateMenuListSelected', {
                     isDashboard: this.$route.meta.isDashboard,
                     pathName: this.$route.name,
-                    category: this.$route.params.category,
+                    kind: this.$route.query.kind,
                     idx: 'bcs'
                 })
             }
@@ -315,7 +315,7 @@
                 isDashboard: this.$route.meta.isDashboard,
                 pathName: this.$route.name,
                 idx: 'bcs',
-                category: this.$route.params.category,
+                kind: this.$route.query.kind,
                 projectType: (this.curProject && (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE)) ? 'k8s' : ''
             })
             if (window.bus) {
