@@ -23,10 +23,11 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client
 from backend.components import data, paas_cc
 from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.projects.base.constants import ProjectKind
+from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
@@ -95,7 +96,10 @@ class BaseTaskgroupCls(InstanceAPI):
     def common_handler_for_client(self, request, project_id):
         """针对非平台创建的应用的公共处理"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
-        return cluster_id, namespace, [name], category
+        if request.project.kind != ProjectKind.MESOS.value or category != MesosResourceName.deployment.value:
+            return cluster_id, namespace, [name], category
+        name_list = self._get_mesos_app_names_by_deployment(request, cluster_id, name, namespace, category)
+        return cluster_id, namespace, name_list, category
 
     def common_handler(self, request, project_id, instance_id, project_kind, field=None):
         if not self._from_template(instance_id):
@@ -543,7 +547,7 @@ class GetInstanceLabels(InstanceAPI):
                 resp_data = resp_data[0]
             else:
                 resp_data = {}
-            data = resp_data.get("data", {}).get("metadata", {}).get("labels")
+            data = resp_data.get("data", {}).get("metadata", {}).get("labels") or {}
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -595,7 +599,7 @@ class GetInstanceAnnotations(InstanceAPI):
                 resp_data = resp_data[0]
             else:
                 resp_data = {}
-            data = resp_data.get("data", {}).get("metadata", {}).get("annotations")
+            data = resp_data.get("data", {}).get("metadata", {}).get("annotations") or {}
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
