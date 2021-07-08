@@ -51,27 +51,27 @@ export default function menuConfig () {
                 children: [
                     {
                         name: 'Deployments',
-                        pathName: ['dashboardWorkloadDeployments']
+                        pathName: ['dashboardWorkloadDeployments', 'Deployment']
                     },
                     {
                         name: 'DaemonSets',
-                        pathName: ['dashboardWorkloadDaemonSets']
+                        pathName: ['dashboardWorkloadDaemonSets', 'DaemonSet']
                     },
                     {
                         name: 'StatefulSets',
-                        pathName: ['dashboardWorkloadStatefulSets']
+                        pathName: ['dashboardWorkloadStatefulSets', 'StatefulSet']
                     },
                     {
                         name: 'CronJobs',
-                        pathName: ['dashboardWorkloadCronJobs']
+                        pathName: ['dashboardWorkloadCronJobs', 'CronJob']
                     },
                     {
                         name: 'Jobs',
-                        pathName: ['dashboardWorkloadJobs']
+                        pathName: ['dashboardWorkloadJobs', 'Job']
                     },
                     {
                         name: 'Pods',
-                        pathName: ['dashboardWorkloadPods']
+                        pathName: ['dashboardWorkloadPods', 'Pod']
                     }
                     // {
                     //     name: 'GameStatefulSets',
@@ -96,15 +96,15 @@ export default function menuConfig () {
                 children: [
                     {
                         name: 'Ingresses',
-                        pathName: ['dashboardNetworkIngress']
+                        pathName: ['dashboardNetworkIngress', 'Ingress']
                     },
                     {
                         name: 'Services',
-                        pathName: ['dashboardNetworkService']
+                        pathName: ['dashboardNetworkService', 'Service']
                     },
                     {
                         name: 'Endpoints',
-                        pathName: ['dashboardNetworkEndpoints']
+                        pathName: ['dashboardNetworkEndpoints', 'Endpoints']
                     }
                 ]
             },
@@ -116,11 +116,11 @@ export default function menuConfig () {
                 children: [
                     {
                         name: 'ConfigMaps',
-                        pathName: ['dashboardConfigsConfigMaps']
+                        pathName: ['dashboardConfigsConfigMaps', 'ConfigMap']
                     },
                     {
                         name: 'Secrets',
-                        pathName: ['dashboardConfigsSecrets']
+                        pathName: ['dashboardConfigsSecrets', 'Secret']
                     }
                 ],
                 id: 'CONFIGURATION'
@@ -133,15 +133,15 @@ export default function menuConfig () {
                 children: [
                     {
                         name: 'PersistentVolumes',
-                        pathName: ['dashboardStoragePersistentVolumes']
+                        pathName: ['dashboardStoragePersistentVolumes', 'PersistentVolume']
                     },
                     {
                         name: 'PersistentVolumesClaims',
-                        pathName: ['dashboardStoragePersistentVolumesClaims']
+                        pathName: ['dashboardStoragePersistentVolumesClaims', 'PersistentVolumeClaim']
                     },
                     {
                         name: 'StorageClasses',
-                        pathName: ['dashboardStorageStorageClass']
+                        pathName: ['dashboardStorageStorageClass', 'StorageClass']
                     }
                 ],
                 id: 'STORAGE'
@@ -154,7 +154,7 @@ export default function menuConfig () {
                 children: [
                     {
                         name: 'ServiceAccounts',
-                        pathName: ['dashboardRbacServiceAccounts']
+                        pathName: ['dashboardRbacServiceAccounts', 'ServiceAccount']
                     }
                 ],
                 id: 'RBAC'
