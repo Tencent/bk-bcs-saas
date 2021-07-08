@@ -131,137 +131,151 @@
                     </div>
                 </div>
 
-                <div class="biz-expand-panel mt20 mb10">
-                    <div class="header" @click="isShowCommandParams = !isShowCommandParams" style="line-height: 40px;">
-                        {{$t('Helm命令行参数')}}
-                        <div class="expand">
-                            <i class="bcs-icon bcs-icon-angle-down" v-if="isShowCommandParams"></i>
-                            <i class="bcs-icon bcs-icon-angle-up" v-else></i>
-                        </div>
-                    </div>
-                    <div class="content p0 m0 biz-table-wrapper" style="border: none;">
-                        <table class="bk-table has-table-hover biz-special-bk-table" style="border: none;" v-if="isShowCommandParams">
-                            <thead>
-                                <tr>
-                                    <th class="pl20 f12" style="width: 400px; height: 36px;">{{$t('参数')}}</th>
-                                    <th class="pl25 f12" style="height: 36px;">{{$t('是否启用')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
-                                    <td class="pl20 pt5 pb5" style="height: 36px;">
-                                        {{command.id}}
-                                        <bcs-popover placement="top" :content="command.desc" :width="300">
-                                            <span style="font-size: 12px;cursor: pointer;">
-                                                <i class="bcs-icon bcs-icon-info-circle"></i>
-                                            </span>
-                                        </bcs-popover>
-                                    </td>
-                                    <td class="pl25 pt5 pb5" style="height: 36px;">
-                                        <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <bk-tab type="border-card" active-name="chart" class="mt20">
+                    <bk-tab-panel name="chart" :title="$t('Chart配置选项')">
+                        <div slot="content" class="mt10" style="min-height: 180px;">
+                            <section class="value-file-wrapper">
+                                {{$t('Values文件：')}}
+                                <bk-selector
+                                    style="width: 200px;"
+                                    :placeholder="$t('请选择')"
+                                    :searchable="true"
+                                    :selected.sync="curValueFile"
+                                    :list="curValueFileList"
+                                    :setting-key="'name'"
+                                    :display-key="'name'"
+                                    :disabled="isLocked"
+                                    @item-selected="changeValueFile">
+                                </bk-selector>
 
-                <div class="action-box">
+                                <bcs-popover placement="top">
+                                    <span class="bk-badge" style="margin-left: 3px;">
+                                        <i class="bcs-icon bcs-icon-question-circle f10"></i>
+                                    </span>
+                                    <div slot="content">
+                                        <p>{{ $t('Values文件包含两类:') }}</p>
+                                        <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
+                                        <p>{{ $t('- bcs-values目录下的文件') }}</p>
+                                    </div>
+                                </bcs-popover>
+
+                                <div style="display: inline-block;">
+                                    <bk-checkbox class="ml10 mr5" v-model="isLocked">{{isLocked ? '已锁定' : '已解锁'}}</bk-checkbox>
+                                </div>
+                                <!-- <span class="f12 vm">{{isLocked ? '已锁定' : '已解锁'}}</span> -->
+                                <span class="biz-tip vm">({{$t('默认锁定values内容为当前release')}}({{$t('版本：')}}<span v-bk-tooltips.top="curApp.chart_info.version" class="release-version">{{curApp.chart_info.version}}</span>){{$t('的内容，解除锁定后，加载为对应Chart中的values内容')}})</span>
+                            </section>
+                            <bk-tab
+                                :type="'fill'"
+                                :size="'small'"
+                                :key="tabChangeIndex"
+                                :active-name.sync="curEditMode"
+                                class="biz-tab-container"
+                                @tab-changed="helmModeChangeHandler">
+                                <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
+                                    <template slot="tag">
+                                        <span
+                                            class="bcs-icon bcs-icon-circle-shape biz-danger-text v-bk"
+                                            style="font-size: 10px;"
+                                            v-bk-tooltips.top="$t('Release参数与选中的Chart Version中values.yaml有区别')"
+                                            v-if="String(tplVersionId) !== originReleaseVersion && !isLocked">
+                                        </span>
+                                    </template>
+                                    <div style="width: 100%; min-height: 600px; overflow: hidden;" v-bkloading="{ isLoading: isSyncYamlLoading }">
+                                        <p class="biz-tip m15" style="color: #63656E;">
+                                            <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
+                                            {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，内容最终通过`--values`选项传递给`helm template`命令')}}
+                                        </p>
+                                        <div v-if="String(tplVersionId) !== originReleaseVersion && !isLocked" class="f14 mb15 ml15" style="color: #63656E;">
+                                            <i class="bcs-icon bcs-icon-eye biz-warning-text mr5"></i>
+                                            {{$t('您更改了Chart版本，')}}<span class="bk-text-button" @click="showCodeDiffDialog">{{$t('点击查看')}}</span> Helm Release参数与选中的Chart Version中values.yaml区别
+                                        </div>
+                                        <ace
+                                            ref="codeViewer"
+                                            :value="curTplYaml"
+                                            :width="yamlConfig.width"
+                                            :height="yamlConfig.height"
+                                            :lang="yamlConfig.lang"
+                                            :read-only="yamlConfig.readOnly"
+                                            :full-screen="yamlConfig.fullScreen"
+                                            :key="curValueFile"
+                                            @init="editorInit">
+                                        </ace>
+                                    </div>
+                                </bk-tab-panel>
+                                <bk-tab-panel name="form-mode" :title="$t('表单模式')">
+                                    <p class="biz-tip p15" style="color: #63656E;">
+                                        <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
+                                    </p>
+                                    <template v-if="formData.questions">
+                                        <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
+                                    </template>
+                                    <template v-else>
+                                        <div class="biz-guard-box" v-if="!isQuestionsLoading">
+                                            <span>{{$t('您可以参考')}}
+                                                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
+                                                {{$t('通过表单模式配置您的Helm Release 参数')}}，
+                                            </span>
+                                            <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml">{{$t('YAML模式')}}</a>{{$t('直接修改Helm Release参数')}}
+                                            </span>
+                                        </div>
+                                    </template>
+                                </bk-tab-panel>
+                            </bk-tab>
+                        </div>
+                    </bk-tab-panel>
+                    <bk-tab-panel name="helm" :title="$t('Helm配置选项')">
+                        <form class="bk-form bk-form-vertical set-label-form">
+                            <div class="bk-form-item">
+                                <div class="bk-form-content" style="position: relative;" v-for="(item, index) in commandList" :key="index">
+                                    <div class="biz-key-value-wrapper mb10">
+                                        <div class="biz-key-value-item">
+                                            <bk-input style="width: 280px;" :placeholder="$t('请输入参数')" :disabled="item.disabled" v-model="item.key" />
+                                        </div>
+                                        <span class="equals-sign">=</span>
+                                        <bk-input style="width: 280px;" maxlength="30" :placeholder="$t('请输入值')" v-model="item.value" />
+                                    </div>
+                                    <button class="action-btn">
+                                        <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
+                                        <i v-if="!item.disabled" class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(index)"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- <div class="biz-expand-panel">
+                            <div class="header" style="line-height: 40px;">
+                                {{$t('Helm命令行参数')}}
+                            </div>
+                            <div class="content p0 m0 biz-table-wrapper" style="border: none;">
+                                <table class="bk-table has-table-hover biz-special-bk-table" style="border: none;">
+                                    <thead>
+                                        <tr>
+                                            <th class="pl20 f12" style="width: 400px; height: 36px;">{{$t('参数')}}</th>
+                                            <th class="pl25 f12" style="height: 36px;">{{$t('是否启用')}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
+                                            <td class="pl20 pt5 pb5" style="height: 36px;">
+                                                {{command.id}}
+                                                <i v-bk-tooltips="command.desc" class="bcs-icon bcs-icon-info-circle" style="font-size: 12px;cursor: pointer;"></i>
+                                            </td>
+                                            <td class="pl25 pt5 pb5" style="height: 36px;">
+                                                <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div> -->
+                    </bk-tab-panel>
+                </bk-tab>
+
+                <!-- <div class="action-box">
                     <div class="title fn">
                         Chart Values
                     </div>
-                </div>
-
-                <div slot="content" class="mt10" style="min-height: 180px;">
-                    <section class="value-file-wrapper">
-                        {{$t('Values文件：')}}
-                        <bk-selector
-                            style="width: 200px;"
-                            :placeholder="$t('请选择')"
-                            :searchable="true"
-                            :selected.sync="curValueFile"
-                            :list="curValueFileList"
-                            :setting-key="'name'"
-                            :display-key="'name'"
-                            :disabled="isLocked"
-                            @item-selected="changeValueFile">
-                        </bk-selector>
-
-                        <bcs-popover placement="top">
-                            <span class="bk-badge" style="margin-left: 3px;">
-                                <i class="bcs-icon bcs-icon-question-circle f10"></i>
-                            </span>
-                            <div slot="content">
-                                <p>{{ $t('Values文件包含两类:') }}</p>
-                                <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
-                                <p>{{ $t('- bcs-values目录下的文件') }}</p>
-                            </div>
-                        </bcs-popover>
-
-                        <div style="display: inline-block;">
-                            <bk-checkbox class="ml10 mr5" v-model="isLocked">{{isLocked ? '已锁定' : '已解锁'}}</bk-checkbox>
-                        </div>
-                        <!-- <span class="f12 vm">{{isLocked ? '已锁定' : '已解锁'}}</span> -->
-                        <span class="biz-tip vm">({{$t('默认锁定values内容为当前release')}}({{$t('版本：')}}<span v-bk-tooltips.top="curApp.chart_info.version" class="release-version">{{curApp.chart_info.version}}</span>){{$t('的内容，解除锁定后，加载为对应Chart中的values内容')}})</span>
-                    </section>
-                    <bk-tab
-                        :type="'fill'"
-                        :size="'small'"
-                        :key="tabChangeIndex"
-                        :active-name.sync="curEditMode"
-                        class="biz-tab-container"
-                        @tab-changed="helmModeChangeHandler">
-                        <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
-                            <template slot="tag">
-                                <span
-                                    class="bcs-icon bcs-icon-circle-shape biz-danger-text v-bk"
-                                    style="font-size: 10px;"
-                                    v-bk-tooltips.top="$t('Release参数与选中的Chart Version中values.yaml有区别')"
-                                    v-if="String(tplVersionId) !== originReleaseVersion && !isLocked">
-                                </span>
-                            </template>
-                            <div style="width: 100%; min-height: 600px; overflow: hidden;" v-bkloading="{ isLoading: isSyncYamlLoading }">
-                                <p class="biz-tip m15" style="color: #63656E;">
-                                    <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
-                                    {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，内容最终通过`--values`选项传递给`helm template`命令')}}
-                                </p>
-                                <div v-if="String(tplVersionId) !== originReleaseVersion && !isLocked" class="f14 mb15 ml15" style="color: #63656E;">
-                                    <i class="bcs-icon bcs-icon-eye biz-warning-text mr5"></i>
-                                    {{$t('您更改了Chart版本，')}}<span class="bk-text-button" @click="showCodeDiffDialog">{{$t('点击查看')}}</span> Helm Release参数与选中的Chart Version中values.yaml区别
-                                </div>
-                                <ace
-                                    ref="codeViewer"
-                                    :value="curTplYaml"
-                                    :width="yamlConfig.width"
-                                    :height="yamlConfig.height"
-                                    :lang="yamlConfig.lang"
-                                    :read-only="yamlConfig.readOnly"
-                                    :full-screen="yamlConfig.fullScreen"
-                                    :key="curValueFile"
-                                    @init="editorInit">
-                                </ace>
-                            </div>
-                        </bk-tab-panel>
-                        <bk-tab-panel name="form-mode" :title="$t('表单模式')">
-                            <p class="biz-tip p15" style="color: #63656E;">
-                                <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
-                            </p>
-                            <template v-if="formData.questions">
-                                <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
-                            </template>
-                            <template v-else>
-                                <div class="biz-guard-box" v-if="!isQuestionsLoading">
-                                    <span>{{$t('您可以参考')}}
-                                        <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
-                                        {{$t('通过表单模式配置您的Helm Release 参数')}}，
-                                    </span>
-                                    <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml">{{$t('YAML模式')}}</a>{{$t('直接修改Helm Release参数')}}
-                                    </span>
-                                </div>
-                            </template>
-                        </bk-tab-panel>
-                    </bk-tab>
-                </div>
+                </div> -->
 
                 <div class="create-wrapper" v-if="!isNamespaceLoading && !isNamespaceMatch">
                     <bcs-popover :content="$t('所属命名空间不存在，不可操作')" placement="top">
@@ -648,38 +662,75 @@
                 isLocked: true,
                 isShowCommandParams: false,
                 commandList: [
+                    // {
+                    //     id: 'no-hooks',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
+                    // },
                     {
-                        id: 'disable-openapi-validation',
+                        key: '--reuse-values',
+                        value: 'false',
                         disabled: true,
-                        desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
-                    },
-                    {
-                        id: 'no-hooks',
-                        disabled: false,
-                        desc: this.$t('如果选择，部署或更新时，忽略hooks')
-                    },
-                    {
-                        id: 'skip-crds',
-                        disabled: false,
-                        desc: this.$t('如果选择，部署或更新时，跳过crds')
-                    },
-                    {
-                        id: 'reuse-values',
-                        disabled: false,
                         desc: this.$t('升级时，将Release中的value作为默认值')
                     },
                     {
-                        id: 'wait',
-                        disabled: false,
+                        key: '--skip-crds',
+                        value: 'false',
+                        disabled: true,
+                        desc: this.$t('如果选择，部署或更新时，跳过crds')
+                    },
+                    {
+                        key: '--timeout',
+                        value: 'false',
+                        disabled: true,
+                        desc: this.$t('超时时间')
+                    },
+                    {
+                        key: '--wait-for-jobs',
+                        value: 'false',
+                        disabled: true,
+                        desc: this.$t('等待所有Jobs完成')
+                    },
+                    {
+                        key: '--wait',
+                        value: 'false',
+                        disabled: true,
                         desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
                     }
                 ],
-                helmCommandParams: {
-                    'disable-openapi-validation': false,
-                    'no-hooks': false,
-                    'skip-crds': false,
-                    'wait': false
-                },
+                // commandList: [
+                //     {
+                //         id: 'disable-openapi-validation',
+                //         disabled: true,
+                //         desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
+                //     },
+                //     {
+                //         id: 'no-hooks',
+                //         disabled: false,
+                //         desc: this.$t('如果选择，部署或更新时，忽略hooks')
+                //     },
+                //     {
+                //         id: 'skip-crds',
+                //         disabled: false,
+                //         desc: this.$t('如果选择，部署或更新时，跳过crds')
+                //     },
+                //     {
+                //         id: 'reuse-values',
+                //         disabled: false,
+                //         desc: this.$t('升级时，将Release中的value作为默认值')
+                //     },
+                //     {
+                //         id: 'wait',
+                //         disabled: false,
+                //         desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
+                //     }
+                // ],
+                // helmCommandParams: {
+                //     'disable-openapi-validation': false,
+                //     'no-hooks': false,
+                //     'skip-crds': false,
+                //     'wait': false
+                // },
                 notesdialog: {
                     isShow: false,
                     notes: '',
@@ -1045,8 +1096,19 @@
                 })
 
                 if (this.originReleaseData.cmd_flags && this.originReleaseData.cmd_flags.length) {
-                    this.originReleaseData.cmd_flags.forEach(key => {
-                        this.helmCommandParams[key] = true
+                    this.originReleaseData.cmd_flags.forEach(item => {
+                        const key = Object.keys(item)[0]
+                        const comment = this.commandList.find(val => val.key === key)
+                        if (comment) {
+                            comment.value = item[key]
+                        } else {
+                            const obj = {}
+                            obj.key = key
+                            obj.value = item[key]
+                            obj.disabled = false
+                            this.commandList.push(obj)
+                        }
+                        // this.helmCommandParams[key] = true
                     })
                 }
                 if (questions.questions) {
@@ -1360,11 +1422,18 @@
                     })
                 }
 
-                for (const key in this.helmCommandParams) {
-                    if (this.helmCommandParams[key] && key !== 'disable-openapi-validation') {
-                        commands.push(key)
-                    }
-                }
+                this.commandList.forEach(item => {
+                    const { key, value } = item
+                    const obj = {}
+                    obj[key] = value
+                    commands.push(obj)
+                })
+
+                // for (const key in this.helmCommandParams) {
+                //     if (this.helmCommandParams[key] && key !== 'disable-openapi-validation') {
+                //         commands.push(key)
+                //     }
+                // }
                 if (this.curEditMode === 'yaml-mode') {
                     this.saveYaml()
                 }
@@ -1662,6 +1731,23 @@
                 if (this.notesdialog.clipboard && this.notesdialog.clipboard.off) {
                     this.notesdialog.clipboard.off('success')
                 }
+            },
+
+            addLabel () {
+                const commandList = []
+                commandList.splice(0, commandList.length, ...this.commandList)
+                commandList.push({
+                    key: '',
+                    value: '',
+                    disabled: false
+                })
+                this.commandList.splice(0, this.commandList.length, ...commandList)
+            },
+            delLabel (index) {
+                const commandList = []
+                commandList.splice(0, commandList.length, ...this.commandList)
+                commandList.splice(index, 1)
+                this.commandList.splice(0, this.commandList.length, ...commandList)
             }
         }
     }
