@@ -9,32 +9,31 @@
     margin-left: 20px;
 }
 
-.biz-content-wrapper {
-    .operate {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 32px;
-        margin-bottom: 20px;
-        .resource-create {
-            padding-right: 20px;
-            width: 100px;
-        }
-        .search-wapper {
+.base-layout {
+    .biz-content-wrapper {
+        .base-layout-operate {
             display: flex;
-            .namespace-select {
-                margin-right: 5px;
-                background: #fff;
-                width: 250px;
+            align-items: center;
+            justify-content: space-between;
+            height: 32px;
+            margin-bottom: 20px;
+            .resource-create {
+                padding-right: 20px;
+                width: 100px;
             }
-            .search-input {
-                width: 320px;
+            .search-wapper {
+                display: flex;
+                .namespace-select {
+                    margin-right: 5px;
+                    background: #fff;
+                    width: 250px;
+                }
+                .search-input {
+                    width: 320px;
+                }
             }
         }
     }
-}
-
-.base-layout {
     .detail-header {
         display: flex;
         align-items: center;

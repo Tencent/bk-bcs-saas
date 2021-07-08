@@ -273,7 +273,7 @@ export default defineComponent({
                     <DashboardTopActions />
                 </div>
                 <div class="biz-content-wrapper" v-bkloading={{ isLoading: this.isLoading }}>
-                    <div class="operate mb20">
+                    <div class="base-layout-operate mb20">
                         {
                             this.showCreate ? (
                                 <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
