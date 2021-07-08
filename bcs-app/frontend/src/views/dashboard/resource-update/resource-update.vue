@@ -36,7 +36,7 @@
                         v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
                         @error="handleEditorErr">
                     </ResourceEditor>
-                    <EditorStatus class="status-wrapper" :message="errMsg" v-show="!!errMsg"></EditorStatus>
+                    <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
                 </div>
                 <div class="code-example" ref="exampleWrapperRef" v-if="showExample">
                     <div class="top-operate">
@@ -58,7 +58,7 @@
                         </bk-dropdown-menu>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
-                            <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i class="bcs-icon bcs-icon-help-2"></i></span>
+                            <!-- <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i class="bcs-icon bcs-icon-help-2"></i></span> -->
                             <span v-bk-tooltips.top="$t('关闭')" @click="showExample = false"><i class="bcs-icon bcs-icon-close-5"></i></span>
                         </span>
                     </div>
@@ -95,16 +95,19 @@
                     readonly
                     @diff-stat="handleDiffStatChange">
                 </ResourceEditor>
-                <EditorStatus class="status-wrapper" :message="errMsg" v-show="!!errMsg"></EditorStatus>
+                <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
             </div>
         </div>
         <div class="resource-btn-group">
-            <bk-button theme="primary"
-                class="main-btn"
-                :loading="updateLoading"
-                @click="handleCreateOrUpdate">
-                {{ btnText }}
-            </bk-button>
+            <div v-bk-tooltips.top="{ disabled: !disabledResourceUpdate, content: $t('内容未变更或格式错误') }">
+                <bk-button theme="primary"
+                    class="main-btn"
+                    :loading="updateLoading"
+                    :disabled="disabledResourceUpdate"
+                    @click="handleCreateOrUpdate">
+                    {{ btnText }}
+                </bk-button>
+            </div>
             <bk-button class="ml10" v-if="isEdit" @click="toggleDiffEditor">{{ showDiff ? $t('继续编辑') : $t('显示差异') }}</bk-button>
             <bk-button class="ml10" @click="handleCancel">{{ $t('取消') }}</bk-button>
         </div>
@@ -183,14 +186,21 @@
             const showExample = ref(true)
             const fullScreen = ref(false)
             const height = ref(600)
-            const errMsg = ref('')
+            const editorErr = ref({
+                type: '',
+                message: ''
+            })
             const subTitle = computed(() => { // 代码编辑器title
                 return detail.value?.metadata?.name || $i18n.t('资源定义')
             })
-            const hasChanged = computed(() => { // 编辑器内容是否变更
-                return isEdit.value
-                    ? Object.keys(diffStat.value).some(key => diffStat.value[key])
-                    : Object.keys(detail.value).length
+            const disabledResourceUpdate = computed(() => { // 禁用当前更新或者创建操作
+                if (editorErr.value.message && editorErr.value.type === 'content') { // 编辑器格式错误
+                    return true
+                }
+                if (isEdit.value) {
+                    return showDiff.value && !Object.keys(diffStat.value).some(key => diffStat.value[key])
+                }
+                return !Object.keys(detail.value).length
             })
             const setDetail = (data = {}) => { // 设置代码编辑器初始值
                 detail.value = data
@@ -217,6 +227,10 @@
             const handleReset = async () => { // 重置代码编辑器
                 if (isLoading.value || !isEdit.value) return
 
+                editorErr.value = {
+                    type: '',
+                    message: ''
+                }
                 setDetail(JSON.parse(JSON.stringify(original.value)))
             }
             const handleFileChange = (event) => { // 文件上传
@@ -249,7 +263,8 @@
                 }
             }
             const handleEditorErr = (err: string) => { // 捕获编辑器错误提示
-                errMsg.value = err
+                editorErr.value.type = 'content' // 编辑内容错误
+                editorErr.value.message = err
             }
             const handleSetHeight = () => {
                 const bounding = editorWrapperRef.value?.getBoundingClientRect()
@@ -324,7 +339,8 @@
                     $category: category.value,
                     manifest: detail.value
                 }).catch(err => {
-                    errMsg.value = err.message
+                    editorErr.value.type = 'http'
+                    editorErr.value.message = err.message
                     return false
                 })
 
@@ -349,7 +365,8 @@
                     $name: name.value,
                     manifest: detail.value
                 }).catch(err => {
-                    errMsg.value = err.message
+                    editorErr.value.type = 'http'
+                    editorErr.value.message = err.message
                     return false
                 })
 
@@ -371,12 +388,11 @@
                 updateLoading.value = false
             }
             const handleCancel = () => { // 取消
-                if (!hasChanged.value) return $router.push({ name: $store.getters.curNavName })
-
                 $bkInfo({
                     type: 'warning',
                     title: $i18n.t('确认退出当前编辑状态'),
                     subTitle: $i18n.t('退出后，你修改的内容将丢失'),
+                    defaultInfo: true,
                     confirmFn: () => {
                         $router.push({ name: $store.getters.curNavName })
                     }
@@ -404,9 +420,9 @@
                 showDesc,
                 fullScreen,
                 height,
-                hasChanged,
+                disabledResourceUpdate,
                 exampleEditorHeight,
-                errMsg,
+                editorErr,
                 updateLoading,
                 diffStat,
                 editorWrapperRef,

@@ -211,6 +211,7 @@ export default defineComponent({
             $bkInfo({
                 type: 'warning',
                 title: $i18n.t('确认删除当前资源吗'),
+                defaultInfo: true,
                 confirmFn: async (vm) => {
                     const result = await $store.dispatch('dashboard/resourceDelete', {
                         $namespaceId: namespace,
