@@ -87,8 +87,7 @@ class UpdateMixin:
         )
         manifest = params['manifest']
         # replace 模式下无需指定 resourceVersion
-        if getitems(manifest, 'metadata.resourceVersion'):
-            manifest['metadata'].pop('resourceVersion')
+        manifest['metadata'].pop('resourceVersion', None)
         try:
             response_data = client.replace(
                 body=manifest, namespace=namespace, name=name, is_format=False
