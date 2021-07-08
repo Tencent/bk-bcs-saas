@@ -11,6 +11,7 @@ export interface IDetailOptions {
     category: string;
     name: string;
     namespace: string;
+    type: string;
     defaultActivePanel: string;
 }
 
@@ -51,13 +52,14 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     }
     // 获取workload详情
     const handleGetDetail = async () => {
-        const { namespace, category, name } = options
+        const { namespace, category, name, type } = options
         // workload详情
         isLoading.value = true
-        detail.value = await $store.dispatch('dashboard/getWorkloadDetail', {
+        detail.value = await $store.dispatch('dashboard/getResourceDetail', {
             $namespaceId: namespace,
             $category: category,
-            $name: name
+            $name: name,
+            $type: type
         })
         isLoading.value = false
         return detail.value

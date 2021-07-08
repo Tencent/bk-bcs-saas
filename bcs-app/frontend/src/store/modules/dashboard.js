@@ -12,7 +12,7 @@
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
 import { dashbordList, retrieveDetail, podMetric, listWorkloadPods,
-    listStoragePods, listContainers, retrieveContainerDetail, containerMetric, fetchContainerEnvInfo } from '@open/api/base'
+    listStoragePods, listContainers, retrieveContainerDetail, containerMetric, fetchContainerEnvInfo, resourceDelete, resourceCreate, resourceUpdate, exampleManifests } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -1636,7 +1636,7 @@ export default {
          * @param {*} config
          * @returns
          */
-        async getWorkloadDetail (context, params, config = {}) {
+        async getResourceDetail (context, params, config = {}) {
             const data = await retrieveDetail(params, config).catch(() => ({
                 manifest: {},
                 manifest_ext: {}
@@ -1732,6 +1732,32 @@ export default {
          */
         async fetchContainerEnvInfo (context, params, config = {}) {
             const data = await fetchContainerEnvInfo(params, config = {}).catch(() => ([]))
+            return data
+        },
+
+        async resourceDelete (context, params, config = {}) {
+            const data = await resourceDelete(params, config = {}).catch(() => false)
+            return data
+        },
+
+        async resourceCreate (context, params, config = {}) {
+            // 需要单独处理错误信息
+            const data = await resourceCreate(params, config = {})
+            return data
+        },
+
+        async resourceUpdate (context, params, config = {}) {
+            // 需要单独处理错误信息
+            const data = await resourceUpdate(params, config = {})
+            return data
+        },
+
+        async exampleManifests (context, params, config = {}) {
+            const data = await exampleManifests(params, config = {}).catch(() => ({
+                kind: '',
+                reference: '',
+                items: []
+            }))
             return data
         }
     }

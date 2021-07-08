@@ -245,6 +245,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .bcs-icon-data-shape:before {
 	content: "\e14a";
 }
+.bcs-icon-data:before {
+	content: "\e14b";
+}
 .bcs-icon-data2-shape:before {
 	content: "\e14c";
 }
@@ -802,4 +805,31 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 }
 .bcs-icon-pol:before {
 	content: "\e207";
+}
+.bcs-icon-copy:before {
+	content: "\e20b";
+}
+.bcs-icon-prompt:before {
+	content: "\e20c";
+}
+.bcs-icon-help-2:before {
+	content: "\e20d";
+}
+.bcs-icon-zoom-out:before {
+	content: "\e20e";
+}
+.bcs-icon-upload-2:before {
+	content: "\e20f";
+}
+.bcs-icon-enlarge:before {
+	content: "\e210";
+}
+.bcs-icon-code-example:before {
+	content: "\e211";
+}
+.bcs-icon-reset:before {
+	content: "\e212";
+}
+.bcs-icon-close-5:before {
+	content: "\e213";
 }
