@@ -1,7 +1,7 @@
 <template>
     <div class="biz-content resource-content">
         <div class="biz-top-bar">
-            <span class="icon-wrapper">
+            <span class="icon-wrapper" @click="handleCancel">
                 <i class="bcs-icon bcs-icon-arrows-left icon-back"></i>
             </span>
             <div class="dashboard-top-title">
@@ -13,7 +13,7 @@
             <template v-if="!showDiff">
                 <div class="code-editor" ref="editorWrapperRef">
                     <div class="top-operate">
-                        <span class="title">{{ subTitle }}</span>
+                        <span class="title bcs-ellipsis">{{ subTitle }}</span>
                         <span class="tools">
                             <span v-if="isEdit" v-bk-tooltips.top="$t('重置')" @click="handleReset"><i class="bcs-icon bcs-icon-reset"></i></span>
                             <span class="upload" v-bk-tooltips.top="$t('上传（仅支持YAML格式）')">
