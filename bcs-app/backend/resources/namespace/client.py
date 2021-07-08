@@ -51,8 +51,9 @@ class Namespace(ResourceClient):
         """
         # TODO 补充 imagepullsecrets 和命名空间变量的创建?
         # TODO 操作审计
-        # 先在集群中创建命名空间，再同步至 PaaSCC
-        self.create(body={"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": name}}, name=name)
+        # 先在集群中创建命名空间（可能存在 PaasCC不存在但是集群存在的情况，需要预先检查），再同步至 PaaSCC
+        if not self.get(name=name):
+            self.create(body={"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": name}}, name=name)
         namespace = create_cc_namespace(
             self.ctx_cluster.context.auth.access_token, self.ctx_cluster.project_id, self.ctx_cluster.id, name, creator
         )
