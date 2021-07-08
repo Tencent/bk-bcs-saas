@@ -17,6 +17,7 @@ from backend.components import paas_cc
 from backend.components.base import ComponentAuth
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base import CtxCluster
+from backend.utils.basic import getitems
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -26,7 +27,7 @@ def get_cc_namespaces(access_token, project_id):
     resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
-    return resp.get("data", {}).get("results", [])
+    return getitems(resp, 'data.results') or []
 
 
 @parse_response_data(default_data={})
@@ -37,7 +38,7 @@ def _get_cluster_namespace_list(access_token, project_id, cluster_id):
 def get_namespaces_by_cluster_id(access_token, project_id, cluster_id):
     # TODO get_namespaces_by_cluster_id后续会调整成直接从集群获取，而不是从bcs-cc获取
     data = _get_cluster_namespace_list(access_token, project_id, cluster_id)
-    return data.get('results', [])
+    return data.get('results') or []
 
 
 @parse_response_data(default_data={})
@@ -47,7 +48,7 @@ def _get_namespace_list(access_token, project_id):
 
 def get_namespaces(access_token, project_id):
     data = _get_namespace_list(access_token, project_id)
-    return data.get('results', [])
+    return data.get('results') or []
 
 
 @parse_response_data(default_data={})

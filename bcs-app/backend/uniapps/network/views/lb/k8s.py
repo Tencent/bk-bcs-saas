@@ -142,7 +142,7 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
         return super(NginxIngressListCreateViewSet, self).get_queryset().filter(is_deleted=False)
 
     def get_ns_id_name(self, access_token, project_id):
-        ns_list = ns_utils.get_cc_namespaces(access_token, project_id) or []
+        ns_list = ns_utils.get_cc_namespaces(access_token, project_id)
         return {ns["id"]: ns["name"] for ns in ns_list}
 
     def _set_lb_namespace(self, lb, ns_id_name):

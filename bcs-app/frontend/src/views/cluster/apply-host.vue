@@ -312,6 +312,14 @@
                         await this.fetchVPC()
                     }
                 }
+            },
+            clusterId: {
+                immediate: true,
+                async handler (value, old) {
+                    if (value && value !== old) {
+                        await this.fetchClusterInfo()
+                    }
+                }
             }
         },
         async created () {
@@ -323,7 +331,6 @@
                     vpcDesc: this.$t('和集群所属vpc一致'),
                     disabled: true
                 }
-                await this.fetchClusterInfo()
             }
             this.getApplyHostStatus()
         },
@@ -343,7 +350,7 @@
              * 获取当前集群数据
              */
             async fetchClusterInfo () {
-                if (!this.cluster_id) return
+                if (!this.clusterId) return
 
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterInfo', {

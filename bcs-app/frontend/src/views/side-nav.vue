@@ -27,7 +27,7 @@
                     <span class="cluster-name-all">{{$t('容器服务')}}</span>
                 </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" v-if="kind !== -1" />
+                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
@@ -334,17 +334,17 @@
                 this.menuSelected(data)
             })
 
-            this.$nextTick(() => {
-                if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
-                    // if (sessionStorage['bcs-selected-menu-data']) {
-                    //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
-                    //     this.menuSelected(menuData)
-                    // } else {
-                    //     this.menuSelected(this.selectorMenuData)
-                    // }
-                    this.menuSelected(this.selectorMenuData)
-                }
-            })
+            // this.$nextTick(() => {
+            //     if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
+            //         // if (sessionStorage['bcs-selected-menu-data']) {
+            //         //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
+            //         //     this.menuSelected(menuData)
+            //         // } else {
+            //         //     this.menuSelected(this.selectorMenuData)
+            //         // }
+            //         this.menuSelected(this.selectorMenuData)
+            //     }
+            // })
             await this.getProject()
         },
         methods: {

@@ -317,6 +317,21 @@ export default {
         }
         this.getNodeList(params)
         this.fetchNodeList4Copy()
+        if (!this.curCluster?.permissions?.view) {
+            await this.$store.dispatch('getResourcePermissions', {
+                project_id: this.projectId,
+                policy_code: 'view',
+                // eslint-disable-next-line camelcase
+                resource_code: this.curCluster?.cluster_id,
+                resource_name: this.curCluster?.name,
+                resource_type: `cluster_${this.curCluster?.environment === 'stag' ? 'test' : 'prod'}`
+            }).catch(err => {
+                this.exceptionCode = {
+                    code: err.code,
+                    msg: err.message
+                }
+            })
+        }
     },
     methods: {
         async fetchNodeList4Copy () {

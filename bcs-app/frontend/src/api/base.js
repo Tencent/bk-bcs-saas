@@ -33,6 +33,8 @@ export const sourceExpansion = request('put', '/api/app/mesos/projects/$projectI
 export const getK8sNodes = request('get', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/')
 export const fetchK8sNodeLabels = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
 export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
+export const getNodeTaints = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
+export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 
 export default {
     stdLogs,
@@ -55,5 +57,7 @@ export default {
     resourceCreate,
     resourceUpdate,
     resourceDelete,
-    exampleManifests
+    exampleManifests,
+    getNodeTaints,
+    setNodeTaints
 }

@@ -1,12 +1,7 @@
 {
   "kind": "Service",
   "class": "networks",
-  "references":[
-    {
-      "name": "Kubernetes Service 字段说明",
-      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#service-v1-core"
-    }
-  ],
+  "references": null,
   "items": [
     {
       "name": "simple_service",
