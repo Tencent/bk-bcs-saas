@@ -222,6 +222,7 @@ export default defineComponent({
                         theme: 'success',
                         message: $i18n.t('删除成功')
                     })
+                    fetchList(type.value, category.value)
                 }
             })
         }
