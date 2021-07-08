@@ -45,6 +45,10 @@ export default defineComponent({
         showNameSpace: {
             type: Boolean,
             default: true
+        },
+        showCreate: {
+            type: Boolean,
+            default: true
         }
     },
     setup (props, ctx) {
@@ -270,9 +274,14 @@ export default defineComponent({
                 </div>
                 <div class="biz-content-wrapper" v-bkloading={{ isLoading: this.isLoading }}>
                     <div class="operate mb20">
-                        <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
-                            { this.$t('创建') }
-                        </bk-button>
+                        {
+                            this.showCreate ? (
+                                <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
+                                    { this.$t('创建') }
+                                </bk-button>
+                            ) : <div></div>
+                        }
+
                         <div class="search-wapper">
                             {
                                 this.showNameSpace
