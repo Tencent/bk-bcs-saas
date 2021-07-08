@@ -1,6 +1,6 @@
 <template>
     <BaseLayout title="Deployments" kind="Deployment" category="deployments" type="workloads">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, gotoDetail }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, gotoDetail, handleUpdateResource,handleDeleteResource }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
@@ -32,6 +32,12 @@
                 <bk-table-column label="Age" width="100" :resizable="false">
                     <template slot-scope="{ row }">
                         <span>{{handleGetExtData(row.metadata.uid, 'age')}}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column :label="$t('操作')" :resizable="false" width="150">
+                    <template #default="{ row }">
+                        <bk-button text @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
+                        <bk-button class="ml10" text @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>

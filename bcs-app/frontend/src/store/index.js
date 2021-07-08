@@ -332,7 +332,7 @@ const store = new Vuex.Store({
          *
          * @return {Promise} promise 对象
          */
-        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard, category }) {
+        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard, kind }) {
             return new Promise((resolve, reject) => {
                 const list = []
                 const tmp = []
@@ -392,7 +392,7 @@ const store = new Vuex.Store({
                         for (let j = childrenLen - 1; j >= 0; j--) {
                             const tmpPathName = menu.children[j].pathName || []
                             // 资源视图工作负载详情路由刷新界面后无法选中父级的问题
-                            const dashboardWorkloadDetail = isDashboard && tmpPathName.some(path => path.toLowerCase().indexOf(category) > -1)
+                            const dashboardWorkloadDetail = isDashboard && tmpPathName.some(path => path.toLowerCase().indexOf(kind?.toLowerCase()) > -1)
                             if ((tmpPathName.indexOf(pathName) > -1) || dashboardWorkloadDetail) {
                                 // clearMenuListSelected(list)
                                 menu.isOpen = true

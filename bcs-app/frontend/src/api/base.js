@@ -10,7 +10,7 @@ export const stdLogsSession = request('post', '/api/logs/projects/$projectId/clu
 
 // dashbord
 export const dashbordList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/$type/$category/')
-export const retrieveDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/$category/$name/')
+export const retrieveDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
 export const retrieveContainerDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/$category/$name/containers/$containerName/')
 export const podMetric = request('post', '/api/metrics/projects/$projectId/clusters/$clusterId/pods/$metric/')
 export const containerMetric = request('post', '/api/metrics/projects/$projectId/clusters/$clusterId/pods/$podId/containers/$metric/')
@@ -18,6 +18,10 @@ export const listWorkloadPods = request('get', '/api/dashboard/projects/$project
 export const listStoragePods = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/pods/$podId/$type/')
 export const listContainers = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/pods/$podId/containers/')
 export const fetchContainerEnvInfo = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/pods/$podId/containers/$containerName/env_info/')
+export const resourceCreate = request('post', '/api/dashboard/projects/$projectId/clusters/$clusterId/$type/$category/')
+export const resourceUpdate = request('put', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
+export const resourceDelete = request('delete', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
+export const exampleManifests = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/examples/manifests/')
 
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
@@ -47,5 +51,9 @@ export default {
     fetchContainerEnvInfo,
     getK8sNodes,
     fetchK8sNodeLabels,
-    setK8sNodeLabels
+    setK8sNodeLabels,
+    resourceCreate,
+    resourceUpdate,
+    resourceDelete,
+    exampleManifests
 }

@@ -185,7 +185,8 @@
                 handleShowYamlPanel
             } = useDetail(ctx, {
                 ...props,
-                defaultActivePanel: 'pod'
+                defaultActivePanel: 'pod',
+                type: 'workloads'
             })
             const podLoading = ref(false)
             const workloadPods = ref<IDetail|null>(null)
