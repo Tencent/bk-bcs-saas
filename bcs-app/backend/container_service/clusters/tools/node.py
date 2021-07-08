@@ -23,13 +23,14 @@ from backend.container_service.clusters.models import NodeStatus
 from backend.resources.node.client import Node
 from backend.utils.basic import getitems
 
+from .resp import NodeClient
+
 
 def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:
     """查询节点数据
     包含标签、污点、状态等供前端展示数据
     """
-    client = Node(ctx_cluster)
-    cluster_node_list = client.list()
+    cluster_node_list = NodeClient(ctx_cluster).do("list")
     nodes = {}
     for node in cluster_node_list:
         metadata = node.get("metadata", {})
@@ -131,12 +132,14 @@ class NodesData:
             node["cluster_name"] = self.cluster_name
             # 如果bcs cc中存在节点信息，则从bcs cc获取节点的额外数据
             if inner_ip in self.bcs_cc_nodes:
-                node["status"] = transform_status(
+                _node = self.bcs_cc_nodes[inner_ip].copy()
+                _node.update(node)
+                _node["status"] = transform_status(
                     node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
                 )
-                node.update(self.bcs_cc_nodes[inner_ip])
+                node_list.append(_node)
             else:
                 node["cluster_id"] = self.cluster_id
                 node["status"] = transform_status(node["status"], node["unschedulable"])
-            node_list.append(node)
+                node_list.append(node)
         return node_list

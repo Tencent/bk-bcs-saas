@@ -25,11 +25,11 @@ fake_inner_ip = "127.0.0.1"
 fake_node_name = "bcs-test-node"
 
 
-@patch("backend.container_service.clusters.tools.node.Node", new=StubNodeClient)
-def query_cluster_nodes(mock_list, ctx_cluster):
+@patch("backend.container_service.clusters.tools.resp.Node", new=StubNodeClient)
+def test_query_cluster_nodes(ctx_cluster):
     cluster_nodes = node.query_cluster_nodes(ctx_cluster)
     assert fake_inner_ip in cluster_nodes
-    assert cluster_nodes[fake_inner_ip]["node_name"] == fake_node_name
+    assert cluster_nodes[fake_inner_ip]["name"] == fake_node_name
     assert cluster_nodes[fake_inner_ip]["status"] == NodeConditionStatus.Ready
     assert not cluster_nodes[fake_inner_ip]["unschedulable"]
 
