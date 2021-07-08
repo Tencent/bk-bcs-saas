@@ -10,19 +10,27 @@
 }
 
 .biz-content-wrapper {
-    .search-wapper {
+    .operate {
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: space-between;
         height: 32px;
         margin-bottom: 20px;
-    }
-    .namespace-select {
-        margin-right: 5px;
-        background: #fff;
-        width: 250px;
-    }
-    .search-input {
-        width: 320px;
+        .resource-create {
+            padding-right: 20px;
+            width: 100px;
+        }
+        .search-wapper {
+            display: flex;
+            .namespace-select {
+                margin-right: 5px;
+                background: #fff;
+                width: 250px;
+            }
+            .search-input {
+                width: 320px;
+            }
+        }
     }
 }
 
