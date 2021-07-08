@@ -1385,6 +1385,34 @@
         }
     }
 }
+.default-info {
+    .bk-info-box {
+        .bk-dialog-header {
+            padding: 20px 30px 10px;
+            .bk-dialog-header-inner {
+                text-align: center;
+                display: inline-block;
+                width: 100%;
+                font-size: 24px;
+                color: #313238;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                margin: 0;
+            }
+        }
+        .bk-dialog-footer {
+            text-align: center;
+            padding: 0 65px 40px;
+            background-color: #fff;
+            border: none;
+            border-radius: 0;
+        }
+        .bk-dialog-sub-header {
+            padding: 5px 50px 21px;
+        }
+    }
+}
 
 
 .add-namespace-popover {
