@@ -32,8 +32,7 @@
                         icon="plus-circle"
                         @click.stop="addItem">
                     </bk-button>
-                    <bk-button v-if="values.length !== 1"
-                        text
+                    <bk-button text
                         icon="minus-circle"
                         :disabled="length"
                         @click.stop="deleteItem(index)">
@@ -86,6 +85,8 @@
             }
             const deleteItem = (index: number) => {
                 values.value.splice(index, 1)
+                // 如果最后一行被删除则添加个空行
+                !values.value.length && addItem()
             }
             // 提交数据
             const handleSubmit = async () => {

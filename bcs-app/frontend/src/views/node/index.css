@@ -233,28 +233,29 @@
         margin-right: 4px;
     }
 
-    .labels-container {
-        position: relative;
-        height: 24px;
+    .label-list {
+        height: 27px;
+        margin-top: 8px;
         overflow: hidden;
-
-        &.expand {
-            height: 100%;
-            overflow: visible;
+        .label-item {
+            float: left;
+            display: flex;
+            align-items: center;
+            max-width: 280px;
+            height: 22px;
+            line-height: 22px;
+            padding: 0 8px;
+            border-radius: 2px;
+            border: 1px solid #dfe0e5;
+            background-color: #fafbfd;
+            margin: 0 5px 5px 0;
         }
-    }
-
-    .labels-wrapper {
-        float: left;
-        max-width: 820px;
-        height: auto;
-        padding-right: 40px;
-
-        &.expand {
-            overflow: visible;
-            height: auto;
-            padding-top: 10px;
-            padding-bottom: 5px;
+        .key, .value {
+            @mixin ellipsis 140px;
+        }
+        .ellipsis {
+            position: relative;
+            top: 4px;
         }
     }
 
@@ -543,4 +544,10 @@
             }
         }
     }
+}
+
+.label-tips {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
 }

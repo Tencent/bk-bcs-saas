@@ -7,5 +7,8 @@ declare module 'vue/types/vue' {
             str: any;
         };
         $INTERNAL: boolean;
+        $bkInfo: any;
+        $bkMessage: any;
+        $bkNotify: any;
     }
 }

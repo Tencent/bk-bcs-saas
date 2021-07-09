@@ -72,6 +72,9 @@ class CreateMixin:
             response_data = client.create(namespace=namespace, body=params['manifest'], is_format=False).data.to_dict()
         except DynamicApiError as e:
             raise CreateResourceError(_('创建资源失败: {}').format(e.summary()))
+        except ValueError as e:
+            raise CreateResourceError(_('创建资源失败: {}').format(str(e)))
+
         return Response(response_data)
 
 
@@ -94,6 +97,8 @@ class UpdateMixin:
             ).data.to_dict()
         except DynamicApiError as e:
             raise UpdateResourceError(_('更新资源失败: {}').format(e.summary()))
+        except ValueError as e:
+            raise UpdateResourceError(_('更新资源失败: {}').format(str(e)))
 
         return Response(response_data)
 

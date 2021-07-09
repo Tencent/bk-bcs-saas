@@ -592,3 +592,16 @@ export const formatTime = (timestamp, fmt) => {
     }
     return fmt
 }
+
+export const copyText = (text, errorMsg) => {
+    const textarea = document.createElement('textarea')
+    document.body.appendChild(textarea)
+    textarea.value = text
+    textarea.select()
+    if (document.execCommand('copy')) {
+        document.execCommand('copy')
+    } else {
+        errorMsg('浏览器不支持此功能，请使用谷歌浏览器。')
+    }
+    document.body.removeChild(textarea)
+}
