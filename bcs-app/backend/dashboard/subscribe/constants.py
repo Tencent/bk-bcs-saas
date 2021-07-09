@@ -29,7 +29,7 @@ from backend.resources.workloads.job import Job
 from backend.resources.workloads.pod import Pod
 from backend.resources.workloads.statefulset import StatefulSet
 
-# 设置监听超市时间为负数，表示不需要持续监听，获取数据后立即结束
+# 超时时间为负数，表示不需要持续监听，获取数据后立即结束
 DEFAULT_SUBSCRIBE_TIMEOUT = -1
 
 # K8S Client
