@@ -200,7 +200,10 @@
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
                 // 检查是否开启容器服务
                 await this.checkProject()
-                if (!this.isUserBKService) return
+                if (!this.isUserBKService) {
+                    this.isLoading = false
+                    return
+                }
 
                 const curBcsProject = projectList.find(item => item.project_code === projectCode)
                 if (curBcsProject?.project_id) {
