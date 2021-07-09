@@ -44,7 +44,7 @@ class TestResourceClient:
             namespace=TEST_NAMESPACE, name=random_name, body=make_pod_body(random_name)
         )
         yield
-        MyPod(ctx_cluster).delete_wait_finished(namespace=TEST_NAMESPACE, name=random_name)
+        MyPod(ctx_cluster).delete(namespace=TEST_NAMESPACE, name=random_name)
 
     def test_list_formatted(self, random_name, ctx_cluster):
         pods = MyPod(ctx_cluster).list(namespace=TEST_NAMESPACE, is_format=True)
@@ -57,8 +57,10 @@ class TestResourceClient:
 
         assert isinstance(pods, ResourceList)
         assert isinstance(pods.metadata, dict)
-        assert pods.items[0].name == random_name
-        assert pods.items[0].image_name == 'busybox'
+        assert random_name in [pod.name for pod in pods.items]
+        for pod in pods.items:
+            if pod.name == random_name:
+                assert pod.image_name == 'busybox'
 
     def test_get_is_format(self, type_assertion_pair, random_name, ctx_cluster):
         kwargs, expected_type = type_assertion_pair
