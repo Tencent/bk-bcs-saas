@@ -140,6 +140,8 @@ def sm_api_patch():
         new=lambda *args, **kwargs: None,
     ), mock.patch(
         f'{common_prefix}.ServiceMonitorDetailViewSet._update_manifest', new=lambda _, manifest, params: manifest
+    ), mock.patch(
+        f'{common_prefix}.ServiceMonitorMixin._validate_namespace_use_perm', new=lambda *args, **kwargs: None
     ):
         yield
 

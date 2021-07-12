@@ -17,6 +17,7 @@ from typing import Dict, List
 from kubernetes.client.exceptions import ApiException
 
 from backend.resources.utils.kube_client import get_dynamic_client
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
@@ -50,22 +51,25 @@ class NamespaceQuota:
         :param name: 资源名称，也会用做 namespace
         """
         try:
-            quota = self.api.get(name=name, namespace=name)
-            return {"hard": dict(quota.status.hard), "used": dict(quota.status.used)}
+            quota = self.api.get(name=name, namespace=name).to_dict()
+            return {
+                'hard': getitems(quota, 'status.hard'),
+                'used': getitems(quota, 'status.used'),
+            }
         except ApiException as e:
             logger.error("query namespace quota error, namespace: %s, name: %s, error: %s", name, name, e)
             return {}
 
     def list_namespace_quota(self, namespace: str) -> List:
         """获取命名空间下的所有资源配额"""
-        items = self.api.get(namespace=namespace).items
+        quotas = self.api.get(namespace=namespace).to_dict()
         return [
             {
-                "name": i.metadata.name,
-                "namespace": i.metadata.namespace,
-                "quota": {"hard": dict(i.status.hard), "used": dict(i.status.used)},
+                'name': getitems(quota, 'metadata.name'),
+                'namespace': getitems(quota, 'metadata.namespace'),
+                'quota': {'hard': getitems(quota, 'status.hard'), 'used': getitems(quota, 'status.used')},
             }
-            for i in items
+            for quota in quotas['items']
         ]
 
     def delete_namespace_quota(self, name: str) -> None:
