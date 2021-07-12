@@ -122,7 +122,7 @@
                         }
                     ]
                 }],
-                "related_actions": ["project_view"],
+                "related_actions": ["project_view", "templateset_view"],
                 "version": 1
             }
         },
@@ -148,7 +148,7 @@
                         }
                     ]
                 }],
-                "related_actions": ["project_view", "cluster_view", "namespace_view", "namespace_use", "templateset_view"],
+                "related_actions": ["project_view", "templateset_view"],
                 "version": 1
             }
         },

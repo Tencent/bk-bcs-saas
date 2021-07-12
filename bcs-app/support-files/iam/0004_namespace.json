@@ -123,7 +123,7 @@
                         }
                     ]
                 }],
-                "related_actions": ["project_view", "cluster_view"],
+                "related_actions": ["project_view", "cluster_view", "namespace_view"],
                 "version": 1
             }
         },
