@@ -15,23 +15,15 @@ from django.utils.translation import ugettext_lazy as _
 from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.response import Response
 
-from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.auditor import DashboardAuditor
 from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
+from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.utils.basic import getitems
-
-
-def validate_cluster_perm(request, project_id: str, cluster_id: str):
-    """ 检查用户是否有操作集群权限 """
-    if request.user.is_superuser:
-        return
-    perm = bcs_perm.Cluster(request, project_id, cluster_id)
-    perm.can_use(raise_exception=True)
 
 
 class ListAndRetrieveMixin:
