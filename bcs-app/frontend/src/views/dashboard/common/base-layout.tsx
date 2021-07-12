@@ -214,7 +214,9 @@ export default defineComponent({
             const { name, namespace } = row.metadata || {}
             $bkInfo({
                 type: 'warning',
-                title: $i18n.t('确认删除当前资源吗'),
+                clsName: 'custom-info-confirm',
+                title: $i18n.t('确认删除当前资源'),
+                subTitle: $i18n.t('确认删除资源 {kind}: {name}', { kind: row.kind, name }),
                 defaultInfo: true,
                 confirmFn: async (vm) => {
                     const result = await $store.dispatch('dashboard/resourceDelete', {
