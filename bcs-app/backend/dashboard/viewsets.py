@@ -24,18 +24,14 @@ from backend.dashboard.exceptions import CreateResourceError, DeleteResourceErro
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.utils.basic import getitems
-from backend.utils.exceptions import PermissionDeniedError
 
 
 def validate_cluster_perm(request, project_id: str, cluster_id: str):
     """ 检查用户是否有操作集群权限 """
     if request.user.is_superuser:
         return
-    try:
-        perm = bcs_perm.Cluster(request, project_id, cluster_id)
-        perm.can_use(raise_exception=True)
-    except Exception:
-        raise PermissionDeniedError(_('当前用户没有操作集群 {} 的权限!').format(cluster_id))
+    perm = bcs_perm.Cluster(request, project_id, cluster_id)
+    perm.can_use(raise_exception=True)
 
 
 class ListAndRetrieveMixin:
