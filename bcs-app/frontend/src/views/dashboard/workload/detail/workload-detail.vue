@@ -13,7 +13,11 @@
                         </div>
                     </div>
                 </div>
-                <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
+                <div class="btns">
+                    <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
+                    <bk-button theme="primary" @click="handleUpdateResource">{{$t('更新')}}</bk-button>
+                    <bk-button theme="danger" @click="handleDeleteResource">{{$t('删除')}}</bk-button>
+                </div>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">
@@ -182,7 +186,9 @@
                 yaml,
                 showYamlPanel,
                 handleGetDetail,
-                handleShowYamlPanel
+                handleShowYamlPanel,
+                handleUpdateResource,
+                handleDeleteResource
             } = useDetail(ctx, {
                 ...props,
                 defaultActivePanel: 'pod',
@@ -273,7 +279,9 @@
                 handleShowYamlPanel,
                 gotoPodDetail,
                 handleGetExtData,
-                getImagesTips
+                getImagesTips,
+                handleUpdateResource,
+                handleDeleteResource
             }
         }
     })
