@@ -298,7 +298,7 @@
                 }, 0)
             })
             const handleGetExample = async () => { // 获取示例模板
-                if (!showExample.value) return
+                // if (!showExample.value) return
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
