@@ -17,7 +17,7 @@ import pytest
 
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.constants import BcsCCNodeStatus, NodeConditionStatus
-from backend.container_service.clusters.tools import node
+from backend.container_service.clusters.tools import node as node_tools
 from backend.resources.node.formatter import NodeResourceData
 
 
@@ -69,7 +69,7 @@ from backend.resources.node.formatter import NodeResourceData
     ],
 )
 def test_get_node_status(conditions, expected_status):
-    assert node.get_node_status(conditions) == expected_status
+    assert node_tools.get_node_status(conditions) == expected_status
 
 
 fake_inner_ip = "127.0.0.1"
@@ -102,7 +102,7 @@ fake_ctx_cluster = CtxCluster.create(token="token", id="BCS-K8S-15091", project_
     return_value=[NodeResourceData(name=fake_node_name, inner_ip=fake_inner_ip, data=fake_resource_data)],
 )
 def query_cluster_nodes(mock_list):
-    cluster_nodes = node.query_cluster_nodes(fake_ctx_cluster)
+    cluster_nodes = node_tools.query_cluster_nodes(fake_ctx_cluster)
     assert fake_inner_ip in cluster_nodes
     assert cluster_nodes[fake_inner_ip]["node_name"] == fake_node_name
     assert cluster_nodes[fake_inner_ip]["status"] == NodeConditionStatus.Ready
@@ -121,19 +121,23 @@ def query_cluster_nodes(mock_list):
     ],
 )
 def test_transform_status(cluster_node_status, unschedulable, bcs_cc_node_status, expected_status):
-    assert expected_status == node.transform_status(cluster_node_status, unschedulable, bcs_cc_node_status)
+    assert expected_status == node_tools.transform_status(cluster_node_status, unschedulable, bcs_cc_node_status)
 
 
 class TestNodesData:
     def test_compose_data_by_bcs_cc_nodes(self, bcs_cc_nodes, cluster_nodes, cluster_id):
-        client = node.NodesData(bcs_cc_nodes=bcs_cc_nodes, cluster_nodes=cluster_nodes, cluster_id=cluster_id)
+        client = node_tools.NodesData(
+            bcs_cc_nodes=bcs_cc_nodes, cluster_nodes=cluster_nodes, cluster_id=cluster_id, cluster_name='test_cluster'
+        )
         node_data = client._compose_data_by_bcs_cc_nodes()
         assert len(node_data) == len(
             [node for inner_ip, node in bcs_cc_nodes.items() if node["status"] != BcsCCNodeStatus.Normal]
         )
 
     def test_compose_data_by_cluster_nodes(self, bcs_cc_nodes, cluster_nodes, cluster_id):
-        client = node.NodesData(bcs_cc_nodes=bcs_cc_nodes, cluster_nodes=cluster_nodes, cluster_id=cluster_id)
+        client = node_tools.NodesData(
+            bcs_cc_nodes=bcs_cc_nodes, cluster_nodes=cluster_nodes, cluster_id=cluster_id, cluster_name='test_cluster'
+        )
         node_data = client._compose_data_by_cluster_nodes()
         assert len(node_data) == len(cluster_nodes)
         assert node_data[0]["status"] == BcsCCNodeStatus.Normal
