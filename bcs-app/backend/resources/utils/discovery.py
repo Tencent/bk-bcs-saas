@@ -20,6 +20,8 @@ from kubernetes.dynamic.discovery import CacheDecoder, CacheEncoder, LazyDiscove
 
 from backend.utils.cache import rd_client
 
+logger = logging.getLogger(__name__)
+
 
 class DiscovererCache:
     def __init__(self, cache_key):
@@ -55,7 +57,7 @@ class BcsLazyDiscoverer(LazyDiscoverer):
                     # Version mismatch, need to refresh cache
                     self.invalidate_cache()
             except Exception as e:
-                logging.error("load cache error: %s", e)
+                logger.exception("load cache error: %s", e)
                 self.invalidate_cache()
         self._load_server_info()
         self.discover()
@@ -69,4 +71,4 @@ class BcsLazyDiscoverer(LazyDiscoverer):
             discoverer_cache.set_content(cache_content)
         except Exception as e:
             # Failing to write the cache isn't a big enough error to crash on
-            logging.error("write cache error: %s", e)
+            logger.exception("write cache error: %s", e)
