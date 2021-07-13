@@ -30,6 +30,6 @@ def gen_web_annotations(request, project_id: str, cluster_id: str) -> Dict:
     """ 生成资源视图相关的页面控制信息，用于控制按钮展示等 """
     has_cluster_perm = validate_cluster_perm(request, project_id, cluster_id)
     # 目前 创建 / 删除 / 更新 按钮权限 & 提示信息相同
-    tips = _('当前用户没有操作集群 {} 的权限，请联系容器管理助手添加').format(cluster_id) if not has_cluster_perm else ''
-    btn_perm = {'clickable': has_cluster_perm, 'tip': tips}
-    return {'perm': {'page': {'create_btn': btn_perm, 'update_btn': btn_perm, 'delete_btn': btn_perm}}}
+    tip = _('当前用户没有操作集群 {} 的权限，请联系蓝鲸容器助手添加').format(cluster_id) if not has_cluster_perm else ''
+    btn_perm = {'clickable': has_cluster_perm, 'tip': tip}
+    return {'perms': {'page': {'create_btn': btn_perm, 'update_btn': btn_perm, 'delete_btn': btn_perm}}}
