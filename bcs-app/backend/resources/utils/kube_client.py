@@ -195,8 +195,8 @@ def _get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> 
 
 
 @lru_cache(maxsize=128)
-def get_dynamic_resource(dynamic_client: CoreDynamicClient, kind: str, api_version: Optional[str] = None) -> Resource:
-    """获取绑定到具体资源类型的 Resource client"""
+def get_resource_api(dynamic_client: CoreDynamicClient, kind: str, api_version: Optional[str] = None) -> Resource:
+    """获取绑定到具体资源类型的 Resource API client"""
     if api_version:
         return dynamic_client.resources.get(kind=kind, api_version=api_version)
     return dynamic_client.get_preferred_resource(kind)

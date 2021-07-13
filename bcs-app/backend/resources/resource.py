@@ -19,7 +19,7 @@ from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 from kubernetes.dynamic.resource import ResourceInstance
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.utils.kube_client import get_dynamic_client, get_dynamic_resource
+from backend.resources.utils.kube_client import get_dynamic_client, get_resource_api
 
 from .constants import PatchType
 from .utils.format import ResourceDefaultFormatter, ResourceFormatter
@@ -107,7 +107,7 @@ class ResourceClient:
         self.dynamic_client = get_dynamic_client(
             ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id, use_cache=cache_client
         )
-        self.api = get_dynamic_resource(self.dynamic_client, self.kind, api_version)
+        self.api = get_resource_api(self.dynamic_client, self.kind, api_version)
         # 保存 ctx_cluster 作为类对象，部分方法会使用
         self.ctx_cluster = ctx_cluster
 
