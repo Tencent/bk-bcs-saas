@@ -16,7 +16,7 @@ export interface IDetailOptions {
 }
 
 export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
-    const { $store } = ctx.root
+    const { $store, $router, $bkInfo, $bkMessage, $i18n } = ctx.root
     const isLoading = ref(false)
     const detail = ref<IWorkloadDetail|null>(null)
     const activePanel = ref(options.defaultActivePanel)
@@ -68,6 +68,50 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const handleShowYamlPanel = () => {
         showYamlPanel.value = true
     }
+            
+    // 更新资源
+    const handleUpdateResource = () => {
+        const kind = detail.value?.manifest?.kind
+        const { namespace, category, name, type } = options
+        $router.push({
+            name: 'dashboardResourceUpdate',
+            params: {
+                namespace,
+                type,
+                category,
+                name
+            },
+            query: {
+                kind
+            }
+        })
+    }
+
+    // 删除资源
+    const handleDeleteResource = () => {
+        const kind = detail.value?.manifest?.kind
+        const { namespace, category, name, type } = options
+        $bkInfo({
+            type: 'warning',
+            clsName: 'custom-info-confirm',
+            title: $i18n.t('确认删除当前资源'),
+            subTitle: $i18n.t('确认删除资源 {kind}: {name}', { kind, name }),
+            defaultInfo: true,
+            confirmFn: async (vm) => {
+                const result = await $store.dispatch('dashboard/resourceDelete', {
+                    $namespaceId: namespace,
+                    $type: type,
+                    $category: category,
+                    $name: name
+                })
+                result && $bkMessage({
+                    theme: 'success',
+                    message: $i18n.t('删除成功')
+                })
+                $router.push({ name: $store.getters.curNavName })
+            }
+        })
+    }
 
     return {
         isLoading,
@@ -81,6 +125,8 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         showYamlPanel,
         handleShowYamlPanel,
         handleTabChange,
-        handleGetDetail
+        handleGetDetail,
+        handleUpdateResource,
+        handleDeleteResource
     }
 }

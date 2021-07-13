@@ -2581,3 +2581,37 @@ div::-webkit-scrollbar-thumb {
         display: none !important;
     }
 }
+
+/* 自定义 bk-info 样式 */
+.custom-info-confirm {
+    .bk-info-box {
+        .bk-dialog-type-body {
+            padding: 0 0 10px 0;
+        }
+        .bk-dialog-type-sub-header {
+            padding-bottom: 22px;
+        }
+        .bk-dialog-footer {
+            padding-bottom: 26px;
+        }
+        .bk-icon {
+            &.bk-dialog-mark {
+                width: 42px;
+                height: 42px;
+                line-height: 42px;
+                font-size: 24px;
+            }
+        }
+        .bk-dialog-type-header {
+            .header {
+                font-size: 20px;
+            }
+        }
+        .bk-dialog-type-sub-header {
+            .header {
+                color: #63656E;
+                white-space: unset;
+            }
+        }
+    }
+}

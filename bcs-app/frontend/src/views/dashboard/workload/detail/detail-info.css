@@ -9,12 +9,14 @@
         display: flex;
         align-items: baseline;
         justify-content: space-between;
+        flex-wrap: wrap;
         min-height: 38px;
         padding-bottom: 12px;
         border-bottom: 1px solid #F3F3F3;
         .basic-left {
             display: flex;
             align-items: baseline;
+            padding-bottom: 10px;
         }
     }
     .basic-wrapper {

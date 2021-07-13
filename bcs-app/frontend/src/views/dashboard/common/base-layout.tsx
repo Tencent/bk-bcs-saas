@@ -45,6 +45,10 @@ export default defineComponent({
         showNameSpace: {
             type: Boolean,
             default: true
+        },
+        showCreate: {
+            type: Boolean,
+            default: true
         }
     },
     setup (props, ctx) {
@@ -210,7 +214,9 @@ export default defineComponent({
             const { name, namespace } = row.metadata || {}
             $bkInfo({
                 type: 'warning',
-                title: $i18n.t('确认删除当前资源吗'),
+                clsName: 'custom-info-confirm',
+                title: $i18n.t('确认删除当前资源'),
+                subTitle: $i18n.t('确认删除资源 {kind}: {name}', { kind: row.kind, name }),
                 defaultInfo: true,
                 confirmFn: async (vm) => {
                     const result = await $store.dispatch('dashboard/resourceDelete', {
@@ -269,10 +275,15 @@ export default defineComponent({
                     <DashboardTopActions />
                 </div>
                 <div class="biz-content-wrapper" v-bkloading={{ isLoading: this.isLoading }}>
-                    <div class="operate mb20">
-                        <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
-                            { this.$t('创建') }
-                        </bk-button>
+                    <div class="base-layout-operate mb20">
+                        {
+                            this.showCreate ? (
+                                <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
+                                    { this.$t('创建') }
+                                </bk-button>
+                            ) : <div></div>
+                        }
+
                         <div class="search-wapper">
                             {
                                 this.showNameSpace

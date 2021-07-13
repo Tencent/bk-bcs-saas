@@ -149,8 +149,7 @@
                 // 判断集群ID是否存在当前项目的集群列表中
                 const stateClusterList = this.$store.state.cluster.clusterList || []
                 const curCluster = stateClusterList?.find(cluster => cluster.cluster_id === clusterId)
-                const notInClusterList = clusterId && !curCluster
-                if (notInClusterList) {
+                if (!curCluster) {
                     clusterId = ''
                 }
                 localStorage.setItem('bcs-cluster', clusterId)
@@ -158,7 +157,7 @@
                 this.$store.commit('updateCurClusterId', clusterId)
                 this.$store.commit('cluster/forceUpdateCurCluster', curCluster || {})
 
-                if (this.$route.params.clusterId && notInClusterList) {
+                if (this.$route.params.clusterId && !curCluster) {
                     // url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
                     this.$router.replace({
                         name: 'clusterMain',
@@ -201,7 +200,10 @@
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
                 // 检查是否开启容器服务
                 await this.checkProject()
-                if (!this.isUserBKService) return
+                if (!this.isUserBKService) {
+                    this.isLoading = false
+                    return
+                }
 
                 const curBcsProject = projectList.find(item => item.project_code === projectCode)
                 if (curBcsProject?.project_id) {

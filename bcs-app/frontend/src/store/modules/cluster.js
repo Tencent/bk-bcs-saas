@@ -45,7 +45,14 @@ export default {
          * @param {Array} list cluster 列表
          */
         forceUpdateClusterList (state, list) {
-            state.clusterList.splice(0, state.clusterList.length, ...list)
+            const clusterList = list.map(item => {
+                const exitCluster = state.clusterList.find(cluster => cluster.cluster_id === item.cluster_id)
+                if (exitCluster) {
+                    return Object.assign(exitCluster, item)
+                }
+                return item
+            })
+            state.clusterList.splice(0, clusterList.length, ...clusterList)
             state.isClusterDataReady = true
         },
 
@@ -74,6 +81,21 @@ export default {
          */
         async getClusterList (context, projectId, config = {}) {
             if (context.state.clusterList.length && Object.keys(context.state.cacheRes)) {
+                delete context.state.cacheRes.request_id
+                return JSON.parse(JSON.stringify(context.state.cacheRes))
+            }
+            // return http.get('/app/cluster?invoke=getClusterList', {}, config)
+            const res = await http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters?limit=1000`,
+                {},
+                Object.assign(config, { urlId: 'getClusterList' })
+            )
+            context.commit('forceUpdateClusterList', res?.data?.results || [])
+            context.commit('updateCacheRes', res)
+            return res
+        },
+        async getClusterListNew (context, { projectId, cache = true }, config = {}) {
+            if (context.state.clusterList.length && Object.keys(context.state.cacheRes) && cache) {
                 delete context.state.cacheRes.request_id
                 return JSON.parse(JSON.stringify(context.state.cacheRes))
             }

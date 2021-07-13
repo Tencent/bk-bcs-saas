@@ -829,6 +829,12 @@
                     const res = await this.$store.dispatch('cluster/getClusterLogs', {
                         projectId: cluster.project_id,
                         clusterId: cluster.cluster_id
+                    }).catch(() => {
+                        return {
+                            data: {
+                                status: 'failed'
+                            }
+                        }
                     })
 
                     const { status, log = [], error_msg_list: errorMsgList = [] } = res.data
@@ -879,7 +885,8 @@
                     clearTimeout(this.logSideDialogConf.timer)
                     this.logSideDialogConf.timer = null
                 } else {
-                    if (this.logEndState !== 'none') {
+                    if (!['success', 'none', 'failed'].includes(this.logEndState)) {
+                        clearTimeout(this.timer) && (this.timer = null)
                         this.getClusters(true)
                     }
                 }
@@ -901,10 +908,11 @@
                     this.showLoading = true
                 }
 
-                // 清空缓存，重新拉取数据
-                this.$store.commit('cluster/forceUpdateClusterList', [])
                 try {
-                    const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
+                    const res = await this.$store.dispatch('cluster/getClusterListNew', {
+                        projectId: this.projectId,
+                        cache: false
+                    })
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
 
                     const list = res.data.results || []
@@ -974,7 +982,15 @@
                     if (this.cancelLoop) {
                         clearTimeout(this.timer)
                         this.timer = null
-                    } else if (notLoading) {
+                    } else if (list.some(item => [
+                        'initial_checking',
+                        'initializing',
+                        'removing',
+                        'so_initializing',
+                        'scheduling',
+                        'upgrading',
+                        'bke_installing'
+                    ].includes(item.status))) {
                         this.timer = setTimeout(() => {
                             this.getClusters(true)
                         }, 5000)
@@ -1267,6 +1283,7 @@
                         message: this.$t('任务下发成功')
                     })
                     this.cancelUpdateCluster()
+                    clearTimeout(this.timer) && (this.timer = null)
                     this.getClusters(true)
                 } catch (e) {
                     console.log(e)
@@ -1317,6 +1334,7 @@
                         delay: 1000,
                         message: this.$t('任务下发成功')
                     })
+                    clearTimeout(this.timer) && (this.timer = null)
                     this.getClusters(true)
                     this.cancelReUpgrade()
                 } catch (e) {
