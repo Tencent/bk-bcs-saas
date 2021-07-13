@@ -106,7 +106,7 @@
                 {
                     id: 'binding',
                     iconColor: '#4540DC',
-                    desc: this.$t('开启容器服务时，请首先在“蓝鲸配置平台”上有进行业务绑定'),
+                    desc: this.$t('开启容器服务时，请首先在”蓝鲸配置平台“查看业务'),
                     link: this.PROJECT_CONFIG.doc.cc,
                     linkText: this.$t('前往绑定业务')
                 },
