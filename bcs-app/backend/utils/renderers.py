@@ -50,7 +50,7 @@ class BKAPIRenderer(JSONRenderer):
 
         if renderer_context:
             for key in ['permissions', 'message', 'web_annotations']:
-                if key in renderer_context:
+                if renderer_context.get(key):
                     data[key] = renderer_context[key]
 
         response = super(BKAPIRenderer, self).render(data, accepted_media_type, renderer_context)
