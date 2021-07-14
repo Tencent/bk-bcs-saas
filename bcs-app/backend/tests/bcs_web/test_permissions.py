@@ -53,6 +53,13 @@ class FakePaaSCCClient(StubPaaSCCClient):
         return p
 
 
+def fake_verify_project_by_user(project_id, *args, **kwargs):
+    """ 验证用户是否有项目权限（测试用） """
+    if project_id == HAS_PERM_PROJECT_ID:
+        return True
+    return False
+
+
 @pytest.fixture(autouse=True)
 def patch_permissions():
     """Patch permission checks to allow API requests, includes:
@@ -60,10 +67,13 @@ def patch_permissions():
     - paas_cc module: return faked project infos
     - ProjectPermission: allow all permission checks
     - get_api_public_key: return None
+    - verify_project_by_user: return True if is mocked project id else False
     """
     with mock.patch('backend.bcs_web.permissions.PaaSCCClient', new=FakePaaSCCClient), mock.patch(
         'backend.bcs_web.permissions.permissions.ProjectPermission', new=FakeProjectPermission
-    ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None):
+    ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None), mock.patch(
+        'backend.bcs_web.permissions.bcs_perm.verify_project_by_user', new=fake_verify_project_by_user
+    ):
         yield
 
 
