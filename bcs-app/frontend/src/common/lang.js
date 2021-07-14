@@ -1902,7 +1902,14 @@ export default {
     '最少选择三个服务器': ['Choose at least three servers'],
     '设置污点': ['Set Taint'],
     '影响': ['Effect'],
-    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}']
+    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}'],
+    '内容未变更或格式错误': [],
+    '确认退出当前编辑状态': [],
+    '退出后，你修改的内容将丢失': [],
+    '上传（仅支持YAML格式）': [],
+    '放大': [],
+    '示例': [],
+    '资源定义': []
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
