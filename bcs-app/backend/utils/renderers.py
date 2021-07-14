@@ -24,7 +24,8 @@ class JSONEncoder(encoders.JSONEncoder):
 
     def default(self, obj):
         if dataclasses.is_dataclass(obj):
-            # 如果 asdict 出现异常，则使用默认的 encoder 逻辑
+            # 如果 asdict 出现异常，则使用默认的 encoder 逻辑.
+            # note: kubernetes.dynamic.ResourceField 由于 __getattr__ 的逻辑，会通过 is_dataclass 检查，但实际并非dataclass
             try:
                 return dataclasses.asdict(obj)
             except Exception:
