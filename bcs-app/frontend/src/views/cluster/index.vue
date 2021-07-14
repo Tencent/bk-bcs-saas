@@ -949,7 +949,8 @@
                     }
                     this.showLoading = false // 关闭loading，让集群列表先出来，指标慢慢加载（后面重构）
 
-                    for (const [index, item] of list.entries()) {
+                    for (let index = 0; index < list.length; index++) {
+                        const item = list[index]
                         if (!notLoading) {
                             const args = {}
                             if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
@@ -971,11 +972,11 @@
                                 item.mem_usage = d.data.mesos_memory_usage
                             }
                         }
-                        if (item.status === 'initializing' || item.status === 'so_initializing') {
-                            this.setStorage(item)
-                        } else {
-                            this.checkStorage(item, index, list, item.status)
-                        }
+                        // if (item.status === 'initializing' || item.status === 'so_initializing') {
+                        //     this.setStorage(item)
+                        // } else {
+                        //     this.checkStorage(item, index, list, item.status)
+                        // }
                     }
                     this.$store.commit('cluster/forceUpdateClusterList', list)
 
