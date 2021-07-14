@@ -168,7 +168,7 @@ class ClusterNetworkType(ChoicesEnum):
 
 # K8S 系统预留标签的key
 # Kubernetes 预留命名空间 kubernetes.io 用于所有的标签和注解
-K8S_RESERVED_NAMESPACE = "kubernetes.io"
+K8S_RESERVED_NAMESPACE_LIST = ["kubernetes.io"]
 
 
 class BcsCCNodeStatus(str, StructuredEnum):
@@ -185,28 +185,6 @@ class BcsCCNodeStatus(str, StructuredEnum):
     Removed = EnumField("removed", label="已移除")
     NotReady = EnumField("not_ready", label="非正常状态")
     Unknown = EnumField("unknown", label="未知状态")
-
-
-class NodeConditionStatus(str, StructuredEnum):
-    """节点状态"""
-
-    Ready = EnumField("Ready", label="正常状态")
-    NotReady = EnumField("NotReady", label="非正常状态")
-    Unknown = EnumField("Unknown", label="未知状态")
-
-
-class NodeConditionType(str, StructuredEnum):
-    """节点状态类型
-    ref: node condition types
-    """
-
-    Ready = EnumField("Ready", label="kubelet is healthy and ready to accept pods")
-    MemoryPressure = EnumField(
-        "MemoryPressure", label="kubelet is under pressure due to insufficient available memory"
-    )
-    DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
-    PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
-    NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")
 
 
 # Kube-proxy代理模式

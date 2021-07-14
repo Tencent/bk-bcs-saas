@@ -12,14 +12,51 @@
 # specific language governing permissions and limitations under the License.
 #
 import functools
-from typing import Any, Dict, List, Union
+import logging
+from typing import Any, Dict, List, Type, Union
 
-from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
+from kubernetes.dynamic.resource import ResourceInstance
+
+from backend.resources.constants import K8sResourceKind, NodeConditionStatus, NodeConditionType
+from backend.resources.resource import ResourceClient, ResourceObj
 from backend.utils.async_run import async_run
 from backend.utils.basic import getitems
 
-from .formatter import NodeFormatter
+logger = logging.getLogger(__name__)
+
+
+class NodeObj(ResourceObj):
+    def __init__(self, data: ResourceInstance):
+        super().__init__(data)
+        # NOTE: 属性不存在时，返回None
+        self.labels = dict(self.data.metadata.labels or {})
+        self.taints = [dict(t) for t in self.data.spec.taints or []]
+
+    @property
+    def inner_ip(self) -> str:
+        """获取inner ip"""
+        addresses = self.data.status.addresses
+        for addr in addresses:
+            if addr.type == "InternalIP":
+                return addr.address
+        logger.warning("inner ip of addresses is null, address is %s", addresses)
+        return ""
+
+    @property
+    def node_status(self) -> str:
+        """获取节点状态
+        ref: https://github.com/kubernetes/dashboard/blob/0de61860f8d24e5a268268b1fbadf327a9bb6013/src/app/backend/resource/node/list.go#L106  # noqa
+        """
+        for condition in self.data.status.conditions:
+            if condition.type != NodeConditionType.Ready:
+                continue
+            # 正常可用状态
+            if condition.status == "True":
+                return NodeConditionStatus.Ready
+            # 节点不健康而且不能接收 Pod
+            return NodeConditionStatus.NotReady
+        # 节点控制器在最近 node-monitor-grace-period 期间（默认 40 秒）没有收到节点的消息
+        return NodeConditionStatus.Unknown
 
 
 class Node(ResourceClient):
@@ -28,20 +65,20 @@ class Node(ResourceClient):
     """
 
     kind = K8sResourceKind.Node.value
-    formatter = NodeFormatter()
+    result_type: Type['ResourceObj'] = NodeObj
 
-    def set_labels(self, label_list: List):
+    def set_labels_for_multi_nodes(self, label_list: List[Dict]):
         """设置标签
 
         :param label_list: 要设置的标签信息，格式: [{"node_name": "", "labels": {"key": "val"}}]
         NOTE: 如果要删除某个label时，不建议使用replace，可以把要删除的label的值设置为None
         """
-        node_label_list = self.query_field_data(
-            ["metadata", "labels"], [label["node_name"] for label in label_list], node_id="name", default_data={}
+        node_labels = self.query_nodes_field_data(
+            "labels", [label["node_name"] for label in label_list], node_id_name="name", default_data={}
         )
         # 比对数据，当label在集群节点中存在，而变更的数据中不存在，则需要在变更的数据中设置为None
         for node in label_list:
-            labels = node_label_list.get(node["node_name"]) or {}
+            labels = dict(node_labels.get(node["node_name"]))
             # 设置要删除key的值为None
             for key in set(labels) - set(node["labels"]):
                 node["labels"][key] = None
@@ -53,7 +90,7 @@ class Node(ResourceClient):
         # 当有操作失败的，抛出异常
         async_run(tasks)
 
-    def set_taints(self, taint_list: List):
+    def set_taints_for_multi_nodes(self, taint_list: List[Dict]):
         """设置污点
 
         :param taint_list: 要设置的污点信息，格式: [{"node_name": "", "taints": [{"key": "", "value": "", "effect": ""}]}]
@@ -63,32 +100,26 @@ class Node(ResourceClient):
         # 当有操作失败的，抛出异常
         async_run(tasks)
 
-    def query_labels(self, node_name_list: List[str] = None) -> Dict:
-        """查询标签"""
-        return self.query_field_data(["metadata", "labels"], node_name_list, default_data={})
-
-    def query_taints(self, node_name_list: List[str] = None) -> Dict:
-        """查询污点"""
-        return self.query_field_data(["spec", "taints"], node_name_list, default_data=[])
-
-    def query_field_data(
+    def query_nodes_field_data(
         self,
-        field: Union[List, str],
+        field: str,
         node_name_list: List[str] = None,
-        node_id: str = "inner_ip",
+        node_id_name: str = "inner_ip",
         default_data: Any = None,
     ) -> Dict:
         """查询节点属性
 
         :param field: 查询的属性
         :param node_name_list: 节点name列表
-        :param node_id: 节点的标识，支持name和inner_ip，默认是inner_ip
+        :param node_id_name: 节点的标识名称，支持name和inner_ip，默认是inner_ip
         :returns: 返回节点的属性数据
         """
-        nodes = self.list()
+        nodes = self.list(is_format=False)
         data = {}
-        for node in nodes:
-            if node_name_list and node["name"] not in node_name_list:
+        for node in nodes.items:
+            if node_name_list and node.name not in node_name_list:
                 continue
-            data[node[node_id]] = getitems(node["data"], field, default=default_data)
+            # 因为field字段可控，先不添加异常处理
+            node_id = getattr(node, node_id_name, "")
+            data[node_id] = getattr(node, field, default_data)
         return data

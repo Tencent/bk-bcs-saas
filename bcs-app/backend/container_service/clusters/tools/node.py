@@ -20,35 +20,34 @@ from backend.components.paas_cc import PaaSCCClient
 from backend.container_service.clusters import constants as node_constants
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.models import NodeStatus
+from backend.resources.constants import NodeConditionStatus
 from backend.resources.node.client import Node
 from backend.utils.basic import getitems
 
-from .resp import NodeClient
+from .resp import NodeRespBuilder, filter_label_keys
 
 
 def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:
     """查询节点数据
     包含标签、污点、状态等供前端展示数据
     """
-    cluster_node_list = NodeClient(ctx_cluster).do("list")
+    cluster_node_list = NodeRespBuilder(ctx_cluster).do("list", is_format=False)
     nodes = {}
-    for node in cluster_node_list:
-        metadata = node.get("metadata", {})
+    for node in cluster_node_list.items:
         # 获取label
-        labels = metadata.get("labels", {})
+        labels = node.labels
         # 现阶段节点页面展示及操作，需要排除master
         if exclude_master and is_master(labels):
             continue
 
-        node_data = node["data"]
         # 使用inner_ip作为key，主要是方便匹配及获取值
-        nodes[node["inner_ip"]] = {
-            "inner_ip": node["inner_ip"],
-            "name": node["name"],
-            "status": node["status"],
+        nodes[node.inner_ip] = {
+            "inner_ip": node.inner_ip,
+            "name": node.name,
+            "status": node.node_status,
             "labels": labels,
-            "taints": getitems(node_data, ["spec", "taints"], []),
-            "unschedulable": getitems(node_data, ["spec", "unschedulable"], False),
+            "taints": node.taints,
+            "unschedulable": node.data.spec.unschedulable or False,
         }
     return nodes
 
@@ -74,11 +73,11 @@ def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
 def transform_status(cluster_node_status: str, unschedulable: bool, bcs_cc_node_status: str = None) -> str:
     """转换节点状态"""
     # 如果集群中节点为非正常状态，则返回not_ready
-    if cluster_node_status == node_constants.NodeConditionStatus.NotReady:
+    if cluster_node_status == NodeConditionStatus.NotReady:
         return node_constants.BcsCCNodeStatus.NotReady
 
     # 如果集群中节点为正常状态，根据是否允许调度，转换状态
-    if cluster_node_status == node_constants.NodeConditionStatus.Ready:
+    if cluster_node_status == NodeConditionStatus.Ready:
         if unschedulable:
             if bcs_cc_node_status == node_constants.BcsCCNodeStatus.ToRemoved:
                 return node_constants.BcsCCNodeStatus.ToRemoved
@@ -143,3 +142,20 @@ class NodesData:
                 node["status"] = transform_status(node["status"], node["unschedulable"])
                 node_list.append(node)
         return node_list
+
+
+def query_labels(ctx_cluster: CtxCluster, node_name_list: List[str]) -> Dict:
+    """查询节点的标签
+    放到此处，后续前端调整后，可以废弃
+    """
+    node_labels = NodeRespBuilder(ctx_cluster).do(
+        "query_nodes_field_data", "labels", node_name_list=node_name_list, default_data={}
+    )
+    data = {}
+    ext_data = {}
+    for inner_ip, labels in node_labels.items():
+        data[inner_ip] = dict(labels)
+        ext_data = {inner_ip: {key: "readonly" for key in filter_label_keys(list(labels.keys()))}}
+    # TODO: 先方便前端处理数据，返回批量的数据，后续前端直接从列表中获取数据
+    data["manifest_ext"] = ext_data
+    return data

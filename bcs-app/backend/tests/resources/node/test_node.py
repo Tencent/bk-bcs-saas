@@ -15,8 +15,10 @@ from unittest import mock
 
 import pytest
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
+from kubernetes.dynamic.resource import ResourceField
 
-from backend.resources.node.client import Node
+from backend.resources.node.client import Node, NodeObj
+from backend.utils import FancyDict
 
 from ..conftest import FakeBcsKubeConfigurationService
 
@@ -24,6 +26,22 @@ fake_inner_ip = "127.0.0.1"
 fake_node_name = "bcs-test-node"
 fake_labels = {"bcs-test": "test"}
 fake_taints = {"key": "test", "value": "tet", "effect": "NoSchedule"}
+
+
+class TestNodeObj:
+    @pytest.fixture(autouse=True)
+    def fake_node_data(self):
+        self.data = FancyDict(
+            metadata=FancyDict(labels=FancyDict()),
+            spec=FancyDict(taints=[]),
+            status=FancyDict(
+                addresses=[FancyDict(address=fake_inner_ip, type="InternalIP")],
+                conditions=[FancyDict(status="True", type="Ready")],
+            ),
+        )
+
+    def test_inner_ip(self):
+        assert NodeObj(self.data).inner_ip == fake_inner_ip
 
 
 class TestNode:
@@ -69,32 +87,26 @@ class TestNode:
         client.delete_wait_finished(fake_node_name)
 
     def test_query_node(self, client, create_and_delete_node):
-        nodes = client.list()
-        assert len(nodes) > 0
-        assert fake_inner_ip in [node["inner_ip"] for node in nodes]
-
-    def test_query_labels(self, client, create_and_delete_node):
-        labels = client.query_labels(node_name_list=[fake_node_name])
-        assert fake_inner_ip in labels
-        assert labels[fake_inner_ip] == fake_labels
-
-    def test_query_taints(self, client, create_and_delete_node):
-        taints = client.query_taints(node_name_list=[fake_node_name])
-        assert fake_inner_ip in taints
-        assert fake_taints in taints[fake_inner_ip]
+        nodes = client.list(is_format=False)
+        assert len(nodes.data.items) > 0
+        assert nodes.metadata
+        assert fake_inner_ip in [node.inner_ip for node in nodes.items]
 
     @pytest.mark.parametrize(
         "field, node_id_name, expected_data",
         [
-            (["kind"], "inner_ip", "Node"),
-            (["metadata", "labels"], "name", fake_labels),
-            (["apiVersion"], "name", "v1"),
+            ("name", "inner_ip", fake_node_name),
+            ("labels", "name", fake_labels),
         ],
     )
-    def test_query_field_data(self, field, node_id_name, expected_data, client, create_and_delete_node):
-        data = client.query_field_data(field, [fake_node_name], node_id_name=node_id_name)
+    def test_query_nodes_field_data(self, field, node_id_name, expected_data, client, create_and_delete_node):
+        data = client.query_nodes_field_data(field, [fake_node_name], node_id_name=node_id_name)
         node_id = fake_inner_ip if node_id_name == "inner_ip" else fake_node_name
-        assert data[node_id] == expected_data
+        node_field_data = data[node_id]
+        if isinstance(node_field_data, ResourceField):
+            assert dict(node_field_data) == expected_data
+        else:
+            assert node_field_data == expected_data
 
     @pytest.mark.parametrize(
         "labels, expected",
@@ -102,23 +114,31 @@ class TestNode:
             ({"bcs-test": "v1"}, {"bcs-test": "v1"}),
             ({"bcs-test": "v1", "bcs-test1": "v2"}, {"bcs-test": "v1", "bcs-test1": "v2"}),
             ({"bcs-test1": "v2"}, {"bcs-test1": "v2"}),
-            ({}, {}),
+            ({}, None),
         ],
     )
     def test_set_labels(self, labels, expected, client, create_and_delete_node):
-        client.set_labels([{"node_name": fake_node_name, "labels": labels}])
+        client.set_labels_for_multi_nodes([{"node_name": fake_node_name, "labels": labels}])
         # 查询label
-        node_labels = client.query_labels(node_name_list=[fake_node_name])
-        assert node_labels[fake_inner_ip] == expected
+        node_labels = client.query_nodes_field_data("labels", node_name_list=[fake_node_name])
+        labels = node_labels[fake_inner_ip]
+        if isinstance(labels, ResourceField):
+            assert dict(labels) == expected
+        else:
+            assert labels == expected
 
     @pytest.mark.parametrize(
         "taints, expected",
         [
             ([{"key": "test", "value": "", "effect": "NoSchedule"}], [{"key": "test", "effect": "NoSchedule"}]),
-            ([], []),
+            ([], None),
         ],
     )
     def test_set_taints(self, taints, expected, client, create_and_delete_node):
-        client.set_taints([{"node_name": fake_node_name, "taints": taints}])
-        node_taints = client.query_taints(node_name_list=[fake_node_name])
-        assert expected == node_taints[fake_inner_ip]
+        client.set_taints_for_multi_nodes([{"node_name": fake_node_name, "taints": taints}])
+        node_taints = client.query_nodes_field_data("taints", node_name_list=[fake_node_name])
+        taints = node_taints[fake_inner_ip]
+        if taints:
+            assert expected == [dict(t) for t in taints]
+        else:
+            assert taints is expected

@@ -19,14 +19,12 @@ from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.constants import BcsCCNodeStatus
 from backend.container_service.clusters.tools import node
 from backend.resources.constants import NodeConditionStatus
-from backend.tests.testing_utils.mocks.node import StubNodeClient
 
 fake_inner_ip = "127.0.0.1"
 fake_node_name = "bcs-test-node"
 
 
-@patch("backend.container_service.clusters.tools.resp.Node", new=StubNodeClient)
-def test_query_cluster_nodes(ctx_cluster):
+def test_query_cluster_nodes(client, create_and_delete_node, ctx_cluster):
     cluster_nodes = node.query_cluster_nodes(ctx_cluster)
     assert fake_inner_ip in cluster_nodes
     assert cluster_nodes[fake_inner_ip]["name"] == fake_node_name
