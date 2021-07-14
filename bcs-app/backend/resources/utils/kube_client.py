@@ -194,6 +194,14 @@ def _get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> 
     return generate_core_dynamic_client(access_token, project_id, cluster_id)
 
 
+@lru_cache(maxsize=128)
+def get_resource_api(dynamic_client: CoreDynamicClient, kind: str, api_version: Optional[str] = None) -> Resource:
+    """获取绑定到具体资源类型的 Resource API client"""
+    if api_version:
+        return dynamic_client.resources.get(kind=kind, api_version=api_version)
+    return dynamic_client.get_preferred_resource(kind)
+
+
 def make_labels_string(labels: Dict) -> str:
     """Turn a labels dict into string format
 

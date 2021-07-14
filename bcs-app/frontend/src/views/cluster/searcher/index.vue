@@ -167,6 +167,14 @@
             params: {
                 type: Array,
                 default: []
+            },
+            hadSearchData: {
+                type: Boolean,
+                default: false
+            },
+            searchLabelsData: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
@@ -283,6 +291,20 @@
             },
 
             /**
+             * k8s node labels search
+             */
+            setSearchLabelKeys () {
+                const keyList = Object.keys(this.searchLabelsData)
+                this.keyList.splice(0, this.keyList.length, ...keyList)
+                this.keyListTmp.splice(0, this.keyList.length, ...keyList)
+                this.$nextTick(() => {
+                    this.$refs.searchInput.focus()
+                    this.isListeningInputKeyup = true
+                })
+                this.inputPlaceholder = this.$t('请输入要搜索的key')
+            },
+
+            /**
              * label 选择事件回调
              *
              * @param {Object} label 当前选择的 label
@@ -314,6 +336,11 @@
 
                     this.showLabel = false
                     this.showKey = true
+                    // 直接传入数据，不需要通过接口获取
+                    if (this.hadSearchData) {
+                        this.setSearchLabelKeys()
+                        return
+                    }
                     this.tagLoading = true
                     try {
                         const api = this.isMesosProject ? 'cluster/getMesosNodeLabels' : 'cluster/getNodeKeyList'
@@ -371,12 +398,30 @@
             },
 
             /**
+             * k8s node label search values
+             */
+            setSearchLabelValues (key) {
+                this.showKey = false
+                this.showValue = true
+                this.curInputValue = ''
+                this.inputPlaceholder = this.$t('请输入要搜索的value')
+                const valueList = this.searchLabelsData[key] || []
+                this.valueList.splice(0, this.valueList.length, ...valueList)
+                this.valueListTmp.splice(0, this.valueList.length, ...valueList)
+                this.$refs.searchInput.focus()
+            },
+
+            /**
              * 选择 key 事件
              *
              * @param {string} k 选中的 key
              */
             async selectKey (k) {
                 this.curSearchParams.key = k
+                if (this.hadSearchData) {
+                    this.setSearchLabelValues(k)
+                    return
+                }
                 try {
                     this.showKey = false
                     this.showValue = true

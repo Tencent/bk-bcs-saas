@@ -358,7 +358,6 @@ DEVOPS_ARTIFACTORY_HOST = ""
 RUN_ENV = "dev"
 
 BK_KIND_LIST = [1, 2]
-BK_CC_HOST = ""
 
 SITE_URL = "/"
 

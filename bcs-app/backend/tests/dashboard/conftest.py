@@ -24,6 +24,14 @@ from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 DASHBOARD_API_URL_COMMON_PREFIX = f'/api/dashboard/projects/{TEST_PROJECT_ID}/clusters/{TEST_CLUSTER_ID}'
 
 
+@pytest.fixture(autouse=True, scope='package')
+def dashboard_api_common_patch():
+    with mock.patch('backend.dashboard.viewsets.validate_cluster_perm', new=lambda *args, **kwargs: True), mock.patch(
+        'backend.dashboard.viewsets.gen_web_annotations', new=lambda *args, **kwargs: {}
+    ):
+        yield
+
+
 def gen_mock_pod_manifest(*args, **kwargs) -> Dict:
     """ 构造并返回 mock 的 pod 配置信息 """
     with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
