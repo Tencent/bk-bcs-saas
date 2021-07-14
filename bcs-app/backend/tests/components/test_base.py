@@ -132,5 +132,5 @@ class TestBkCommonResponseHandler:
         ],
     )
     def test_response_raw_hander(self, default_data, func, expected_data):
-        data = response_handler(default_data)(getattr(self, func)).get_raw_response()
+        data = response_handler(default_data)(getattr(self, func)).raw_request()
         assert data == expected_data
