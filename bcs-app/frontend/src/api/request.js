@@ -42,6 +42,12 @@ export const request = (method, url) => (params = {}, config = {}) => {
         req = http[reqMethod](newUrl, params, reqConfig)
     }
     return req.then((res) => {
+        if (Object.prototype.toString.call(res.data) === '[object Object]') {
+            return Promise.resolve({
+                ...res.data,
+                web_annotations: res.web_annotations
+            })
+        }
         return Promise.resolve(res.data)
     }).catch((err) => {
         console.log('request error', err)
