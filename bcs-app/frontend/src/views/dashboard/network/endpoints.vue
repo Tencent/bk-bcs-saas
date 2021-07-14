@@ -1,6 +1,6 @@
 <template>
     <BaseLayout title="Endpoints" kind="Endpoints" category="endpoints" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
@@ -25,8 +25,10 @@
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :resizable="false" width="150">
                     <template #default="{ row }">
-                        <bk-button text @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
-                        <bk-button class="ml10" text @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
+                        <bk-button text v-authority="{ clickable: pagePerms.update.clickable, content: pagePerms.update.tip }"
+                            @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
+                        <bk-button class="ml10" text v-authority="{ clickable: pagePerms.delete.clickable, content: pagePerms.delete.tip }"
+                            @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
