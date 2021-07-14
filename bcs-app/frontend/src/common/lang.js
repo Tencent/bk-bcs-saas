@@ -1908,7 +1908,8 @@ export default {
     'Chart配置选项': ['Chart configuration options'],
     '加载中': ['loading'],
     '等待所有Jobs完成': ['Wait for all the Jobs to complete'],
-    '超时时间': ['Time out']
+    '超时时间': ['Time out'],
+    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

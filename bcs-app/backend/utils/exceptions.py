@@ -48,7 +48,7 @@ class APIError(Exception):
         if self.args and self.msg_prefix:
             msg = "%s，%s" % (self.msg_prefix, self.args[0])
         elif self.args:
-            msg = self.args[0]
+            msg = str(self.args[0])
         else:
             msg = self.msg_prefix
         return msg
@@ -84,7 +84,7 @@ class ComponentError(APIError):
                 return self.msg_in_prod
             else:
                 # 返回自定义消息
-                return self.args[0]
+                return str(self.args[0])
 
         return super(ComponentError, self).__str__()
 
@@ -122,7 +122,7 @@ class PermissionDeniedError(APIError):
 
     @property
     def data(self):
-        d = {"apply_url": self.args[1]}
+        d = {"apply_url": self.args[1] if len(self.args) > 1 else ''}
         return d
 
 

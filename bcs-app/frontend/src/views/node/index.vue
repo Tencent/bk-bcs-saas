@@ -55,6 +55,8 @@
                             <node-searcher
                                 :cluster-id="clusterId"
                                 :project-id="projectId"
+                                :had-search-data="!isMesosProject"
+                                :search-labels-data="searchLabelsData"
                                 ref="searcher"
                                 @search="searchNodeList">
                             </node-searcher>
@@ -148,68 +150,49 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('标签')" prop="source_type" :show-overflow-tooltip="false">
                             <template slot-scope="{ row, $index }">
-                                <div v-if="row.transformLabels.length">
-                                    <bcs-popover :delay="300" placement="left">
-                                        <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
-                                            <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${$index}`">
-                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                    <span class="key" :title="label.key">{{label.key}}</span>
-                                                    <span class="value" :title="label.value">{{label.value}}</span>
-                                                </div>
-                                                <span v-if="row.showExpand" style="position: relative; top: 8px;">...</span>
+                                <bcs-popover v-if="row.transformLabels.length" :delay="300" placement="left-end">
+                                    <div class="label-list" :ref="`label_${pageConf.current}_${$index}`">
+                                        <div v-for="(item, index) in row.transformLabels"
+                                            class="label-item"
+                                            :key="index">
+                                            <span class="key">{{item.key}}</span> =
+                                            <span class="value">{{item.value}}</span>
+                                        </div>
+                                        <span v-if="row.showExpand" class="ellipsis">...</span>
+                                    </div>
+                                    <template slot="content">
+                                        <div class="label-tips">
+                                            <div class="label-item" v-for="(taint, index) in row.transformLabels" :key="index">
+                                                <span class="key">{{taint.key}}</span> =
+                                                <span class="value">{{taint.value}}</span>
                                             </div>
                                         </div>
-                                        <template slot="content">
-                                            <div class="labels-wrapper fake" :ref="`${pageConf.current}-fake${index}`">
-                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                    <div>
-                                                        <span class="key">{{label.key}}</span>:
-                                                        <span class="value">{{label.value}}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </bcs-popover>
-
-                                    <!-- <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
-                                        <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${index}`">
-                                            <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
-                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                            </div>
-                                        </div>
-                                    </div> -->
-                                </div>
+                                    </template>
+                                </bcs-popover>
                                 <template v-else>--</template>
                             </template>
                         </bk-table-column>
                         <bk-table-column v-if="!isMesosProject" :label="$t('污点')" :show-overflow-tooltip="false">
                             <template slot-scope="{ row, $index }">
-                                <div v-if="row.transformTaints.length">
-                                    <bcs-popover :delay="300" placement="left">
-                                        <div class="labels-container">
-                                            <div class="labels-wrapper" :ref="`${pageConf.current}-real${$index}-taint`">
-                                                <div class="labels-inner" v-for="(taint, taintIndex) in row.transformTaints" :key="taintIndex">
-                                                    <span class="key">{{taint.key}}</span>
-                                                    <span v-if="taint.value && taint.effect" class="value">{{taint.value}}: {{taint.effect}}</span>
-                                                    <span v-else class="value">{{taint.value || taint.effect}}</span>
-                                                </div>
-                                                <span v-if="row.showTaintExpand" style="position: relative; top: 8px;">...</span>
+                                <bcs-popover v-if="row.transformTaints.length" :delay="300" placement="left">
+                                    <div class="label-list" :ref="`taint_${pageConf.current}_${$index}`">
+                                        <div v-for="(item, index) in row.transformTaints"
+                                            class="label-item"
+                                            :key="index">
+                                            <span class="key">{{item.key}}</span>=
+                                            <span class="value">{{item.displayValue}}</span>
+                                        </div>
+                                        <span v-if="row.showTaintExpand" class="ellipsis">...</span>
+                                    </div>
+                                    <template slot="content">
+                                        <div class="label-tips">
+                                            <div class="label-item" v-for="(taint, index) in row.transformTaints" :key="index">
+                                                <span class="key">{{taint.key}}</span> =
+                                                <span class="value">{{taint.displayValue}}</span>
                                             </div>
                                         </div>
-                                        <template slot="content">
-                                            <div class="labels-wrapper fake">
-                                                <div class="labels-inner" v-for="(taint, taintIndex) in row.transformTaints" :key="taintIndex">
-                                                    <div>
-                                                        <span class="key">{{taint.key}}</span> =
-                                                        <span v-if="taint.value && taint.effect" class="value">{{taint.value}} : {{taint.effect}}</span>
-                                                        <span v-else class="value">{{taint.value || taint.effect}}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </bcs-popover>
-                                </div>
+                                    </template>
+                                </bcs-popover>
                                 <template v-else>--</template>
                             </template>
                         </bk-table-column>
@@ -410,7 +393,17 @@
                 taintDialog: {
                     isShow: false,
                     nodes: []
-                }
+                },
+                setInfos: [
+                    {
+                        key: 'showExpand',
+                        label: 'label'
+                    },
+                    {
+                        key: 'showTaintExpand',
+                        label: 'taint'
+                    }
+                ]
             }
         },
         computed: {
@@ -434,6 +427,24 @@
             },
             curClusterId () {
                 return this.$store.state.curClusterId
+            },
+            searchLabelsData () {
+                if (this.isMesosProject) return {}
+                const res = {}
+                for (const node of this.nodeList) {
+                    Object.keys(node.labels || {}).forEach(key => {
+                        const value = node.labels[key]
+                        if (Object.prototype.hasOwnProperty.call(res, key)) {
+                            res[key].push(value)
+                        } else {
+                            res[key] = [value]
+                        }
+                    })
+                }
+                Object.keys(res).forEach(key => {
+                    res[key] = [...new Set(res[key])]
+                })
+                return res
             }
         },
         watch: {
@@ -441,9 +452,6 @@
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
             }
-            // async curClusterId (v) {
-            //     await this.fetchData()
-            // }
         },
         beforeDestroy () {
             this.vueInstanceIsDestroy = true
@@ -604,7 +612,7 @@
                             item.transformTaints = []
                             for (const taint of item.taints) {
                                 item.transformTaints.push(Object.assign({}, taint, {
-                                    displayValue: taint.value && taint.effect ? taint.value + ': ' + taint.effect : taint.value || taint.effect
+                                    displayValue: taint.value && taint.effect ? taint.value + ' : ' + taint.effect : taint.value || taint.effect
                                 }))
                             }
                         }
@@ -644,20 +652,10 @@
 
                     setTimeout(() => {
                         this.curPageData.forEach((item, index) => {
-                            const real = this.$refs[`${this.pageConf.current}-real${index}`]
-                            if (real) {
-                                // .labels-inner 高度 24px, margin-bottom 5px
-                                if (real.offsetHeight > 24 + 5) {
-                                    item.showExpand = true
-                                }
-                            }
-                            const realTaint = this.$refs[`${this.pageConf.current}-real${index}-taint`]
-                            if (realTaint) {
-                                // .labels-inner 高度 24px, margin-bottom 5px
-                                if (realTaint.offsetHeight > 24 + 5) {
-                                    item.showTaintExpand = true
-                                }
-                            }
+                            this.setInfos.forEach(info => {
+                                const el = this.$refs[`${info.label}_${this.pageConf.current}_${index}`]
+                                item[info.key] = el && (el.offsetHeight < el.scrollHeight)
+                            })
                         })
                     }, 0)
 
@@ -744,20 +742,10 @@
 
                 setTimeout(() => {
                     this.curPageData.forEach((item, index) => {
-                        const real = this.$refs[`${this.pageConf.current}-real${index}`]
-                        if (real && real[0]) {
-                            // .labels-inner 高度 24px, margin-bottom 5px
-                            if (real[0].offsetHeight > 24 + 5) {
-                                item.showExpand = true
-                            }
-                        }
-                        const realTaint = this.$refs[`${this.pageConf.current}-real${index}-taint`]
-                        if (realTaint) {
-                            // .labels-inner 高度 24px, margin-bottom 5px
-                            if (realTaint.offsetHeight > 24 + 5) {
-                                item.showTaintExpand = true
-                            }
-                        }
+                        this.setInfos.forEach(info => {
+                            const el = this.$refs[`${info.label}_${this.pageConf.current}_${index}`]
+                            item[info.key] = el && (el.offsetHeight < el.scrollHeight)
+                        })
                     })
                 }, 0)
             },
@@ -869,10 +857,10 @@
                             resultMap[node.inner_ip] = node
                         })
                     }
-
                     Object.keys(resultMap).forEach(ip => {
+                        const labels = this.isMesosProject ? resultMap[ip].labels : Object.keys(resultMap[ip].labels).map(key => ({ [key]: resultMap[ip].labels[key] }))
                         for (let i = 0; i < len; i++) {
-                            if (!resultMap[ip].labels.filter(
+                            if (!labels.filter(
                                 label => JSON.stringify(label) === JSON.stringify(sLabels[i])).length
                             ) {
                                 delete resultMap[ip]

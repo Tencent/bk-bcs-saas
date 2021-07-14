@@ -28,6 +28,8 @@ from django.utils.translation import ugettext_lazy as _
 from backend.bcs_web.audit_log import client
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs import mesos
+from backend.container_service.projects.base.constants import ProjectKind
+from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
 from backend.templatesets.legacy_apps.instance.constants import InsState
@@ -1467,6 +1469,9 @@ class UpdateApplication(UpdateInstanceNew):
     def put(self, request, project_id, instance_id):
         project_kind = self.project_kind(request)
 
+        if not self._from_template(instance_id):
+            return self.update_online_app(request, project_id, project_kind)
+
         # TODO: 这一部分只有MESOS使用，需要mesos提供application yaml接口后，调整此部分
         version_id, variables = self.get_params(request)
         # 获取实例信息
@@ -1615,6 +1620,8 @@ class ScaleInstance(InstanceAPI):
     def scale_online_app(self, request, project_id, project_kind, inst_count):
         """扩缩容线上应用"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
+        if request.project.kind == ProjectKind.MESOS.value and category == MesosResourceName.deployment.value:
+            name = self._get_mesos_app_names_by_deployment(request, cluster_id, name, namespace, category)[0]
         online_app_conf = None
         if project_kind == 1:
             online_app_conf = self.online_app_conf(
@@ -1680,7 +1687,7 @@ class ScaleInstance(InstanceAPI):
         return resp
 
 
-class CancelUpdateInstance(BaseAPI):
+class CancelUpdateInstance(InstanceAPI):
     def update_conf(self, inst_id, category, inst_version_id):
         """更新配置"""
         try:
@@ -1721,6 +1728,9 @@ class CancelUpdateInstance(BaseAPI):
         """取消更新
         针对k8s采用上一个版本进行撤销
         """
+        if not self._from_template(instance_id):
+            cluster_id, namespace, name, _ = self.get_instance_resource(request, project_id)
+            return self.cancel_update_deployment(request, project_id, cluster_id, namespace, name)
         # 获取instance info
         inst_info = self.get_instance_info(instance_id)
         # 获取kind
