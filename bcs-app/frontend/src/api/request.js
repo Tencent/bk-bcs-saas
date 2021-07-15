@@ -4,11 +4,11 @@ import router from '@open/router'
 import store from '@open/store'
 
 const methodsWithoutData = ['delete', 'get', 'head', 'options']
-const defaultConfig = {}
+const defaultConfig = { needRes: false }
 
 export const request = (method, url) => (params = {}, config = {}) => {
     const reqMethod = method.toLowerCase()
-    const reqConfig = Object.assign(defaultConfig, config)
+    const reqConfig = Object.assign({}, defaultConfig, config)
 
     // 全局URL变量替换
     const variableData = {
@@ -42,6 +42,14 @@ export const request = (method, url) => (params = {}, config = {}) => {
         req = http[reqMethod](newUrl, params, reqConfig)
     }
     return req.then((res) => {
+        if (reqConfig.needRes) return Promise.resolve(res)
+
+        if (Object.prototype.toString.call(res.data) === '[object Object]') {
+            return Promise.resolve({
+                ...res.data,
+                web_annotations: res.web_annotations
+            })
+        }
         return Promise.resolve(res.data)
     }).catch((err) => {
         console.log('request error', err)

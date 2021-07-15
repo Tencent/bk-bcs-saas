@@ -117,7 +117,8 @@
                             <template v-if="curTplReadme">
                                 <div class="p20">
                                     <div class="biz-scroller-container">
-                                        <pre style="white-space: pre-line;">{{curTplReadme}}</pre>
+                                        <div v-html="markdown" class="biz-markdown-content" id="markdown"></div>
+                                        <!-- <pre style="white-space: pre-line;">{{curTplReadme}}</pre> -->
                                     </div>
                                 </div>
                             </template>
@@ -135,6 +136,7 @@
 </template>
 
 <script>
+    import MarkdownIt from 'markdown-it'
     import path2tree from '@open/common/path2tree'
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
@@ -147,6 +149,7 @@
         mixins: [baseMixin],
         data () {
             return {
+                markdown: '',
                 curTplReadme: '',
                 yamlEditor: null,
                 yamlFile: '',
@@ -306,7 +309,6 @@
                     this.treeData.push(tree)
                     this.curTplReadme = files[`${tplName}/README.md`]
                     this.curTplYaml = files[`${tplName}/values.yaml`]
-
                     // default: 显示第一个
                     if (this.previewList.length) {
                         this.curReourceFile = this.previewList[0]
@@ -315,6 +317,21 @@
                             this.$refs.codeViewer && this.$refs.codeViewer.$ace && this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
                         })
                     }
+
+                    const md = new MarkdownIt({
+                        linkify: false
+                    })
+                    this.markdown = md.render(this.curTplReadme)
+                    this.$nextTick(() => {
+                        // 点击链接新开窗口打开
+                        const markdownDom = document.getElementById('markdown')
+                        if (!markdownDom) return
+
+                        markdownDom.querySelectorAll('a').forEach(item => {
+                            item.target = '_blank'
+                            item.className = 'bk-text-button'
+                        })
+                    })
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {

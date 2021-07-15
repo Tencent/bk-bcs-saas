@@ -52,7 +52,7 @@ export default {
                 }
                 return item
             })
-            state.clusterList.splice(0, clusterList.length, ...clusterList)
+            state.clusterList.splice(0, state.clusterList.length, ...clusterList)
             state.isClusterDataReady = true
         },
 
