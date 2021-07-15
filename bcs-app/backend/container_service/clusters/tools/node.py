@@ -151,11 +151,9 @@ def query_labels(ctx_cluster: CtxCluster, node_name_list: List[str]) -> Dict:
     node_labels = NodeRespBuilder(ctx_cluster).do(
         "query_nodes_field_data", "labels", node_name_list=node_name_list, default_data={}
     )
-    data = {}
     ext_data = {}
     for inner_ip, labels in node_labels.items():
-        data[inner_ip] = dict(labels)
-        ext_data = {inner_ip: {key: "readonly" for key in filter_label_keys(list(labels.keys()))}}
+        ext_data[inner_ip] = {key: "readonly" for key in filter_label_keys(list(labels.keys()))}
     # TODO: 先方便前端处理数据，返回批量的数据，后续前端直接从列表中获取数据
-    data["manifest_ext"] = ext_data
-    return data
+    node_labels["manifest_ext"] = ext_data
+    return node_labels
