@@ -1063,7 +1063,7 @@
                             this.hignSetupMap.push(obj)
                         } else {
                             if (key === 'timeout') {
-                                this.timeoutValue = item[stringKey]
+                                this.timeoutValue = item[stringKey].slice(0, item[stringKey].length - 1)
                             } else {
                                 this.helmCommandParams[key] = true
                             }
