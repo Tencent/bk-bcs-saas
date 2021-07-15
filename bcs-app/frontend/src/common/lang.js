@@ -1917,7 +1917,10 @@ export default {
     '放大': [],
     '示例': [],
     '资源定义': [],
-    '存在时间': []
+    '存在时间': [],
+    '请输入值': ['Please enter value'],
+    '请输入参数': ['Please enter parameters'],
+    '加载中': ['loading']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

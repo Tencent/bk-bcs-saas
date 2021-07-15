@@ -661,6 +661,11 @@
                 isLocked: true,
                 isShowCommandParams: false,
                 commandList: [
+                    // {
+                    //     id: 'no-hooks',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
+                    // },
                     {
                         id: 'skip-crds',
                         disabled: false,
