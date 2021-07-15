@@ -18,17 +18,17 @@ from django.utils.translation import ugettext_lazy as _
 from backend.accounts import bcs_perm
 
 
-def validate_cluster_perm(request, project_id: str, cluster_id: str) -> bool:
+def validate_cluster_perm(request, project_id: str, cluster_id: str, raise_exception: bool = True) -> bool:
     """ 检查用户是否有操作集群权限 """
     if request.user.is_superuser:
         return True
     perm = bcs_perm.Cluster(request, project_id, cluster_id)
-    return perm.can_use(raise_exception=True)
+    return perm.can_use(raise_exception=raise_exception)
 
 
 def gen_web_annotations(request, project_id: str, cluster_id: str) -> Dict:
     """ 生成资源视图相关的页面控制信息，用于控制按钮展示等 """
-    has_cluster_perm = validate_cluster_perm(request, project_id, cluster_id)
+    has_cluster_perm = validate_cluster_perm(request, project_id, cluster_id, raise_exception=False)
     # 目前 创建 / 删除 / 更新 按钮权限 & 提示信息相同
     tip = _('当前用户没有操作集群 {} 的权限，请联系蓝鲸容器助手添加').format(cluster_id) if not has_cluster_perm else ''
     btn_perm = {'clickable': has_cluster_perm, 'tip': tip}
