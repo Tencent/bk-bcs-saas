@@ -48,10 +48,7 @@ export interface IUseSubscribeResult {
  * @returns
  */
 export default function useSubscribe (data: Ref<ISubscribeData>, ctx: SetupContext): IUseSubscribeResult {
-    const { $route, $store } = ctx.root
-
-    const projectId = computed(() => $route.params.projectId)
-    const curClusterId = computed(() => $store.state.curClusterId)
+    const { $store } = ctx.root
 
     // const data = ref<ISubscribeData>({
     //     manifest: {},
@@ -97,13 +94,9 @@ export default function useSubscribe (data: Ref<ISubscribeData>, ctx: SetupConte
     const handleSubscribe = async () => {
         if (!subscribeParams.value.kind || !subscribeParams.value.resource_version) return
 
-        const res = await $store.dispatch('dashboard/subscribeList', {
-            projectId: projectId.value,
-            clusterId: curClusterId.value,
-            data: subscribeParams.value
-        }).catch(_ => ({ data: { events: [], latest_rv: null } }))
-
-        const { data } = res
+        const data = await $store.dispatch('dashboard/subscribeList', {
+            ...subscribeParams.value
+        })
 
         if (data.latest_rv) {
             subscribeParams.value.resource_version = data.latest_rv
