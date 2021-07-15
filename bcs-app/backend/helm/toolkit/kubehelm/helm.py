@@ -332,18 +332,20 @@ class KubeHelmClient:
         """组装下发的helm命令
         NOTE: 这里兼容已经存在的helm的操作
         """
-        if chart_path:
-            cmd_args.append(chart_path)
+        # 初始的 helm 命令参数
+        init_opts = Options(cmd_args)
+        init_opts.add(chart_path)
         if ytt_config_path:
-            cmd_args.extend(["--post-renderer", f"{ytt_config_path}/{YTT_RENDERER_NAME}"])
+            init_opts.add({"--post-renderer": f"{ytt_config_path}/{YTT_RENDERER_NAME}"})
 
         opts = Options(cmd_flags)
         options = opts.options()
         # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
         # 并且--values在其它option前面，保证可以被后续的文件或key=val覆盖
         if "--reuse-values" not in options and values_path:
-            cmd_args.extend(["--values", values_path])
+            init_opts.add({"--values": values_path})
 
+        cmd_args = init_opts.options()
         cmd_args.extend(options)
         return cmd_args
 
