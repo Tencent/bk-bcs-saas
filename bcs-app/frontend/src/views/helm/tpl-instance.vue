@@ -506,7 +506,7 @@
                     'wait': false,
                     'timeout': false
                 },
-                timeoutValue: null,
+                timeoutValue: 600,
                 isHignPanelShow: false,
                 hignSetupMap: [
                     {
@@ -1070,9 +1070,9 @@
                         commands.push(obj)
                     }
                 }
-                if (this.timeoutValue !== null) {
+                if (this.timeoutValue) {
                     const obj = {}
-                    obj['--timeout'] = Number(this.timeoutValue)
+                    obj['--timeout'] = this.timeoutValue + 's'
                     commands.push(obj)
                 }
 
