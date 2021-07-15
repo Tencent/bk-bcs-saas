@@ -1902,7 +1902,14 @@ export default {
     '最少选择三个服务器': ['Choose at least three servers'],
     '设置污点': ['Set Taint'],
     '影响': ['Effect'],
-    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}']
+    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}'],
+    'Chart配置选项': ['Chart configuration options'],
+    'Helm部署选项': ['Helm deployment options'],
+    '等待所有Jobs完成': ['Wait for all the Jobs to complete'],
+    '超时时间': ['Time out'],
+    '等待所有Pod，PVC处于ready状态': ['Wait for all Pod and PVC to be ready'],
+    '忽略CRD': ['Ignore the CRD'],
+    '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
