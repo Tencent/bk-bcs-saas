@@ -254,9 +254,8 @@ class KubeHelmClient:
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace, "--install"]
         return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
 
-    def _uninstall_or_rollback(self, cmd_args, **kwargs):
+    def _uninstall_or_rollback(self, cmd_args):
         try:
-            cmd_args = self._compose_cmd_args(cmd_args, kwargs.get("cmd_flags"))
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
             logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
@@ -264,15 +263,15 @@ class KubeHelmClient:
 
         return cmd_out, cmd_err
 
-    def uninstall(self, name, namespace, **kwargs):
+    def uninstall(self, name, namespace):
         """uninstall helm release"""
         uninstall_cmd_args = [settings.HELM3_BIN, "uninstall", name, "--namespace", namespace]
-        return self._uninstall_or_rollback(uninstall_cmd_args, **kwargs)
+        return self._uninstall_or_rollback(uninstall_cmd_args)
 
-    def rollback(self, name, namespace, revision, **kwargs):
+    def rollback(self, name, namespace, revision):
         """rollback helm release by revision"""
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
-        return self._uninstall_or_rollback(rollback_cmd_args, **kwargs)
+        return self._uninstall_or_rollback(rollback_cmd_args)
 
     def _compose_args_and_run(self, cmd_args, options):
         opts = Options(options)
