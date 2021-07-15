@@ -216,7 +216,6 @@
                         </bk-tab-panel>
                         <bk-tab-panel name="helm" :title="$t('Helm部署选项')">
                             <div class="helm-set-panel">
-                                <p class="header">Helm 命令行参数</p>
                                 <ul class="mt10">
                                     <!-- 常用枚举项 -->
                                     <li v-for="command of commandList" :key="command.id">
