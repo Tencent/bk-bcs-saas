@@ -181,3 +181,45 @@
         right: 4px;
     }
 }
+
+
+.helm-set-panel {
+    padding: 20px;
+    li {
+        font-size: 14px;
+    }
+}
+
+.action-btn {
+    width: auto;
+    padding: 0;
+    height: 30px;
+    text-align: center;
+    display: inline-block;
+    border: none;
+    background: transparent;
+    outline: none;
+    margin-left: 5px;
+
+    .bk-icon {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 50%;
+        vertical-align: middle;
+        color: #999999;
+        font-size: 24px;
+        display: inline-block;
+
+        &:hover {
+            color: $primaryColor;
+            border-color: $primaryColor;
+        }
+    }
+}
+
+.error-key {
+    font-size: 12px;
+    color: red
+}
+
