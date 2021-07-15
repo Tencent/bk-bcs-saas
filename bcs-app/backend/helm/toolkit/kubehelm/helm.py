@@ -330,7 +330,8 @@ class KubeHelmClient:
         cmd_flags: List[Dict] = None,
     ):
         """组装下发的helm命令
-        NOTE: 这里兼容已经存在的helm的操作
+        这里需要兼容已经存在的helm的操作
+        NOTE: 当用户输入的选项中包含能覆盖values内容的选项，如--set、--set-string等，--values选项必须放在用户输入选项前面
         """
         # 初始的 helm 命令参数
         init_opts = Options(cmd_args)
@@ -339,11 +340,10 @@ class KubeHelmClient:
         if ytt_config_path:
             init_opts.add({"--post-renderer": f"{ytt_config_path}/{YTT_RENDERER_NAME}"})
 
-        # 用户输入的操作
+        # 用户输入的配置选项
         opts = Options(cmd_flags)
         options = opts.options()
-        # 1. 当reuse-values不存在并且values内容存在时，支持--values操作
-        # 2. 为保证用户输入的--set等操作可以覆盖values中的内容，--values操作需要放在用户输入操作的前面
+        # 当--reuse-values不存在并且values内容存在时，添加--values选项
         if "--reuse-values" not in options and values_path:
             init_opts.add({"--values": values_path})
 
