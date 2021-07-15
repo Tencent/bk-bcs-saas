@@ -2,6 +2,7 @@ import { request } from './request'
 
 // app
 export const projectFeatureFlag = request('get', '/api/projects/$projectId/clusters/$clusterId/feature_flags/')
+export const namespaceList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/')
 
 // log
 export const stdLogs = request('get', '/api/logs/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/pods/$podId/stdlogs/')
@@ -22,6 +23,7 @@ export const resourceCreate = request('post', '/api/dashboard/projects/$projectI
 export const resourceUpdate = request('put', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
 export const resourceDelete = request('delete', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
 export const exampleManifests = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/examples/manifests/')
+export const subscribeList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/subscribe/')
 
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
@@ -59,5 +61,7 @@ export default {
     resourceDelete,
     exampleManifests,
     getNodeTaints,
-    setNodeTaints
+    setNodeTaints,
+    subscribeList,
+    namespaceList
 }
