@@ -691,7 +691,7 @@
                 isNotesLoading: false,
                 isHignPanelShow: true,
                 hignSetupMap: [], // helm部署配置高级设置
-                timeoutValue: ''
+                timeoutValue: 600
             }
         },
         computed: {
@@ -1071,6 +1071,16 @@
                         }
                     })
                 }
+
+                // 如果没有用户自定义helm配置, 默认添加一条空数据
+                if (!this.hignSetupMap.length) {
+                    const obj = {
+                        key: '',
+                        value: ''
+                    }
+                    this.hignSetupMap.push(obj)
+                }
+
                 if (questions.questions) {
                     questions.questions.forEach(question => {
                         this.fieldset = this.originReleaseData.release.answers
@@ -1390,9 +1400,9 @@
                         commands.push(obj)
                     }
                 }
-                if (this.timeoutValue !== null) {
+                if (this.timeoutValue) {
                     const obj = {}
-                    obj['--timeout'] = Number(this.timeoutValue)
+                    obj['--timeout'] = this.timeoutValue + 's'
                     commands.push(obj)
                 }
 
@@ -1410,7 +1420,6 @@
                         } else {
                             value = item.value
                         }
-                        console.log(value, 111111111111)
                         obj[item.key] = value
                         commands.push(obj)
                     }
