@@ -31,6 +31,7 @@ export interface IEvent {
 export interface ISubscribeData {
     manifest: IManifest;
     manifest_ext: IManifestExt;
+    web_annotations?: any;
 }
 
 export interface IUseSubscribeResult {
