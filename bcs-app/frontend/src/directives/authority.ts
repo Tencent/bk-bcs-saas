@@ -17,7 +17,7 @@ interface IOptions {
 const DEFAULT_OPTIONS: IOptions = {
     clickable: true,
     offset: [12, 0],
-    cls: 'cursor-element'
+    cls: 'bcs-cursor-element'
 }
 
 function init (el: IElement, binding: DirectiveBinding) {
@@ -29,6 +29,7 @@ function init (el: IElement, binding: DirectiveBinding) {
     parent?.replaceChild(el.cloneEl, el)
 
     const cloneEl = el.cloneEl
+    cloneEl.style.filter = 'grayscale(100%)'
     bkTooltips.update(cloneEl, binding)
     cloneEl.mouseEnterHandler = function () {
         const element = document.createElement('div')
@@ -70,11 +71,11 @@ function destroy (el: IElement) {
     parent?.replaceChild(el, el.cloneEl)
 
     bkTooltips.unbind(cloneEl)
-    cloneEl.element?.remove()
-    cloneEl.element = null
     cloneEl.removeEventListener('mouseenter', cloneEl.mouseEnterHandler)
     cloneEl.removeEventListener('mousemove', cloneEl.mouseMoveHandler)
     cloneEl.removeEventListener('mouseleave', cloneEl.mouseLeaveHandler)
+    cloneEl.element?.remove()
+    cloneEl.element = null
     // cloneEl.removeEventListener('click', cloneEl.clickHandler)
 }
 
