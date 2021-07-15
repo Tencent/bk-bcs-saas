@@ -97,6 +97,7 @@ class TestCRDAndCustomObject:
         crd = crd_client.get(name="no.k3s.cattle.io", is_format=False)
         assert crd is None
 
+    @pytest.mark.skip('暂时跳过该单元测试')
     def test_custom_object_patch(self, update_or_create_crd, cobj_client, update_or_create_custom_object):
         cobj = cobj_client.patch(
             name=getitems(sample_custom_object, "metadata.name"),
