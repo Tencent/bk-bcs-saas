@@ -224,58 +224,57 @@
                             </bk-tab>
                         </div>
                     </bk-tab-panel>
-                    <bk-tab-panel name="helm" :title="$t('Helm配置选项')">
-                        <form class="bk-form bk-form-vertical set-label-form">
-                            <div class="bk-form-item">
-                                <div class="bk-form-content" style="position: relative;" v-for="(item, index) in commandList" :key="index">
-                                    <div class="biz-key-value-wrapper mb10">
-                                        <div class="biz-key-value-item">
-                                            <bk-input style="width: 280px;" :placeholder="$t('请输入参数')" :disabled="item.disabled" v-model="item.key" />
-                                        </div>
-                                        <span class="equals-sign">=</span>
-                                        <bk-input style="width: 280px;" maxlength="30" :placeholder="$t('请输入值')" v-model="item.value" />
+                    <bk-tab-panel name="helm" :title="$t('Helm部署选项')">
+                        <div class="helm-set-panel">
+                            <p class="header">Helm 命令行参数</p>
+                            <ul class="mt10">
+                                <!-- 常用枚举项 -->
+                                <li v-for="command of commandList" :key="command.id">
+                                    <bk-checkbox
+                                        class="mr5"
+                                        v-model="helmCommandParams[command.id]" />
+                                    <span class="mb5" style="display: inline-block;">
+                                        {{command.desc}}
+                                        <i style="font-size: 12px;cursor: pointer;"
+                                            class="bcs-icon bcs-icon-info-circle"
+                                            v-bk-tooltips.top="command.id" />
+                                    </span>
+                                </li>
+                                <li class="mt10">
+                                    <div style="margin-bottom:4px;">
+                                        {{ $t('超时时间') }}
+                                        <i style="font-size: 12px;cursor: pointer;"
+                                            class="bcs-icon bcs-icon-info-circle"
+                                            v-bk-tooltips.top="'timeout'" />
                                     </div>
-                                    <button class="action-btn">
-                                        <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
-                                        <i v-if="!item.disabled" class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(index)"></i>
-                                    </button>
+                                    <bk-input
+                                        v-model="timeoutValue"
+                                        placeholder="500"
+                                        style="width: 200px; margin-right:4px;" />
+                                    <span>{{ $t('秒') }}</span>
+                                </li>
+                                <!-- 高级选项 -->
+                                <button class="bk-text-button f12 mb10 pl0 mt10" @click.stop.prevent="toggleHign">
+                                    {{$t('高级设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
+                                </button>
+                                <div v-show="isHignPanelShow">
+                                    <div class="biz-key-value-wrapper mb10">
+                                        <li class="biz-key-value-item mb10" v-for="(item, index) in hignSetupMap" :key="index">
+                                            <bk-input style="width: 280px;" v-model="item.key" @change="handleHignkeyChange(item.key ,index)" />
+                                            <span class="equals-sign">=</span>
+                                            <bk-input style="width: 280px;" :placeholder="$t('值')" v-model="item.value" />
+                                            <button class="action-btn" @click.stop.prevent>
+                                                <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addHign"></i>
+                                                <i class="bk-icon icon-minus-circle" v-if="hignSetupMap.length > 1" @click.stop.prevent="delHign(index)"></i>
+                                            </button>
+                                            <p class="error-key" v-if="item.errorKeyTip">{{ item.errorKeyTip }}</p>
+                                        </li>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
-                        <!-- <div class="biz-expand-panel">
-                            <div class="header" style="line-height: 40px;">
-                                {{$t('Helm命令行参数')}}
-                            </div>
-                            <div class="content p0 m0 biz-table-wrapper" style="border: none;">
-                                <table class="bk-table has-table-hover biz-special-bk-table" style="border: none;">
-                                    <thead>
-                                        <tr>
-                                            <th class="pl20 f12" style="width: 400px; height: 36px;">{{$t('参数')}}</th>
-                                            <th class="pl25 f12" style="height: 36px;">{{$t('是否启用')}}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
-                                            <td class="pl20 pt5 pb5" style="height: 36px;">
-                                                {{command.id}}
-                                                <i v-bk-tooltips="command.desc" class="bcs-icon bcs-icon-info-circle" style="font-size: 12px;cursor: pointer;"></i>
-                                            </td>
-                                            <td class="pl25 pt5 pb5" style="height: 36px;">
-                                                <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div> -->
+                            </ul>
+                        </div>
                     </bk-tab-panel>
                 </bk-tab>
-
-                <!-- <div class="action-box">
-                    <div class="title fn">
-                        Chart Values
-                    </div>
-                </div> -->
 
                 <div class="create-wrapper" v-if="!isNamespaceLoading && !isNamespaceMatch">
                     <bcs-popover :content="$t('所属命名空间不存在，不可操作')" placement="top">
@@ -668,75 +667,36 @@
                     //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
                     // },
                     {
-                        key: '--reuse-values',
-                        value: 'false',
-                        disabled: true,
-                        desc: this.$t('升级时，将Release中的value作为默认值')
+                        id: 'skip-crds',
+                        disabled: false,
+                        desc: this.$t('忽略CRD')
                     },
                     {
-                        key: '--skip-crds',
-                        value: 'false',
-                        disabled: true,
-                        desc: this.$t('如果选择，部署或更新时，跳过crds')
-                    },
-                    {
-                        key: '--timeout',
-                        value: 'false',
-                        disabled: true,
-                        desc: this.$t('超时时间')
-                    },
-                    {
-                        key: '--wait-for-jobs',
-                        value: 'false',
-                        disabled: true,
+                        id: 'wait-for-jobs',
+                        disabled: false,
                         desc: this.$t('等待所有Jobs完成')
                     },
                     {
-                        key: '--wait',
-                        value: 'false',
-                        disabled: true,
-                        desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
+                        id: 'wait',
+                        disabled: false,
+                        desc: this.$t('等待所有Pod，PVC处于ready状态')
                     }
                 ],
-                // commandList: [
-                //     {
-                //         id: 'disable-openapi-validation',
-                //         disabled: true,
-                //         desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
-                //     },
-                //     {
-                //         id: 'no-hooks',
-                //         disabled: false,
-                //         desc: this.$t('如果选择，部署或更新时，忽略hooks')
-                //     },
-                //     {
-                //         id: 'skip-crds',
-                //         disabled: false,
-                //         desc: this.$t('如果选择，部署或更新时，跳过crds')
-                //     },
-                //     {
-                //         id: 'reuse-values',
-                //         disabled: false,
-                //         desc: this.$t('升级时，将Release中的value作为默认值')
-                //     },
-                //     {
-                //         id: 'wait',
-                //         disabled: false,
-                //         desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
-                //     }
-                // ],
-                // helmCommandParams: {
-                //     'disable-openapi-validation': false,
-                //     'no-hooks': false,
-                //     'skip-crds': false,
-                //     'wait': false
-                // },
+                helmCommandParams: {
+                    'skip-crds': false,
+                    'wait-for-jobs': false,
+                    'wait': false,
+                    'timeout': false
+                },
                 notesdialog: {
                     isShow: false,
                     notes: '',
                     clipboard: null
                 },
-                isNotesLoading: false
+                isNotesLoading: false,
+                isHignPanelShow: true,
+                hignSetupMap: [], // helm部署配置高级设置
+                timeoutValue: ''
             }
         },
         computed: {
@@ -1096,19 +1056,24 @@
                 })
 
                 if (this.originReleaseData.cmd_flags && this.originReleaseData.cmd_flags.length) {
+                    // 所有常用枚举项keys
+                    const commonKeys = Object.keys(this.helmCommandParams)
                     this.originReleaseData.cmd_flags.forEach(item => {
-                        const key = Object.keys(item)[0]
-                        const comment = this.commandList.find(val => val.key === key)
-                        if (comment) {
-                            comment.value = item[key]
-                        } else {
+                        const stringKey = Object.keys(item).join(',')
+                        const key = stringKey.slice(2, stringKey.length)
+                        // 常用枚举项不包含则是用户自定义高级配置
+                        if (!commonKeys.includes(key)) {
                             const obj = {}
-                            obj.key = key
-                            obj.value = item[key]
-                            obj.disabled = false
-                            this.commandList.push(obj)
+                            obj.key = stringKey
+                            obj.value = item[stringKey]
+                            this.hignSetupMap.push(obj)
+                        } else {
+                            if (key === 'timeout') {
+                                this.timeoutValue = item[stringKey]
+                            } else {
+                                this.helmCommandParams[key] = true
+                            }
                         }
-                        // this.helmCommandParams[key] = true
                     })
                 }
                 if (questions.questions) {
@@ -1422,18 +1387,40 @@
                     })
                 }
 
-                this.commandList.forEach(item => {
-                    const { key, value } = item
+                for (const key in this.helmCommandParams) {
+                    if (this.helmCommandParams[key]) {
+                        const obj = {}
+                        const id = '--' + key
+                        obj[id] = true
+                        commands.push(obj)
+                    }
+                }
+                if (this.timeoutValue !== null) {
                     const obj = {}
-                    obj[key] = value
+                    obj['--timeout'] = Number(this.timeoutValue)
                     commands.push(obj)
+                }
+
+                // helm高级设置参数
+                this.hignSetupMap.forEach(item => {
+                    if (item.key.length) {
+                        const obj = {}
+                        let value
+                        // 如果输入的值是（'false', 'False', 'True', 'true'）
+                        // 则转成布尔值
+                        if (['False', 'false'].includes(item.value)) {
+                            value = false
+                        } else if (['True', 'true'].includes(item.value)) {
+                            value = true
+                        } else {
+                            value = item.value
+                        }
+                        console.log(value, 111111111111)
+                        obj[item.key] = value
+                        commands.push(obj)
+                    }
                 })
 
-                // for (const key in this.helmCommandParams) {
-                //     if (this.helmCommandParams[key] && key !== 'disable-openapi-validation') {
-                //         commands.push(key)
-                //     }
-                // }
                 if (this.curEditMode === 'yaml-mode') {
                     this.saveYaml()
                 }
@@ -1733,21 +1720,33 @@
                 }
             },
 
-            addLabel () {
-                const commandList = []
-                commandList.splice(0, commandList.length, ...this.commandList)
-                commandList.push({
-                    key: '',
-                    value: '',
-                    disabled: false
-                })
-                this.commandList.splice(0, this.commandList.length, ...commandList)
+            toggleHign () {
+                this.isHignPanelShow = !this.isHignPanelShow
             },
-            delLabel (index) {
-                const commandList = []
-                commandList.splice(0, commandList.length, ...this.commandList)
-                commandList.splice(index, 1)
-                this.commandList.splice(0, this.commandList.length, ...commandList)
+
+            addHign () {
+                const hignList = []
+                hignList.splice(0, hignList.length, ...this.hignSetupMap)
+                hignList.push({ key: '', value: '' })
+                this.hignSetupMap.splice(0, this.hignSetupMap.length, ...hignList)
+            },
+
+            delHign (index) {
+                const hignList = []
+                hignList.splice(0, hignList.length, ...this.hignSetupMap)
+                hignList.splice(index, 1)
+                this.hignSetupMap.splice(0, this.hignSetupMap.length, ...hignList)
+            },
+
+            handleHignkeyChange (val, index) {
+                if (val.length > 1 && val.slice(0, 2) !== '--') {
+                    const obj = {
+                        errorKeyTip: this.$t('参数Key必须由 -- 字符开头')
+                    }
+                    Object.assign(this.hignSetupMap[index], obj)
+                } else {
+                    delete this.hignSetupMap[index].errorKeyTip
+                }
             }
         }
     }
