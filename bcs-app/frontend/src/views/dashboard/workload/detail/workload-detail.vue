@@ -15,8 +15,12 @@
                 </div>
                 <div class="btns">
                     <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
-                    <bk-button theme="primary" @click="handleUpdateResource">{{$t('更新')}}</bk-button>
-                    <bk-button theme="danger" @click="handleDeleteResource">{{$t('删除')}}</bk-button>
+                    <bk-button theme="primary"
+                        v-authority="{ clickable: pagePerms.update.clickable, content: pagePerms.update.tip }"
+                        @click="handleUpdateResource">{{$t('更新')}}</bk-button>
+                    <bk-button theme="danger"
+                        v-authority="{ clickable: pagePerms.delete.clickable, content: pagePerms.delete.tip }"
+                        @click="handleDeleteResource">{{$t('删除')}}</bk-button>
                 </div>
             </div>
             <div class="workload-main-info">
@@ -185,6 +189,7 @@
                 manifestExt,
                 yaml,
                 showYamlPanel,
+                pagePerms,
                 handleGetDetail,
                 handleShowYamlPanel,
                 handleUpdateResource,
@@ -276,6 +281,7 @@
                 podLoading,
                 yaml,
                 showYamlPanel,
+                pagePerms,
                 handleShowYamlPanel,
                 gotoPodDetail,
                 handleGetExtData,

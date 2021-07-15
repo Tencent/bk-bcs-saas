@@ -103,6 +103,17 @@ export default defineComponent({
         }
         // 表格数据
         const { isLoading, data, fetchList } = useTableData(ctx)
+        const webAnnotations = computed(() => { // 权限信息
+            // eslint-disable-next-line camelcase
+            return data.value?.web_annotations || { perms: { page: {} } }
+        })
+        const pagePerms = computed(() => { // 界面权限
+            return {
+                create: webAnnotations.value.perms.page.create_btn,
+                delete: webAnnotations.value.perms.page.delete_btn,
+                update: webAnnotations.value.perms.page.update_btn
+            }
+        })
         const tableData = computed(() => {
             const items = JSON.parse(JSON.stringify(data.value.manifest.items || []))
             const { prop, order } = sortData.value
@@ -247,6 +258,7 @@ export default defineComponent({
             yaml,
             detailType,
             isLoading,
+            pagePerms,
             pageConf: pagination,
             nameValue: searchValue,
             data,
@@ -278,7 +290,11 @@ export default defineComponent({
                     <div class="base-layout-operate mb20">
                         {
                             this.showCreate ? (
-                                <bk-button class="resource-create" icon="plus" theme="primary" onClick={this.handleCreateResource}>
+                                <bk-button v-authority={{ clickable: this.pagePerms.create?.clickable, content: this.pagePerms.create?.tip }}
+                                    class="resource-create"
+                                    icon="plus"
+                                    theme="primary"
+                                    onClick={this.handleCreateResource}>
                                     { this.$t('创建') }
                                 </bk-button>
                             ) : <div></div>
@@ -328,7 +344,8 @@ export default defineComponent({
                             gotoDetail: this.gotoDetail,
                             handleShowDetail: this.handleShowDetail,
                             handleUpdateResource: this.handleUpdateResource,
-                            handleDeleteResource: this.handleDeleteResource
+                            handleDeleteResource: this.handleDeleteResource,
+                            pagePerms: this.pagePerms
                         })
                     }
                 </div>
