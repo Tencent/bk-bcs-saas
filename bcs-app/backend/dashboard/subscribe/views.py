@@ -41,7 +41,7 @@ class SubscribeViewSet(SystemViewSet):
             events = resource_client.watch(resource_version=res_version, timeout=DEFAULT_SUBSCRIBE_TIMEOUT)
         except ApiException as e:
             if e.status == K8S_API_GONE_STATUS_CODE:
-                raise ResourceVersionExpired(_('ResourceVersion {} 过期，请重新获取').format(res_version))
+                raise ResourceVersionExpired(_('ResourceVersion {} 已过期，请重新获取').format(res_version))
             raise
 
         # events 默认按时间排序，取最后一个 ResourceVersion 即为最新值
