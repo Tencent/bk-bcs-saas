@@ -2615,7 +2615,7 @@ div::-webkit-scrollbar-thumb {
         }
     }
 }
-.cursor-element {
+.bcs-cursor-element {
     background: url("../images/lock.svg");
     height: 16px;
     width: 12px;

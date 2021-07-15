@@ -8,6 +8,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+import { messageError } from '@/common/bkmagic'
 import { dashbordList, retrieveDetail, podMetric, listWorkloadPods,
     listStoragePods, listContainers, retrieveContainerDetail, containerMetric,
     fetchContainerEnvInfo, resourceDelete, resourceCreate, resourceUpdate, exampleManifests,
@@ -31,10 +32,17 @@ export default {
 
         // 订阅接口
         async subscribeList (context, params, config = { needRes: true }) {
-            const data = await subscribeList(params, config).catch(() => {
-                return { events: [], latest_rv: null }
+            const res = await subscribeList(params, config).catch((err) => {
+                if (err.code === 4005005) { // resourceVersion 重载当前窗口（也可以在每个界面重新调用获取列表详情的接口，目前这样快速处理）
+                    location.reload()
+                } else {
+                    messageError(err.message)
+                }
+                return {
+                    data: { events: [], latest_rv: null }
+                }
             })
-            return data
+            return res.data
         },
         // 获取命名空间
         async getNamespaceList (context, params, config = {}) {
@@ -150,24 +158,24 @@ export default {
             const data = await fetchContainerEnvInfo(params, config = {}).catch(() => ([]))
             return data
         },
-
+        // 资源删除
         async resourceDelete (context, params, config = {}) {
             const data = await resourceDelete(params, config = {}).catch(() => false)
             return data
         },
-
+        // 资源创建
         async resourceCreate (context, params, config = {}) {
             // 需要单独处理错误信息
             const data = await resourceCreate(params, config = {})
             return data
         },
-
+        // 资源更新
         async resourceUpdate (context, params, config = {}) {
             // 需要单独处理错误信息
             const data = await resourceUpdate(params, config = {})
             return data
         },
-
+        // yaml实例
         async exampleManifests (context, params, config = {}) {
             const data = await exampleManifests(params, config = {}).catch(() => ({
                 kind: '',
