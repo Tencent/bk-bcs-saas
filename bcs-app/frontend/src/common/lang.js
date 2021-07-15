@@ -1909,7 +1909,15 @@ export default {
     '超时时间': ['Time out'],
     '等待所有Pod，PVC处于ready状态': ['Wait for all Pod and PVC to be ready'],
     '忽略CRD': ['Ignore the CRD'],
-    '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character']
+    '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character'],
+    '内容未变更或格式错误': [],
+    '确认退出当前编辑状态': [],
+    '退出后，你修改的内容将丢失': [],
+    '上传（仅支持YAML格式）': [],
+    '放大': [],
+    '示例': [],
+    '资源定义': [],
+    '存在时间': []
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

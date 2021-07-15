@@ -5,6 +5,7 @@ import yamljs from 'js-yaml'
 export interface IWorkloadDetail {
     manifest: any;
     manifest_ext: any;
+    web_annotations?: any;
 }
 
 export interface IDetailOptions {
@@ -46,6 +47,18 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const yaml = computed(() => {
         return yamljs.dump(detail.value?.manifest || {})
     })
+    const webAnnotations = computed(() => { // 权限信息
+        // eslint-disable-next-line camelcase
+        return detail.value?.web_annotations || { perms: { page: {} } }
+    })
+    // 界面权限
+    const pagePerms = computed(() => {
+        return {
+            create: webAnnotations.value.perms.page.create_btn || {},
+            delete: webAnnotations.value.perms.page.delete_btn || {},
+            update: webAnnotations.value.perms.page.update_btn || {}
+        }
+    })
 
     const handleTabChange = (item) => {
         activePanel.value = item.name
@@ -68,7 +81,7 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const handleShowYamlPanel = () => {
         showYamlPanel.value = true
     }
-            
+
     // 更新资源
     const handleUpdateResource = () => {
         const kind = detail.value?.manifest?.kind
@@ -123,6 +136,7 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         manifestExt,
         yaml,
         showYamlPanel,
+        pagePerms,
         handleShowYamlPanel,
         handleTabChange,
         handleGetDetail,
