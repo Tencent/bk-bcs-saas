@@ -183,7 +183,7 @@
             const isLoading = ref(false)
             const original = ref<any>({})
             const detail = ref<any>({})
-            const showExample = ref(true)
+            const showExample = ref(!isEdit.value)
             const fullScreen = ref(false)
             const height = ref(600)
             const editorErr = ref({
@@ -229,6 +229,7 @@
 
                 $bkInfo({
                     type: 'warning',
+                    clsName: 'custom-info-confirm',
                     title: $i18n.t('确认重置当前编辑状态'),
                     subTitle: $i18n.t('重置后，你修改的内容将丢失'),
                     defaultInfo: true,
@@ -297,7 +298,7 @@
                 }, 0)
             })
             const handleGetExample = async () => { // 获取示例模板
-                if (!showExample.value) return
+                // if (!showExample.value) return
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
@@ -360,31 +361,40 @@
                     $router.push({ name: $store.getters.curNavName })
                 }
             }
-            const handleUpdateResource = async () => {
+            const handleUpdateResource = () => {
                 if (!showDiff.value) {
                     showDiff.value = true
                     return
                 }
 
-                const result = await $store.dispatch('dashboard/resourceUpdate', {
-                    $namespaceId: namespace.value,
-                    $type: type.value,
-                    $category: category.value,
-                    $name: name.value,
-                    manifest: detail.value
-                }).catch(err => {
-                    editorErr.value.type = 'http'
-                    editorErr.value.message = err.message
-                    return false
-                })
+                $bkInfo({
+                    type: 'warning',
+                    clsName: 'custom-info-confirm',
+                    title: $i18n.t('确认资源更新'),
+                    subTitle: $i18n.t('将执行 Replace 操作，若多人同时编辑可能存在冲突'),
+                    defaultInfo: true,
+                    confirmFn: async () => {
+                        const result = await $store.dispatch('dashboard/resourceUpdate', {
+                            $namespaceId: namespace.value,
+                            $type: type.value,
+                            $category: category.value,
+                            $name: name.value,
+                            manifest: detail.value
+                        }).catch(err => {
+                            editorErr.value.type = 'http'
+                            editorErr.value.message = err.message
+                            return false
+                        })
 
-                if (result) {
-                    $bkMessage({
-                        theme: 'success',
-                        message: $i18n.t('更新成功')
-                    })
-                    $router.push({ name: $store.getters.curNavName })
-                }
+                        if (result) {
+                            $bkMessage({
+                                theme: 'success',
+                                message: $i18n.t('更新成功')
+                            })
+                            $router.push({ name: $store.getters.curNavName })
+                        }
+                    }
+                })
             }
             const handleCreateOrUpdate = async () => { // 更新或创建
                 updateLoading.value = true
@@ -398,6 +408,7 @@
             const handleCancel = () => { // 取消
                 $bkInfo({
                     type: 'warning',
+                    clsName: 'custom-info-confirm',
                     title: $i18n.t('确认退出当前编辑状态'),
                     subTitle: $i18n.t('退出后，你修改的内容将丢失'),
                     defaultInfo: true,

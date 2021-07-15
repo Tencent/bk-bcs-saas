@@ -24,7 +24,13 @@ class JSONEncoder(encoders.JSONEncoder):
 
     def default(self, obj):
         if dataclasses.is_dataclass(obj):
-            return dataclasses.asdict(obj)
+            # 如果 asdict 出现异常，则使用默认的 encoder 逻辑.
+            # note: kubernetes.dynamic.ResourceField 由于 __getattr__ 的逻辑，会通过 is_dataclass 检查，但实际并非dataclass
+            try:
+                return dataclasses.asdict(obj)
+            except Exception:
+                return super().default(obj)
+
         return super().default(obj)
 
 
@@ -48,11 +54,10 @@ class BKAPIRenderer(JSONRenderer):
                 'request_id': local.request_id,
             }
 
-        if renderer_context and renderer_context.get('permissions'):
-            data['permissions'] = renderer_context['permissions']
-
-        if renderer_context and renderer_context.get('message'):
-            data['message'] = renderer_context['message']
+        if renderer_context:
+            for key in ['permissions', 'message', 'web_annotations']:
+                if renderer_context.get(key):
+                    data[key] = renderer_context[key]
 
         response = super(BKAPIRenderer, self).render(data, accepted_media_type, renderer_context)
         return response

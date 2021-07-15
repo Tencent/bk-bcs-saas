@@ -30,7 +30,7 @@ DASHBOARD_API_URL_COMMON_PREFIX = f'/api/dashboard/projects/{TEST_PROJECT_ID}/cl
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ):
+    ), mock.patch('backend.dashboard.viewsets.validate_cluster_perm', new=lambda *args, **kwargs: None):
         yield
 
 
