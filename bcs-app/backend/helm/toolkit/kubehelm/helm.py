@@ -183,7 +183,7 @@ class KubeHelmClient:
                 template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
                 # 添加命名行参数
-                template_cmd_args = self._compose_cmd_args(template_cmd_args, kwargs.get("cmd_flags"))
+                template_cmd_args = self._compose_cmd_args(template_cmd_args, cmd_flags=kwargs.get("cmd_flags"))
 
                 template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
                 # NOTE: 现阶段不需要helm notes输出
@@ -334,14 +334,16 @@ class KubeHelmClient:
         """
         # 初始的 helm 命令参数
         init_opts = Options(cmd_args)
-        init_opts.add(chart_path)
+        if chart_path:
+            init_opts.add(chart_path)
         if ytt_config_path:
             init_opts.add({"--post-renderer": f"{ytt_config_path}/{YTT_RENDERER_NAME}"})
 
+        # 用户输入的操作
         opts = Options(cmd_flags)
         options = opts.options()
-        # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
-        # 并且--values在其它option前面，保证可以被后续的文件或key=val覆盖
+        # 1. 当reuse-values不存在并且values内容存在时，支持--values操作
+        # 2. 为保证用户输入的--set等操作可以覆盖values中的内容，--values操作需要放在用户输入操作的前面
         if "--reuse-values" not in options and values_path:
             init_opts.add({"--values": values_path})
 

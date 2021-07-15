@@ -51,18 +51,34 @@ fake_cmd_with_values = fake_cmd + ["--values", fake_values_path]
             + ["--reuse-values"],
         ),
         (
-            fake_chart_path,
+            None,
             fake_values_path,
             fake_post_renderer_config_path,
             [{"--set": "a=v1"}],
-            fake_cmd_with_values + ["--set", "a=v1"],
+            fake_init_cmd_args
+            + ["--post-renderer", f"{fake_post_renderer_config_path}/ytt_renderer", "--values", fake_values_path]
+            + ["--set", "a=v1"],
         ),
         (
             fake_chart_path,
             fake_values_path,
             None,
             [{"--set": "a=v1"}],
-            fake_init_cmd_args + [fake_chart_path] + ["--values", fake_values_path] + ["--set", "a=v1"],
+            fake_init_cmd_args + [fake_chart_path, "--values", fake_values_path] + ["--set", "a=v1"],
+        ),
+        (
+            None,
+            fake_values_path,
+            None,
+            [{"--set": "a=v1"}],
+            fake_init_cmd_args + ["--values", fake_values_path] + ["--set", "a=v1"],
+        ),
+        (
+            None,
+            None,
+            None,
+            [{"--set": "a=v1"}],
+            fake_init_cmd_args + ["--set", "a=v1"],
         ),
     ],
 )
@@ -72,6 +88,4 @@ def test_compose_cmd_args(chart_path, values_path, post_renderer_config_path, cm
     composed_cmd_args = client._compose_cmd_args(
         init_cmd_args, chart_path, values_path, post_renderer_config_path, cmd_flags
     )
-    print(composed_cmd_args)
-    print(expect_args)
     assert composed_cmd_args == expect_args
