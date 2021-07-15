@@ -1902,7 +1902,14 @@ export default {
     '最少选择三个服务器': ['Choose at least three servers'],
     '设置污点': ['Set Taint'],
     '影响': ['Effect'],
-    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}']
+    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}'],
+    '请输入值': ['Please enter value'],
+    '请输入参数': ['Please enter parameters'],
+    'Helm配置选项': ['Helm configuration options'],
+    'Chart配置选项': ['Chart configuration options'],
+    '加载中': ['loading'],
+    '等待所有Jobs完成': ['Wait for all the Jobs to complete'],
+    '超时时间': ['Time out']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
