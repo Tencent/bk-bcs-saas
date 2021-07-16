@@ -39,14 +39,14 @@ class NodeViewSets(SystemViewSet):
     def set_labels(self, request, project_id, cluster_id):
         """设置节点标签"""
         params = self.params_validate(slz.NodeLabelListSLZ)
-        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        node_client = Node(request.ctx_cluster)
         node_client.set_labels_for_multi_nodes(params["node_label_list"])
         return Response()
 
     def set_taints(self, request, project_id, cluster_id):
         """设置污点"""
         params = self.params_validate(slz.NodeTaintListSLZ)
-        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        node_client = Node(request.ctx_cluster)
         node_client.set_taints_for_multi_nodes(params["node_taint_list"])
         return Response()
 
@@ -62,5 +62,5 @@ class NodeViewSets(SystemViewSet):
     def query_taints(self, request, project_id, cluster_id):
         """查询node的污点"""
         params = self.params_validate(slz.QueryNodeListSLZ)
-        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        node_client = Node(request.ctx_cluster)
         return Response(node_client.query_nodes_field_data("taints", params["node_name_list"]))

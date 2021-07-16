@@ -192,3 +192,8 @@ class BcsCCNodeStatus(str, StructuredEnum):
 class KubeProxy(str, StructuredEnum):
     IPTABLES = EnumField("iptables")
     IPVS = EnumField("ipvs")
+
+
+# k8s cluster master role
+# 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
+K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"

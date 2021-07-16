@@ -93,15 +93,15 @@ class TestNode:
         assert fake_inner_ip in [node.inner_ip for node in nodes.items]
 
     @pytest.mark.parametrize(
-        "field, node_id_name, expected_data",
+        "field, node_id_field, expected_data",
         [
             ("name", "inner_ip", fake_node_name),
             ("labels", "name", fake_labels),
         ],
     )
-    def test_query_nodes_field_data(self, field, node_id_name, expected_data, client, create_and_delete_node):
-        data = client.query_nodes_field_data(field, [fake_node_name], node_id_name=node_id_name)
-        node_id = fake_inner_ip if node_id_name == "inner_ip" else fake_node_name
+    def test_query_nodes_field_data(self, field, node_id_field, expected_data, client, create_and_delete_node):
+        data = client.query_nodes_field_data(field, [fake_node_name], node_id_field=node_id_field)
+        node_id = fake_inner_ip if node_id_field == "inner_ip" else fake_node_name
         node_field_data = data[node_id]
         assert node_field_data == expected_data
 
