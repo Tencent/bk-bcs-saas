@@ -67,57 +67,57 @@ class Node(ResourceClient):
     kind = K8sResourceKind.Node.value
     result_type: Type['ResourceObj'] = NodeObj
 
-    def set_labels_for_multi_nodes(self, label_list: List[Dict]):
+    def set_labels_for_multi_nodes(self, node_labels: List[Dict]):
         """设置标签
 
-        :param label_list: 要设置的标签信息，格式: [{"node_name": "", "labels": {"key": "val"}}]
+        :param node_labels: 要设置的标签信息，格式: [{"node_name": "", "labels": {"key": "val"}}]
         NOTE: 如果要删除某个label时，不建议使用replace，可以把要删除的label的值设置为None
         """
-        node_labels = self.query_nodes_field_data(
-            "labels", [label["node_name"] for label in label_list], node_id_name="name", default_data={}
+        filter_labels = self.query_nodes_field_data(
+            "labels", [label["node_name"] for label in node_labels], node_id_name="name", default_data={}
         )
         # 比对数据，当label在集群节点中存在，而变更的数据中不存在，则需要在变更的数据中设置为None
-        for node in label_list:
-            labels = dict(node_labels.get(node["node_name"]))
+        for node in node_labels:
+            labels = filter_labels.get(node["node_name"])
             # 设置要删除key的值为None
             for key in set(labels) - set(node["labels"]):
                 node["labels"][key] = None
 
         # 下发的body格式: {"metadata": {"labels": {"demo": "demo"}}}
         tasks = [
-            functools.partial(self.patch, {"metadata": {"labels": l["labels"]}}, l["node_name"]) for l in label_list
+            functools.partial(self.patch, {"metadata": {"labels": l["labels"]}}, l["node_name"]) for l in node_labels
         ]
         # 当有操作失败的，抛出异常
         async_run(tasks)
 
-    def set_taints_for_multi_nodes(self, taint_list: List[Dict]):
+    def set_taints_for_multi_nodes(self, node_taints: List[Dict]):
         """设置污点
 
-        :param taint_list: 要设置的污点信息，格式: [{"node_name": "", "taints": [{"key": "", "value": "", "effect": ""}]}]
+        :param node_taints: 要设置的污点信息，格式: [{"node_name": "", "taints": [{"key": "", "value": "", "effect": ""}]}]
         """
         # 下发的body格式: {"spec": {"taints": [{"key": xxx, "value": xxx, "effect": xxx}]}}
-        tasks = [functools.partial(self.patch, {"spec": {"taints": t["taints"]}}, t["node_name"]) for t in taint_list]
+        tasks = [functools.partial(self.patch, {"spec": {"taints": t["taints"]}}, t["node_name"]) for t in node_taints]
         # 当有操作失败的，抛出异常
         async_run(tasks)
 
     def query_nodes_field_data(
         self,
         field: str,
-        node_name_list: List[str] = None,
+        node_names: List[str] = None,
         node_id_name: str = "inner_ip",
         default_data: Any = None,
     ) -> Dict:
         """查询节点属性
 
         :param field: 查询的属性
-        :param node_name_list: 节点name列表
+        :param node_names: 节点name列表
         :param node_id_name: 节点的标识名称，支持name和inner_ip，默认是inner_ip
         :returns: 返回节点的属性数据
         """
         nodes = self.list(is_format=False)
         data = {}
         for node in nodes.items:
-            if node_name_list and node.name not in node_name_list:
+            if node_names and node.name not in node_names:
                 continue
             # 因为field字段可控，先不添加异常处理
             node_id = getattr(node, node_id_name, "")

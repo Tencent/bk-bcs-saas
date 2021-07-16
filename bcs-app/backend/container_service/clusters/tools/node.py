@@ -31,13 +31,15 @@ def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) ->
     """查询节点数据
     包含标签、污点、状态等供前端展示数据
     """
-    cluster_node_list = NodeRespBuilder(ctx_cluster).do("list", is_format=False)
+    # 获取集群中的节点列表
+    node_client = NodeRespBuilder(ctx_cluster).client
+    cluster_node_list = node_client.list(is_format=False)
+
     nodes = {}
     for node in cluster_node_list.items:
-        # 获取label
         labels = node.labels
         # 现阶段节点页面展示及操作，需要排除master
-        if exclude_master and is_master(labels):
+        if exclude_master and labels.get("node-role.kubernetes.io/master") == "true":
             continue
 
         # 使用inner_ip作为key，主要是方便匹配及获取值
@@ -50,13 +52,6 @@ def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) ->
             "unschedulable": node.data.spec.unschedulable or False,
         }
     return nodes
-
-
-def is_master(labels: Dict) -> bool:
-    """判断是否为master"""
-    if labels.get("node-role.kubernetes.io/master") == "true":
-        return True
-    return False
 
 
 def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
@@ -142,18 +137,3 @@ class NodesData:
                 node["status"] = transform_status(node["status"], node["unschedulable"])
                 node_list.append(node)
         return node_list
-
-
-def query_labels(ctx_cluster: CtxCluster, node_name_list: List[str]) -> Dict:
-    """查询节点的标签
-    放到此处，后续前端调整后，可以废弃
-    """
-    node_labels = NodeRespBuilder(ctx_cluster).do(
-        "query_nodes_field_data", "labels", node_name_list=node_name_list, default_data={}
-    )
-    ext_data = {}
-    for inner_ip, labels in node_labels.items():
-        ext_data[inner_ip] = {key: "readonly" for key in filter_label_keys(list(labels.keys()))}
-    # TODO: 先方便前端处理数据，返回批量的数据，后续前端直接从列表中获取数据
-    node_labels["manifest_ext"] = ext_data
-    return node_labels

@@ -11,10 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.clusters.constants import K8S_RESERVED_NAMESPACE_LIST
+from backend.container_service.clusters.constants import K8S_RESERVED_KEY_WORDS
 from backend.resources.node.client import Node
 
 
@@ -28,41 +28,44 @@ class NodeRespBuilder:
     def __init__(self, ctx_cluster: CtxCluster):
         self.client = Node(ctx_cluster)
 
-    def do(self, func_name: str, *args, **kwargs) -> Any:
-        """
-        :param func_name: 函数名称
-        :returns: 返回请求数据
-        """
-        func = getattr(self.client, func_name, None)
-        if not func:
-            raise NotImplementedError(f"unsupported function: {func_name}")
-        return func(*args, **kwargs)
-
-    def list_nodes(self, *args, **kwargs) -> Any:
-        """查询类 API"""
-        nodes = self.do("list", is_format=False)
+    def list_nodes(self) -> Dict:
+        """查询节点列表"""
+        nodes = self.client.list(is_format=False)
         return {
             "manifest": nodes.data.to_dict(),
             "manifest_ext": {
-                node["metadata"]["uid"]: {
+                node.metadata["uid"]: {
                     "status": node.node_status,
-                    "labels": {key: "readonly" for key in filter_label_keys(list(node.labels.keys()))},
+                    "labels": {key: "readonly" for key in filter_label_keys(node.labels.keys())},
                 }
                 for node in nodes.items
             },
         }
 
+    def query_labels(self, node_names: List[str]) -> Dict[str, Dict]:
+        """查询节点标签
+        TODO: 这里是兼容处理，方便前端使用，后续前端直接通过列表获取数据
+        """
+        node_labels = self.client.query_nodes_field_data("labels", node_names=node_names, default_data={})
+        ext_data = {}
+        for inner_ip, labels in node_labels.items():
+            ext_data[inner_ip] = {key: "readonly" for key in filter_label_keys(labels.keys())}
+
+        node_labels["manifest_ext"] = ext_data
+        return node_labels
+
 
 def filter_label_keys(label_keys: List) -> List:
     """过滤满足条件的标签key"""
-    return list(filter(lambda key: is_reserved_label_key(key), label_keys))
+    return list(filter(is_reserved_label_key, label_keys))
 
 
 def is_reserved_label_key(label_key: str) -> bool:
     """判断label是否匹配
     NOTE: 现阶段包含指定字符串的label，认为是预留的label，不允许编辑
     """
-    for match_key in K8S_RESERVED_NAMESPACE_LIST:
-        if match_key in label_key:
+    for key_word in K8S_RESERVED_KEY_WORDS:
+        # k8s预留的标签key的格式: xxx.key_word/xxx
+        if label_key.split("/")[0].endswith(key_word):
             return True
     return False

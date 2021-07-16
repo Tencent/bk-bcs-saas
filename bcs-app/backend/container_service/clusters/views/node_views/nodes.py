@@ -36,29 +36,31 @@ class NodeViewSets(SystemViewSet):
         client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id, cluster.get("name", ""))
         return Response(client.nodes())
 
+    def set_labels(self, request, project_id, cluster_id):
+        """设置节点标签"""
+        params = self.params_validate(slz.NodeLabelListSLZ)
+        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        node_client.set_labels_for_multi_nodes(params["node_label_list"])
+        return Response()
+
+    def set_taints(self, request, project_id, cluster_id):
+        """设置污点"""
+        params = self.params_validate(slz.NodeTaintListSLZ)
+        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        node_client.set_taints_for_multi_nodes(params["node_taint_list"])
+        return Response()
+
     def query_labels(self, request, project_id, cluster_id):
         """查询node的标签
 
         TODO：关于labels和taints是否有必要合成一个，通过前端传递参数判断查询类型
         """
         params = self.params_validate(slz.QueryNodeListSLZ)
-        return Response(node.query_labels(request.ctx_cluster, params["node_name_list"]))
+        builder = resp.NodeRespBuilder(request.ctx_cluster)
+        return Response(builder.query_labels(params["node_name_list"]))
 
     def query_taints(self, request, project_id, cluster_id):
         """查询node的污点"""
         params = self.params_validate(slz.QueryNodeListSLZ)
-        return Response(
-            resp.NodeRespBuilder(request.ctx_cluster).do("query_nodes_field_data", "taints", params["node_name_list"])
-        )
-
-    def set_labels(self, request, project_id, cluster_id):
-        """设置节点标签"""
-        params = self.params_validate(slz.NodeLabelListSLZ)
-        resp.NodeRespBuilder(request.ctx_cluster).do("set_labels_for_multi_nodes", params["node_label_list"])
-        return Response()
-
-    def set_taints(self, request, project_id, cluster_id):
-        """设置污点"""
-        params = self.params_validate(slz.NodeTaintListSLZ)
-        resp.NodeRespBuilder(request.ctx_cluster).do("set_taints_for_multi_nodes", params["node_taint_list"])
-        return Response()
+        node_client = resp.NodeRespBuilder(request.ctx_cluster).client
+        return Response(node_client.query_nodes_field_data("taints", params["node_name_list"]))

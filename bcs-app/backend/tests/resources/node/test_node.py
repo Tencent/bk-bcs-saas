@@ -103,10 +103,7 @@ class TestNode:
         data = client.query_nodes_field_data(field, [fake_node_name], node_id_name=node_id_name)
         node_id = fake_inner_ip if node_id_name == "inner_ip" else fake_node_name
         node_field_data = data[node_id]
-        if isinstance(node_field_data, ResourceField):
-            assert dict(node_field_data) == expected_data
-        else:
-            assert node_field_data == expected_data
+        assert node_field_data == expected_data
 
     @pytest.mark.parametrize(
         "labels, expected",
@@ -114,31 +111,24 @@ class TestNode:
             ({"bcs-test": "v1"}, {"bcs-test": "v1"}),
             ({"bcs-test": "v1", "bcs-test1": "v2"}, {"bcs-test": "v1", "bcs-test1": "v2"}),
             ({"bcs-test1": "v2"}, {"bcs-test1": "v2"}),
-            ({}, None),
+            ({}, {}),
         ],
     )
     def test_set_labels(self, labels, expected, client, create_and_delete_node):
         client.set_labels_for_multi_nodes([{"node_name": fake_node_name, "labels": labels}])
-        # 查询label
-        node_labels = client.query_nodes_field_data("labels", node_name_list=[fake_node_name])
+        node_labels = client.query_nodes_field_data("labels", node_names=[fake_node_name])
         labels = node_labels[fake_inner_ip]
-        if isinstance(labels, ResourceField):
-            assert dict(labels) == expected
-        else:
-            assert labels == expected
+        assert labels == expected
 
     @pytest.mark.parametrize(
         "taints, expected",
         [
             ([{"key": "test", "value": "", "effect": "NoSchedule"}], [{"key": "test", "effect": "NoSchedule"}]),
-            ([], None),
+            ([], []),
         ],
     )
     def test_set_taints(self, taints, expected, client, create_and_delete_node):
         client.set_taints_for_multi_nodes([{"node_name": fake_node_name, "taints": taints}])
-        node_taints = client.query_nodes_field_data("taints", node_name_list=[fake_node_name])
+        node_taints = client.query_nodes_field_data("taints", node_names=[fake_node_name])
         taints = node_taints[fake_inner_ip]
-        if taints:
-            assert expected == [dict(t) for t in taints]
-        else:
-            assert taints is expected
+        assert taints is expected

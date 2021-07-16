@@ -167,8 +167,9 @@ class ClusterNetworkType(ChoicesEnum):
 
 
 # K8S 系统预留标签的key
-# Kubernetes 预留命名空间 kubernetes.io 用于所有的标签和注解
-K8S_RESERVED_NAMESPACE_LIST = ["kubernetes.io"]
+# Kubernetes 预留关键字 kubernetes.io, 用于系统的标签和注解
+# https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+K8S_RESERVED_KEY_WORDS = ["kubernetes.io"]
 
 
 class BcsCCNodeStatus(str, StructuredEnum):

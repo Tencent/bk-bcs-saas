@@ -11,23 +11,44 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from unittest.mock import patch
-
 import pytest
 
-from backend.container_service.clusters.tools.resp import NodeClient
-from backend.tests.testing_utils.mocks.node import StubNodeClient
+from backend.container_service.clusters.tools.resp import NodeRespBuilder, filter_label_keys, is_reserved_label_key
+from backend.resources.constants import NodeConditionStatus
+
+from .conftest import fake_inner_ip
 
 
-class TestNodeClient:
-    @patch("backend.container_service.clusters.tools.resp.Node", new=StubNodeClient)
-    def test_normal(self, ctx_cluster):
-        client = NodeClient(ctx_cluster)
-        data = client.do("list")
-        assert len(data) > 0
+class TestNodeRespBuilder:
+    def test_list_nodes(self, client, create_and_delete_node, ctx_cluster):
+        resp_builder = NodeRespBuilder(ctx_cluster)
+        nodes = resp_builder.list_nodes()
+        assert "manifest_ext" in nodes
+        manifest_ext = nodes["manifest_ext"]
+        for _, ext in manifest_ext.items():
+            assert "status" in ext
+            assert ext["status"] in NodeConditionStatus.get_values()
 
-    @patch("backend.container_service.clusters.tools.resp.Node", new=StubNodeClient)
-    def test_exception(self, ctx_cluster):
-        client = NodeClient(ctx_cluster)
-        with pytest.raises(NotImplementedError):
-            client.do("")
+    def test_query_labels(self, node_name, client, create_and_delete_node, ctx_cluster):
+        resp_builder = NodeRespBuilder(ctx_cluster)
+        data = resp_builder.query_labels([node_name])
+        assert "manifest_ext" in data
+        # 如果过滤到k8s预留的label，则manifest_ext中指定节点存在manifest_ext
+        if filter_label_keys(data[fake_inner_ip]):
+            assert data["manifest_ext"][fake_inner_ip]
+        else:
+            assert data["manifest_ext"][fake_inner_ip] == {}
+
+
+@pytest.mark.parametrize(
+    "label_key,is_reserved", [("test", False), ("kubernetes.io/arch", True), ("xxx.kubernetes.io/instance_type", True)]
+)
+def test_is_reserved_label_key(label_key, is_reserved):
+    assert is_reserved_label_key(label_key) == is_reserved
+
+
+@pytest.mark.parametrize(
+    "keys,expected_keys", [(["kubernetes.io/arch", "test"], ["kubernetes.io/arch"]), (["test", []])]
+)
+def test_filter_label_keys(keys, expected_keys):
+    assert filter_label_keys(keys) == expected_keys
