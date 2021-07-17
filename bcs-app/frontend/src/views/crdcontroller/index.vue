@@ -281,7 +281,7 @@
             :title="valueSlider.title"
             :width="'900'">
             <div class="p0" slot="content">
-                <bk-button class="bk-button bk-primary save-crd-btn" @click.stop.prevent="enableCrdController"></bk-button>
+                <bk-button class="bk-button bk-primary save-crd-btn" @click.stop.prevent="enableCrdController">{{$t('保存')}}</bk-button>
                 <bk-button class="bk-button bk-default hide-crd-btn" @click.stop.prevent="hideApplicationJson">{{$t('取消')}}</bk-button>
                 <div :class="['diff-editor-box', { 'editor-fullscreen': editorOptions.fullScreen }]" style="position: relative;">
                     <monaco-editor
@@ -442,6 +442,10 @@
             },
 
             async haneldEnableCrdController (crdcontroller) {
+                // 清空数据
+                this.editorOptions.content = ''
+                this.editorOptions.originContent = ''
+
                 this.curCrdcontroller = crdcontroller
                 if (crdcontroller.default_values_content) {
                     this.valueSlider.title = `${this.$t('启用组件：')}${crdcontroller.name}`
@@ -473,6 +477,13 @@
                 } finally {
                     this.editorOptions.readOnly = false
                 }
+            },
+
+            hideApplicationJson () {
+                this.valueSlider.isShow = false
+                // 清空数据
+                this.editorOptions.content = ''
+                this.editorOptions.originContent = ''
             },
 
             async getCrdControllersByCluster () {
