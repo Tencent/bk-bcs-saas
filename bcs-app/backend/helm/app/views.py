@@ -48,7 +48,7 @@ from backend.helm.helm.serializers import ChartVersionSLZ
 from backend.helm.permissions import check_cluster_perm
 from backend.helm.toolkit.diff import parser
 from backend.kube_core.toolkit.dashboard_cli.exceptions import DashboardError, DashboardExecutionError
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.utils import client as bcs_utils_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.views import AccessTokenMixin, ActionSerializerMixin, AppMixin, ProjectMixin, with_code_wrapper
@@ -143,7 +143,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
         app_list = []
         for item in data:
             # 过滤掉k8s系统和bcs平台命名空间下的release
-            if item["namespace"] in K8S_SYS_PLAT_NAMESPACES:
+            if item["namespace"] in K8S_PLAT_NAMESPACE:
                 continue
             cluster_info = project_cluster.get(item['cluster_id']) or {'name': item['cluster_id']}
             item['cluster_name'] = cluster_info['name']
@@ -254,7 +254,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         filter_ns_list = []
         for i in results:
             # 过滤掉k8s系统和bcs平台使用的命名空间
-            if i["name"] in K8S_SYS_PLAT_NAMESPACES:
+            if i["name"] in K8S_PLAT_NAMESPACE:
                 continue
             # ns_vars = NameSpaceVariable.get_ns_vars(i['id'], project_id)
             i['ns_vars'] = []
