@@ -11,21 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
-from typing import Optional
-
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.constants import DEFAULT_HPA_API_VERSION, K8sResourceKind
-from backend.resources.resource import ResourceClient
-
-from .formatter import HPAFormatterV2
-
-logger = logging.getLogger(__name__)
+from backend.dashboard.viewsets import DashboardViewSet
+from backend.resources.hpa.client import HPA
 
 
-class HPA(ResourceClient):
-    kind = K8sResourceKind.HorizontalPodAutoscaler.value
-    formatter = HPAFormatterV2()
+class HPAViewSet(DashboardViewSet):
+    """ HPA 相关接口 """
 
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = DEFAULT_HPA_API_VERSION):
-        super().__init__(ctx_cluster, api_version)
+    resource_client = HPA

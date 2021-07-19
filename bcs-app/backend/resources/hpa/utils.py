@@ -11,21 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
-from typing import Optional
+from typing import Dict
 
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.constants import DEFAULT_HPA_API_VERSION, K8sResourceKind
-from backend.resources.resource import ResourceClient
-
-from .formatter import HPAFormatterV2
-
-logger = logging.getLogger(__name__)
+from attr import dataclass
 
 
-class HPA(ResourceClient):
-    kind = K8sResourceKind.HorizontalPodAutoscaler.value
-    formatter = HPAFormatterV2()
+@dataclass
+class HPAMetricsParser:
+    """
+    HPA 指标解析器，解析逻辑参考
+    kubernetes/kubernetes formatHPAMetrics
+    https://github.com/kubernetes/kubernetes/blob/master/pkg/printers/internalversion/printers.go#L2027
+    """
 
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = DEFAULT_HPA_API_VERSION):
-        super().__init__(ctx_cluster, api_version)
+    hpa: Dict
+    metrics: str = None
+
+    def parse(self) -> str:
+        """ 获取 Pod 总状态 """
+        return '--'

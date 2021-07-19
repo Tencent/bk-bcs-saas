@@ -17,12 +17,13 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 
+from backend.resources.hpa.utils import HPAMetricsParser
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.uniapps.application import constants as application_constants
 from backend.utils import basic
+from backend.utils.basic import get_with_placeholder, getitems
 
 logger = logging.getLogger(__name__)
 
@@ -149,3 +150,21 @@ class HPAFormatter(ResourceDefaultFormatter):
         data["update_time"] = annotations.get(instance_constants.ANNOTATIONS_UPDATE_TIME, data["create_time"])
         data["updator"] = annotations.get(instance_constants.ANNOTATIONS_UPDATOR, data["creator"])
         return data
+
+
+class HPAFormatterV2(ResourceDefaultFormatter):
+    """ HPA 格式化（资源视图用）"""
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        res = self.format_common_dict(resource_dict)
+        ref = resource_dict['spec']['scaleTargetRef']
+        res.update(
+            {
+                'reference': f"{ref['kind']}/{ref['name']}",
+                'targets': HPAMetricsParser(resource_dict).parse(),
+                'min_pods': get_with_placeholder(resource_dict, 'spec.minReplicas', '<unset>'),
+                'max_pods': getitems(resource_dict, 'spec.maxReplicas'),
+                'replicas': get_with_placeholder(resource_dict, 'status.currentReplicas'),
+            }
+        )
+        return res

@@ -18,7 +18,10 @@ from backend.utils.basic import ChoicesEnum
 KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
-DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
+DEFAULT_CRON_JOB_API_VERSION = 'batch/v1beta1'
+
+# HPA 需要指定 api_version
+DEFAULT_HPA_API_VERSION = 'autoscaling/v2beta2'
 
 
 class WorkloadTypes(ChoicesEnum):
@@ -63,6 +66,8 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
+    # hpa
+    HorizontalPodAutoscaler = "HorizontalPodAutoscaler"
     # other
     Event = "Event"
     Namespace = "Namespace"
@@ -90,6 +95,8 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
+        # hpa
+        (HorizontalPodAutoscaler, "HorizontalPodAutoscaler"),
         # other
         (Event, "Event"),
         (Namespace, "Namespace"),
