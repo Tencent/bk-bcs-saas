@@ -18,7 +18,7 @@ import yaml
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa import hpa as hpa_client
+from backend.resources.hpa import client as hpa_client
 from backend.utils.basic import getitems
 
 from ..conftest import FakeBcsKubeConfigurationService

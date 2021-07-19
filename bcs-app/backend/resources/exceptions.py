@@ -25,3 +25,7 @@ class ResourceBaseError(Exception):
 
     def __str__(self):
         return self.message
+
+
+class DeleteResourceError(Exception):
+    """ 删除资源异常 """
