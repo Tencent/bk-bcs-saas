@@ -12,23 +12,26 @@ export default function useTableData (ctx: SetupContext) {
         manifest_ext: {},
         manifest: {}
     })
+    const webAnnotations = ref<any>({})
 
     const { $store } = ctx.root
 
     const fetchList = async (type: string, category: string): Promise<ISubscribeData> => {
         isLoading.value = true
-        const tableData = await $store.dispatch('dashboard/getTableData', {
+        const res = await $store.dispatch('dashboard/getTableData', {
             $type: type,
             $category: category
         })
-        data.value = tableData
+        data.value = res.data
+        webAnnotations.value = res.web_annotations || {}
         isLoading.value = false
-        return tableData
+        return res.data
     }
 
     return {
         isLoading,
         data,
+        webAnnotations,
         fetchList
     }
 }

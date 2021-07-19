@@ -209,14 +209,14 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const data = await $store.dispatch('dashboard/getResourceDetail', {
+                const res = await $store.dispatch('dashboard/getResourceDetail', {
                     $namespaceId: namespace.value,
                     $category: category.value,
                     $name: name.value,
                     $type: type.value
                 })
-                original.value = JSON.parse(JSON.stringify(data?.manifest || {})) // 缓存原始值
-                setDetail(data?.manifest)
+                original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
+                setDetail(res.data?.manifest)
                 isLoading.value = false
                 return detail.value
             }
