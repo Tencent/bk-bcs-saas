@@ -253,7 +253,7 @@
                                                 <span class="equals-sign">=</span>
                                                 <bk-input style="width: 280px;" :placeholder="$t('值')" v-model="item.value" />
                                                 <button class="action-btn" @click.stop.prevent>
-                                                    <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addHign"></i>
+                                                    <i class="bk-icon icon-plus-circle mr5" v-if="index === 0" @click.stop.prevent="addHign"></i>
                                                     <i class="bk-icon icon-minus-circle" @click.stop.prevent="delHign(index)"></i>
                                                 </button>
                                                 <p class="error-key" v-if="item.errorKeyTip">{{ item.errorKeyTip }}</p>
