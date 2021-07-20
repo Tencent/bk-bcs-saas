@@ -342,15 +342,6 @@
                     })
 
                     const data = res.data || { td_list: [], th_list: [] }
-                    // const data = {
-                    //     'th_list': ['name', 'cluster_id', 'namespace', 'UPDATED_READY', 'DESIRED', 'UPDATE', 'Replicas', 'ReadyReplicas', 'Age'],
-                    //     'td_list': [
-                    //         { 'name': 'test-gamedeployment', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'UPDATED_READY': 1, 'DESIRED': 1, 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'test-gamedeployment', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'UPDATED_READY': 1, 'DESIRED': 1, 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'test-gamedeployment', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'UPDATED_READY': 1, 'DESIRED': 1, 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'test-gamedeployment', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'UPDATED_READY': 1, 'DESIRED': 1, 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' }
-                    //     ]
-                    // }
 
                     if (data.th_list.length) {
                         this.columnList.splice(0, this.columnList.length, ...data.th_list)

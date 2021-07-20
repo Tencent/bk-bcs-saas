@@ -66,7 +66,8 @@
                     :params="params"
                     category="pods"
                     unit="byte"
-                    :colors="['#853cff', '#30d878']">
+                    :colors="['#853cff', '#30d878']"
+                    :suffix="[$t('网络入流量'), $t('网络出流量')]">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
