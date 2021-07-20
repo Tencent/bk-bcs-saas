@@ -28,11 +28,11 @@ class HPAMetricsParser:
     """
 
     hpa: Dict
-    metrics: List[str] = []
 
     def __attrs_post_init__(self):
         self.specs = getitems(self.hpa, 'spec.metrics') or []
         self.statuses = getitems(self.hpa, 'status.currentMetrics') or []
+        self.metrics = []
 
     def parse(self) -> str:
         """ 获取 HPA Metrics 信息 """
@@ -114,7 +114,7 @@ class HPAMetricsParser:
     def _parse_container_resource_metric(self, idx: int, spec: Dict) -> str:
         """ 解析来源自 ContainerResource 的指标信息 """
         current = '<unknown>'
-        if getitems(spec, 'resource.target.averageValue') is not None:
+        if getitems(spec, 'containerResource.target.averageValue') is not None:
             if len(self.statuses) > idx:
                 res_cur_avg_val = getitems(self.statuses[idx], 'containerResource.current.averageValue')
                 current = res_cur_avg_val if res_cur_avg_val else current
