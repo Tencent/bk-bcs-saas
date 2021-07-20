@@ -70,7 +70,7 @@
                                 :min-width="defaultColumnMap[column] ? defaultColumnMap[column].minWidth : 'auto'"
                                 :key="index">
                                 <template slot-scope="{ row }">
-                                    <div class="cell">
+                                    <div>
                                         <template v-if="column === 'name'">
                                             <a href="javascript:void(0);" class="bk-text-button name-col bcs-ellipsis" style="font-weight: 700;"
                                                 @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
