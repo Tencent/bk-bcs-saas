@@ -265,6 +265,10 @@
             }
             const handleFullScreen = () => { // 全屏
                 fullScreen.value = !fullScreen.value
+                fullScreen.value && $bkMessage({
+                    theme: 'primary',
+                    message: $i18n.t('按Esc即可退出全屏模式')
+                })
             }
             const handleExitFullScreen = (event: KeyboardEvent) => { // esc退出全屏
                 if (event.code === 'Escape') {

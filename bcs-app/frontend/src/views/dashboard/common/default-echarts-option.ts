@@ -30,6 +30,7 @@ export default function (unit) {
                     backgroundColor: '#6a7985'
                 }
             },
+            extraCssText: 'white-space: break-spaces;',
             formatter: (params) => {
                 const date = formatDate(params?.[0]?.axisValue * 1000, 'YYYY-MM-DD hh:mm:ss')
                 let ret = `<div>${date}</div>`
