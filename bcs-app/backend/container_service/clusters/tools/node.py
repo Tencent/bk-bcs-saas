@@ -12,8 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+import logging
 from dataclasses import dataclass
 from typing import Dict, List
+
+from kubernetes.client import ApiException
 
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
@@ -24,7 +27,7 @@ from backend.resources.constants import NodeConditionStatus
 from backend.resources.node.client import Node
 from backend.utils.basic import getitems
 
-from .resp import NodeRespBuilder, filter_label_keys
+from .resp import filter_label_keys
 
 
 def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:
@@ -32,8 +35,12 @@ def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) ->
     包含标签、污点、状态等供前端展示数据
     """
     # 获取集群中的节点列表
-    node_client = NodeRespBuilder(ctx_cluster).client
-    cluster_node_list = node_client.list(is_format=False)
+    node_client = Node(ctx_cluster)
+    try:
+        cluster_node_list = node_client.list(is_format=False)
+    except ApiException:
+        # 查询集群内节点异常，返回空字典
+        return {}
 
     nodes = {}
     for node in cluster_node_list.items:
