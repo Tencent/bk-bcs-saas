@@ -138,7 +138,7 @@
                         // series 配置
                         const name = result.metric?.[metricNameProp.value]
                         return {
-                            name: suffix ? `${name} / ${suffix}` : name,
+                            name: suffix ? `${name} ${suffix}` : name,
                             type: 'line',
                             showSymbol: false,
                             smooth: true,
