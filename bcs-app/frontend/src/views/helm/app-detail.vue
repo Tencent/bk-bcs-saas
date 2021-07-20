@@ -244,7 +244,7 @@
                                         {{ $t('超时时间') }}
                                         <i style="font-size: 12px;cursor: pointer;"
                                             class="bcs-icon bcs-icon-info-circle"
-                                            v-bk-tooltips.top="'timeout'" />
+                                            v-bk-tooltips.top="'--timeout'" />
                                     </div>
                                     <bk-input
                                         v-model="timeoutValue"
@@ -661,26 +661,26 @@
                 isShowCommandParams: false,
                 commandList: [
                     {
-                        id: 'skip-crds',
+                        id: '--skip-crds',
                         disabled: false,
                         desc: this.$t('忽略CRD')
                     },
                     {
-                        id: 'wait-for-jobs',
+                        id: '--wait-for-jobs',
                         disabled: false,
                         desc: this.$t('等待所有Jobs完成')
                     },
                     {
-                        id: 'wait',
+                        id: '--wait',
                         disabled: false,
                         desc: this.$t('等待所有Pod，PVC处于ready状态')
                     }
                 ],
                 helmCommandParams: {
-                    'skip-crds': false,
-                    'wait-for-jobs': false,
-                    'wait': false,
-                    'timeout': false
+                    '--skip-crds': false,
+                    '--wait-for-jobs': false,
+                    '--wait': false,
+                    '--timeout': false
                 },
                 notesdialog: {
                     isShow: false,
@@ -1054,18 +1054,17 @@
                     const commonKeys = Object.keys(this.helmCommandParams)
                     this.originReleaseData.cmd_flags.forEach(item => {
                         const stringKey = Object.keys(item).join(',')
-                        const key = stringKey.slice(2, stringKey.length)
                         // 常用枚举项不包含则是用户自定义高级配置
-                        if (!commonKeys.includes(key)) {
+                        if (!commonKeys.includes(stringKey)) {
                             const obj = {}
                             obj.key = stringKey
                             obj.value = item[stringKey]
                             this.hignSetupMap.push(obj)
                         } else {
-                            if (key === 'timeout') {
+                            if (stringKey === '--timeout') {
                                 this.timeoutValue = item[stringKey].slice(0, item[stringKey].length - 1)
                             } else {
-                                this.helmCommandParams[key] = true
+                                this.helmCommandParams[stringKey] = true
                             }
                         }
                     })
@@ -1394,8 +1393,7 @@
                 for (const key in this.helmCommandParams) {
                     if (this.helmCommandParams[key]) {
                         const obj = {}
-                        const id = '--' + key
-                        obj[id] = true
+                        obj[key] = true
                         commands.push(obj)
                     }
                 }
@@ -1635,7 +1633,6 @@
                 const params = this.getAppParams()
                 const projectId = this.projectId
                 const appId = this.$route.params.appId
-
                 this.isDifferenceLoading = true
                 this.difference = ''
                 this.isChartVersionChange = ''
