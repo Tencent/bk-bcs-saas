@@ -32,12 +32,7 @@ class TestNodeRespBuilder:
     def test_query_labels(self, node_name, client, create_and_delete_node, ctx_cluster):
         resp_builder = NodeRespBuilder(ctx_cluster)
         data = resp_builder.query_labels([node_name])
-        assert "manifest_ext" in data
-        # 如果过滤到k8s预留的label，则manifest_ext中指定节点存在manifest_ext
-        if filter_label_keys(data[fake_inner_ip]):
-            assert data["manifest_ext"][fake_inner_ip]
-        else:
-            assert data["manifest_ext"][fake_inner_ip] == {}
+        assert data[fake_inner_ip]
 
 
 @pytest.mark.parametrize(

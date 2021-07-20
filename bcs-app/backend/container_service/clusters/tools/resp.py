@@ -46,12 +46,7 @@ class NodeRespBuilder:
         """查询节点标签
         TODO: 这里是兼容处理，方便前端使用，后续前端直接通过列表获取数据
         """
-        node_labels = self.client.query_nodes_field_data("labels", node_names=node_names, default_data={})
-        ext_data = {}
-        for inner_ip, labels in node_labels.items():
-            ext_data[inner_ip] = {key: "readonly" for key in filter_label_keys(labels.keys())}
-
-        node_labels["manifest_ext"] = ext_data
+        node_labels = self.client.filter_nodes_field_data("labels", filter_node_names=node_names, default_data={})
         return node_labels
 
 

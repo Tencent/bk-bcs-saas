@@ -63,4 +63,4 @@ class NodeViewSets(SystemViewSet):
         """查询node的污点"""
         params = self.params_validate(slz.QueryNodeListSLZ)
         node_client = Node(request.ctx_cluster)
-        return Response(node_client.query_nodes_field_data("taints", params["node_name_list"]))
+        return Response(node_client.filter_nodes_field_data("taints", params["node_name_list"]))

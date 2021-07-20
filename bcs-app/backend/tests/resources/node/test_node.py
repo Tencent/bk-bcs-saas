@@ -100,7 +100,7 @@ class TestNode:
         ],
     )
     def test_query_nodes_field_data(self, field, node_id_field, expected_data, client, create_and_delete_node):
-        data = client.query_nodes_field_data(field, [fake_node_name], node_id_field=node_id_field)
+        data = client.filter_nodes_field_data(field, [fake_node_name], node_id_field=node_id_field)
         node_id = fake_inner_ip if node_id_field == "inner_ip" else fake_node_name
         node_field_data = data[node_id]
         assert node_field_data == expected_data
@@ -116,7 +116,7 @@ class TestNode:
     )
     def test_set_labels(self, labels, expected, client, create_and_delete_node):
         client.set_labels_for_multi_nodes([{"node_name": fake_node_name, "labels": labels}])
-        node_labels = client.query_nodes_field_data("labels", node_names=[fake_node_name])
+        node_labels = client.filter_nodes_field_data("labels", filter_node_names=[fake_node_name])
         labels = node_labels[fake_inner_ip]
         assert labels == expected
 
@@ -129,6 +129,6 @@ class TestNode:
     )
     def test_set_taints(self, taints, expected, client, create_and_delete_node):
         client.set_taints_for_multi_nodes([{"node_name": fake_node_name, "taints": taints}])
-        node_taints = client.query_nodes_field_data("taints", node_names=[fake_node_name])
+        node_taints = client.filter_nodes_field_data("taints", filter_node_names=[fake_node_name])
         taints = node_taints[fake_inner_ip]
-        assert taints is expected
+        assert taints == expected

@@ -13,7 +13,7 @@
 #
 import functools
 import logging
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Type
 
 from kubernetes.dynamic.resource import ResourceInstance
 
@@ -73,7 +73,7 @@ class Node(ResourceClient):
         :param node_labels: 要设置的标签信息，格式: [{"node_name": "", "labels": {"key": "val"}}]
         NOTE: 如果要删除某个label时，不建议使用replace，可以把要删除的label的值设置为None
         """
-        filter_labels = self.query_nodes_field_data(
+        filter_labels = self.filter_nodes_field_data(
             "labels", [label["node_name"] for label in node_labels], node_id_field="name", default_data={}
         )
         # 比对数据，当label在集群节点中存在，而变更的数据中不存在，则需要在变更的数据中设置为None
@@ -100,24 +100,24 @@ class Node(ResourceClient):
         # 当有操作失败的，抛出异常
         async_run(tasks)
 
-    def query_nodes_field_data(
+    def filter_nodes_field_data(
         self,
         field: str,
-        node_names: Optional[List[str]] = None,
+        filter_node_names: List[str],
         node_id_field: str = "inner_ip",
         default_data: Any = None,
     ) -> Dict:
         """查询节点属性
 
         :param field: 查询的属性
-        :param node_names: 节点name列表
+        :param filter_node_names: 节点name列表
         :param node_id_field: 节点标识的属性名称，支持name和inner_ip，默认是inner_ip
         :returns: 返回节点的属性数据
         """
         nodes = self.list(is_format=False)
         data = {}
         for node in nodes.items:
-            if node_names and node.name not in node_names:
+            if node.name not in filter_node_names:
                 continue
             # 因为field字段可控，先不添加异常处理
             node_id = getattr(node, node_id_field, "")
