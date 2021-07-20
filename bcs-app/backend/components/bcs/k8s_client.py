@@ -11,12 +11,36 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict
+
+from cachetools import LRUCache, cached
+from cachetools.keys import hashkey
 from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
 
 from backend.components.bcs import BCSClientBase, resources
 from backend.components.utils import http_get
+
+
+@cached(
+    cache=LRUCache(maxsize=128),
+    key=lambda url_prefix, access_token, project_id, cluster_id: hashkey(url_prefix, project_id, cluster_id),
+)
+def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cluster_id: str) -> Dict:
+    """组装集群的Context"""
+    # 获取bcs api的集群信息
+    url = f"{url_prefix}/bcs/query_by_id/"
+    params = {"access_token": access_token, "project_id": project_id, "cluster_id": cluster_id}
+    headers = {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
+    context = http_get(url, params=params, raise_for_status=False, headers=headers)
+    # 获取集群的credential
+    url = f"{url_prefix}/{context['id']}/client_credentials"
+    params = {"access_token": access_token}
+    credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
+    context.update(credentials)
+
+    return context
 
 
 class K8SAPIClient(BCSClientBase):
@@ -28,27 +52,9 @@ class K8SAPIClient(BCSClientBase):
     def _headers_for_bcs_agent_api(self):
         return {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
 
-    def query_cluster(self):
-        url = f"{self.rest_host}/bcs/query_by_id/"
-        params = {"access_token": self.access_token, "project_id": self.project_id, "cluster_id": self.cluster_id}
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
-
-    def get_client_credentials(self, bke_cluster_id):
-        """获取证书, user_token, server_address_path"""
-        url = f"{self.rest_host}/{bke_cluster_id}/client_credentials"
-        params = {"access_token": self.access_token}
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
-
     @cached_property
     def api_client(self):
-        context = {}
-        cluster_info = self.query_cluster()
-        context.update(cluster_info)
-
-        credentials = self.get_client_credentials(cluster_info["id"])
-        context.update(credentials)
+        context = make_cluster_context(self.rest_host, self.access_token, self.project_id, self.cluster_id)
 
         configure = client.Configuration()
         configure.verify_ssl = False
