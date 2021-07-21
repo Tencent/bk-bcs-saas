@@ -23,6 +23,8 @@ from backend.dashboard.subscribe.constants import (
     KIND_RESOURCE_CLIENT_MAP,
 )
 from backend.dashboard.subscribe.serializers import FetchResourceWatchResultSLZ
+from backend.resources.constants import K8sResourceKind
+from backend.resources.custom_object import CustomObject
 from backend.utils.basic import getitems
 
 
@@ -33,9 +35,15 @@ class SubscribeViewSet(SystemViewSet):
         """获取指定资源某resource_version后变更记录"""
         params = self.params_validate(FetchResourceWatchResultSLZ)
 
-        # 根据 Kind 获取对应的 K8S Resource Client 并初始化
-        Client = KIND_RESOURCE_CLIENT_MAP[params['kind']]
-        resource_client = Client(request.ctx_cluster)
+        if params['kind'] == K8sResourceKind.CustomObject.value:
+            # 自定义资源类型走特殊的获取 ResourceClient 逻辑
+            resource_client = CustomObject(
+                request.ctx_cluster, kind=params['custom_obj_kind'], api_version=params['api_version']
+            )
+        else:
+            # 根据 Kind 获取对应的 K8S Resource Client 并初始化
+            Client = KIND_RESOURCE_CLIENT_MAP[params['kind']]
+            resource_client = Client(request.ctx_cluster)
         res_version = params['resource_version']
         try:
             events = resource_client.watch(resource_version=res_version, timeout=DEFAULT_SUBSCRIBE_TIMEOUT)

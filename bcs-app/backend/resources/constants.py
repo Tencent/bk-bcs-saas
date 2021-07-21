@@ -95,6 +95,7 @@ class K8sResourceKind(ChoicesEnum):
         (ServiceAccount, "ServiceAccount"),
         # custom_resource
         (CustomResourceDefinition, "CustomResourceDefinition"),
+        (CustomObject, "CustomObject"),
         # other
         (Event, "Event"),
         (Namespace, "Namespace"),
