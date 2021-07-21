@@ -13,6 +13,7 @@
 #
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
+from backend.resources.custom_object import CustomResourceDefinition
 from backend.resources.event.client import Event
 from backend.resources.namespace.client import Namespace
 from backend.resources.networks.endpoints import Endpoints
@@ -58,6 +59,8 @@ K8S_RESOURCE_CLIENTS = [
     # configurations
     ConfigMap,
     Secret,
+    # CustomResource
+    CustomResourceDefinition,
     # cluster
     Event,
     Namespace,

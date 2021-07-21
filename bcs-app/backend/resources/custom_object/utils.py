@@ -13,21 +13,25 @@
 #
 from typing import Dict
 
-from backend.resources.custom_object.utils import parse_cobj_api_version
-from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
 
 
-class CRDFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return {
-            'name': getitems(resource_dict, 'metadata.name'),
-            'scope': getitems(resource_dict, 'spec.scope'),
-            'kind': getitems(resource_dict, 'spec.names.kind'),
-            'api_version': parse_cobj_api_version(resource_dict),
-        }
+def parse_cobj_api_version(crd: Dict) -> str:
+    """
+    根据 CRD 配置解析 cobj api_version
+    ref: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions  # noqa
+    """
+    group = getitems(crd, 'spec.group')
+    versions = getitems(crd, 'spec.versions')
 
+    if versions:
+        for v in versions:
+            if v['served']:
+                return f"{group}/{v['name']}"
+        return f"{group}/{versions[0]['name']}"
 
-class CustomObjectFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return resource_dict
+    version = getitems(crd, 'spec.version')
+    if version:
+        return f"{group}/{version}"
+
+    return f"{group}/v1alpha1"

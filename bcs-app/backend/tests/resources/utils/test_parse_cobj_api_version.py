@@ -9,25 +9,21 @@
 #
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+import json
+
+import pytest
+from django.conf import settings
 
 from backend.resources.custom_object.utils import parse_cobj_api_version
-from backend.resources.utils.format import ResourceDefaultFormatter
-from backend.utils.basic import getitems
+
+# 用于测试解析逻辑的文件路径
+TEST_CONFIG_PATH = f'{settings.BASE_DIR}/backend/tests/resources/utils/contents/crd4parser.json'
+
+with open(TEST_CONFIG_PATH) as fr:
+    crd_configs = json.load(fr)
 
 
-class CRDFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return {
-            'name': getitems(resource_dict, 'metadata.name'),
-            'scope': getitems(resource_dict, 'spec.scope'),
-            'kind': getitems(resource_dict, 'spec.names.kind'),
-            'api_version': parse_cobj_api_version(resource_dict),
-        }
-
-
-class CustomObjectFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return resource_dict
+@pytest.mark.parametrize('manifest, expected', [(v, k) for k, v in crd_configs.items()])
+def test_parse_cobj_api_version(manifest, expected):
+    assert parse_cobj_api_version(manifest) == expected

@@ -27,11 +27,13 @@ class CRDViewSet(SystemViewSet):
     lookup_value_regex = CRD_NAME_REGEX_EXP
 
     def list(self, request, project_id, cluster_id):
+        """ 获取所有自定义资源列表 """
         client = CustomResourceDefinition(request.ctx_cluster)
         response_data = ListApiRespBuilder(client).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, crd_name):
+        """ 获取单个自定义资源详情 """
         client = CustomResourceDefinition(request.ctx_cluster)
         response_data = RetrieveApiRespBuilder(client, namespace=None, name=crd_name).build()
         return Response(response_data)
@@ -51,7 +53,7 @@ class CustomObjectViewSet(SystemViewSet):
     def create(self, request, project_id, cluster_id, crd_name):
         pass
 
-    def update(self, request, project_id, cluster_id, crd_name):
+    def update(self, request, project_id, cluster_id, crd_name, cus_obj_name):
         pass
 
     def destroy(self, request, project_id, cluster_id, crd_name):
