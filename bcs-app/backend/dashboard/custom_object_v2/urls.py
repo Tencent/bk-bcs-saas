@@ -17,5 +17,5 @@ from .views import CRDViewSet, CustomObjectViewSet
 
 router = routers.DefaultRouter(trailing_slash=True)
 
+router.register(r'(?P<crd_name>[\w\.-]+)/custom_objects', CustomObjectViewSet, basename='custom_object')
 router.register(r'', CRDViewSet, basename='crd')
-router.register(r'(?P<crd_name>[\w\.]+)/custom_objects', CustomObjectViewSet, basename='custom_object')

@@ -11,12 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext_lazy as _
+from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.response import Response
 
+from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.custom_object_v2.constants import CRD_NAME_REGEX_EXP
+from backend.dashboard.auditor import DashboardAuditor
+from backend.dashboard.custom_object_v2 import serializers as slzs
+from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
+from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
-from backend.resources.custom_object import CustomResourceDefinition
+from backend.resources.constants import KUBE_NAME_REGEX, K8sResourceKind
+from backend.resources.custom_object import CustomResourceDefinition, get_cobj_client_by_crd
+from backend.resources.custom_object.formatter import CustomObjectCommonFormatter
+from backend.utils.basic import getitems
 
 
 class CRDViewSet(SystemViewSet):
@@ -24,7 +34,7 @@ class CRDViewSet(SystemViewSet):
 
     lookup_field = 'crd_name'
     # 指定符合 CRD 名称规范的
-    lookup_value_regex = CRD_NAME_REGEX_EXP
+    lookup_value_regex = KUBE_NAME_REGEX
 
     def list(self, request, project_id, cluster_id):
         """ 获取所有自定义资源列表 """
@@ -43,18 +53,85 @@ class CustomObjectViewSet(SystemViewSet):
     """ 自定义资源对象 """
 
     lookup_field = 'cus_obj_name'
+    lookup_value_regex = KUBE_NAME_REGEX
 
     def list(self, request, project_id, cluster_id, crd_name):
-        pass
+        """ 获取某类自定义资源列表 """
+        client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
+        response_data = ListApiRespBuilder(client, formatter=CustomObjectCommonFormatter()).build()
+        return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, crd_name, cus_obj_name):
-        pass
+        """ 获取单个自定义对象 """
+        params = self.params_validate(slzs.FetchCustomObjectSLZ)
+        client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
+        response_data = RetrieveApiRespBuilder(
+            client, namespace=params.get('namespace'), name=cus_obj_name, formatter=CustomObjectCommonFormatter()
+        ).build()
+        return Response(response_data)
 
+    @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, cluster_id, crd_name):
-        pass
+        """ 获取某类自定义资源列表 """
+        validate_cluster_perm(request, project_id, cluster_id)
+        params = self.params_validate(slzs.CreateCustomObjectSLZ)
+        namespace = getitems(params, 'manifest.metadata.namespace')
+        cus_obj_name = getitems(params, 'manifest.metadata.name')
+        self._update_audit_ctx(request, namespace, crd_name, cus_obj_name)
 
+        client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
+        try:
+            response_data = client.create(namespace=namespace, body=params['manifest'], is_format=False).data.to_dict()
+        except DynamicApiError as e:
+            raise CreateResourceError(_('创建资源失败: {}').format(e.summary()))
+        except ValueError as e:
+            raise CreateResourceError(_('创建资源失败: {}').format(str(e)))
+
+        return Response(response_data)
+
+    @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Modify)
     def update(self, request, project_id, cluster_id, crd_name, cus_obj_name):
-        pass
+        """ 获取某类自定义资源列表 """
+        validate_cluster_perm(request, project_id, cluster_id)
+        params = self.params_validate(slzs.UpdateCustomObjectSLZ)
+        namespace = getitems(params, 'manifest.metadata.namespace')
+        self._update_audit_ctx(request, namespace, crd_name, cus_obj_name)
 
-    def destroy(self, request, project_id, cluster_id, crd_name):
-        pass
+        client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
+        manifest = params['manifest']
+        # 自定义资源 Replace 也需要指定 resourceVersion
+        # 这里先 pop，通过在 replace 指定 auto_add_version=True 添加
+        manifest['metadata'].pop('resourceVersion', None)
+        try:
+            response_data = client.replace(
+                body=manifest, namespace=namespace, name=cus_obj_name, is_format=False, auto_add_version=True
+            ).data.to_dict()
+        except DynamicApiError as e:
+            raise UpdateResourceError(_('更新资源失败: {}').format(e.summary()))
+        except ValueError as e:
+            raise UpdateResourceError(_('更新资源失败: {}').format(str(e)))
+
+        return Response(response_data)
+
+    @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Delete)
+    def destroy(self, request, project_id, cluster_id, crd_name, cus_obj_name):
+        """ 获取某类自定义资源列表 """
+        validate_cluster_perm(request, project_id, cluster_id)
+        params = self.params_validate(slzs.DestroyCustomObjectSLZ)
+        namespace = params.get('namespace') or None
+        self._update_audit_ctx(request, namespace, crd_name, cus_obj_name)
+
+        client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
+        try:
+            response_data = client.delete(name=cus_obj_name, namespace=namespace).to_dict()
+        except DynamicApiError as e:
+            raise DeleteResourceError(_('删除资源失败: {}').format(e.summary()))
+        return Response(response_data)
+
+    @staticmethod
+    def _update_audit_ctx(request, namespace: str, crd_name: str, cus_obj_name: str) -> None:
+        """ 更新操作审计相关信息 """
+        resource_name = f'{crd_name} - {namespace}/{cus_obj_name}' if namespace else f'{crd_name} - {cus_obj_name}'
+        request.audit_ctx.update_fields(
+            resource_type=K8sResourceKind.CustomObject.value.lower(), resource=resource_name
+        )

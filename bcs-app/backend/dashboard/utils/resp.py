@@ -11,24 +11,26 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from django.utils.translation import ugettext_lazy as _
 
 from backend.dashboard.exceptions import ResourceNotExist
 from backend.resources.resource import ResourceClient, ResourceList
+from backend.resources.utils.format import ResourceFormatter
 
 
 class ListApiRespBuilder:
     """ 构造 Dashboard 资源列表 Api 响应内容逻辑 """
 
-    def __init__(self, client: ResourceClient, **kwargs):
+    def __init__(self, client: ResourceClient, formatter: Optional[ResourceFormatter] = None, **kwargs):
         """
         构造器初始化
 
         :param client: 资源客户端
         """
         self.client = client
+        self.formatter = formatter if formatter else self.client.formatter
         self.resources = self.client.list(is_format=False, **kwargs)
         # 兼容处理，若为 ResourceList 需要将其 data (ResourceInstance) 转换成 dict
         if isinstance(self.resources, ResourceList):
@@ -39,7 +41,7 @@ class ListApiRespBuilder:
         result = {
             'manifest': self.resources,
             'manifest_ext': {
-                item['metadata']['uid']: self.client.formatter.format_dict(item) for item in self.resources['items']
+                item['metadata']['uid']: self.formatter.format_dict(item) for item in self.resources['items']
             },
         }
         return result
@@ -48,7 +50,14 @@ class ListApiRespBuilder:
 class RetrieveApiRespBuilder:
     """ 构造 Dashboard 资源详情 Api 响应内容逻辑 """
 
-    def __init__(self, client: ResourceClient, namespace: Union[str, None], name: str, **kwargs):
+    def __init__(
+        self,
+        client: ResourceClient,
+        namespace: Union[str, None],
+        name: str,
+        formatter: Optional[ResourceFormatter] = None,
+        **kwargs
+    ):
         """
         构造器初始化
 
@@ -57,6 +66,7 @@ class RetrieveApiRespBuilder:
         :param name: 资源名称
         """
         self.client = client
+        self.formatter = formatter if formatter else self.client.formatter
         raw_resource = self.client.get(namespace=namespace, name=name, is_format=False, **kwargs)
         if not raw_resource:
             raise ResourceNotExist(_('资源 {}/{} 不存在').format(namespace, name))
@@ -66,5 +76,5 @@ class RetrieveApiRespBuilder:
         """ 组装 Dashboard Api 响应内容 """
         return {
             'manifest': self.resource,
-            'manifest_ext': self.client.formatter.format_dict(self.resource),
+            'manifest_ext': self.formatter.format_dict(self.resource),
         }

@@ -11,5 +11,34 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-# CRD 名称命名规则
-CRD_NAME_REGEX_EXP = r'[a-z0-9.]+'
+from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
+
+
+class OptionalNamespaceSLZ(serializers.Serializer):
+    # 部分资源对象是可以没有命名空间维度的
+    namespace = serializers.CharField(label=_('命名空间'), required=False)
+
+
+class FetchCustomObjectSLZ(OptionalNamespaceSLZ):
+    """ 获取单个自定义对象 """
+
+    pass
+
+
+class CreateCustomObjectSLZ(serializers.Serializer):
+    """ 创建自定义对象 """
+
+    manifest = serializers.JSONField(label=_('资源配置信息'))
+
+
+class UpdateCustomObjectSLZ(CreateCustomObjectSLZ):
+    """ 更新（replace）某个自定义对象 """
+
+    pass
+
+
+class DestroyCustomObjectSLZ(OptionalNamespaceSLZ):
+    """ 删除单个自定义对象 """
+
+    pass
