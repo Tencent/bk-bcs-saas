@@ -22,13 +22,7 @@ from requests import PreparedRequest
 from requests.auth import AuthBase
 from rest_framework.exceptions import ValidationError
 
-from backend.components.base import (
-    BaseHttpClient,
-    BkApiClient,
-    response_handler,
-    update_request_body,
-    update_url_parameters,
-)
+from backend.components.base import BaseHttpClient, BkApiClient, response_handler, update_request_body
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
