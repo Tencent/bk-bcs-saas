@@ -50,4 +50,6 @@ RES_KIND_WITH_DEMO_MANIFEST = [
     K8sResourceKind.StorageClass.value,
     # rbac
     K8sResourceKind.ServiceAccount.value,
+    # CustomResource
+    K8sResourceKind.CustomObject.value,
 ]
