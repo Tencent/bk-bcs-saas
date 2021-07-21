@@ -20,7 +20,7 @@ from backend.utils.error_codes import error_codes
 
 from ..resource import ResourceClient, ResourceObj
 from .crd import CustomResourceDefinition
-from .format import CustomObjectFormatter
+from .formatter import CustomObjectFormatter
 
 
 class CustomObject(ResourceClient):

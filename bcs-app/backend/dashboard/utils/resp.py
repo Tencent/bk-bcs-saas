@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from typing import Dict, Union
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -48,7 +48,7 @@ class ListApiRespBuilder:
 class RetrieveApiRespBuilder:
     """ 构造 Dashboard 资源详情 Api 响应内容逻辑 """
 
-    def __init__(self, client: ResourceClient, namespace: str, name: str, **kwargs):
+    def __init__(self, client: ResourceClient, namespace: Union[str, None], name: str, **kwargs):
         """
         构造器初始化
 

@@ -11,19 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Optional
-
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.constants import K8sResourceKind
-
-from ..resource import ResourceClient
-from .constants import PREFERRED_CRD_API_VERSION
-from .formatter import CRDFormatter
-
-
-class CustomResourceDefinition(ResourceClient):
-    kind = K8sResourceKind.CustomResourceDefinition.value
-    formatter = CRDFormatter()
-
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = PREFERRED_CRD_API_VERSION):
-        super().__init__(ctx_cluster, api_version)
+# CRD 名称命名规则
+CRD_NAME_REGEX_EXP = r'[a-z0-9.]+'
