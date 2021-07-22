@@ -77,7 +77,7 @@ class ResourceType(str, StructuredEnum):
     StorageClass = EnumField('storageclass', 'StorageClass')
     # rbac
     ServiceAccount = EnumField('serviceaccount', 'ServiceAccount')
-    # custom_resource
+    # CustomResource
     CRD = EnumField('crd', _('自定义资源定义'))
     CustomObject = EnumField('customobject', _('自定义对象'))
 

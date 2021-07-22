@@ -28,6 +28,7 @@ class ListApiRespBuilder:
         构造器初始化
 
         :param client: 资源客户端
+        :param formatter: 资源格式化器（默认使用 client.formatter）
         """
         self.client = client
         self.formatter = formatter if formatter else self.client.formatter
@@ -64,6 +65,7 @@ class RetrieveApiRespBuilder:
         :param client: 资源客户端
         :param namespace: 资源命名空间
         :param name: 资源名称
+        :param formatter: 资源格式化器（默认使用 client.formatter）
         """
         self.client = client
         self.formatter = formatter if formatter else self.client.formatter

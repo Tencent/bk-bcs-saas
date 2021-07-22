@@ -63,7 +63,7 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
-    # custom_resource
+    # CustomResource
     CustomResourceDefinition = "CustomResourceDefinition"
     CustomObject = "CustomObject"
     # other
@@ -93,7 +93,7 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
-        # custom_resource
+        # CustomResource
         (CustomResourceDefinition, "CustomResourceDefinition"),
         (CustomObject, "CustomObject"),
         # other
