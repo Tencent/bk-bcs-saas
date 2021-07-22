@@ -13,6 +13,7 @@ import { loadScript } from '@open/common/util'
 import { injectCSRFTokenToHeaders } from '@open/api'
 import focus from '@/directives/focus/index'
 import App from '@/App'
+import PrivateApp from '@/components/ee-navigation'
 import router from '@/router'
 import store from '@open/store'
 import Authority from '@/directives/authority'
@@ -60,7 +61,7 @@ function loadScriptCallback (e) {
         router,
         store,
         components: {
-            App
+            App: ['ce', 'ee'].includes(window.REGION) || NODE_ENV === 'development' ? PrivateApp : App
         },
         i18n,
         template: '<App/>'

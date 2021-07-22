@@ -3,6 +3,7 @@
  */
 
 const App = () => import(/* webpackChunkName: 'app-entry' */'@open/views/app')
+const ProjectManage = () => import(/* webpackChunkName: 'projectmanage' */'@open/views/project/project.vue')
 
 const childRoutes = [
     // domain/bcs/projectId/app 应用页面
@@ -176,6 +177,11 @@ const childRoutes = [
                 name: 'customobjects'
             }
         ]
+    },
+    {
+        path: '/projectmanage',
+        name: 'projectManage',
+        component: ProjectManage
     }
 ]
 
