@@ -19,7 +19,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
-from ruamel.yaml.constructor import DuplicateKeyError
+from ruamel.yaml.error import YAMLFutureWarning
 
 from backend.components import paas_cc
 from backend.helm.helm.bcs_variable import collect_system_variable, get_valuefile_with_bcs_variable_injected
@@ -929,7 +929,7 @@ class SyncDict2YamlToolSLZ(serializers.Serializer):
         """
         try:
             content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
-        except DuplicateKeyError as e:
+        except YAMLFutureWarning as e:
             raise serializers.ValidationError(e)
         return {"yaml": content, "dict": validated_data["dict"]}
 
