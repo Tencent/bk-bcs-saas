@@ -272,6 +272,7 @@
                         margin-left: 15px;
                         position: absolute;
                         right: 20px;
+                        top: 13px;
 
                         &.only {
                             transform: translateY(-50%);
