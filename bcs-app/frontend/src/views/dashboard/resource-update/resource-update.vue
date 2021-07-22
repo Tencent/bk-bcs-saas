@@ -648,7 +648,7 @@
                 background-color: #1a1a1a;
             }
             .bcs-md-preview {
-                background-color: #1a1a1a !important;
+                background-color: #2e2e2e !important;
             }
         }
         .code-diff {
