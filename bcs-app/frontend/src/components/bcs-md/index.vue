@@ -3,7 +3,7 @@
 </template>
 
 <script>
-    import { defineComponent, onMounted, ref, toRefs } from '@vue/composition-api'
+    import { defineComponent, onMounted, ref, toRefs, watch } from '@vue/composition-api'
     import MarkdownIt from 'markdown-it'
     import hljs from './md-highlight.js'
 
@@ -35,6 +35,12 @@
                     return `<pre class="hljs"><code> ${md.utils.escapeHtml(str)} </code></pre>`
                 }
             })
+            const render = (value) => {
+                html.value = md.render(value)
+            }
+            watch(code, () => {
+                render(code.value)
+            })
             // create render rules
             const defaultRender = md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
                 return self.renderToken(tokens, idx, options)
@@ -50,7 +56,7 @@
                 return defaultRender(tokens, idx, options, env, self)
             }
             onMounted(() => {
-                html.value = md.render(code.value)
+                render(code.value)
             })
             return {
                 html,
