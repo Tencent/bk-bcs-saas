@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { defineComponent, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
 import DashboardTopActions from './dashboard-top-actions'
 // import useCluster from './use-cluster'
@@ -102,16 +103,13 @@ export default defineComponent({
             }
         }
         // 表格数据
-        const { isLoading, data, fetchList } = useTableData(ctx)
-        const webAnnotations = computed(() => { // 权限信息
-            // eslint-disable-next-line camelcase
-            return data.value?.web_annotations || { perms: { page: {} } }
-        })
+        const { isLoading, data, webAnnotations, fetchList } = useTableData(ctx)
+
         const pagePerms = computed(() => { // 界面权限
             return {
-                create: webAnnotations.value.perms.page.create_btn,
-                delete: webAnnotations.value.perms.page.delete_btn,
-                update: webAnnotations.value.perms.page.update_btn
+                create: webAnnotations.value.perms?.page?.create_btn || {},
+                delete: webAnnotations.value.perms?.page?.delete_btn || {},
+                update: webAnnotations.value.perms?.page?.update_btn || {}
             }
         })
         const tableData = computed(() => {

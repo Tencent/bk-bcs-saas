@@ -110,7 +110,7 @@ class TestCustomPermissions:
         assert response.data.get('project_id') == HAS_PERM_PROJECT_ID
         assert region.get(f'BK_DEVOPS_BCS:PROJECT_ID:{HAS_PERM_PROJECT_ID}') == HAS_PERM_PROJECT_ID
 
-    def test_project_has_bcs(self, bk_user, project_id):
+    def test_project_has_bcs(self, bk_user):
         request = factory.get('/1', format='json')
         force_authenticate(request, user=bk_user)
 

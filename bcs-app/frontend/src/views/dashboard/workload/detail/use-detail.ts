@@ -47,16 +47,13 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const yaml = computed(() => {
         return yamljs.dump(detail.value?.manifest || {})
     })
-    const webAnnotations = computed(() => { // 权限信息
-        // eslint-disable-next-line camelcase
-        return detail.value?.web_annotations || { perms: { page: {} } }
-    })
+    const webAnnotations = ref<any>({})
     // 界面权限
     const pagePerms = computed(() => {
         return {
-            create: webAnnotations.value.perms.page.create_btn || {},
-            delete: webAnnotations.value.perms.page.delete_btn || {},
-            update: webAnnotations.value.perms.page.update_btn || {}
+            create: webAnnotations.value.perms?.page?.create_btn || {},
+            delete: webAnnotations.value.perms?.page?.delete_btn || {},
+            update: webAnnotations.value.perms?.page?.update_btn || {}
         }
     })
 
@@ -68,12 +65,14 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         const { namespace, category, name, type } = options
         // workload详情
         isLoading.value = true
-        detail.value = await $store.dispatch('dashboard/getResourceDetail', {
+        const res = await $store.dispatch('dashboard/getResourceDetail', {
             $namespaceId: namespace,
             $category: category,
             $name: name,
             $type: type
         })
+        detail.value = res.data
+        webAnnotations.value = res.web_annotations
         isLoading.value = false
         return detail.value
     }

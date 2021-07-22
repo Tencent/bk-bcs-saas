@@ -22,12 +22,14 @@ export default {
     },
     actions: {
         // 获取表格数据通用方法
-        async getTableData (context, params, config = {}) {
-            const data = await dashbordList(params, config).catch(() => ({
-                manifest: {},
-                manifest_ext: {}
+        async getTableData (context, params) {
+            const res = await dashbordList(params, { needRes: true }).catch(() => ({
+                data: {
+                    manifest: {},
+                    manifest_ext: {}
+                }
             }))
-            return data
+            return res
         },
 
         // 订阅接口
@@ -60,12 +62,14 @@ export default {
          * @param {*} config
          * @returns
          */
-        async getResourceDetail (context, params, config = {}) {
-            const data = await retrieveDetail(params, config).catch(() => ({
-                manifest: {},
-                manifest_ext: {}
+        async getResourceDetail (context, params) {
+            const res = await retrieveDetail(params, { needRes: true }).catch(() => ({
+                data: {
+                    manifest: {},
+                    manifest_ext: {}
+                }
             }))
-            return data
+            return res
         },
 
         /**

@@ -167,8 +167,9 @@ class ClusterNetworkType(ChoicesEnum):
 
 
 # K8S 系统预留标签的key
-# Kubernetes 预留命名空间 kubernetes.io 用于所有的标签和注解
-K8S_RESERVED_NAMESPACE = "kubernetes.io"
+# Kubernetes 预留关键字 kubernetes.io, 用于系统的标签和注解
+# https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+K8S_RESERVED_KEY_WORDS = ["kubernetes.io"]
 
 
 class BcsCCNodeStatus(str, StructuredEnum):
@@ -187,29 +188,12 @@ class BcsCCNodeStatus(str, StructuredEnum):
     Unknown = EnumField("unknown", label="未知状态")
 
 
-class NodeConditionStatus(str, StructuredEnum):
-    """节点状态"""
-
-    Ready = EnumField("Ready", label="正常状态")
-    NotReady = EnumField("NotReady", label="非正常状态")
-    Unknown = EnumField("Unknown", label="未知状态")
-
-
-class NodeConditionType(str, StructuredEnum):
-    """节点状态类型
-    ref: node condition types
-    """
-
-    Ready = EnumField("Ready", label="kubelet is healthy and ready to accept pods")
-    MemoryPressure = EnumField(
-        "MemoryPressure", label="kubelet is under pressure due to insufficient available memory"
-    )
-    DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
-    PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
-    NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")
-
-
 # Kube-proxy代理模式
 class KubeProxy(str, StructuredEnum):
     IPTABLES = EnumField("iptables")
     IPVS = EnumField("ipvs")
+
+
+# k8s cluster master role
+# 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
+K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"
