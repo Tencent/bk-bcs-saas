@@ -818,7 +818,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
     cmd_flags = serializers.JSONField(required=False, default=[])
 
     def create(self, validated_data):
-        """生成应用的预览数据，这个时候应用没有创建，release也没有创建"""
+        """ 生成应用的预览数据，这个时候应用没有创建，release也没有创建 """
         namespace_info = self.get_ns_info_by_id(validated_data["namespace_info"])
 
         cluster_id = namespace_info["cluster_id"]
