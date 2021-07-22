@@ -241,7 +241,8 @@ function handleReject (error, config) {
         }
 
         error.message = message
-        !CUSTOM_HANDLE_CODE.includes(code) && messageError(message)
+        // eslint-disable-next-line camelcase
+        !CUSTOM_HANDLE_CODE.includes(code) && messageError(error?.request_id ? `${message}(${error?.request_id})` : message)
         return Promise.reject(error)
     }
     messageError(error.message)
