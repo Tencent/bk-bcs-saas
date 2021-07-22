@@ -33,22 +33,22 @@ class TestPodMetric:
         project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID
     )
 
-    def test_cpu_usage(self, api_client, metric_api_common_patch, pod_metric_api_patch):
+    def test_cpu_usage(self, api_client, pod_metric_api_patch):
         """ 测试获取 CPU 使用情况 接口 """
         response = api_client.post(f'{self.common_prefix}/cpu_usage/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_memory_usage(self, api_client, metric_api_common_patch, pod_metric_api_patch):
+    def test_memory_usage(self, api_client, pod_metric_api_patch):
         """ 测试获取 内存使用情况 接口 """
         response = api_client.post(f'{self.common_prefix}/memory_usage/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_network_receive(self, api_client, metric_api_common_patch, pod_metric_api_patch):
+    def test_network_receive(self, api_client, pod_metric_api_patch):
         """ 测试获取 网络入流量 接口 """
         response = api_client.post(f'{self.common_prefix}/network_receive/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_network_transmit(self, api_client, metric_api_common_patch, pod_metric_api_patch):
+    def test_network_transmit(self, api_client, pod_metric_api_patch):
         """ 测试获取 网络出流量 接口 """
         response = api_client.post(f'{self.common_prefix}/network_transmit/', mock_api_params)
         assert response.json()['code'] == 0

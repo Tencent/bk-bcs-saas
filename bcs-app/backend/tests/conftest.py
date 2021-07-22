@@ -141,19 +141,19 @@ TEST_CLUSTER_ID = os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
 TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def patch_system_viewset():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
         yield
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope='package')
 def patch_user_viewset():
     with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
         yield
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def patch_get_dynamic_client():
     with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
         yield

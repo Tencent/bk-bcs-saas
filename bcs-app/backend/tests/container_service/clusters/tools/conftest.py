@@ -25,6 +25,11 @@ fake_taints = {"key": "test", "value": "tet", "effect": "NoSchedule"}
 
 
 @pytest.fixture
+def node_name():
+    return fake_node_name
+
+
+@pytest.fixture
 def bcs_cc_nodes():
     return {
         "127.0.0.1": {"inner_ip": "127.0.0.1", "status": "initializing"},

@@ -18,12 +18,23 @@ import yaml
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa import hpa as hpa_client
+from backend.resources.hpa.hpa import HPA
+from backend.tests.conftest import TEST_NAMESPACE
 from backend.utils.basic import getitems
 
 from ..conftest import FakeBcsKubeConfigurationService
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 预先加载默认配置
+with open(os.path.join(BASE_DIR, "sample_cpu_hpa.yaml")) as fh:
+    hpa_manifest = yaml.load(fh.read())
+
+# 检查逻辑，确保使用的是测试用的命名空间
+if getitems(hpa_manifest, 'metadata.namespace') != TEST_NAMESPACE:
+    hpa_manifest['metadata']['namespace'] = TEST_NAMESPACE
+
+hpa_name = getitems(hpa_manifest, 'metadata.name')
 
 
 class TestHPA:
@@ -41,39 +52,29 @@ class TestHPA:
         with mock.patch("backend.templatesets.legacy_apps.instance.models.InstanceConfig.objects"):
             yield
 
-    @pytest.fixture()
-    def cpu_workload(self):
-        with open(os.path.join(BASE_DIR, "sample_cpu_hpa.yaml")) as fh:
-            return yaml.load(fh.read())
-
     @pytest.fixture
-    def client(self, project_id, cluster_id):
+    def hpa_client(self, project_id, cluster_id):
         try:
-            client = hpa_client.HPA(CtxCluster.create(token='token', project_id=project_id, id=cluster_id))
+            return HPA(CtxCluster.create(token='token', project_id=project_id, id=cluster_id))
         except ResourceNotFoundError:
             pytest.skip('Can not initialize HPA client, skip')
-        return client
-
-    def test_list(self, client):
-        hpa_list = client.list(namespace="default")
-        assert len(hpa_list) == 0
 
     @pytest.fixture
-    def sample_hpa(self, client, cpu_workload):
-        client.update_or_create(body=cpu_workload, is_format=False)
+    def sample_hpa(self, hpa_client):
+        hpa_client.update_or_create(namespace=TEST_NAMESPACE, name=hpa_name, body=hpa_manifest, is_format=False)
         yield
-        client.delete_wait_finished(
-            namespace="default", name=getitems(cpu_workload, "metadata.name"), namespace_id="", username=""
-        )
+        hpa_client.delete_wait_finished(namespace=TEST_NAMESPACE, name=hpa_name, namespace_id="", username="")
 
-    def test_update_or_create(self, client, cpu_workload, sample_hpa):
-        res, created = client.update_or_create(body=cpu_workload, is_format=False)
+    def test_list(self, hpa_client, sample_hpa):
+        hpa_list = hpa_client.list(namespace=TEST_NAMESPACE)
+        assert len(hpa_list) > 0
+
+    def test_update_or_create(self, hpa_client, sample_hpa):
+        res, created = hpa_client.update_or_create(body=hpa_manifest, is_format=False)
         assert created is False
 
-    def test_delete(self, client, cpu_workload):
-        client.update_or_create(body=cpu_workload, is_format=False)
+    def test_delete(self, hpa_client):
+        hpa_client.update_or_create(namespace=TEST_NAMESPACE, name=hpa_name, body=hpa_manifest, is_format=False)
 
-        result = client.delete_ignore_nonexistent(
-            namespace="default", name=getitems(cpu_workload, "metadata.name"), namespace_id="", username=""
-        )
+        result = hpa_client.delete_ignore_nonexistent(namespace=TEST_NAMESPACE, name=hpa_name)
         assert result.status == 'Success'

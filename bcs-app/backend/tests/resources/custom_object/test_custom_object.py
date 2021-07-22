@@ -10,6 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 #
+import time
 from unittest import mock
 
 import pytest
@@ -80,6 +81,8 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def update_or_create_custom_object(self, cobj_client):
+        # NOTE 创建 CRD 后立即 创建 CustomObject 可能出现 NotFoundError(404) 异常，需等待就绪后再创建
+        time.sleep(1)
         cobj_client.update_or_create(
             body=sample_custom_object, namespace="default", name=getitems(sample_custom_object, "metadata.name")
         )

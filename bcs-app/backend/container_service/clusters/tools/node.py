@@ -61,7 +61,7 @@ def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) ->
     return nodes
 
 
-def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
+def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> Dict:
     """查询bcs cc中的节点数据"""
     client = PaaSCCClient(ComponentAuth(access_token=ctx_cluster.context.auth.access_token))
     node_data = client.get_node_list(ctx_cluster.project_id, ctx_cluster.id)
