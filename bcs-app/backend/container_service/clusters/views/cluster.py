@@ -39,6 +39,7 @@ from backend.container_service.clusters.utils import (
     get_ops_platform,
     status_transfer,
 )
+from backend.resources.utils.kube_client import get_dynamic_client
 from backend.uniapps.application import constants as app_constants
 from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
@@ -397,11 +398,25 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         # 补充tke和bcs k8s相关配置
         if coes == ClusterCOES.TKE.value:
             cluster.update(self.get_tke_cluster_config(request, project_id, cluster_id))
-        elif coes == ClusterCOES.BCS_K8S.value:
-            k8s_client = bcs.k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            cluster["version"] = k8s_client.version
+
+        cluster_version = self.query_cluster_version(request.user.token.access_token, project_id, cluster_id)
+        # 通过集群查询集群版本，如果查询集群异常，则返回集群快照中的数据
+        if cluster_version:
+            cluster["version"] = cluster_version
 
         return response.Response(cluster)
+
+    def query_cluster_version(self, access_token: str, project_id: str, cluster_id: str) -> str:
+        """查询集群版本
+        NOTE: 调用接口出现异常时，返回为空字符串，其它信息可以通过集群快照中获取
+        """
+        try:
+            client = get_dynamic_client(access_token, project_id, cluster_id)
+            version = client.version
+            return version["kubernetes"]["gitVersion"]
+        except Exception as e:
+            logger.error("query cluster version error, %s", e)
+            return ""
 
 
 class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
