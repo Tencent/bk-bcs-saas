@@ -25,7 +25,7 @@ class TestNodeMetric:
         project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID, node_ip='127.0.0.1'
     )
 
-    def test_overview(self, api_client, metric_api_common_patch, node_overview_api_patch):
+    def test_overview(self, api_client, node_overview_api_patch):
         """ 测试获取 节点指标总览 接口 """
         response = api_client.post(
             f'{self.common_prefix}/overview/', data={'dimensions': ['cpu_usage', 'memory_usage']}
@@ -38,7 +38,7 @@ class TestNodeMetric:
             'memory_usage': None,
         }
 
-    def test_info(self, api_client, metric_api_common_patch, node_info_api_patch):
+    def test_info(self, api_client, node_info_api_patch):
         """ 测试获取 节点信息 接口 """
         response = api_client.get(f'{self.common_prefix}/info/')
         assert response.json()['code'] == 0
@@ -50,27 +50,27 @@ class TestNodeMetric:
             'cpu_count': '8',
         }
 
-    def test_cpu_usage(self, api_client, metric_api_common_patch, node_metric_api_patch):
+    def test_cpu_usage(self, api_client, node_metric_api_patch):
         """ 测试获取 CPU 使用情况 接口 """
         response = api_client.get(f'{self.common_prefix}/cpu_usage/')
         assert response.json()['code'] == 0
 
-    def test_memory_usage(self, api_client, metric_api_common_patch, node_metric_api_patch):
+    def test_memory_usage(self, api_client, node_metric_api_patch):
         """ 测试获取 内存使用情况 接口 """
         response = api_client.get(f'{self.common_prefix}/memory_usage/')
         assert response.json()['code'] == 0
 
-    def test_network_receive(self, api_client, metric_api_common_patch, node_metric_api_patch):
+    def test_network_receive(self, api_client, node_metric_api_patch):
         """ 测试获取 网络入流量 接口 """
         response = api_client.get(f'{self.common_prefix}/network_receive/')
         assert response.json()['code'] == 0
 
-    def test_network_transmit(self, api_client, metric_api_common_patch, node_metric_api_patch):
+    def test_network_transmit(self, api_client, node_metric_api_patch):
         """ 测试获取 网络出流量 接口 """
         response = api_client.get(f'{self.common_prefix}/network_transmit/')
         assert response.json()['code'] == 0
 
-    def test_diskio_usage(self, api_client, metric_api_common_patch, node_metric_api_patch):
+    def test_diskio_usage(self, api_client, node_metric_api_patch):
         """ 测试获取 磁盘读写情况 接口 """
         response = api_client.get(f'{self.common_prefix}/diskio_usage/')
         assert response.json()['code'] == 0
