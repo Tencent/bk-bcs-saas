@@ -14,7 +14,7 @@
                         </bk-option>
                         <div slot="extension">
                             <div class="extension-item" @click="showCreateProject = true"><i class="bk-icon icon-plus-circle mr5"></i>{{$t('新建项目')}}</div>
-                            <div class="extension-item"><i class="bcs-icon bcs-icon-apps mr5"></i>{{$t('项目管理')}}</div>
+                            <div class="extension-item" @click="handleGotoProjectManage"><i class="bcs-icon bcs-icon-apps mr5"></i>{{$t('项目管理')}}</div>
                         </div>
                     </bcs-select>
                 </div>
@@ -44,7 +44,8 @@
                 theme="primary"
                 :mask-close="false"
                 :title="$t('新建项目')"
-                width="860">
+                width="860"
+                @confirm="handleCreateProject">
                 <bk-form v-model="formData">
                     <bk-form-item :label="$t('项目名称')" property="project_name" required>
                         <bk-input class="create-input" :placeholder="$t('请输入4-12字符的项目名称')" v-model="formData.project_name"></bk-input>
@@ -70,13 +71,15 @@
 <script lang="ts">
     import { computed, defineComponent, onMounted, ref } from '@vue/composition-api'
     import App from '@/App.vue'
+    import { createProject } from '@/api/base'
+    import bkLogout from '@/common/bklogout'
     export default defineComponent({
         name: "Navigation",
         components: {
             App
         },
         setup: (props, { root }) => {
-            const { $i18n, $store, $router, $route } = root
+            const { $i18n, $store, $router, $route, $bkMessage } = root
             const userItems = [
                 {
                     id: 'project',
@@ -129,7 +132,34 @@
                     case 'project':
                         handleGotoProjectManage()
                         break
+                    case 'auth':
+                        window.open(`${window.BK_IAM_APP_URL}/my-perm`)
+                        break
+                    case 'exit':
+                        bkLogout.logout()
+                        break
                 }
+            }
+            const handleCreateProject = async () => {
+                const result = await createProject({
+                    bg_id: "",
+                    bg_name: "",
+                    center_id: "",
+                    center_name: "",
+                    deploy_type: [],
+                    dept_id: "",
+                    dept_name: "",
+                    description: formData.value.description,
+                    english_name: formData.value.english_name,
+                    is_secrecy: false,
+                    kind: "0",
+                    project_name: formData.value.project_name,
+                    project_type: ""
+                }).catch(() => false)
+                result && $bkMessage({
+                    message: $i18n.t('创建成功'),
+                    theme: 'success'
+                })
             }
             onMounted(async () => {
                 if (!window.$userInfo?.username && !Object.keys($store.state.user).length) {
@@ -144,7 +174,9 @@
                 onlineProjectList,
                 showCreateProject,
                 handleProjectSelected,
-                handleUserItemClick
+                handleUserItemClick,
+                handleCreateProject,
+                handleGotoProjectManage
             }
         }
     })

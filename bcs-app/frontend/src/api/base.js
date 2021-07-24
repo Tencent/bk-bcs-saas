@@ -38,6 +38,9 @@ export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$proje
 export const getNodeTaints = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 
+// project
+export const createProject = request('post', '/api/nav/projects/')
+
 export default {
     stdLogs,
     stdLogsDownload,
@@ -63,5 +66,6 @@ export default {
     getNodeTaints,
     setNodeTaints,
     subscribeList,
-    namespaceList
+    namespaceList,
+    createProject
 }
