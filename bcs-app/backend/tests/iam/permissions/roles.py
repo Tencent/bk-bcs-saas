@@ -11,3 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+ADMIN_USER = 'admin'
+
+PROJECT_USER = 'project_user'
+
+NO_PROJECT_USER = 'no_project_user'
+
+CLUSTER_USER = 'cluster_user'
+
+PROJECT_CLUSTER_USER = 'project_cluster_user'
+
+PROJECT_NO_CLUSTER_USER = 'project_no_cluster_user'
+
+CLUSTER_NO_PROJECT_USER = 'cluster_no_project_user'

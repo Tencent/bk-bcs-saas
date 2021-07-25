@@ -1,0 +1,46 @@
+# -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+from typing import Dict, List, Optional
+
+from .request import ActionResourcesRequest
+
+
+class PermissionDeniedError(Exception):
+    message = 'Permission denied'
+    code = 40300
+
+    def __init__(
+        self,
+        message: str = '',
+        apply_url: str = '',
+        action_request_list: Optional[List[ActionResourcesRequest]] = None,
+    ):
+        """
+        :param message: 异常信息
+        :param apply_url: 申请的跳转url
+        :param action_request_list: 生成 apply_url 的关键参数. 主要用于向上传递。见 PermissionDecorator 中的用法
+        """
+
+        if message:
+            self.message = message
+
+        self.apply_url = apply_url
+        self.action_request_list = action_request_list
+
+    @property
+    def data(self) -> Dict:
+        return {'apply_url': self.apply_url}
+
+    def __str__(self):
+        return f'{self.code}: {self.message}'

@@ -11,10 +11,34 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+from iam import Request
+
+from backend.iam.permissions.perm import Permission
+
+from .permissions import roles
 
 
-class ProjectAction(str, StructuredEnum):
-    CREATE = EnumField('project_create', label='project_create')
-    VIEW = EnumField('project_view', label='project_view')
-    EDIT = EnumField('project_edit', label='project_edit')
+class FakeProjectIAM:
+    def __init__(self, *args, **kwargs):
+        """"""
+
+    def is_allowed(self, request: Request) -> bool:
+        if request.subject.id == roles.ADMIN_USER:
+            return True
+
+
+class FakeProjectPermission(Permission):
+    iam = FakeProjectIAM()
+
+
+class FakeClusterIAM:
+    def __init__(self, *args, **kwargs):
+        """"""
+
+    def is_allowed(self, request: Request) -> bool:
+        if request.subject.id == roles.ADMIN_USER:
+            return True
+
+
+class FakeClusterPermission(Permission):
+    iam = FakeClusterIAM()

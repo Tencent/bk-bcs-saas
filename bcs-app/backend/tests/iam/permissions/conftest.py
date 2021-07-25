@@ -10,19 +10,27 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-#
-from .perm import Permission
 
-# class ClusterRequest:
-#     def __init__(self, username: str, action_ids: List, cluster_ids, project_id: str):
-#         pass
-#
-#     def to_request(self):
-#         pass
+from typing import List
+from unittest import mock
+
+import pytest
+
+from backend.iam.permissions.perm import ActionResourcesRequest, ApplyURLGenerator
 
 
-class ClusterPermission(Permission):
-    """集群权限"""
+def generate_apply_url(username: str, action_request_list: List[ActionResourcesRequest]) -> List[str]:
+    expect = []
+    for req in action_request_list:
+        suffix = ''
+        if req.resources:
+            suffix = ''.join(req.resources)
+        expect.append(f'{req.resource_type}{req.action_id}{suffix}')
 
-    def can_do(self):
-        pass
+    return expect
+
+
+@pytest.fixture(autouse=True)
+def patch_generate_apply_url():
+    with mock.patch.object(ApplyURLGenerator, 'generate_apply_url', new=generate_apply_url):
+        yield
