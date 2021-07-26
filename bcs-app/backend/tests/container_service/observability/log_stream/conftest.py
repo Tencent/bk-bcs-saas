@@ -11,18 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.resources.namespace import Namespace
+import os
+
+import pytest
 
 
-class TestNamespace:
-    def test_get_namespace(self, cluster_id, testing_kubernetes_apiclient):
-        namespace = Namespace(testing_kubernetes_apiclient)
-        resp = namespace.get_namespace({'cluster_id': cluster_id})
-        assert resp.get("code") == 0
-
-
-class TestK8SClient:
-    def test_normal(self, cluster_id, project_id, use_fake_k8sclient):
-        client = K8SClient('token', project_id, cluster_id, None)
-        client.get_namespace()
+@pytest.fixture
+def log_content():
+    with open(os.path.join(os.path.dirname(__file__), "fake_log.txt"), 'rb') as f:
+        return f.read().decode('utf-8')

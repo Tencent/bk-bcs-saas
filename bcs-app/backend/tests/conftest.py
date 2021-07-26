@@ -116,18 +116,17 @@ def testing_kubernetes_apiclient():
 @pytest.fixture
 def use_fake_k8sclient(cluster_id):
     """替换代码中所有的 k8s.K8SClient() 调用，使其连接用于测试的 apiserver"""
-    fake_cluster_info = {
+    fake_cluster_context = {
         'id': cluster_id,
         'provider': 2,
         'creator_id': 100,
         'identifier': f'{cluster_id}-x',
         'created_at': '2020-01-01T00:00:00',
+        'server_address_path': '',
+        'user_token': 'fake_user_token',
     }
-    fake_credentials = {'server_address_path': '', 'user_token': 'fake_user_token'}
     with mock.patch(
-        'backend.components.bcs.k8s_client.K8SAPIClient.query_cluster', return_value=fake_cluster_info
-    ), mock.patch(
-        'backend.components.bcs.k8s_client.K8SAPIClient.get_client_credentials', return_value=fake_credentials
+        'backend.components.bcs.k8s_client.make_cluster_context', return_value=fake_cluster_context
     ), mock.patch(
         'backend.components.bcs.BCSClientBase._bcs_server_host',
         new_callable=mock.PropertyMock,
@@ -142,19 +141,19 @@ TEST_CLUSTER_ID = os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
 TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def patch_system_viewset():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
         yield
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope='package')
 def patch_user_viewset():
     with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
         yield
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def patch_get_dynamic_client():
     with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
         yield
