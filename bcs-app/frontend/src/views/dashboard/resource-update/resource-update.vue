@@ -58,21 +58,31 @@
                         </bk-dropdown-menu>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
-                            <!-- <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i class="bcs-icon bcs-icon-help-2"></i></span> -->
+                            <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i :class="['bcs-icon bcs-icon-help-2', { active: showHelp }]"></i></span>
                             <span v-bk-tooltips.top="$t('关闭')" @click="showExample = false"><i class="bcs-icon bcs-icon-close-5"></i></span>
                         </span>
                     </div>
                     <div class="example-desc" v-if="showDesc" ref="descWrapperRef">{{ activeExample.description }}</div>
-                    <ResourceEditor
-                        :value="activeExample.manifest"
-                        :height="fullScreen ? '100%' : exampleEditorHeight"
-                        :options="{
-                            renderLineHighlight: 'none'
-                        }"
-                        key="example"
-                        readonly
-                        v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
-                    </ResourceEditor>
+                    <bcs-resize-layout :ext-cls="['custom-layout-cls', { 'hide-help': !showHelp }]"
+                        :initial-divide="initialDivide"
+                        :disabled="!showHelp">
+                        <ResourceEditor
+                            slot="aside"
+                            :value="activeExample.manifest"
+                            :height="fullScreen ? '100%' : exampleEditorHeight"
+                            :options="{
+                                renderLineHighlight: 'none'
+                            }"
+                            key="example"
+                            readonly
+                            v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
+                        </ResourceEditor>
+                        <bcs-md v-show="showHelp"
+                            slot="main"
+                            theme="dark"
+                            :style="{ height: exampleEditorHeight + 'px' }"
+                            :code="examples.references" />
+                    </bcs-resize-layout>
                 </div>
             </template>
             <div class="code-diff" v-else>
@@ -121,13 +131,15 @@
     import { copyText } from '@/common/util'
     import yamljs from 'js-yaml'
     import EditorStatus from './editor-status.vue'
+    import BcsMd from '@open/components/bcs-md/index.vue'
 
     export default defineComponent({
         name: 'ResourceUpdate',
         components: {
             ResourceEditor,
             DashboardTopActions,
-            EditorStatus
+            EditorStatus,
+            BcsMd
         },
         props: {
             // 命名空间（更新的时候需要，创建的时候为空）
@@ -209,14 +221,14 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const data = await $store.dispatch('dashboard/getResourceDetail', {
+                const res = await $store.dispatch('dashboard/getResourceDetail', {
                     $namespaceId: namespace.value,
                     $category: category.value,
                     $name: name.value,
                     $type: type.value
                 })
-                original.value = JSON.parse(JSON.stringify(data?.manifest || {})) // 缓存原始值
-                setDetail(data?.manifest)
+                original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
+                setDetail(res.data?.manifest)
                 isLoading.value = false
                 return detail.value
             }
@@ -265,6 +277,10 @@
             }
             const handleFullScreen = () => { // 全屏
                 fullScreen.value = !fullScreen.value
+                fullScreen.value && $bkMessage({
+                    theme: 'primary',
+                    message: $i18n.t('按Esc即可退出全屏模式')
+                })
             }
             const handleExitFullScreen = (event: KeyboardEvent) => { // esc退出全屏
                 if (event.code === 'Escape') {
@@ -286,12 +302,14 @@
             const exampleLoading = ref(false)
             const examples = ref<any>({})
             const showDesc = ref(false)
+            const showHelp = ref(false)
             const exampleWrapperRef = ref<Element|null>(null)
             const descWrapperHeight = ref(0)
             const descWrapperRef = ref<Element|null>(null)
             const exampleEditorHeight = computed(() => { // 代码示例高度
                 return height.value - descWrapperHeight.value
             })
+            const initialDivide = computed(() => showHelp.value ? '50%' : '100%')
             watch(showDesc, () => {
                 setTimeout(() => { // dom更新后获取描述文字的高度
                     descWrapperHeight.value = showDesc.value ? descWrapperRef.value?.getBoundingClientRect()?.height || 0 : 0
@@ -320,6 +338,7 @@
             }
             const handleHelp = () => {
                 // 帮助文档
+                showHelp.value = !showHelp.value
             }
 
             // 3.====diff编辑器相关逻辑====
@@ -437,6 +456,8 @@
                 examples,
                 showExample,
                 showDesc,
+                showHelp,
+                initialDivide,
                 fullScreen,
                 height,
                 disabledResourceUpdate,
@@ -471,6 +492,7 @@
 <style lang="postcss" scoped>
 .resource-content {
     padding-bottom: 0;
+    height: 100%;
     .icon-back {
         font-size: 16px;
         font-weight: bold;
@@ -605,6 +627,28 @@
                 font-size: 12px;
                 color: #b0b2b8;
                 padding: 15px;
+            }
+            .custom-layout-cls {
+                border: none;
+                /deep/ {
+                    .bk-resize-layout-aside {
+                        border-color: #292929;
+                        &:after {
+                            right: -6px;
+                        }
+                    }
+                }
+                &.hide-help {
+                    /deep/ .bk-resize-layout-aside:after {
+                        display: none;
+                    }
+                }
+            }
+            /deep/ .bk-resize-layout-main {
+                background-color: #1a1a1a;
+            }
+            .bcs-md-preview {
+                background-color: #2e2e2e !important;
             }
         }
         .code-diff {

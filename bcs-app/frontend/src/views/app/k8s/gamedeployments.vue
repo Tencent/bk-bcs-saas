@@ -56,17 +56,18 @@
                             :page-params="pageConf"
                             @page-change="handlePageChange"
                             @page-limit-change="handlePageSizeChange">
-                            <bk-table-column v-for="(column, index) in columnList" :label="defaultColumnMap[column] || column" :key="index">
+                            <bk-table-column v-for="(column, index) in columnList" :label="(defaultColumnMap[column] && defaultColumnMap[column].label) || column"
+                                :min-width="defaultColumnMap[column] ? defaultColumnMap[column].minWidth : 'auto'"
+                                :key="index">
                                 <template slot-scope="{ row }">
                                     <div class="cell">
-                                        <bcs-popover :content="row[column] || ''" placement="top">
-                                            <template v-if="column === 'name'">
-                                                <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
-                                            </template>
-                                            <template v-else>
-                                                {{row[column] || '--'}}
-                                            </template>
-                                        </bcs-popover>
+                                        <template v-if="column === 'name'">
+                                            <a href="javascript:void(0);" class="bk-text-button name-col bcs-ellipsis" style="font-weight: 700;"
+                                                @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
+                                        </template>
+                                        <template v-else>
+                                            {{row[column] || '--'}}
+                                        </template>
                                     </div>
                                 </template>
                             </bk-table-column>
@@ -172,9 +173,18 @@
                     show: true
                 },
                 defaultColumnMap: {
-                    'name': this.$t('名称'),
-                    'cluster_id': this.$t('集群'),
-                    'namespace': this.$t('命名空间')
+                    'name': {
+                        label: this.$t('名称'),
+                        minWidth: 150
+                    },
+                    'cluster_id': {
+                        label: this.$t('集群'),
+                        minWidth: 140
+                    },
+                    'namespace': {
+                        label: this.$t('命名空间'),
+                        minWidth: 100
+                    }
                 },
                 bkMessageInstance: null,
                 clusterList: [],

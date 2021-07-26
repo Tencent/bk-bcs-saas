@@ -80,6 +80,11 @@
             unit: {
                 type: String,
                 default: 'percent'
+            },
+            // series后缀（数组时要和metric一一对应）
+            suffix: {
+                type: [String, Array],
+                default: ''
             }
         },
         setup (props, ctx) {
@@ -110,6 +115,11 @@
                 }
                 return prop
             })
+            const metricSuffix = computed(() => {
+                if (!props.suffix) return []
+
+                return Array.isArray(props.suffix) ? props.suffix : [props.suffix]
+            })
 
             const handleTimeRangeChange = (item) => {
                 if (state.activeTime.range === item.range) return
@@ -122,11 +132,13 @@
                 if (!data) return
 
                 const series: any[] = []
-                data.forEach(item => {
-                    const list = item?.result.map((result, index) => {
+                data.forEach((item, index) => {
+                    const suffix = metricSuffix.value[index]
+                    const list = item?.result.map(result => {
                         // series 配置
+                        const name = result.metric?.[metricNameProp.value]
                         return {
-                            name: result.metric?.[metricNameProp.value],
+                            name: suffix ? `${name} ${suffix}` : name,
                             type: 'line',
                             showSymbol: false,
                             smooth: true,
@@ -139,7 +151,7 @@
                             itemStyle: {
                                 normal: {
                                     color: Array.isArray(props.colors)
-                                        ? props.colors[(index % (props.colors.length) - 1)]
+                                        ? props.colors[index % props.colors.length]
                                         : props.colors
                                 }
                             },
