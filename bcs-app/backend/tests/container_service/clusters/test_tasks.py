@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 from unittest import mock
 
@@ -35,6 +36,8 @@ def cluster_record():
     )
 
 
+# 社区版不需要执行以下单元测试
+@pytest.mark.skipif(not os.environ.get('IS_INTERNAL_MODE'), reason='skip internal only unittest')
 class TestClusterOrNodeTaskPoller:
     @mock.patch(
         "backend.container_service.clusters.tasks.ops.OPSClient",

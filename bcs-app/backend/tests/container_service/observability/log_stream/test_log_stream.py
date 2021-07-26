@@ -29,6 +29,7 @@ def session_id(api_client, project_id, cluster_id, namespace, pod_name, containe
     return result['data']['session_id']
 
 
+@pytest.mark.skip(reason='暂时跳过标准日志部分单元测试')
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_log_stream(project_id, cluster_id, namespace, pod_name, session_id):

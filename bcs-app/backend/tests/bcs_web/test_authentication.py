@@ -34,7 +34,10 @@ class MockView(APIView):
 
 @pytest.fixture(autouse=True)
 def patch_authentication():
-    with mock.patch('backend.bcs_web.authentication.JWTClient', new=jwt.FakeJWTClient):
+    with mock.patch('backend.bcs_web.authentication.JWTClient', new=jwt.FakeJWTClient), mock.patch(
+        'backend.bcs_web.authentication.JWTAndTokenAuthentication._validate_access_token',
+        new=lambda *args, **kwargs: True,
+    ):
         yield
 
 

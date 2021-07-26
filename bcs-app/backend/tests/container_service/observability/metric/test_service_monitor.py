@@ -39,7 +39,7 @@ class TestServiceMonitor:
         project_id=TEST_PROJECT_ID, cluster_id=TEST_CLUSTER_ID
     )
 
-    def test_list(self, api_client, metric_api_common_patch, sm_api_patch, patch_k8s_client):
+    def test_list(self, api_client, sm_api_patch, patch_k8s_client):
         """ 测试获取列表接口 """
         response = api_client.get(f'{self.common_prefix}/')
         assert response.json()['code'] == 0
@@ -59,27 +59,27 @@ class TestServiceMonitor:
             'instance_id',
         }
 
-    def test_create(self, api_client, metric_api_common_patch, sm_api_patch):
+    def test_create(self, api_client, sm_api_patch):
         """ 测试创建接口 """
         response = api_client.post(f'{self.common_prefix}/', data=create_update_params)
         assert response.json()['code'] == 0
 
-    def test_batch_delete(self, api_client, metric_api_common_patch, sm_api_patch):
+    def test_batch_delete(self, api_client, sm_api_patch):
         """ 测试批量删除接口 """
         params = {'service_monitors': [{'namespace': namespace, 'name': sm_name}]}
         response = api_client.delete(f'{self.common_prefix}/batch/', data=params)
         assert response.json()['code'] == 0
 
-    def test_retrieve(self, api_client, metric_api_common_patch, sm_api_patch, patch_k8s_client):
+    def test_retrieve(self, api_client, sm_api_patch, patch_k8s_client):
         """ 测试获取单个接口 """
         response = api_client.get(f'{self.common_prefix}/{namespace}/{sm_name}/')
         assert response.json()['code'] == 0
 
-    def test_destroy(self, api_client, metric_api_common_patch, sm_api_patch):
+    def test_destroy(self, api_client, sm_api_patch):
         """ 测试删除接口 """
         response = api_client.delete(f'{self.common_prefix}/{namespace}/{sm_name}/')
         assert response.json()['code'] == 0
 
-    def test_update(self, api_client, metric_api_common_patch, sm_api_patch):
+    def test_update(self, api_client, sm_api_patch):
         response = api_client.put(f'{self.common_prefix}/{namespace}/{sm_name}/', data=create_update_params)
         assert response.json()['code'] == 0
