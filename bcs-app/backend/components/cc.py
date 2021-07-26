@@ -379,7 +379,7 @@ class PageData:
 
 
 class BkCCClient(BkApiClient):
-    def __init__(self, username: str, bk_supplier_account: str = DEFAULT_SUPPLIER_ACCOUNT):
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = DEFAULT_SUPPLIER_ACCOUNT):
         self._config = BkCCConfig(host=settings.COMPONENT_HOST)
         self._client = BaseHttpClient(BkCCAuth(username, bk_supplier_account=bk_supplier_account))
 
