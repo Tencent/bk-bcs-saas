@@ -1328,10 +1328,8 @@
                 } catch (e) {
                     console.error(e)
                 } finally {
-                    setTimeout(() => {
-                        this.editQuotaConf.loading = false
-                        this.editQuotaConf.initLoading = false
-                    }, 300)
+                    this.editQuotaConf.initLoading = false
+                    this.editQuotaConf.loading = false
                 }
             },
 
