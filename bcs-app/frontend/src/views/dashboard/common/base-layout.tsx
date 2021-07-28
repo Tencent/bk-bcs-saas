@@ -12,11 +12,15 @@ import { sort } from '@/common/util'
 import yamljs from 'js-yaml'
 import * as ace from '@/components/ace-editor'
 import './base-layout.css'
+import fullScreen from '@open/directives/full-screen'
 
 export default defineComponent({
     name: 'BaseLayout',
     components: {
         ace
+    },
+    directives: {
+        'full-screen': fullScreen
     },
     props: {
         title: {
@@ -381,7 +385,9 @@ export default defineComponent({
                                     ? (this.$scopedSlots.detail && this.$scopedSlots.detail({
                                         ...this.curDetailRow
                                     }))
-                                    : <ace width="100%" height="100%" lang="yaml" readOnly={true} value={this.yaml}></ace>
+                                    : <ace v-full-screen={{ tools: ['fullscreen', 'copy'], content: this.yaml }}
+                                        width="100%" height="100%" lang="yaml"
+                                        readOnly={true} value={this.yaml}></ace>
                         }
                     }
                     }></bcs-sideslider>
