@@ -27,5 +27,5 @@ class ResourceBaseError(Exception):
         return self.message
 
 
-class DeleteResourceError(Exception):
+class DeleteResourceError(ResourceBaseError):
     """ 删除资源异常 """
