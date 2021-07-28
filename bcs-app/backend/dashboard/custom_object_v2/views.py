@@ -20,6 +20,7 @@ from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.auditor import DashboardAuditor
 from backend.dashboard.custom_object_v2 import serializers as slzs
+from backend.dashboard.custom_object_v2.utils import gen_cobj_web_annotations
 from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
 from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
@@ -27,6 +28,7 @@ from backend.resources.constants import KUBE_NAME_REGEX, K8sResourceKind
 from backend.resources.custom_object import CustomResourceDefinition, get_cobj_client_by_crd
 from backend.resources.custom_object.formatter import CustomObjectCommonFormatter
 from backend.utils.basic import getitems
+from backend.utils.response import BKAPIResponse
 
 
 class CRDViewSet(SystemViewSet):
@@ -52,27 +54,28 @@ class CRDViewSet(SystemViewSet):
 class CustomObjectViewSet(SystemViewSet):
     """ 自定义资源对象 """
 
-    lookup_field = 'cus_obj_name'
+    lookup_field = 'custom_obj_name'
     lookup_value_regex = KUBE_NAME_REGEX
 
     def list(self, request, project_id, cluster_id, crd_name):
         """ 获取某类自定义资源列表 """
         client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
         response_data = ListApiRespBuilder(client, formatter=CustomObjectCommonFormatter()).build()
-        return Response(response_data)
+        web_annotations = gen_cobj_web_annotations(request, project_id, cluster_id, crd_name)
+        return BKAPIResponse(response_data, web_annotations=web_annotations)
 
-    def retrieve(self, request, project_id, cluster_id, crd_name, cus_obj_name):
+    def retrieve(self, request, project_id, cluster_id, crd_name, custom_obj_name):
         """ 获取单个自定义对象 """
         params = self.params_validate(slzs.FetchCustomObjectSLZ)
         client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
         response_data = RetrieveApiRespBuilder(
-            client, namespace=params.get('namespace'), name=cus_obj_name, formatter=CustomObjectCommonFormatter()
+            client, namespace=params.get('namespace'), name=custom_obj_name, formatter=CustomObjectCommonFormatter()
         ).build()
         return Response(response_data)
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, cluster_id, crd_name):
-        """ 获取某类自定义资源列表 """
+        """ 创建自定义资源 """
         validate_cluster_perm(request, project_id, cluster_id)
         params = self.params_validate(slzs.CreateCustomObjectSLZ)
         namespace = getitems(params, 'manifest.metadata.namespace')
@@ -90,12 +93,12 @@ class CustomObjectViewSet(SystemViewSet):
         return Response(response_data)
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Modify)
-    def update(self, request, project_id, cluster_id, crd_name, cus_obj_name):
-        """ 获取某类自定义资源列表 """
+    def update(self, request, project_id, cluster_id, crd_name, custom_obj_name):
+        """ 更新自定义资源 """
         validate_cluster_perm(request, project_id, cluster_id)
         params = self.params_validate(slzs.UpdateCustomObjectSLZ)
         namespace = getitems(params, 'manifest.metadata.namespace')
-        self._update_audit_ctx(request, namespace, crd_name, cus_obj_name)
+        self._update_audit_ctx(request, namespace, crd_name, custom_obj_name)
 
         client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
         manifest = params['manifest']
@@ -104,7 +107,7 @@ class CustomObjectViewSet(SystemViewSet):
         manifest['metadata'].pop('resourceVersion', None)
         try:
             response_data = client.replace(
-                body=manifest, namespace=namespace, name=cus_obj_name, is_format=False, auto_add_version=True
+                body=manifest, namespace=namespace, name=custom_obj_name, is_format=False, auto_add_version=True
             ).data.to_dict()
         except DynamicApiError as e:
             raise UpdateResourceError(_('更新资源失败: {}').format(e.summary()))
@@ -114,24 +117,26 @@ class CustomObjectViewSet(SystemViewSet):
         return Response(response_data)
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Delete)
-    def destroy(self, request, project_id, cluster_id, crd_name, cus_obj_name):
-        """ 获取某类自定义资源列表 """
+    def destroy(self, request, project_id, cluster_id, crd_name, custom_obj_name):
+        """ 删除自定义资源 """
         validate_cluster_perm(request, project_id, cluster_id)
         params = self.params_validate(slzs.DestroyCustomObjectSLZ)
         namespace = params.get('namespace') or None
-        self._update_audit_ctx(request, namespace, crd_name, cus_obj_name)
+        self._update_audit_ctx(request, namespace, crd_name, custom_obj_name)
 
         client = get_cobj_client_by_crd(request.ctx_cluster, crd_name)
         try:
-            response_data = client.delete(name=cus_obj_name, namespace=namespace).to_dict()
+            response_data = client.delete(name=custom_obj_name, namespace=namespace).to_dict()
         except DynamicApiError as e:
             raise DeleteResourceError(_('删除资源失败: {}').format(e.summary()))
         return Response(response_data)
 
     @staticmethod
-    def _update_audit_ctx(request, namespace: str, crd_name: str, cus_obj_name: str) -> None:
+    def _update_audit_ctx(request, namespace: str, crd_name: str, custom_obj_name: str) -> None:
         """ 更新操作审计相关信息 """
-        resource_name = f'{crd_name} - {namespace}/{cus_obj_name}' if namespace else f'{crd_name} - {cus_obj_name}'
+        resource_name = (
+            f'{crd_name} - {namespace}/{custom_obj_name}' if namespace else f'{crd_name} - {custom_obj_name}'
+        )
         request.audit_ctx.update_fields(
             resource_type=K8sResourceKind.CustomObject.value.lower(), resource=resource_name
         )

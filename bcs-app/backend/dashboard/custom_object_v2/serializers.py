@@ -23,8 +23,6 @@ class OptionalNamespaceSLZ(serializers.Serializer):
 class FetchCustomObjectSLZ(OptionalNamespaceSLZ):
     """ 获取单个自定义对象 """
 
-    pass
-
 
 class CreateCustomObjectSLZ(serializers.Serializer):
     """ 创建自定义对象 """
@@ -35,10 +33,6 @@ class CreateCustomObjectSLZ(serializers.Serializer):
 class UpdateCustomObjectSLZ(CreateCustomObjectSLZ):
     """ 更新（replace）某个自定义对象 """
 
-    pass
-
 
 class DestroyCustomObjectSLZ(OptionalNamespaceSLZ):
     """ 删除单个自定义对象 """
-
-    pass
