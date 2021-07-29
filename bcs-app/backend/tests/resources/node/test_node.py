@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 #
 import copy
+import time
 from unittest import mock
 
 import pytest
@@ -18,12 +19,13 @@ from kubernetes.dynamic.exceptions import ResourceNotFoundError
 from kubernetes.dynamic.resource import ResourceField
 
 from backend.resources.node.client import Node, NodeObj
+from backend.tests.testing_utils.base import generate_random_string
 from backend.utils import FancyDict
 
 from ..conftest import FakeBcsKubeConfigurationService
 
 fake_inner_ip = "127.0.0.1"
-fake_node_name = "bcs-test-node"
+fake_node_name = generate_random_string(8)
 fake_labels = {"bcs-test": "test"}
 fake_taints = {"key": "test", "value": "tet", "effect": "NoSchedule"}
 
@@ -83,6 +85,8 @@ class TestNode:
             },
             name=fake_node_name,
         )
+        # 等待5s，是为了保证集群内可以查询到节点
+        time.sleep(5)
         yield
         client.delete_wait_finished(fake_node_name)
 
@@ -123,12 +127,17 @@ class TestNode:
     @pytest.mark.parametrize(
         "taints, expected",
         [
-            ([{"key": "test", "value": "", "effect": "NoSchedule"}], [{"key": "test", "effect": "NoSchedule"}]),
-            ([], []),
+            ([{"key": "test", "value": "", "effect": "NoSchedule"}], {"key": "test", "effect": "NoSchedule"}),
+            (
+                [{"key": "test", "value": "test", "effect": "NoSchedule"}],
+                {"key": "test", "value": "test", "effect": "NoSchedule"},
+            ),
         ],
     )
     def test_set_taints(self, taints, expected, client, create_and_delete_node):
+        # NOTE: 因为节点通过api直接创建，实际是不正常的，当节点不正常时，k8s会主动设置`NoSchedule`等taint
+        # 这样查询节点的taint时，返回的taint中包含期望值则认为正确
         client.set_taints_for_multi_nodes([{"node_name": fake_node_name, "taints": taints}])
         node_taints = client.filter_nodes_field_data("taints", filter_node_names=[fake_node_name])
         taints = node_taints[fake_inner_ip]
-        assert taints == expected
+        assert expected in taints
