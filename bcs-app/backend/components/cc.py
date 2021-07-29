@@ -351,7 +351,7 @@ class BkCCConfig:
 class BkCCAuth(AuthBase):
     """用于蓝鲸配置平台接口的鉴权校验"""
 
-    def __init__(self, username: str, bk_supplier_account: str = None):
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = DEFAULT_SUPPLIER_ACCOUNT):
         self.bk_app_code = settings.BCS_APP_CODE
         self.bk_app_secret = settings.BCS_APP_SECRET
         self.operator = username
