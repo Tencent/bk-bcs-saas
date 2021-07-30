@@ -29,8 +29,8 @@ class PermissionDeniedError(Exception):
     ):
         """
         :param message: 异常信息
-        :param username: 无权限的用户名
-        :param action_request_list: 生成 apply_url 的关键参数. 主要用于向上传递。见 PermissionDecorator 中的用法
+        :param username: 无权限的用户名, 用于生成 apply_url
+        :param action_request_list: 用于生成 apply_url
         """
 
         if message:
