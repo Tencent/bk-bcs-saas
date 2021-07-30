@@ -11,7 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from rest_framework import routers
 
+from . import views
 
-class DeleteHPAError(Exception):
-    pass
+router = routers.DefaultRouter(trailing_slash=True)
+
+router.register(r'', views.HPAViewSet, basename='hpa')

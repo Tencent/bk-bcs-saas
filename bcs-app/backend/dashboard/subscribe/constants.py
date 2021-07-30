@@ -14,6 +14,7 @@
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
 from backend.resources.event.client import Event
+from backend.resources.hpa.client import HPA
 from backend.resources.namespace.client import Namespace
 from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress
@@ -61,6 +62,8 @@ K8S_RESOURCE_CLIENTS = [
     # cluster
     Event,
     Namespace,
+    # HPA
+    HPA,
 ]
 
 # K8S资源类型：Client
