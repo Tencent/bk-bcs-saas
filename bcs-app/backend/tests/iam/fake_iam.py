@@ -23,8 +23,14 @@ class FakeProjectIAM:
         """"""
 
     def is_allowed(self, request: Request) -> bool:
-        if request.subject.id == roles.ADMIN_USER:
+        if request.subject.id in [
+            roles.ADMIN_USER,
+            roles.PROJECT_CLUSTER_USER,
+            roles.PROJECT_NO_CLUSTER_USER,
+            roles.PROJECT_USER,
+        ]:
             return True
+        return False
 
 
 class FakeProjectPermission(Permission):
@@ -36,9 +42,29 @@ class FakeClusterIAM:
         """"""
 
     def is_allowed(self, request: Request) -> bool:
-        if request.subject.id == roles.ADMIN_USER:
+        if request.subject.id in [
+            roles.ADMIN_USER,
+            roles.CLUSTER_USER,
+            roles.PROJECT_CLUSTER_USER,
+            roles.CLUSTER_NO_PROJECT_USER,
+        ]:
             return True
+        return False
 
 
 class FakeClusterPermission(Permission):
     iam = FakeClusterIAM()
+
+
+class FakeNamespaceIAM:
+    def __init__(self, *args, **kwargs):
+        """"""
+
+    def is_allowed(self, request: Request) -> bool:
+        if request.subject.id in [roles.ADMIN_USER, roles.NAMESPACE_NO_CLUSTER_PROJECT_USER]:
+            return True
+        return False
+
+
+class FakeNamespacePermission(Permission):
+    iam = FakeNamespaceIAM()

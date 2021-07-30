@@ -21,6 +21,7 @@ from backend.iam.permissions.resources.project import ProjectAction, ProjectPerm
 
 from ..fake_iam import FakeProjectPermission
 from . import roles
+from .conftest import generate_apply_url
 
 
 @pytest.fixture
@@ -44,16 +45,22 @@ class TestProjectPermission:
 
     def test_can_not_create(self, project_permission_obj):
         # 无权限不抛出异常
-        perm_ctx = ProjectPermCtx(username=roles.NO_PROJECT_USER)
+        username = roles.NO_PROJECT_USER
+        perm_ctx = ProjectPermCtx(username=username)
         assert not project_permission_obj.can_create(perm_ctx, raise_exception=False)
 
         # 无权限抛出异常
         with pytest.raises(PermissionDeniedError) as exec:
             project_permission_obj.can_create(perm_ctx)
         assert exec.value.code == PermissionDeniedError.code
-        assert exec.value.action_request_list == [
-            ActionResourcesRequest(resource_type=project_permission_obj.resource_type, action_id=ProjectAction.CREATE)
-        ]
+        assert exec.value.data['apply_url'] == generate_apply_url(
+            username,
+            action_request_list=[
+                ActionResourcesRequest(
+                    resource_type=project_permission_obj.resource_type, action_id=ProjectAction.CREATE
+                )
+            ],
+        )
 
     def test_can_view(self, project_permission_obj, project_id):
         # 有权限
@@ -62,17 +69,21 @@ class TestProjectPermission:
 
     def test_can_not_view(self, project_permission_obj, project_id):
         # 无权限不抛出异常
-        perm_ctx = ProjectPermCtx(username=roles.NO_PROJECT_USER, project_id=project_id)
+        username = roles.NO_PROJECT_USER
+        perm_ctx = ProjectPermCtx(username=username, project_id=project_id)
         assert not project_permission_obj.can_view(perm_ctx, raise_exception=False)
 
         # 无权限抛出异常
         with pytest.raises(PermissionDeniedError) as exec:
             project_permission_obj.can_view(perm_ctx)
         assert exec.value.code == PermissionDeniedError.code
-        assert exec.value.action_request_list == [
-            ActionResourcesRequest(
-                resource_type=project_permission_obj.resource_type,
-                action_id=ProjectAction.VIEW,
-                resources=[project_id],
-            )
-        ]
+        assert exec.value.data['apply_url'] == generate_apply_url(
+            username,
+            [
+                ActionResourcesRequest(
+                    resource_type=project_permission_obj.resource_type,
+                    action_id=ProjectAction.VIEW,
+                    resources=[project_id],
+                )
+            ],
+        )

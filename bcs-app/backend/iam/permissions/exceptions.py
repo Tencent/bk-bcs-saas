@@ -13,6 +13,7 @@
 #
 from typing import Dict, List, Optional
 
+from .apply_url import ApplyURLGenerator
 from .request import ActionResourcesRequest
 
 
@@ -23,24 +24,24 @@ class PermissionDeniedError(Exception):
     def __init__(
         self,
         message: str = '',
-        apply_url: str = '',
+        username: str = '',
         action_request_list: Optional[List[ActionResourcesRequest]] = None,
     ):
         """
         :param message: 异常信息
-        :param apply_url: 申请的跳转url
+        :param username: 无权限的用户名
         :param action_request_list: 生成 apply_url 的关键参数. 主要用于向上传递。见 PermissionDecorator 中的用法
         """
 
         if message:
             self.message = message
 
-        self.apply_url = apply_url
+        self.username = username
         self.action_request_list = action_request_list
 
     @property
     def data(self) -> Dict:
-        return {'apply_url': self.apply_url}
+        return {'apply_url': ApplyURLGenerator.generate_apply_url(self.username, self.action_request_list)}
 
     def __str__(self):
         return f'{self.code}: {self.message}'

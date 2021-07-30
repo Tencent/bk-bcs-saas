@@ -16,7 +16,14 @@ from unittest import mock
 
 import pytest
 
-from backend.iam.permissions.perm import ActionResourcesRequest, ApplyURLGenerator
+from backend.iam.permissions.apply_url import ApplyURLGenerator
+from backend.iam.permissions.perm import ActionResourcesRequest
+from backend.tests.testing_utils.base import generate_random_string
+
+
+@pytest.fixture
+def namespace_id():
+    return generate_random_string(32)
 
 
 def generate_apply_url(username: str, action_request_list: List[ActionResourcesRequest]) -> List[str]:

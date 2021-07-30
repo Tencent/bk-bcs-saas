@@ -13,11 +13,10 @@
 #
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 from django.conf import settings
 from iam import IAM, Action, MultiActionRequest, Request, Resource, Subject
-from iam.apply import models
 
 from .exceptions import PermissionDeniedError
 from .request import ActionResourcesRequest, ResourceRequest
@@ -28,68 +27,35 @@ class PermCtx:
     username: str
 
 
-class ApplyURLGenerator:
-    iam = IAM(settings.APP_ID, settings.APP_TOKEN, settings.BK_IAM_HOST, settings.BK_PAAS_INNER_HOST)
-
-    @classmethod
-    def generate_apply_url(cls, username: str, action_request_list: List[ActionResourcesRequest]) -> str:
-        """生成权限申请跳转 url"""
-        app = cls._make_application(action_request_list)
-        ok, message, url = cls.iam.get_apply_url(app, bk_username=username)
-        if not ok:
-            return settings.BK_IAM_APP_URL
-        return url
-
-    @staticmethod
-    def _make_application(action_request_list: List[ActionResourcesRequest]) -> models.Application:
-        """为 generate_apply_url 方法生成 models.Application"""
-        actions = []
-
-        for req in action_request_list:
-            if req.resources:
-                instances = [
-                    models.ResourceInstance([models.ResourceNode(req.resource_type, res_id, res_id)])
-                    for res_id in req.resources
-                ]
-                related_resource_type = models.RelatedResourceType(settings.APP_ID, req.resource_type, instances)
-                action = models.ActionWithResources(req.action_id, [related_resource_type])
-                actions.append(action)
-            else:
-                # 资源无关的 Application 构建
-                action = models.ActionWithoutResources(req.action_id)
-                actions.append(action)
-
-        return models.Application(settings.APP_ID, actions=actions)
-
-
 class Permission(metaclass=ABCMeta):
     """
     对接 IAM 的权限基类
     """
 
-    resource_type = ''
-    resource_request_cls = ResourceRequest
+    resource_type: str = ''
+    resource_request_cls: Type[ResourceRequest] = ResourceRequest
     iam = IAM(settings.APP_ID, settings.APP_TOKEN, settings.BK_IAM_HOST, settings.BK_PAAS_INNER_HOST)
 
-    def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception) -> bool:
-        """"""
+    def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception: bool, just_raise: bool = False) -> bool:
+        """
+        :param perm_ctx: 权限校验的上下文，至少包含用户名
+        :param action_id: 资源操作 ID
+        :param raise_exception: 无权限时，是否抛出异常
+        :param just_raise: 不做权限校验，直接以无权限方式抛出异常
+        """
         res_id = self._get_resource_id_from_ctx(perm_ctx)
+
+        if just_raise:
+            self._raise_permission_denied_error(res_id, perm_ctx, action_id)
+
         if res_id:
-            res_request = self.resource_request_cls(res_id)
+            res_request = self._make_res_request(res_id, perm_ctx)
             is_allowed = self.resource_inst_allowed(perm_ctx.username, action_id, res_request)
         else:
             is_allowed = self.resource_type_allowed(perm_ctx.username, action_id)
 
         if raise_exception and not is_allowed:
-            resources = [res_id] if res_id else None
-            action_request_list = [
-                ActionResourcesRequest(resource_type=self.resource_type, action_id=action_id, resources=resources)
-            ]
-            raise PermissionDeniedError(
-                f"no {action_id} permission",
-                apply_url=ApplyURLGenerator.generate_apply_url(perm_ctx.username, action_request_list),
-                action_request_list=action_request_list,
-            )
+            self._raise_permission_denied_error(res_id, perm_ctx, action_id)
 
         return is_allowed
 
@@ -170,6 +136,21 @@ class Permission(metaclass=ABCMeta):
             Action(action_id),
             resources,
             None,
+        )
+
+    def _make_res_request(self, res_id: str, perm_ctx: PermCtx) -> ResourceRequest:
+        """"""
+        return self.resource_request_cls(res_id)
+
+    def _raise_permission_denied_error(self, res_id: str, perm_ctx: PermCtx, action_id: str):
+        resources = [res_id] if res_id else None
+        action_request_list = [
+            ActionResourcesRequest(resource_type=self.resource_type, action_id=action_id, resources=resources)
+        ]
+        raise PermissionDeniedError(
+            f"no {action_id} permission",
+            username=perm_ctx.username,
+            action_request_list=action_request_list,
         )
 
     @abstractmethod

@@ -13,6 +13,8 @@
 #
 ADMIN_USER = 'admin'
 
+ANONYMOUS_USER = 'anonymous_user'
+
 PROJECT_USER = 'project_user'
 
 NO_PROJECT_USER = 'no_project_user'
@@ -24,3 +26,5 @@ PROJECT_CLUSTER_USER = 'project_cluster_user'
 PROJECT_NO_CLUSTER_USER = 'project_no_cluster_user'
 
 CLUSTER_NO_PROJECT_USER = 'cluster_no_project_user'
+
+NAMESPACE_NO_CLUSTER_PROJECT_USER = 'namespace_no_cluster_project_user'

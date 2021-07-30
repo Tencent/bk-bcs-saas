@@ -11,18 +11,38 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import importlib
 from abc import ABCMeta, abstractmethod
-from typing import List, Type
+from typing import List
 
 import wrapt
 
 from .exceptions import PermissionDeniedError
-from .perm import ActionResourcesRequest, ApplyURLGenerator, PermCtx, Permission
+from .perm import ActionResourcesRequest, PermCtx, Permission
 
 
-class PermissionDecorator(metaclass=ABCMeta):
+class RelatedPermissionDecorator(metaclass=ABCMeta):
+    """
+    用于资源 Permission 类的方法装饰, 目的是支持 related_actions.
 
-    perm_type: Type[Permission]
+    如 related_project_perm 和 related_cluster_perm 装饰器的用法:
+
+    class ClusterPermission(Permission):
+
+        resource_type: str = 'cluster'
+        resource_request_cls: Type[ResourceRequest] = ClusterRequest
+
+        @related_project_perm(method_name='can_view')
+        def can_view(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
+            return self.can_action(perm_ctx, ClusterAction.VIEW, raise_exception, just_raise)
+
+        @related_cluster_perm(method_name='can_view')
+        def can_manage(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
+            return self.can_action(perm_ctx, ClusterAction.MANAGE, raise_exception, just_raise)
+
+    """
+
+    module_name: str  # 资源模块名 如 cluster, project
 
     def __init__(self, method_name: str):
         """
@@ -30,28 +50,40 @@ class PermissionDecorator(metaclass=ABCMeta):
         """
         self.method_name = method_name
 
+    def _gen_perm_obj(self) -> Permission:
+        """获取权限类实例，如 project.ProjectPermission"""
+        p_module_name = __name__[: __name__.rfind(".")]
+        return getattr(
+            importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
+            f'{self.module_name.capitalize()}Permission',
+        )()
+
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
+        self.perm_obj = self._gen_perm_obj()
+
         perm_ctx = self._convert_perm_ctx(instance, args, kwargs)
 
         try:
             is_allowed = wrapped(*args, **kwargs)
         except PermissionDeniedError as e:
-            # 按照权限中心的建议，直接把关联的操作资源统一生成 apply_url，让用户都申请一次
-            action_request_list = e.action_request_list + self._action_request_list(perm_ctx)
-            raise PermissionDeniedError(
-                f'no {self.action_id} permission; {e.message}',
-                apply_url=ApplyURLGenerator.generate_apply_url(perm_ctx.username, action_request_list),
-                action_request_list=action_request_list,
-            )
+            # 按照权限中心的建议，无论关联资源操作是否有权限，统一按照无权限返回，目的是生成最终的 apply_url
+            try:
+                getattr(self.perm_obj, self.method_name)(perm_ctx, just_raise=True)
+            except PermissionDeniedError as err:
+                raise PermissionDeniedError(
+                    f'{e.message}; {err.message}',
+                    username=perm_ctx.username,
+                    action_request_list=e.action_request_list + err.action_request_list,
+                )
+        else:
+            # 无权限，并且没有抛出 PermissionDeniedError, 说明 raise_exception = False
+            if not is_allowed:
+                return is_allowed
 
-        # 无权限，并且没有抛出 PermissionDeniedError, 说明 raise_exception = False
-        if not is_allowed:
-            return is_allowed
-
-        # 有权限时，继续校验关联操作的权限
-        raise_exception = kwargs.get('raise_exception', True)
-        return getattr(self.perm_type(), self.method_name)(perm_ctx, raise_exception=raise_exception)
+            # 有权限时，继续校验关联操作的权限
+            raise_exception = kwargs.get('raise_exception', True)
+            return getattr(self.perm_obj, self.method_name)(perm_ctx, raise_exception=raise_exception)
 
     @abstractmethod
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
@@ -64,4 +96,38 @@ class PermissionDecorator(metaclass=ABCMeta):
     @property
     def action_id(self) -> str:
         action = self.method_name.split('can_')[1]
-        return f'{self.perm_type.resource_type}_{action}'
+        return f'{self.perm_obj.resource_type}_{action}'
+
+
+class PermissionDecorator:
+    """鉴权装饰器基类，用于装饰函数或者方法"""
+
+    module_name: str  # 资源模块名 如 cluster, project
+
+    def __init__(self, method_name: str):
+        """
+        :param method_name: 权限类的 can_{action} 方法名，用于校验用户是否具有对应的操作权限
+        """
+        self.method_name = method_name
+
+    def _gen_perm_obj(self) -> Permission:
+        """获取权限类实例，如 project.ProjectPermission"""
+        p_module_name = __name__[: __name__.rfind(".")]
+        return getattr(
+            importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
+            f'{self.module_name.capitalize()}Permission',
+        )()
+
+    @wrapt.decorator
+    def __call__(self, wrapped, instance, args, kwargs):
+
+        self.perm_obj = self._gen_perm_obj()
+
+        if len(args) <= 0:
+            raise TypeError('missing PermCtx instance argument')
+        if not isinstance(args[0], PermCtx):
+            raise TypeError('missing ProjectPermCtx instance argument')
+
+        getattr(self.perm_obj, self.method_name)(args[0])
+
+        return wrapped(*args, **kwargs)

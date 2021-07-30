@@ -12,11 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Type
 
-from backend.iam.permissions.decorators import PermissionDecorator
+from backend.iam.permissions.decorators import RelatedPermissionDecorator
 from backend.iam.permissions.perm import ActionResourcesRequest, PermCtx, Permission, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+
+ResourceType = 'project'
 
 
 class ProjectAction(str, StructuredEnum):
@@ -26,7 +28,7 @@ class ProjectAction(str, StructuredEnum):
 
 
 class ProjectRequest(ResourceRequest):
-    resource_type = 'project'
+    resource_type: str = ResourceType
 
 
 @dataclass
@@ -37,38 +39,41 @@ class ProjectPermCtx(PermCtx):
 class ProjectPermission(Permission):
     """项目权限"""
 
-    resource_type = 'project'
-    resource_request_cls = ProjectRequest
+    resource_type: str = ResourceType
+    resource_request_cls: Type[ResourceRequest] = ProjectRequest
 
-    def can_create(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, ProjectAction.CREATE, raise_exception)
+    def can_create(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.CREATE, raise_exception, just_raise)
 
-    def can_view(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, ProjectAction.VIEW, raise_exception)
+    def can_view(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.VIEW, raise_exception, just_raise)
+
+    def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception, just_raise)
 
     def _get_resource_id_from_ctx(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
         return perm_ctx.project_id
 
 
-class project_perm(PermissionDecorator):
+class related_project_perm(RelatedPermissionDecorator):
     """"""
 
-    perm_type = ProjectPermission
+    module_name: str = ResourceType
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
         if len(args) <= 0:
-            raise TypeError('missing PermCtx instance argument')
+            raise TypeError('missing ProjectPermCtx instance argument')
         if isinstance(args[0], PermCtx):
             return ProjectPermCtx(username=args[0].username, project_id=args[0].project_id)
         else:
-            raise TypeError('missing PermCtx instance argument')
+            raise TypeError('missing ProjectPermCtx instance argument')
 
     def _action_request_list(self, perm_ctx: ProjectPermCtx) -> List[ActionResourcesRequest]:
         """"""
         resources = [perm_ctx.project_id] if perm_ctx.project_id else None
         return [
             ActionResourcesRequest(
-                resource_type=self.perm_type.resource_type, action_id=self.action_id, resources=resources
+                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
             )
         ]
