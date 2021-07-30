@@ -2551,7 +2551,7 @@ div::-webkit-scrollbar-thumb {
 }
 
 .bcs-full-screen {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     right: 0;
     bottom: 0;

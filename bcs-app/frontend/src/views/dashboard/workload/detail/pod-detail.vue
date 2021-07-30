@@ -213,7 +213,8 @@
         </div>
         <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
             <template #content>
-                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+                <Ace v-full-screen="{ tools: ['fullscreen', 'copy'], content: yaml }"
+                    width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
             </template>
         </bcs-sideslider>
     </div>
@@ -227,6 +228,7 @@
     import useDetail from './use-detail'
     import { formatTime } from '@/common/util'
     import Ace from '@/components/ace-editor'
+    import fullScreen from '@open/directives/full-screen'
 
     export interface IDetail {
         manifest: any;
@@ -247,7 +249,8 @@
             Ace
         },
         directives: {
-            bkOverflowTips
+            bkOverflowTips,
+            'full-screen': fullScreen
         },
         props: {
             namespace: {

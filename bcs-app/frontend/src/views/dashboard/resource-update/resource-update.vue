@@ -80,7 +80,8 @@
                         <bcs-md v-show="showHelp"
                             slot="main"
                             theme="dark"
-                            :style="{ height: exampleEditorHeight + 'px' }"
+                            class="references"
+                            :style="{ height: exampleEditorHeight - 2 + 'px' }"
                             :code="examples.references" />
                     </bcs-resize-layout>
                 </div>
@@ -648,7 +649,10 @@
                 background-color: #1a1a1a;
             }
             .bcs-md-preview {
-                background-color: #1a1a1a !important;
+                background-color: #2e2e2e !important;
+            }
+            .references {
+                margin: 1px;
             }
         }
         .code-diff {
