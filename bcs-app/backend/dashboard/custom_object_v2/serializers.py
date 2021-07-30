@@ -13,21 +13,26 @@
 #
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-
-from .constants import KIND_RESOURCE_CLIENT_MAP
 
 
-class FetchResourceWatchResultSLZ(serializers.Serializer):
-    """获取单类资源一段时间内的变更记录"""
+class OptionalNamespaceSLZ(serializers.Serializer):
+    # 部分资源对象是可以没有命名空间维度的
+    namespace = serializers.CharField(label=_('命名空间'), required=False)
 
-    resource_version = serializers.CharField(label=_('资源版本号'), max_length=32)
-    kind = serializers.CharField(label=_('资源类型'), max_length=128)
-    api_version = serializers.CharField(label=_('API版本'), max_length=16, required=False)
 
-    def validate(self, attrs):
-        """ 若不是确定支持的资源类型（如自定义资源），则需要提供 apiVersion，以免需先查询 CRD """
-        if attrs['kind'] not in KIND_RESOURCE_CLIENT_MAP:
-            if not attrs.get('api_version'):
-                raise ValidationError(_('当资源类型为自定义对象时，需要指定 ApiVersion'))
-        return attrs
+class FetchCustomObjectSLZ(OptionalNamespaceSLZ):
+    """ 获取单个自定义对象 """
+
+
+class CreateCustomObjectSLZ(serializers.Serializer):
+    """ 创建自定义对象 """
+
+    manifest = serializers.JSONField(label=_('资源配置信息'))
+
+
+class UpdateCustomObjectSLZ(CreateCustomObjectSLZ):
+    """ 更新（replace）某个自定义对象 """
+
+
+class DestroyCustomObjectSLZ(OptionalNamespaceSLZ):
+    """ 删除单个自定义对象 """

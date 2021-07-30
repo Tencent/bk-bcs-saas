@@ -13,15 +13,28 @@
 #
 from typing import Dict
 
+from backend.resources.custom_object.utils import parse_cobj_api_version
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
 
 
 class CRDFormatter(ResourceDefaultFormatter):
     def format_dict(self, resource_dict: Dict) -> Dict:
-        return {"name": getitems(resource_dict, "metadata.name"), "scope": getitems(resource_dict, "spec.scope")}
+        return {
+            'name': getitems(resource_dict, 'metadata.name'),
+            'scope': getitems(resource_dict, 'spec.scope'),
+            'kind': getitems(resource_dict, 'spec.names.kind'),
+            'api_version': parse_cobj_api_version(resource_dict),
+        }
 
 
 class CustomObjectFormatter(ResourceDefaultFormatter):
     def format_dict(self, resource_dict: Dict) -> Dict:
         return resource_dict
+
+
+class CustomObjectCommonFormatter(ResourceDefaultFormatter):
+    """ 通用的自定义对象格式化器 """
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return self.format_common_dict(resource_dict)

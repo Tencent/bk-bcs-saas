@@ -69,6 +69,9 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
+    # CustomResource
+    CustomResourceDefinition = "CustomResourceDefinition"
+    CustomObject = "CustomObject"
     # hpa
     HorizontalPodAutoscaler = "HorizontalPodAutoscaler"
     # other
@@ -98,6 +101,9 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
+        # CustomResource
+        (CustomResourceDefinition, "CustomResourceDefinition"),
+        (CustomObject, "CustomObject"),
         # hpa
         (HorizontalPodAutoscaler, "HorizontalPodAutoscaler"),
         # other

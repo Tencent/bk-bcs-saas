@@ -52,4 +52,6 @@ RES_KIND_WITH_DEMO_MANIFEST = [
     K8sResourceKind.HorizontalPodAutoscaler.value,
     # rbac
     K8sResourceKind.ServiceAccount.value,
+    # CustomResource
+    K8sResourceKind.CustomObject.value,
 ]
