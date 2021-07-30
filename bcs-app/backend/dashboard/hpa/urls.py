@@ -11,21 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from rest_framework import routers
 
+from . import views
 
-class ResourceBaseError(Exception):
-    """ Resource 模块基础异常类，需在上层捕获后处理 """
+router = routers.DefaultRouter(trailing_slash=True)
 
-    message: str = 'Resource Module Exception'
-
-    def __init__(self, message: str = None, *args: object) -> None:
-        super().__init__(*args)
-        if message:
-            self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-class DeleteResourceError(ResourceBaseError):
-    """ 删除资源异常 """
+router.register(r'', views.HPAViewSet, basename='hpa')

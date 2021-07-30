@@ -15,16 +15,17 @@ import logging
 from typing import Optional
 
 from backend.container_service.clusters.base.models import CtxCluster
+from backend.resources.constants import DEFAULT_HPA_API_VERSION, K8sResourceKind
+from backend.resources.resource import ResourceClient
 
-from ..resource import ResourceClient
+from .formatter import HPAFormatter4Dashboard
 
 logger = logging.getLogger(__name__)
 
-PREFERRED_API_VERSION = "autoscaling/v2beta2"
-
 
 class HPA(ResourceClient):
-    kind = "HorizontalPodAutoscaler"
+    kind = K8sResourceKind.HorizontalPodAutoscaler.value
+    formatter = HPAFormatter4Dashboard()
 
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = PREFERRED_API_VERSION):
+    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = DEFAULT_HPA_API_VERSION):
         super().__init__(ctx_cluster, api_version)

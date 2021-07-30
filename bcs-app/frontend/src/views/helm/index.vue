@@ -51,7 +51,7 @@
                     </symbol>
                 </svg>
 
-                <div class="biz-namespace" style="margin-bottom: 150px;" v-bkloading="{ isLoading: isPageLoading }">
+                <div class="biz-namespace" style="padding-bottom: 100px;" v-bkloading="{ isLoading: isPageLoading }">
                     <table class="bk-table biz-templateset-table mb20">
                         <thead>
                             <tr>

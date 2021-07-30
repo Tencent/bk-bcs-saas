@@ -257,14 +257,9 @@
                             this.isUserBKService = project.kind !== 0
                             if (!this.isUserBKService) {
                                 this.checkUser()
-                                // IEG 项目，只有内部版才判断是否是 IEG 项目
-                                if (String(project.bg_id) !== '956') {
-                                    this.isIEGProject = false
-                                } else {
-                                    await this.fetchCCList()
-                                    if (project.cc_app_id !== 0) {
-                                        this.ccKey = project.cc_app_id
-                                    }
+                                await this.fetchCCList()
+                                if (project.cc_app_id !== 0) {
+                                    this.ccKey = project.cc_app_id
                                 }
                             }
                         }

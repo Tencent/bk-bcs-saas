@@ -507,7 +507,7 @@
 
 .biz-namespace {
     padding: 0 20px;
-    overflow: auto;
+    overflow-x: auto;
 }
 
 /* 自适应 */

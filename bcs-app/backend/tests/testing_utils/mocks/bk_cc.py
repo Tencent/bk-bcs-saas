@@ -11,21 +11,28 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict, List, Optional
+
+from backend.components.cc import PageData
 
 
-class ResourceBaseError(Exception):
-    """ Resource 模块基础异常类，需在上层捕获后处理 """
+class FakeBkCCClient:
+    def __init__(self, *args, **kwargs):
+        pass
 
-    message: str = 'Resource Module Exception'
-
-    def __init__(self, message: str = None, *args: object) -> None:
-        super().__init__(*args)
-        if message:
-            self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-class DeleteResourceError(ResourceBaseError):
-    """ 删除资源异常 """
+    def search_biz(self, page: PageData, fields: Optional[List] = None, condition: Optional[Dict] = None) -> Dict:
+        return {
+            "count": 1,
+            "info": [
+                {
+                    "bs2_name_id": 1,
+                    "bk_oper_plan": "admin",
+                    "bk_biz_developer": "admin",
+                    "bk_biz_maintainer": "admin",
+                    "bk_dept_name_id": 1,
+                    "bk_biz_name": "demo",
+                    "bk_product_name": "demo",
+                    "default": 0,
+                }
+            ],
+        }

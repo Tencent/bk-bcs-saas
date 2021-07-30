@@ -17,6 +17,7 @@ from backend.dashboard.configs.urls import router as config_router
 from backend.dashboard.custom_object_v2.urls import router as custom_obj_router
 from backend.dashboard.events.urls import router as event_router
 from backend.dashboard.examples.urls import router as example_router
+from backend.dashboard.hpa.urls import router as hpa_router
 from backend.dashboard.namespaces.urls import router as namespace_router
 from backend.dashboard.networks.urls import router as network_router
 from backend.dashboard.rbac.urls import router as rbac_router
@@ -27,6 +28,7 @@ from backend.dashboard.workloads.urls import router as workload_router
 # 可选 namespaces/:namespace 前缀的 urls 集合
 namespace_prefix_urlpatterns = [
     url(r"^configs/", include(config_router.urls)),
+    url(r"^hpa/", include(hpa_router.urls)),
     url(r"^networks/", include(network_router.urls)),
     url(r"^rbac/", include(rbac_router.urls)),
     url(r"^storages/", include(storage_router.urls)),

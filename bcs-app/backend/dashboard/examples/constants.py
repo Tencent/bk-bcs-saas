@@ -48,6 +48,8 @@ RES_KIND_WITH_DEMO_MANIFEST = [
     K8sResourceKind.PersistentVolume.value,
     K8sResourceKind.PersistentVolumeClaim.value,
     K8sResourceKind.StorageClass.value,
+    # hpa
+    K8sResourceKind.HorizontalPodAutoscaler.value,
     # rbac
     K8sResourceKind.ServiceAccount.value,
     # CustomResource
