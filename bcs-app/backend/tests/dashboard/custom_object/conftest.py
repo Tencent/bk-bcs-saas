@@ -13,6 +13,7 @@
 #
 import json
 
+import mock
 import pytest
 from django.conf import settings
 from django.utils.crypto import get_random_string
@@ -46,3 +47,11 @@ def update_or_create_crd():
     client.create(body=crd_manifest, namespace='default', name=name)
     yield
     client.delete_wait_finished(namespace="default", name=name)
+
+
+@pytest.fixture(autouse=True, scope='package')
+def custom_resource_api_common_patch():
+    with mock.patch(
+        'backend.dashboard.custom_object_v2.views.validate_cluster_perm', new=lambda *args, **kwargs: None
+    ), mock.patch('backend.dashboard.custom_object_v2.views.gen_cobj_web_annotations', new=lambda *args, **kwargs: {}):
+        yield
