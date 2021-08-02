@@ -9,23 +9,21 @@
 #
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
 #
+import json
+
+import pytest
+from django.conf import settings
+
+from backend.resources.custom_object.utils import parse_cobj_api_version
+
+# 用于测试解析逻辑的文件路径
+TEST_CONFIG_PATH = f'{settings.BASE_DIR}/backend/tests/resources/utils/contents/crd4parser.json'
+
+with open(TEST_CONFIG_PATH) as fr:
+    crd_configs = json.load(fr)
 
 
-class ResourceBaseError(Exception):
-    """ Resource 模块基础异常类，需在上层捕获后处理 """
-
-    message: str = 'Resource Module Exception'
-
-    def __init__(self, message: str = None, *args: object) -> None:
-        super().__init__(*args)
-        if message:
-            self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-class DeleteResourceError(ResourceBaseError):
-    """ 删除资源异常 """
+@pytest.mark.parametrize('manifest, expected', [(v, k) for k, v in crd_configs.items()])
+def test_parse_cobj_api_version(manifest, expected):
+    assert parse_cobj_api_version(manifest) == expected

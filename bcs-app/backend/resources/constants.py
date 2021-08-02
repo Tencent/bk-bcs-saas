@@ -18,7 +18,13 @@ from backend.utils.basic import ChoicesEnum
 KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
-DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
+DEFAULT_CRON_JOB_API_VERSION = 'batch/v1beta1'
+
+# HPA 需要指定 api_version
+DEFAULT_HPA_API_VERSION = 'autoscaling/v2beta2'
+
+# 至多展示的 HPA 指标数量
+HPA_METRIC_MAX_DISPLAY_NUM = 3
 
 
 class WorkloadTypes(ChoicesEnum):
@@ -63,6 +69,11 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
+    # CustomResource
+    CustomResourceDefinition = "CustomResourceDefinition"
+    CustomObject = "CustomObject"
+    # hpa
+    HorizontalPodAutoscaler = "HorizontalPodAutoscaler"
     # other
     Event = "Event"
     Namespace = "Namespace"
@@ -90,6 +101,11 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
+        # CustomResource
+        (CustomResourceDefinition, "CustomResourceDefinition"),
+        (CustomObject, "CustomObject"),
+        # hpa
+        (HorizontalPodAutoscaler, "HorizontalPodAutoscaler"),
         # other
         (Event, "Event"),
         (Namespace, "Namespace"),
@@ -176,6 +192,16 @@ class PersistentVolumeAccessMode(str, StructuredEnum):
     def shortname(self):
         """k8s 官方缩写"""
         return self.get_choice_label(self.value)
+
+
+class MetricSourceType(str, StructuredEnum):
+    """ k8s MetricSourceType """
+
+    Object = EnumField('Object')
+    Pods = EnumField('Pods')
+    Resource = EnumField('Resource')
+    External = EnumField('External')
+    ContainerResource = EnumField('ContainerResource')
 
 
 class NodeConditionStatus(str, StructuredEnum):

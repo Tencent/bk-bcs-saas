@@ -18,7 +18,7 @@ import yaml
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa.hpa import HPA
+from backend.resources.hpa import client as hpa_client
 from backend.tests.conftest import TEST_NAMESPACE
 from backend.utils.basic import getitems
 
@@ -55,7 +55,7 @@ class TestHPA:
     @pytest.fixture
     def hpa_client(self, project_id, cluster_id):
         try:
-            return HPA(CtxCluster.create(token='token', project_id=project_id, id=cluster_id))
+            return hpa_client.HPA(CtxCluster.create(token='token', project_id=project_id, id=cluster_id))
         except ResourceNotFoundError:
             pytest.skip('Can not initialize HPA client, skip')
 

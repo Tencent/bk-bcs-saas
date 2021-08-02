@@ -23,6 +23,7 @@ from backend.dashboard.exceptions import CreateResourceError, DeleteResourceErro
 from backend.dashboard.permissions import gen_web_annotations, validate_cluster_perm
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
+from backend.resources.constants import KUBE_NAME_REGEX
 from backend.utils.basic import getitems
 from backend.utils.response import BKAPIResponse
 
@@ -121,3 +122,4 @@ class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, CreateMixin, UpdateMi
     """
 
     lookup_field = 'name'
+    lookup_value_regex = KUBE_NAME_REGEX

@@ -11,20 +11,27 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
-from typing import Optional
+from typing import Dict
 
-from backend.container_service.clusters.base.models import CtxCluster
-
-from ..resource import ResourceClient
-
-logger = logging.getLogger(__name__)
-
-PREFERRED_API_VERSION = "autoscaling/v2beta2"
+from backend.utils.basic import getitems
 
 
-class HPA(ResourceClient):
-    kind = "HorizontalPodAutoscaler"
+def parse_cobj_api_version(crd: Dict) -> str:
+    """
+    根据 CRD 配置解析 cobj api_version
+    ref: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions  # noqa
+    """
+    group = getitems(crd, 'spec.group')
+    versions = getitems(crd, 'spec.versions')
 
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = PREFERRED_API_VERSION):
-        super().__init__(ctx_cluster, api_version)
+    if versions:
+        for v in versions:
+            if v['served']:
+                return f"{group}/{v['name']}"
+        return f"{group}/{versions[0]['name']}"
+
+    version = getitems(crd, 'spec.version')
+    if version:
+        return f"{group}/{version}"
+
+    return f"{group}/v1alpha1"

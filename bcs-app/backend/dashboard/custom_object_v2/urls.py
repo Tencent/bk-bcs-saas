@@ -11,7 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from rest_framework import routers
 
+from .views import CRDViewSet, CustomObjectViewSet
 
-class DeleteHPAError(Exception):
-    pass
+router = routers.DefaultRouter(trailing_slash=True)
+
+router.register(r'(?P<crd_name>[\w\.-]+)/custom_objects', CustomObjectViewSet, basename='custom_object')
+router.register(r'', CRDViewSet, basename='crd')
