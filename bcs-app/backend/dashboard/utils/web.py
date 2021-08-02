@@ -15,18 +15,13 @@ from typing import Dict
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.dashboard.exceptions import ResourceNotExist
-from backend.dashboard.utils.web import gen_base_web_annotations
-from backend.resources.custom_object import CustomResourceDefinition
+from backend.dashboard.permissions import validate_cluster_perm
 
 
-def gen_cobj_web_annotations(request, project_id, cluster_id, crd_name: str) -> Dict:
-    """ 构造 custom_object 相关 web_annotations """
-    client = CustomResourceDefinition(request.ctx_cluster)
-    crd = client.get(name=crd_name, is_format=False)
-    if not crd:
-        raise ResourceNotExist(_('集群 {} 中未注册自定义资源 {}').format(cluster_id, crd_name))
-    # 先获取基础的，仅包含权限信息的 web_annotations
-    web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
-    web_annotations.update({'additional_columns': crd.additional_columns})
-    return web_annotations
+def gen_base_web_annotations(request, project_id: str, cluster_id: str) -> Dict:
+    """ 生成资源视图相关的页面控制信息，用于控制按钮展示等 """
+    has_cluster_perm = validate_cluster_perm(request, project_id, cluster_id, raise_exception=False)
+    # 目前 创建 / 删除 / 更新 按钮权限 & 提示信息相同
+    tip = _('当前用户没有操作集群 {} 的权限，请联系蓝鲸容器助手添加').format(cluster_id) if not has_cluster_perm else ''
+    btn_perm = {'clickable': has_cluster_perm, 'tip': tip}
+    return {'perms': {'page': {'create_btn': btn_perm, 'update_btn': btn_perm, 'delete_btn': btn_perm}}}

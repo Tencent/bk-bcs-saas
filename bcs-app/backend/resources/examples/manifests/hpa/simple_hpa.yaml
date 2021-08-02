@@ -18,15 +18,3 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
-status:
-  observedGeneration: 1
-  lastScaleTime: 2021-07-01T10:00:00Z
-  currentReplicas: 1
-  desiredReplicas: 1
-  currentMetrics:
-  - type: Resource
-    resource:
-      name: cpu
-      current:
-        averageUtilization: 0
-        averageValue: 0

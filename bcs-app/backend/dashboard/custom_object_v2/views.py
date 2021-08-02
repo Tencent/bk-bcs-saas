@@ -24,6 +24,7 @@ from backend.dashboard.custom_object_v2.utils import gen_cobj_web_annotations
 from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
 from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
+from backend.dashboard.utils.web import gen_base_web_annotations
 from backend.resources.constants import KUBE_NAME_REGEX, K8sResourceKind
 from backend.resources.custom_object import CustomResourceDefinition, get_cobj_client_by_crd
 from backend.resources.custom_object.formatter import CustomObjectCommonFormatter
@@ -71,7 +72,8 @@ class CustomObjectViewSet(SystemViewSet):
         response_data = RetrieveApiRespBuilder(
             client, namespace=params.get('namespace'), name=custom_obj_name, formatter=CustomObjectCommonFormatter()
         ).build()
-        return Response(response_data)
+        web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
+        return BKAPIResponse(response_data, web_annotations=web_annotations)
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, cluster_id, crd_name):
