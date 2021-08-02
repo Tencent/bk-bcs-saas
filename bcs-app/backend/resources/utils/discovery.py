@@ -65,7 +65,7 @@ class BcsLazyDiscoverer(LazyDiscoverer):
                     # Version mismatch, need to refresh cache
                     self.invalidate_cache()
             except Exception as e:
-                logging.error("load cache error: %s", e)
+                logger.error("load cache error: %s", e)
                 # 临时用于记录 maximum recursion depth 异常的 cache 文件, 定位后删除
                 log_error_cache(discoverer_cache.cache_key, cache_content)
                 self.invalidate_cache()
