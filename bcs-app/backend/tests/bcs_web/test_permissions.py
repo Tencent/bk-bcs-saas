@@ -53,6 +53,13 @@ class FakePaaSCCClient(StubPaaSCCClient):
         return p
 
 
+def fake_verify_project_by_user(project_id, *args, **kwargs):
+    """ 验证用户是否有项目权限（测试用） """
+    if project_id == HAS_PERM_PROJECT_ID:
+        return True
+    return False
+
+
 @pytest.fixture(autouse=True)
 def patch_permissions():
     """Patch permission checks to allow API requests, includes:
@@ -60,10 +67,13 @@ def patch_permissions():
     - paas_cc module: return faked project infos
     - ProjectPermission: allow all permission checks
     - get_api_public_key: return None
+    - verify_project_by_user: return True if is mocked project id else False
     """
     with mock.patch('backend.bcs_web.permissions.PaaSCCClient', new=FakePaaSCCClient), mock.patch(
         'backend.bcs_web.permissions.permissions.ProjectPermission', new=FakeProjectPermission
-    ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None):
+    ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None), mock.patch(
+        'backend.bcs_web.permissions.bcs_perm.verify_project_by_user', new=fake_verify_project_by_user
+    ):
         yield
 
 
@@ -100,14 +110,14 @@ class TestCustomPermissions:
         assert response.data.get('project_id') == HAS_PERM_PROJECT_ID
         assert region.get(f'BK_DEVOPS_BCS:PROJECT_ID:{HAS_PERM_PROJECT_ID}') == HAS_PERM_PROJECT_ID
 
-    def test_project_has_bcs(self, bk_user, project_id):
+    def test_project_has_bcs(self, bk_user):
         request = factory.get('/1', format='json')
         force_authenticate(request, user=bk_user)
 
         p_view = ProjectEnableBCSView.as_view({'get': 'get'})
 
         # 未启用BCS的项目
-        response = p_view(request, project_id=project_id)
+        response = p_view(request, project_id=generate_random_string(32))
         assert response.data.get('message') == "project does not enable bcs"
         # 启用BCS的项目
         response = p_view(request, project_id=HAS_PERM_PROJECT_ID)

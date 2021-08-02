@@ -172,7 +172,7 @@ function handleResponse ({ config, response, resolve, reject }) {
 }
 
 // 不弹tips的特殊状态码
-export const CUSTOM_HANDLE_CODE = [4005, 4003, 4005002, 4005003]
+export const CUSTOM_HANDLE_CODE = [4005, 4003, 4005002, 4005003, 4005005]
 /**
  * 处理 http 请求失败结果
  *
@@ -241,7 +241,8 @@ function handleReject (error, config) {
         }
 
         error.message = message
-        !CUSTOM_HANDLE_CODE.includes(code) && messageError(message)
+        // eslint-disable-next-line camelcase
+        !CUSTOM_HANDLE_CODE.includes(code) && messageError(error?.request_id ? `${message}(${error?.request_id})` : message)
         return Promise.reject(error)
     }
     messageError(error.message)

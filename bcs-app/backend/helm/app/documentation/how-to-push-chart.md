@@ -48,8 +48,6 @@
 ```
 wget {{ rumpetroll_demo_url }}
 tar -xf rumpetroll.tgz
-# 修改 Chart 版本为 0.1.22
-sed -E -i.bak s/version\:\ .+/version\:\ 0\.1\.22/g rumpetroll/Chart.yaml
 ```
 
 - 推送 Chart

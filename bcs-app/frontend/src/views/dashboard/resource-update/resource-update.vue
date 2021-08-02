@@ -58,21 +58,32 @@
                         </bk-dropdown-menu>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
-                            <!-- <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i class="bcs-icon bcs-icon-help-2"></i></span> -->
+                            <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i :class="['bcs-icon bcs-icon-help-2', { active: showHelp }]"></i></span>
                             <span v-bk-tooltips.top="$t('关闭')" @click="showExample = false"><i class="bcs-icon bcs-icon-close-5"></i></span>
                         </span>
                     </div>
                     <div class="example-desc" v-if="showDesc" ref="descWrapperRef">{{ activeExample.description }}</div>
-                    <ResourceEditor
-                        :value="activeExample.manifest"
-                        :height="fullScreen ? '100%' : exampleEditorHeight"
-                        :options="{
-                            renderLineHighlight: 'none'
-                        }"
-                        key="example"
-                        readonly
-                        v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
-                    </ResourceEditor>
+                    <bcs-resize-layout :ext-cls="['custom-layout-cls', { 'hide-help': !showHelp }]"
+                        :initial-divide="initialDivide"
+                        :disabled="!showHelp">
+                        <ResourceEditor
+                            slot="aside"
+                            :value="activeExample.manifest"
+                            :height="fullScreen ? '100%' : exampleEditorHeight"
+                            :options="{
+                                renderLineHighlight: 'none'
+                            }"
+                            key="example"
+                            readonly
+                            v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
+                        </ResourceEditor>
+                        <bcs-md v-show="showHelp"
+                            slot="main"
+                            theme="dark"
+                            class="references"
+                            :style="{ height: exampleEditorHeight - 2 + 'px' }"
+                            :code="examples.references" />
+                    </bcs-resize-layout>
                 </div>
             </template>
             <div class="code-diff" v-else>
@@ -121,13 +132,15 @@
     import { copyText } from '@/common/util'
     import yamljs from 'js-yaml'
     import EditorStatus from './editor-status.vue'
+    import BcsMd from '@open/components/bcs-md/index.vue'
 
     export default defineComponent({
         name: 'ResourceUpdate',
         components: {
             ResourceEditor,
             DashboardTopActions,
-            EditorStatus
+            EditorStatus,
+            BcsMd
         },
         props: {
             // 命名空间（更新的时候需要，创建的时候为空）
@@ -183,7 +196,7 @@
             const isLoading = ref(false)
             const original = ref<any>({})
             const detail = ref<any>({})
-            const showExample = ref(true)
+            const showExample = ref(!isEdit.value)
             const fullScreen = ref(false)
             const height = ref(600)
             const editorErr = ref({
@@ -209,14 +222,14 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const data = await $store.dispatch('dashboard/getResourceDetail', {
+                const res = await $store.dispatch('dashboard/getResourceDetail', {
                     $namespaceId: namespace.value,
                     $category: category.value,
                     $name: name.value,
                     $type: type.value
                 })
-                original.value = JSON.parse(JSON.stringify(data?.manifest || {})) // 缓存原始值
-                setDetail(data?.manifest)
+                original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
+                setDetail(res.data?.manifest)
                 isLoading.value = false
                 return detail.value
             }
@@ -229,6 +242,7 @@
 
                 $bkInfo({
                     type: 'warning',
+                    clsName: 'custom-info-confirm',
                     title: $i18n.t('确认重置当前编辑状态'),
                     subTitle: $i18n.t('重置后，你修改的内容将丢失'),
                     defaultInfo: true,
@@ -264,6 +278,10 @@
             }
             const handleFullScreen = () => { // 全屏
                 fullScreen.value = !fullScreen.value
+                fullScreen.value && $bkMessage({
+                    theme: 'primary',
+                    message: $i18n.t('按Esc即可退出全屏模式')
+                })
             }
             const handleExitFullScreen = (event: KeyboardEvent) => { // esc退出全屏
                 if (event.code === 'Escape') {
@@ -285,19 +303,21 @@
             const exampleLoading = ref(false)
             const examples = ref<any>({})
             const showDesc = ref(false)
+            const showHelp = ref(false)
             const exampleWrapperRef = ref<Element|null>(null)
             const descWrapperHeight = ref(0)
             const descWrapperRef = ref<Element|null>(null)
             const exampleEditorHeight = computed(() => { // 代码示例高度
                 return height.value - descWrapperHeight.value
             })
+            const initialDivide = computed(() => showHelp.value ? '50%' : '100%')
             watch(showDesc, () => {
                 setTimeout(() => { // dom更新后获取描述文字的高度
                     descWrapperHeight.value = showDesc.value ? descWrapperRef.value?.getBoundingClientRect()?.height || 0 : 0
                 }, 0)
             })
             const handleGetExample = async () => { // 获取示例模板
-                if (!showExample.value) return
+                // if (!showExample.value) return
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
@@ -319,6 +339,7 @@
             }
             const handleHelp = () => {
                 // 帮助文档
+                showHelp.value = !showHelp.value
             }
 
             // 3.====diff编辑器相关逻辑====
@@ -360,31 +381,40 @@
                     $router.push({ name: $store.getters.curNavName })
                 }
             }
-            const handleUpdateResource = async () => {
+            const handleUpdateResource = () => {
                 if (!showDiff.value) {
                     showDiff.value = true
                     return
                 }
 
-                const result = await $store.dispatch('dashboard/resourceUpdate', {
-                    $namespaceId: namespace.value,
-                    $type: type.value,
-                    $category: category.value,
-                    $name: name.value,
-                    manifest: detail.value
-                }).catch(err => {
-                    editorErr.value.type = 'http'
-                    editorErr.value.message = err.message
-                    return false
-                })
+                $bkInfo({
+                    type: 'warning',
+                    clsName: 'custom-info-confirm',
+                    title: $i18n.t('确认资源更新'),
+                    subTitle: $i18n.t('将执行 Replace 操作，若多人同时编辑可能存在冲突'),
+                    defaultInfo: true,
+                    confirmFn: async () => {
+                        const result = await $store.dispatch('dashboard/resourceUpdate', {
+                            $namespaceId: namespace.value,
+                            $type: type.value,
+                            $category: category.value,
+                            $name: name.value,
+                            manifest: detail.value
+                        }).catch(err => {
+                            editorErr.value.type = 'http'
+                            editorErr.value.message = err.message
+                            return false
+                        })
 
-                if (result) {
-                    $bkMessage({
-                        theme: 'success',
-                        message: $i18n.t('更新成功')
-                    })
-                    $router.push({ name: $store.getters.curNavName })
-                }
+                        if (result) {
+                            $bkMessage({
+                                theme: 'success',
+                                message: $i18n.t('更新成功')
+                            })
+                            $router.push({ name: $store.getters.curNavName })
+                        }
+                    }
+                })
             }
             const handleCreateOrUpdate = async () => { // 更新或创建
                 updateLoading.value = true
@@ -398,6 +428,7 @@
             const handleCancel = () => { // 取消
                 $bkInfo({
                     type: 'warning',
+                    clsName: 'custom-info-confirm',
                     title: $i18n.t('确认退出当前编辑状态'),
                     subTitle: $i18n.t('退出后，你修改的内容将丢失'),
                     defaultInfo: true,
@@ -426,6 +457,8 @@
                 examples,
                 showExample,
                 showDesc,
+                showHelp,
+                initialDivide,
                 fullScreen,
                 height,
                 disabledResourceUpdate,
@@ -460,6 +493,7 @@
 <style lang="postcss" scoped>
 .resource-content {
     padding-bottom: 0;
+    height: 100%;
     .icon-back {
         font-size: 16px;
         font-weight: bold;
@@ -594,6 +628,31 @@
                 font-size: 12px;
                 color: #b0b2b8;
                 padding: 15px;
+            }
+            .custom-layout-cls {
+                border: none;
+                /deep/ {
+                    .bk-resize-layout-aside {
+                        border-color: #292929;
+                        &:after {
+                            right: -6px;
+                        }
+                    }
+                }
+                &.hide-help {
+                    /deep/ .bk-resize-layout-aside:after {
+                        display: none;
+                    }
+                }
+            }
+            /deep/ .bk-resize-layout-main {
+                background-color: #1a1a1a;
+            }
+            .bcs-md-preview {
+                background-color: #2e2e2e !important;
+            }
+            .references {
+                margin: 1px;
             }
         }
         .code-diff {

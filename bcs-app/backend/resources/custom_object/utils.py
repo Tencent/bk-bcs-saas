@@ -11,18 +11,27 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.resources.namespace import Namespace
+from typing import Dict
+
+from backend.utils.basic import getitems
 
 
-class TestNamespace:
-    def test_get_namespace(self, cluster_id, testing_kubernetes_apiclient):
-        namespace = Namespace(testing_kubernetes_apiclient)
-        resp = namespace.get_namespace({'cluster_id': cluster_id})
-        assert resp.get("code") == 0
+def parse_cobj_api_version(crd: Dict) -> str:
+    """
+    根据 CRD 配置解析 cobj api_version
+    ref: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions  # noqa
+    """
+    group = getitems(crd, 'spec.group')
+    versions = getitems(crd, 'spec.versions')
 
+    if versions:
+        for v in versions:
+            if v['served']:
+                return f"{group}/{v['name']}"
+        return f"{group}/{versions[0]['name']}"
 
-class TestK8SClient:
-    def test_normal(self, cluster_id, project_id, use_fake_k8sclient):
-        client = K8SClient('token', project_id, cluster_id, None)
-        client.get_namespace()
+    version = getitems(crd, 'spec.version')
+    if version:
+        return f"{group}/{version}"
+
+    return f"{group}/v1alpha1"

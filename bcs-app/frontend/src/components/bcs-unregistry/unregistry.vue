@@ -93,20 +93,22 @@
                     id: 1,
                     name: 'K8S',
                     desc: this.$t('k8s容器编排引擎')
-                },
-                {
+                }
+            ]
+            if (this.$INTERNAL) {
+                this.kindList.push({
                     id: 2,
                     name: 'Mesos',
                     desc: this.$t('基于mesos框架自研的容器编排引擎'),
                     disabled: true,
                     tips: `${this.$t('如需使用，请联系')}<a href="${this.PROJECT_CONFIG.doc.contact}" style="color: #3a84ff" target="">${this.$t('【蓝鲸容器助手】')}</a>`
-                }
-            ]
+                })
+            }
             this.guideList = [
                 {
                     id: 'binding',
                     iconColor: '#4540DC',
-                    desc: this.$t('开启容器服务时，请首先在“蓝鲸配置平台”上有进行业务绑定'),
+                    desc: this.$t('开启容器服务时，请首先在”蓝鲸配置平台“查看业务'),
                     link: this.PROJECT_CONFIG.doc.cc,
                     linkText: this.$t('前往绑定业务')
                 },

@@ -55,6 +55,8 @@
                             <node-searcher
                                 :cluster-id="clusterId"
                                 :project-id="projectId"
+                                :had-search-data="!isMesosProject"
+                                :search-labels-data="searchLabelsData"
                                 ref="searcher"
                                 @search="searchNodeList">
                             </node-searcher>
@@ -425,6 +427,24 @@
             },
             curClusterId () {
                 return this.$store.state.curClusterId
+            },
+            searchLabelsData () {
+                if (this.isMesosProject) return {}
+                const res = {}
+                for (const node of this.nodeList) {
+                    Object.keys(node.labels || {}).forEach(key => {
+                        const value = node.labels[key]
+                        if (Object.prototype.hasOwnProperty.call(res, key)) {
+                            res[key].push(value)
+                        } else {
+                            res[key] = [value]
+                        }
+                    })
+                }
+                Object.keys(res).forEach(key => {
+                    res[key] = [...new Set(res[key])]
+                })
+                return res
             }
         },
         watch: {
@@ -432,9 +452,6 @@
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
             }
-            // async curClusterId (v) {
-            //     await this.fetchData()
-            // }
         },
         beforeDestroy () {
             this.vueInstanceIsDestroy = true
@@ -840,10 +857,10 @@
                             resultMap[node.inner_ip] = node
                         })
                     }
-
                     Object.keys(resultMap).forEach(ip => {
+                        const labels = this.isMesosProject ? resultMap[ip].labels : Object.keys(resultMap[ip].labels).map(key => ({ [key]: resultMap[ip].labels[key] }))
                         for (let i = 0; i < len; i++) {
-                            if (!resultMap[ip].labels.filter(
+                            if (!labels.filter(
                                 label => JSON.stringify(label) === JSON.stringify(sLabels[i])).length
                             ) {
                                 delete resultMap[ip]

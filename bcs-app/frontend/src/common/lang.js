@@ -1901,7 +1901,23 @@ export default {
     '当前容器网络配置下，集群最多 {count} 个节点(包含Master和Node)': ['Under the current container network configuration, the cluster has at most {count} nodes (including Master and Node)'],
     '最少选择三个服务器': ['Choose at least three servers'],
     '设置污点': ['Set Taint'],
-    '影响': ['Effect']
+    '影响': ['Effect'],
+    '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}'],
+    'Chart配置选项': ['Chart configuration options'],
+    'Helm部署选项': ['Helm deployment options'],
+    '等待所有Jobs完成': ['Wait for all the Jobs to complete'],
+    '超时时间': ['Time out'],
+    '等待所有Pod，PVC处于ready状态': ['Wait for all Pod and PVC to be ready'],
+    '忽略CRD': ['Ignore the CRD'],
+    '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character'],
+    '内容未变更或格式错误': [],
+    '确认退出当前编辑状态': [],
+    '退出后，你修改的内容将丢失': [],
+    '上传（仅支持YAML格式）': [],
+    '放大': [],
+    '示例': [],
+    '资源定义': [],
+    '存在时间': []
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

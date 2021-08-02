@@ -63,9 +63,9 @@
                         <div class="bk-form-content" style="margin-left:160px;">
                             <bk-radio-group v-model="kind" @change="changeKind" :key="kind" style="display: inline-block; width: 155px; vertical-align: center;">
                                 <bk-radio :value="1" :disabled="!canFormEdit">K8S</bk-radio>
-                                <bk-radio :value="2" disabled>Mesos</bk-radio>
+                                <bk-radio :value="2" disabled v-if="$INTERNAL">Mesos</bk-radio>
                             </bk-radio-group>
-                            <bcs-popover :delay="500" placement="top" :key="kind" style="vertical-align: center;">
+                            <bcs-popover :delay="500" placement="top" :key="kind" style="vertical-align: center;" v-if="$INTERNAL">
                                 <i class="bcs-icon bcs-icon-info-circle" style="position: relative; top: 2px;"></i>
                                 <template slot="content">
                                     <p style="width: 230px;text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">

@@ -18,7 +18,13 @@ from backend.utils.basic import ChoicesEnum
 KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
-DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
+DEFAULT_CRON_JOB_API_VERSION = 'batch/v1beta1'
+
+# HPA 需要指定 api_version
+DEFAULT_HPA_API_VERSION = 'autoscaling/v2beta2'
+
+# 至多展示的 HPA 指标数量
+HPA_METRIC_MAX_DISPLAY_NUM = 3
 
 
 class WorkloadTypes(ChoicesEnum):
@@ -63,6 +69,11 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
+    # CustomResource
+    CustomResourceDefinition = "CustomResourceDefinition"
+    CustomObject = "CustomObject"
+    # hpa
+    HorizontalPodAutoscaler = "HorizontalPodAutoscaler"
     # other
     Event = "Event"
     Namespace = "Namespace"
@@ -90,6 +101,11 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
+        # CustomResource
+        (CustomResourceDefinition, "CustomResourceDefinition"),
+        (CustomObject, "CustomObject"),
+        # hpa
+        (HorizontalPodAutoscaler, "HorizontalPodAutoscaler"),
         # other
         (Event, "Event"),
         (Namespace, "Namespace"),
@@ -120,7 +136,7 @@ class PatchType(ChoicesEnum):
 
 
 class PodConditionType(ChoicesEnum):
-    """ k8s PodConditionType """
+    """k8s PodConditionType"""
 
     PodScheduled = 'PodScheduled'
     PodReady = 'Ready'
@@ -130,7 +146,7 @@ class PodConditionType(ChoicesEnum):
 
 
 class PodPhase(ChoicesEnum):
-    """ k8s PodPhase """
+    """k8s PodPhase"""
 
     PodPending = 'Pending'
     PodRunning = 'Running'
@@ -158,7 +174,7 @@ class SimplePodStatus(ChoicesEnum):
 
 
 class ConditionStatus(ChoicesEnum):
-    """ k8s ConditionStatus """
+    """k8s ConditionStatus"""
 
     ConditionTrue = 'True'
     ConditionFalse = 'False'
@@ -166,7 +182,7 @@ class ConditionStatus(ChoicesEnum):
 
 
 class PersistentVolumeAccessMode(str, StructuredEnum):
-    """ k8s PersistentVolumeAccessMode """
+    """k8s PersistentVolumeAccessMode"""
 
     ReadWriteOnce = EnumField('ReadWriteOnce', label='RWO')
     ReadOnlyMany = EnumField('ReadOnlyMany', label='ROX')
@@ -174,5 +190,37 @@ class PersistentVolumeAccessMode(str, StructuredEnum):
 
     @property
     def shortname(self):
-        """ k8s 官方缩写 """
+        """k8s 官方缩写"""
         return self.get_choice_label(self.value)
+
+
+class MetricSourceType(str, StructuredEnum):
+    """ k8s MetricSourceType """
+
+    Object = EnumField('Object')
+    Pods = EnumField('Pods')
+    Resource = EnumField('Resource')
+    External = EnumField('External')
+    ContainerResource = EnumField('ContainerResource')
+
+
+class NodeConditionStatus(str, StructuredEnum):
+    """节点状态"""
+
+    Ready = EnumField("Ready", label="正常状态")
+    NotReady = EnumField("NotReady", label="非正常状态")
+    Unknown = EnumField("Unknown", label="未知状态")
+
+
+class NodeConditionType(str, StructuredEnum):
+    """节点状态类型
+    ref: node condition types
+    """
+
+    Ready = EnumField("Ready", label="kubelet is healthy and ready to accept pods")
+    MemoryPressure = EnumField(
+        "MemoryPressure", label="kubelet is under pressure due to insufficient available memory"
+    )
+    DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
+    PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
+    NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")

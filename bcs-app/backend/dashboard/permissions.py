@@ -11,17 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
-
-from backend.resources.utils.format import ResourceDefaultFormatter
-from backend.utils.basic import getitems
+from backend.accounts import bcs_perm
 
 
-class CRDFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return {"name": getitems(resource_dict, "metadata.name"), "scope": getitems(resource_dict, "spec.scope")}
-
-
-class CustomObjectFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return resource_dict
+def validate_cluster_perm(request, project_id: str, cluster_id: str, raise_exception: bool = True) -> bool:
+    """ 检查用户是否有操作集群权限 """
+    if request.user.is_superuser:
+        return True
+    perm = bcs_perm.Cluster(request, project_id, cluster_id)
+    return perm.can_use(raise_exception=raise_exception)

@@ -13,10 +13,7 @@ export interface IUseNamespace {
  * @returns
  */
 export default function useNamespace (ctx: SetupContext): IUseNamespace {
-    const { $route, $store } = ctx.root
-
-    const projectId = computed(() => $route.params.projectId)
-    const curClusterId = computed(() => $store.state.curClusterId).value
+    const { $store } = ctx.root
 
     const namespaceLoading = ref(false)
     const namespaceData = ref<ISubscribeData>({
@@ -26,16 +23,10 @@ export default function useNamespace (ctx: SetupContext): IUseNamespace {
 
     const getNamespaceData = async (): Promise<ISubscribeData> => {
         namespaceLoading.value = true
-        const res = await $store.dispatch('dashboard/getNamespaceList', {
-            projectId: projectId.value,
-            clusterId: curClusterId
-        }).catch(_ => ({ data: {
-            manifest: {},
-            manifest_ext: {}
-        } }))
-        namespaceData.value = res.data
+        const data = await $store.dispatch('dashboard/getNamespaceList')
+        namespaceData.value = data
         namespaceLoading.value = false
-        return res.data
+        return data
     }
 
     // onMounted(getNamespaceData)

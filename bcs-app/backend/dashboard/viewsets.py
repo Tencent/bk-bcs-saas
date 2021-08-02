@@ -20,9 +20,13 @@ from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.auditor import DashboardAuditor
 from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
+from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
+from backend.dashboard.utils.web import gen_base_web_annotations
+from backend.resources.constants import KUBE_NAME_REGEX
 from backend.utils.basic import getitems
+from backend.utils.response import BKAPIResponse
 
 
 class ListAndRetrieveMixin:
@@ -32,12 +36,16 @@ class ListAndRetrieveMixin:
         params = self.params_validate(ListResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
         response_data = ListApiRespBuilder(client, namespace=namespace, **params).build()
-        return Response(response_data)
+        # 补充页面信息注解，包含权限信息
+        web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
+        return BKAPIResponse(response_data, web_annotations=web_annotations)
 
     def retrieve(self, request, project_id, cluster_id, namespace, name):
         client = self.resource_client(request.ctx_cluster)
         response_data = RetrieveApiRespBuilder(client, namespace, name).build()
-        return Response(response_data)
+        # 补充页面信息注解，包含权限信息
+        web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
+        return BKAPIResponse(response_data, web_annotations=web_annotations)
 
 
 class DestroyMixin:
@@ -45,6 +53,8 @@ class DestroyMixin:
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Delete)
     def destroy(self, request, project_id, cluster_id, namespace, name):
+        # 操作类接口统一检查集群操作权限
+        validate_cluster_perm(request, project_id, cluster_id)
         client = self.resource_client(request.ctx_cluster)
         request.audit_ctx.update_fields(
             resource_type=self.resource_client.kind.lower(), resource=f'{namespace}/{name}'
@@ -61,6 +71,8 @@ class CreateMixin:
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Add)
     def create(self, request, project_id, cluster_id, namespace=None):
+        # 操作类接口统一检查集群操作权限
+        validate_cluster_perm(request, project_id, cluster_id)
         params = self.params_validate(CreateResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
         namespace = namespace or getitems(params, 'manifest.metadata.namespace')
@@ -83,6 +95,8 @@ class UpdateMixin:
 
     @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Modify)
     def update(self, request, project_id, cluster_id, namespace, name):
+        # 操作类接口统一检查集群操作权限
+        validate_cluster_perm(request, project_id, cluster_id)
         params = self.params_validate(UpdateResourceSLZ)
         client = self.resource_client(request.ctx_cluster)
         request.audit_ctx.update_fields(
@@ -109,3 +123,4 @@ class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, CreateMixin, UpdateMi
     """
 
     lookup_field = 'name'
+    lookup_value_regex = KUBE_NAME_REGEX

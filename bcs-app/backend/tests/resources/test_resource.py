@@ -4,6 +4,7 @@ import pytest
 from backend.container_service.clusters.base import CtxCluster
 from backend.resources.resource import ResourceClient, ResourceList, ResourceObj
 from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.tests.conftest import TEST_NAMESPACE
 
 
 @pytest.fixture
@@ -39,31 +40,35 @@ def type_assertion_pair(request):
 class TestResourceClient:
     @pytest.fixture(autouse=True)
     def init_resources(self, random_name, ctx_cluster):
-        MyPod(ctx_cluster).update_or_create(namespace=random_name, name=random_name, body=make_pod_body(random_name))
+        MyPod(ctx_cluster).update_or_create(
+            namespace=TEST_NAMESPACE, name=random_name, body=make_pod_body(random_name)
+        )
         yield
-        MyPod(ctx_cluster).delete_wait_finished(namespace=random_name, name=random_name)
+        MyPod(ctx_cluster).delete(namespace=TEST_NAMESPACE, name=random_name)
 
     def test_list_formatted(self, random_name, ctx_cluster):
-        pods = MyPod(ctx_cluster).list(namespace=random_name, is_format=True)
+        pods = MyPod(ctx_cluster).list(namespace=TEST_NAMESPACE, is_format=True)
 
         assert isinstance(pods, list)
         assert isinstance(pods[0], dict)
 
     def test_list_not_formatted(self, random_name, ctx_cluster):
-        pods = MyPod(ctx_cluster).list(namespace=random_name, is_format=False)
+        pods = MyPod(ctx_cluster).list(namespace=TEST_NAMESPACE, is_format=False)
 
         assert isinstance(pods, ResourceList)
         assert isinstance(pods.metadata, dict)
-        assert pods.items[0].name == random_name
-        assert pods.items[0].image_name == 'busybox'
+        assert random_name in [pod.name for pod in pods.items]
+        for pod in pods.items:
+            if pod.name == random_name:
+                assert pod.image_name == 'busybox'
 
     def test_get_is_format(self, type_assertion_pair, random_name, ctx_cluster):
         kwargs, expected_type = type_assertion_pair
-        pod = MyPod(ctx_cluster).get(namespace=random_name, name=random_name, **kwargs)
+        pod = MyPod(ctx_cluster).get(namespace=TEST_NAMESPACE, name=random_name, **kwargs)
         assert isinstance(pod, expected_type)
 
     def test_get_none(self, random_name, ctx_cluster):
-        pod = MyPod(ctx_cluster).get(namespace=random_name, name=random_name + '-non-existent')
+        pod = MyPod(ctx_cluster).get(namespace=TEST_NAMESPACE, name=random_name + '-non-existent')
         assert pod is None
 
     def test_patch(self, type_assertion_pair, random_name, ctx_cluster):
@@ -71,7 +76,7 @@ class TestResourceClient:
         body['metadata']['labels'] = {'foo': 'bar'}
 
         kwargs, expected_type = type_assertion_pair
-        pod = MyPod(ctx_cluster).patch(namespace=random_name, name=random_name, body=body, **kwargs)
+        pod = MyPod(ctx_cluster).patch(namespace=TEST_NAMESPACE, name=random_name, body=body, **kwargs)
         assert isinstance(pod, expected_type)
 
 
@@ -79,14 +84,14 @@ class TestResourceClientCreation:
     def test_create(self, type_assertion_pair, random_name, ctx_cluster):
         kwargs, expected_type = type_assertion_pair
         pod = MyPod(ctx_cluster).create(
-            namespace=random_name, name=random_name, body=make_pod_body(random_name), **kwargs
+            namespace=TEST_NAMESPACE, name=random_name, body=make_pod_body(random_name), **kwargs
         )
         assert isinstance(pod, expected_type)
 
     def test_update_or_create(self, type_assertion_pair, random_name, ctx_cluster):
         kwargs, expected_type = type_assertion_pair
         pod, created = MyPod(ctx_cluster).update_or_create(
-            namespace=random_name, name=random_name, body=make_pod_body(random_name), **kwargs
+            namespace=TEST_NAMESPACE, name=random_name, body=make_pod_body(random_name), **kwargs
         )
         assert isinstance(created, bool)
         assert isinstance(pod, expected_type)

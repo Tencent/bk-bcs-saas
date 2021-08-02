@@ -2089,6 +2089,7 @@
                             this.handleToggleTab('default')
                             this.renderYamls(zipFile)
                             this.fileImportIndex++
+                            this.clearPrevContext()
                         }
                     } catch (e) {
                         this.$bkMessage({

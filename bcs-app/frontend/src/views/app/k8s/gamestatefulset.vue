@@ -56,23 +56,24 @@
                             :page-params="pageConf"
                             @page-change="handlePageChange"
                             @page-limit-change="handlePageSizeChange">
-                            <bk-table-column v-for="(column, index) in columnList" :label="defaultColumnMap[column] || column" :key="index">
+                            <bk-table-column v-for="(column, index) in columnList" :label="(defaultColumnMap[column] && defaultColumnMap[column].label) || column"
+                                :min-width="defaultColumnMap[column] ? defaultColumnMap[column].minWidth : 'auto'"
+                                :key="index">
                                 <template slot-scope="{ row }">
                                     <div class="cell" style="padding: 0;">
-                                        <bcs-popover :content="row[column] || ''" placement="top">
-                                            <template v-if="column === 'name'">
-                                                <a href="javascript:void(0);" class="bk-text-button name-col" @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
-                                            </template>
-                                            <template v-else-if="column === 'cluster_id'">
-                                                <span class="cluster-col">{{row[column] || '--'}}</span>
-                                            </template>
-                                            <template v-else-if="column === 'namespace'">
-                                                <span class="namespace-col">{{row[column] || '--'}}</span>
-                                            </template>
-                                            <template v-else>
-                                                {{row[column] || '--'}}
-                                            </template>
-                                        </bcs-popover>
+                                        <template v-if="column === 'name'">
+                                            <a href="javascript:void(0);" class="bk-text-button name-col bcs-ellipsis"
+                                                @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
+                                        </template>
+                                        <template v-else-if="column === 'cluster_id'">
+                                            <span class="cluster-col bcs-ellipsis">{{row[column] || '--'}}</span>
+                                        </template>
+                                        <template v-else-if="column === 'namespace'">
+                                            <span class="namespace-col bcs-ellipsis">{{row[column] || '--'}}</span>
+                                        </template>
+                                        <template v-else>
+                                            {{row[column] || '--'}}
+                                        </template>
                                     </div>
                                 </template>
                             </bk-table-column>
@@ -179,9 +180,18 @@
                     show: true
                 },
                 defaultColumnMap: {
-                    'name': this.$t('名称'),
-                    'cluster_id': this.$t('集群'),
-                    'namespace': this.$t('命名空间')
+                    'name': {
+                        label: this.$t('名称'),
+                        minWidth: 150
+                    },
+                    'cluster_id': {
+                        label: this.$t('集群'),
+                        minWidth: 140
+                    },
+                    'namespace': {
+                        label: this.$t('命名空间'),
+                        minWidth: 100
+                    }
                 },
                 bkMessageInstance: null,
                 clusterList: [],
@@ -332,17 +342,6 @@
                     })
 
                     const data = res.data || { td_list: [], th_list: [] }
-
-                    // console.error(res)
-                    // const data = {
-                    //     'th_list': ['name', 'cluster_id', 'namespace', 'Replicas', 'ReadyReplicas', 'Age'],
-                    //     'td_list': [
-                    //         { 'name': 'web1', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'web2', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'web3', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
-                    //         { 'name': 'web4', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' }
-                    //     ]
-                    // }
 
                     if (data.th_list.length) {
                         this.columnList.splice(0, this.columnList.length, ...data.th_list)

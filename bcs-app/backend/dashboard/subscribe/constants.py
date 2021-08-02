@@ -13,7 +13,9 @@
 #
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
+from backend.resources.custom_object import CustomResourceDefinition
 from backend.resources.event.client import Event
+from backend.resources.hpa.client import HPA
 from backend.resources.namespace.client import Namespace
 from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress
@@ -31,6 +33,10 @@ from backend.resources.workloads.statefulset import StatefulSet
 
 # 超时时间为负数，表示不需要持续监听，获取数据后立即结束
 DEFAULT_SUBSCRIBE_TIMEOUT = -1
+
+# k8s API Gone 状态码，一般出现在使用过期的 resourceVersion 进行 watch 的情况
+# ref: https://kubernetes.io/docs/reference/using-api/api-concepts/#410-gone-responses
+K8S_API_GONE_STATUS_CODE = 410
 
 # K8S Client
 K8S_RESOURCE_CLIENTS = [
@@ -54,9 +60,13 @@ K8S_RESOURCE_CLIENTS = [
     # configurations
     ConfigMap,
     Secret,
+    # CustomResource
+    CustomResourceDefinition,
     # cluster
     Event,
     Namespace,
+    # HPA
+    HPA,
 ]
 
 # K8S资源类型：Client

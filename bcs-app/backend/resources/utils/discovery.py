@@ -20,6 +20,8 @@ from kubernetes.dynamic.discovery import CacheDecoder, CacheEncoder, LazyDiscove
 
 from backend.utils.cache import rd_client
 
+logger = logging.getLogger(__name__)
+
 
 def log_error_cache(file_name: str, file_content: bytes):
     """临时用于保存触发 maximum recursion depth 异常的 cache 文件"""
@@ -79,4 +81,4 @@ class BcsLazyDiscoverer(LazyDiscoverer):
             discoverer_cache.set_content(cache_content)
         except Exception as e:
             # Failing to write the cache isn't a big enough error to crash on
-            logging.error("write cache error: %s", e)
+            logger.exception("write cache error: %s", e)

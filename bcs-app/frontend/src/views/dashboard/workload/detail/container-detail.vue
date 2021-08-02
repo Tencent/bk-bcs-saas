@@ -44,7 +44,8 @@
                     :params="params"
                     category="containers"
                     unit="byte"
-                    :colors="['#853cff', '#30d878']">
+                    :colors="['#853cff', '#30d878']"
+                    :suffix="[$t('读'), $t('写')]">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">

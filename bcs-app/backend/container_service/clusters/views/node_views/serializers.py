@@ -38,7 +38,7 @@ class QueryNodeListSLZ(serializers.Serializer):
 
 class TaintSLZ(serializers.Serializer):
     key = serializers.CharField()
-    value = serializers.CharField()
+    value = serializers.CharField(default="", allow_blank=True)
     effect = serializers.CharField()
 
 

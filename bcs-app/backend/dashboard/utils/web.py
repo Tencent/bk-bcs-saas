@@ -11,30 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass
 from typing import Dict
 
-from backend.resources.utils.format import BCSResourceData, ResourceDefaultFormatter
-from backend.utils.basic import getitems
+from django.utils.translation import ugettext_lazy as _
+
+from backend.dashboard.permissions import validate_cluster_perm
 
 
-@dataclass
-class NodeResourceData(BCSResourceData):
-    name: str
-    inner_ip: str
-
-
-class NodeFormatter(ResourceDefaultFormatter):
-    """Node 格式化"""
-
-    def format_dict(self, resource_dict: Dict) -> NodeResourceData:
-        addresses = getitems(resource_dict, ["status", "addresses"], [])
-        # 获取IP
-        inner_ip = ""
-        for addr in addresses:
-            if addr["type"] == "InternalIP":
-                inner_ip = addr["address"]
-                break
-        name = getitems(resource_dict, ["metadata", "name"], "")
-
-        return NodeResourceData(data=resource_dict, name=name, inner_ip=inner_ip)
+def gen_base_web_annotations(request, project_id: str, cluster_id: str) -> Dict:
+    """ 生成资源视图相关的页面控制信息，用于控制按钮展示等 """
+    has_cluster_perm = validate_cluster_perm(request, project_id, cluster_id, raise_exception=False)
+    # 目前 创建 / 删除 / 更新 按钮权限 & 提示信息相同
+    tip = _('当前用户没有操作集群 {} 的权限，请联系蓝鲸容器助手添加').format(cluster_id) if not has_cluster_perm else ''
+    btn_perm = {'clickable': has_cluster_perm, 'tip': tip}
+    return {'perms': {'page': {'create_btn': btn_perm, 'update_btn': btn_perm, 'delete_btn': btn_perm}}}

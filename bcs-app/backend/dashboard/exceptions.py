@@ -59,3 +59,11 @@ class DeleteResourceError(DashboardBaseError):
 
     message = 'Delete Resource Error'
     code = 4005004
+
+
+class ResourceVersionExpired(DashboardBaseError):
+    """ ResourceVersion 过期 """
+
+    message = 'ResourceVersion Expired'
+    # NOTE 前端对此错误码有特殊逻辑
+    code = 4005005

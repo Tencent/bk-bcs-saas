@@ -270,3 +270,12 @@ BCS_APP_ID = 1
 
 # 集群及节点metric功能白名单
 CLUSTER_FUNC_CODES = ["MesosResource"]
+
+# 社区版特殊配置
+BCS_APP_CODE = APP_CODE
+BCS_APP_SECRET = SECRET_KEY
+
+# REPO 相关配置
+HELM_REPO_DOMAIN = os.environ.get('HELM_REPO_DOMAIN')
+HELM_MERELY_REPO_URL = HELM_REPO_DOMAIN
+BK_REPO_URL_PREFIX = os.environ.get('BK_REPO_URL_PREFIX')

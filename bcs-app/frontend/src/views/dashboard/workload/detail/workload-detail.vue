@@ -13,7 +13,15 @@
                         </div>
                     </div>
                 </div>
-                <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
+                <div class="btns">
+                    <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
+                    <bk-button theme="primary"
+                        v-authority="{ clickable: pagePerms.update.clickable, content: pagePerms.update.tip }"
+                        @click="handleUpdateResource">{{$t('更新')}}</bk-button>
+                    <bk-button theme="danger"
+                        v-authority="{ clickable: pagePerms.delete.clickable, content: pagePerms.delete.tip }"
+                        @click="handleDeleteResource">{{$t('删除')}}</bk-button>
+                </div>
             </div>
             <div class="workload-main-info">
                 <div class="info-item">
@@ -47,7 +55,8 @@
                     :params="params"
                     category="pods"
                     unit="byte"
-                    :colors="['#853cff', '#30d878']">
+                    :colors="['#853cff', '#30d878']"
+                    :suffix="[$t('入流量'), $t('出流量')]">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
@@ -110,7 +119,8 @@
         </div>
         <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
             <template #content>
-                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+                <Ace v-full-screen="{ tools: ['fullscreen', 'copy'], content: yaml }"
+                    width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
             </template>
         </bcs-sideslider>
     </div>
@@ -124,6 +134,7 @@
     import useDetail from './use-detail'
     import detailBasicList from './detail-basic'
     import Ace from '@/components/ace-editor'
+    import fullScreen from '@open/directives/full-screen'
 
     export interface IDetail {
         manifest: any;
@@ -142,7 +153,8 @@
             Ace
         },
         directives: {
-            bkOverflowTips
+            bkOverflowTips,
+            'full-screen': fullScreen
         },
         props: {
             namespace: {
@@ -181,8 +193,11 @@
                 manifestExt,
                 yaml,
                 showYamlPanel,
+                pagePerms,
                 handleGetDetail,
-                handleShowYamlPanel
+                handleShowYamlPanel,
+                handleUpdateResource,
+                handleDeleteResource
             } = useDetail(ctx, {
                 ...props,
                 defaultActivePanel: 'pod',
@@ -270,10 +285,13 @@
                 podLoading,
                 yaml,
                 showYamlPanel,
+                pagePerms,
                 handleShowYamlPanel,
                 gotoPodDetail,
                 handleGetExtData,
-                getImagesTips
+                getImagesTips,
+                handleUpdateResource,
+                handleDeleteResource
             }
         }
     })
