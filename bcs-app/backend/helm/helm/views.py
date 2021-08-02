@@ -387,3 +387,9 @@ class HelmChartVersionsViewSet(SystemViewSet):
         """获取仓库的项目名称"""
         # 兼容Harbor项目地址及bk repo项目地址, 其中harbor项目地址固定，bk repo地址项目地址为bcs project code
         return DEFAULT_CHART_REPO_PROJECT_NAME or project_code
+
+
+try:
+    from .views_ext import ChartView  # noqa
+except ImportError:
+    pass
