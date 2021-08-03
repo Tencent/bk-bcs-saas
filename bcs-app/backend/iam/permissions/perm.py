@@ -79,7 +79,7 @@ class Permission(metaclass=ABCMeta):
         }
         return self.iam._client.grant_resource_creator_actions(None, username, data)
 
-    def resource_type_allowed(self, username: str, action_id: str, use_cache: bool) -> bool:
+    def resource_type_allowed(self, username: str, action_id: str, use_cache: bool = False) -> bool:
         """
         判断用户是否具备某个操作的权限
         note: 权限判断与资源实例无关，如创建某资源
@@ -90,7 +90,7 @@ class Permission(metaclass=ABCMeta):
         return self.iam.is_allowed_with_cache(request)
 
     def resource_inst_allowed(
-        self, username: str, action_id: str, res_request: ResourceRequest, use_cache: bool
+        self, username: str, action_id: str, res_request: ResourceRequest, use_cache: bool = False
     ) -> bool:
         """
         判断用户对某个资源实例是否具有指定操作的权限
