@@ -79,7 +79,7 @@ def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str], view
     """
     获取 feature_flags（页面菜单展示控制）
 
-    :param clsuter_id: 集群ID
+    :param cluster_id: 集群ID
     :param feature_type: 集群类型
     :param view_mode: 查看模式
     :return: feature_flags
