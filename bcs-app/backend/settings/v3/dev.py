@@ -17,7 +17,6 @@ import redis
 
 from .base import *  # noqa
 
-SECRET_KEY = "jllc(^rzpe8_udv)oadny2j3ym#qd^x^3ns11_8kq(1rf8qpd2"
 
 DATABASES["default"] = {
     "ENGINE": "django.db.backends.mysql",
