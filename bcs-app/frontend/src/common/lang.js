@@ -1774,7 +1774,7 @@ export default {
     '点击查看详情': ['Show Detail'],
     'Notes 为空': ['Notes is empty'],
     '最近一次重启日志': ['The last time the log was restarted'],
-    '集群管理': ['Cluster management'],
+    '集群管理': ['Cluster manage'],
     '显示时间': ['Enable timestamp'],
     '隐藏时间': ['Disabled timestamp'],
     '开启实时日志': ['Enable real-time logging'],
@@ -1918,7 +1918,8 @@ export default {
     '示例': ['Example'],
     '资源定义': ['Resource definition'],
     '存在时间': ['Existence time'],
-    '污点': ['Taint']
+    '污点': ['Taint'],
+    '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
