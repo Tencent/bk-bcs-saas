@@ -26,7 +26,7 @@
                 "description_en": "bcs project",
                 "parents": [],
                 "provider_config": {
-                    "path": "/stag--bk-bcs-saas/apis/iam/v1/projects/"
+                    "path": "/stag--bcs-app--bk-bcs-saas/apis/iam/v1/projects/"
                 },
                 "version": 1
             }
