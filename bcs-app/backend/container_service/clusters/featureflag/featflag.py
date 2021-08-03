@@ -64,6 +64,8 @@ class SingleClusterFeatureFlag(ClusterFeatureFlag):
     CLUSTER = enum.FeatureFlagField(name='CLUSTER', label='集群', default=False)
     REPO = enum.FeatureFlagField(name='REPO', label='仓库', default=False)
     AUDIT = enum.FeatureFlagField(name='AUDIT', label='操作审计', default=False)
+    HPA4Dashboard = enum.FeatureFlagField(name='HPA4Dashboard', label='HPA(资源视图)', default=True)
+    CustomResource = enum.FeatureFlagField(name='CustomResource', label='自定义资源', default=True)
 
 
 def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str]) -> Dict[str, bool]:
