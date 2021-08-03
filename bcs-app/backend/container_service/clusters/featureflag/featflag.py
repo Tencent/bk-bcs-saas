@@ -76,11 +76,20 @@ class DashboardClusterFeatureFlag(enum.FeatureFlag):
 
 
 def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str], view_mode: Optional[str]) -> Dict[str, bool]:
-    if cluster_id == UNSELECTED_CLUSTER:
-        return GlobalClusterFeatureFlag.get_default_flags()
+    """
+    获取 feature_flags（页面菜单展示控制）
 
+    :param clsuter_id: 集群ID
+    :param feature_type: 集群类型
+    :param view_mode: 查看模式
+    :return: feature_flags
+    """
+    # 资源视图类的走独立配置
     if view_mode == ViewMode.ResourceDashboard:
         return DashboardClusterFeatureFlag.get_default_flags()
+
+    if cluster_id == UNSELECTED_CLUSTER:
+        return GlobalClusterFeatureFlag.get_default_flags()
 
     if feature_type == ClusterFeatureType.SINGLE:
         return SingleClusterFeatureFlag.get_default_flags()
