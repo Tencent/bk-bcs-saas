@@ -27,12 +27,13 @@
                     <span class="cluster-name-all">{{$t('容器服务')}}</span>
                 </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
+                <span class="dot"></span>
                 <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
                     :key="item.id"
-                    :class="['tab', { active: curViewType === item.id }]"
+                    :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
                     @click="handleChangeView(item)">
                     {{item.name}}
                 </span>
@@ -623,6 +624,7 @@
             height: 24px;
             padding: 0 26px;
             cursor: pointer;
+            white-space: nowrap;
             &.active {
                 background: #fff;
                 color: #3a84ff;
@@ -663,5 +665,17 @@
     }
     .cluster-name-all {
         font-size: 16px;
+    }
+    .dot {
+        position: absolute;
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        min-width: 8px;
+        background-color: #88c3ff;
+        border: 2px solid #fff;
+        top: 16px;
+        right: 10px;
+        border-radius: 50%;
     }
 </style>

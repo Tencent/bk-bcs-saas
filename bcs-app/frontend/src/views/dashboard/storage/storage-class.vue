@@ -7,7 +7,7 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable></bk-table-column>
                 <bk-table-column label="Provisioner">
                     <template #default="{ row }">
                         <span>{{ row.provisioner || '--' }}</span>
