@@ -2011,7 +2011,8 @@ export default {
                 let containerList = res.data || []
 
                 const containerIds = containerList.map(container => container.container_id).join(',')
-                if (containerIds) {
+                // 区分企业版和内部版
+                if (containerIds && this.$INTERNAL) {
                     const logParams = {
                         projectId: this.projectId,
                         container_ids: containerIds
