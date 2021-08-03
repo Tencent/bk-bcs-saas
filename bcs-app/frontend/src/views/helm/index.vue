@@ -71,7 +71,7 @@
                                     <span v-if="row.transitioning_on" class="f14 fb app-name">
                                         {{ row.name }}
                                     </span>
-                                    <a @click="showAppDetail(row)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bk-tooltips="row.name">
+                                    <a @click="showAppDetail(row)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else>
                                         {{ row.name }}
                                     </a>
                                 </div>
