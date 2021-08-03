@@ -13,14 +13,8 @@
 #
 from typing import Dict, Optional
 
+from backend.container_service.clusters.featureflag.constants import UNSELECTED_CLUSTER, ClusterFeatureType, ViewMode
 from backend.packages.blue_krill.data_types import enum
-
-UNSELECTED_CLUSTER = '-'
-
-
-class ClusterFeatureType(str, enum.StructuredEnum):
-    SINGLE = enum.EnumField('SINGLE', label="独立集群")
-    FEDERATION = enum.EnumField('FEDERATION', label="联邦集群")
 
 
 class ClusterFeatureFlag(enum.FeatureFlag):
@@ -64,13 +58,28 @@ class SingleClusterFeatureFlag(ClusterFeatureFlag):
     CLUSTER = enum.FeatureFlagField(name='CLUSTER', label='集群', default=False)
     REPO = enum.FeatureFlagField(name='REPO', label='仓库', default=False)
     AUDIT = enum.FeatureFlagField(name='AUDIT', label='操作审计', default=False)
-    HPA4Dashboard = enum.FeatureFlagField(name='HPA4Dashboard', label='HPA(资源视图)', default=True)
-    CustomResource = enum.FeatureFlagField(name='CustomResource', label='自定义资源', default=True)
 
 
-def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str]) -> Dict[str, bool]:
+class DashboardClusterFeatureFlag(enum.FeatureFlag):
+    """ 资源视图特有 FeatureFlag """
+    OVERVIEW = enum.FeatureFlagField(name='OVERVIEW', label='集群总览', default=True)
+    NODE = enum.FeatureFlagField(name='NODE', label='节点', default=True)
+    NAMESPACE = enum.FeatureFlagField(name='NAMESPACE', label='命名空间', default=True)
+    WORKLOAD = enum.FeatureFlagField(name='WORKLOAD', label='工作负载', default=True)
+    NETWORK = enum.FeatureFlagField(name='NETWORK', label='网络', default=True)
+    CONFIGURATION = enum.FeatureFlagField(name='CONFIGURATION', label='配置', default=True)
+    STORAGE = enum.FeatureFlagField(name='STORAGE', label='存储', default=True)
+    RBAC = enum.FeatureFlagField(name='RBAC', label='RBAC', default=True)
+    HPA = enum.FeatureFlagField(name='HPA', label='HPA', default=True)
+    CUSTOM_RESOURCE = enum.FeatureFlagField(name='CUSTOM_RESOURCE', label='自定义资源', default=True)
+
+
+def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str], view_mode: Optional[str]) -> Dict[str, bool]:
     if cluster_id == UNSELECTED_CLUSTER:
         return GlobalClusterFeatureFlag.get_default_flags()
+
+    if view_mode == ViewMode.ResourceDashboard:
+        return DashboardClusterFeatureFlag.get_default_flags()
 
     if feature_type == ClusterFeatureType.SINGLE.value:
         return SingleClusterFeatureFlag.get_default_flags()
