@@ -24,7 +24,13 @@ from .request import ActionResourcesRequest, ResourceRequest
 
 @dataclass
 class PermCtx:
+    """
+    权限参数上下文
+    note: 由于 force_raise 默认值的原因，其子类属性必须设置默认值
+    """
+
     username: str
+    force_raise: bool = False  # 如果为 True, 表示不做权限校验，直接以无权限方式抛出异常
 
 
 class Permission(metaclass=ABCMeta):
@@ -36,23 +42,23 @@ class Permission(metaclass=ABCMeta):
     resource_request_cls: Type[ResourceRequest] = ResourceRequest
     iam = IAM(settings.APP_ID, settings.APP_TOKEN, settings.BK_IAM_HOST, settings.BK_PAAS_INNER_HOST)
 
-    def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception: bool, just_raise: bool = False) -> bool:
+    def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception: bool, use_cache: bool = False) -> bool:
         """
         :param perm_ctx: 权限校验的上下文，至少包含用户名
         :param action_id: 资源操作 ID
         :param raise_exception: 无权限时，是否抛出异常
-        :param just_raise: 不做权限校验，直接以无权限方式抛出异常
+        :param use_cache: 是否使用本地缓存 (缓存时间 1 min) 校验权限。用于非敏感操作鉴权，比如 view 操作
         """
         res_id = self._get_resource_id_from_ctx(perm_ctx)
 
-        if just_raise:
+        if perm_ctx.force_raise:
             self._raise_permission_denied_error(res_id, perm_ctx, action_id)
 
         if res_id:
             res_request = self._make_res_request(res_id, perm_ctx)
-            is_allowed = self.resource_inst_allowed(perm_ctx.username, action_id, res_request)
+            is_allowed = self.resource_inst_allowed(perm_ctx.username, action_id, res_request, use_cache)
         else:
-            is_allowed = self.resource_type_allowed(perm_ctx.username, action_id)
+            is_allowed = self.resource_type_allowed(perm_ctx.username, action_id, use_cache)
 
         if raise_exception and not is_allowed:
             self._raise_permission_denied_error(res_id, perm_ctx, action_id)
@@ -73,15 +79,19 @@ class Permission(metaclass=ABCMeta):
         }
         return self.iam._client.grant_resource_creator_actions(None, username, data)
 
-    def resource_type_allowed(self, username: str, action_id: str) -> bool:
+    def resource_type_allowed(self, username: str, action_id: str, use_cache: bool) -> bool:
         """
         判断用户是否具备某个操作的权限
         note: 权限判断与资源实例无关，如创建某资源
         """
         request = self._make_request(username, action_id)
-        return self.iam.is_allowed(request)
+        if not use_cache:
+            return self.iam.is_allowed(request)
+        return self.iam.is_allowed_with_cache(request)
 
-    def resource_inst_allowed(self, username: str, action_id: str, res_request: ResourceRequest) -> bool:
+    def resource_inst_allowed(
+        self, username: str, action_id: str, res_request: ResourceRequest, use_cache: bool
+    ) -> bool:
         """
         判断用户对某个资源实例是否具有指定操作的权限
         note: 权限判断与资源实例有关，如更新某个具体资源
@@ -89,7 +99,9 @@ class Permission(metaclass=ABCMeta):
         :params res_maker: 单个资源
         """
         request = self._make_request(username, action_id, resources=res_request.make_resources())
-        return self.iam.is_allowed(request)
+        if not use_cache:
+            return self.iam.is_allowed(request)
+        return self.iam.is_allowed_with_cache(request)
 
     def resource_type_multi_actions_allowed(self, username: str, action_ids: List[str]) -> Dict[str, bool]:
         """
@@ -139,7 +151,6 @@ class Permission(metaclass=ABCMeta):
         )
 
     def _make_res_request(self, res_id: str, perm_ctx: PermCtx) -> ResourceRequest:
-        """"""
         return self.resource_request_cls(res_id)
 
     def _raise_permission_denied_error(self, res_id: str, perm_ctx: PermCtx, action_id: str):

@@ -14,7 +14,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Type
 
-from backend.iam.permissions.decorators import RelatedPermissionDecorator
+from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import ActionResourcesRequest, PermCtx, Permission, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
@@ -42,21 +42,20 @@ class ProjectPermission(Permission):
     resource_type: str = ResourceType
     resource_request_cls: Type[ResourceRequest] = ProjectRequest
 
-    def can_create(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ProjectAction.CREATE, raise_exception, just_raise)
+    def can_create(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.CREATE, raise_exception)
 
-    def can_view(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ProjectAction.VIEW, raise_exception, just_raise)
+    def can_view(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.VIEW, raise_exception, use_cache=True)
 
-    def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception, just_raise)
+    def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception)
 
     def _get_resource_id_from_ctx(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
         return perm_ctx.project_id
 
 
-class related_project_perm(RelatedPermissionDecorator):
-    """"""
+class related_project_perm(decorators.RelatedPermission):
 
     module_name: str = ResourceType
 

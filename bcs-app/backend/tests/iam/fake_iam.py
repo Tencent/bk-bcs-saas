@@ -32,6 +32,9 @@ class FakeProjectIAM:
             return True
         return False
 
+    def is_allowed_with_cache(self, request: Request) -> bool:
+        return self.is_allowed(request)
+
 
 class FakeProjectPermission(Permission):
     iam = FakeProjectIAM()
@@ -51,6 +54,9 @@ class FakeClusterIAM:
             return True
         return False
 
+    def is_allowed_with_cache(self, request: Request) -> bool:
+        return self.is_allowed(request)
+
 
 class FakeClusterPermission(Permission):
     iam = FakeClusterIAM()
@@ -64,6 +70,9 @@ class FakeNamespaceIAM:
         if request.subject.id in [roles.ADMIN_USER, roles.NAMESPACE_NO_CLUSTER_PROJECT_USER]:
             return True
         return False
+
+    def is_allowed_with_cache(self, request: Request) -> bool:
+        return self.is_allowed(request)
 
 
 class FakeNamespacePermission(Permission):

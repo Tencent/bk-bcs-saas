@@ -12,16 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 import importlib
+import logging
 from abc import ABCMeta, abstractmethod
 from typing import List
 
 import wrapt
 
 from .exceptions import PermissionDeniedError
-from .perm import ActionResourcesRequest, PermCtx, Permission
+from .perm import ActionResourcesRequest, PermCtx
+from .perm import Permission as PermPermission
+
+logger = logging.getLogger(__name__)
 
 
-class RelatedPermissionDecorator(metaclass=ABCMeta):
+class RelatedPermission(metaclass=ABCMeta):
     """
     用于资源 Permission 类的方法装饰, 目的是支持 related_actions.
 
@@ -50,13 +54,16 @@ class RelatedPermissionDecorator(metaclass=ABCMeta):
         """
         self.method_name = method_name
 
-    def _gen_perm_obj(self) -> Permission:
+    def _gen_perm_obj(self) -> PermPermission:
         """获取权限类实例，如 project.ProjectPermission"""
         p_module_name = __name__[: __name__.rfind(".")]
-        return getattr(
-            importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
-            f'{self.module_name.capitalize()}Permission',
-        )()
+        try:
+            return getattr(
+                importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
+                f'{self.module_name.capitalize()}Permission',
+            )()
+        except (ModuleNotFoundError, AttributeError) as e:
+            logger.error('_gen_perm_obj error: %s', e)
 
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
@@ -68,8 +75,9 @@ class RelatedPermissionDecorator(metaclass=ABCMeta):
             is_allowed = wrapped(*args, **kwargs)
         except PermissionDeniedError as e:
             # 按照权限中心的建议，无论关联资源操作是否有权限，统一按照无权限返回，目的是生成最终的 apply_url
+            perm_ctx.force_raise = True
             try:
-                getattr(self.perm_obj, self.method_name)(perm_ctx, just_raise=True)
+                getattr(self.perm_obj, self.method_name)(perm_ctx)
             except PermissionDeniedError as err:
                 raise PermissionDeniedError(
                     f'{e.message}; {err.message}',
@@ -81,25 +89,26 @@ class RelatedPermissionDecorator(metaclass=ABCMeta):
             if not is_allowed:
                 return is_allowed
 
+            logger.debug(f'continue to verify {self.method_name} {self.module_name} permission...')
+
             # 有权限时，继续校验关联操作的权限
             raise_exception = kwargs.get('raise_exception', True)
             return getattr(self.perm_obj, self.method_name)(perm_ctx, raise_exception=raise_exception)
 
     @abstractmethod
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
-        """"""
+        """将被装饰的方法中的 perm_ctx 转换成 perm_obj.method_name 需要的 perm_ctx"""
 
     @abstractmethod
     def _action_request_list(self, perm_ctx: PermCtx) -> List[ActionResourcesRequest]:
-        """"""
+        """从 perm_ctx 中解析生成 action_request_list"""
 
     @property
     def action_id(self) -> str:
-        action = self.method_name.split('can_')[1]
-        return f'{self.perm_obj.resource_type}_{action}'
+        return f'{self.perm_obj.resource_type}_{self.method_name[4:]}'
 
 
-class PermissionDecorator:
+class Permission:
     """鉴权装饰器基类，用于装饰函数或者方法"""
 
     module_name: str  # 资源模块名 如 cluster, project
@@ -110,13 +119,16 @@ class PermissionDecorator:
         """
         self.method_name = method_name
 
-    def _gen_perm_obj(self) -> Permission:
+    def _gen_perm_obj(self) -> PermPermission:
         """获取权限类实例，如 project.ProjectPermission"""
         p_module_name = __name__[: __name__.rfind(".")]
-        return getattr(
-            importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
-            f'{self.module_name.capitalize()}Permission',
-        )()
+        try:
+            return getattr(
+                importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
+                f'{self.module_name.capitalize()}Permission',
+            )()
+        except (ModuleNotFoundError, AttributeError) as e:
+            logger.error('_gen_perm_obj error: %s', e)
 
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):

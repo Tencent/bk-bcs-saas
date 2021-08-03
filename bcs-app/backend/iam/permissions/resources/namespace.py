@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Type
 from backend.iam.permissions.perm import PermCtx
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from ..decorators import PermissionDecorator, RelatedPermissionDecorator
+from .. import decorators
 from ..perm import Permission
 from ..request import ActionResourcesRequest, ResourceRequest
 from .cluster import related_cluster_perm
@@ -35,14 +35,12 @@ class NamespaceAction(str, StructuredEnum):
 
 @dataclass
 class NamespacePermCtx(PermCtx):
-    project_id: str
-    cluster_id: str
+    project_id: str = ''
+    cluster_id: str = ''
     namespace_id: Optional[str] = None
 
 
 class NamespaceRequest(ResourceRequest):
-    """"""
-
     resource_type: str = ResourceType
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/cluster,{{cluster_id}}/'}
 
@@ -53,8 +51,7 @@ class NamespaceRequest(ResourceRequest):
         return self.attr
 
 
-class related_namespace_perm(RelatedPermissionDecorator):
-    """"""
+class related_namespace_perm(decorators.RelatedPermission):
 
     module_name: str = ResourceType
 
@@ -82,7 +79,7 @@ class related_namespace_perm(RelatedPermissionDecorator):
         ]
 
 
-class namespace_perm(PermissionDecorator):
+class namespace_perm(decorators.Permission):
     module_name: str = ResourceType
 
 
@@ -93,24 +90,24 @@ class NamespacePermission(Permission):
     resource_request_cls: Type[ResourceRequest] = NamespaceRequest
 
     @related_cluster_perm(method_name='can_view')
-    def can_create(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, NamespaceAction.CREATE, raise_exception, just_raise)
+    def can_create(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, NamespaceAction.CREATE, raise_exception)
 
     @related_cluster_perm(method_name='can_view')
-    def can_view(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception, just_raise)
+    def can_view(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception, use_cache=True)
 
     @related_namespace_perm(method_name='can_view')
-    def can_update(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, NamespaceAction.UPDATE, raise_exception, just_raise)
+    def can_update(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, NamespaceAction.UPDATE, raise_exception)
 
     @related_namespace_perm(method_name='can_view')
-    def can_delete(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, NamespaceAction.DELETE, raise_exception, just_raise)
+    def can_delete(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, NamespaceAction.DELETE, raise_exception)
 
     @related_namespace_perm(method_name='can_view')
-    def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception, just_raise)
+    def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception)
 
     def _make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)

@@ -18,7 +18,7 @@ from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
 from backend.iam.permissions.resources.project import related_project_perm
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from ..decorators import PermissionDecorator, RelatedPermissionDecorator
+from .. import decorators
 from ..request import ActionResourcesRequest
 
 ResourceType = 'cluster'
@@ -33,13 +33,11 @@ class ClusterAction(str, StructuredEnum):
 
 @dataclass
 class ClusterPermCtx(PermCtx):
-    project_id: str
+    project_id: str = ''
     cluster_id: Optional[str] = None
 
 
 class ClusterRequest(ResourceRequest):
-    """"""
-
     resource_type: str = ResourceType
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
@@ -48,8 +46,7 @@ class ClusterRequest(ResourceRequest):
         return self.attr
 
 
-class related_cluster_perm(RelatedPermissionDecorator):
-    """"""
+class related_cluster_perm(decorators.RelatedPermission):
 
     module_name: str = ResourceType
 
@@ -74,7 +71,7 @@ class related_cluster_perm(RelatedPermissionDecorator):
         ]
 
 
-class cluster_perm(PermissionDecorator):
+class cluster_perm(decorators.Permission):
     module_name: str = ResourceType
 
 
@@ -85,20 +82,20 @@ class ClusterPermission(Permission):
     resource_request_cls: Type[ResourceRequest] = ClusterRequest
 
     @related_project_perm(method_name='can_view')
-    def can_create(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ClusterAction.CREATE, raise_exception, just_raise)
+    def can_create(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ClusterAction.CREATE, raise_exception)
 
     @related_project_perm(method_name='can_view')
-    def can_view(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ClusterAction.VIEW, raise_exception, just_raise)
+    def can_view(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ClusterAction.VIEW, raise_exception, use_cache=True)
 
     @related_cluster_perm(method_name='can_view')
-    def can_manage(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ClusterAction.MANAGE, raise_exception, just_raise)
+    def can_manage(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ClusterAction.MANAGE, raise_exception)
 
     @related_cluster_perm(method_name='can_view')
-    def can_delete(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True, just_raise: bool = False) -> bool:
-        return self.can_action(perm_ctx, ClusterAction.DELETE, raise_exception, just_raise)
+    def can_delete(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, ClusterAction.DELETE, raise_exception)
 
     def _make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id)

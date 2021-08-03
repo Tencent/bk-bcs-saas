@@ -19,5 +19,5 @@ from backend.iam.permissions.perm import PermCtx
 
 @dataclass
 class TemplatesetPermCtx(PermCtx):
-    project_id: str
+    project_id: str = ''
     template_id: Optional[str] = None
