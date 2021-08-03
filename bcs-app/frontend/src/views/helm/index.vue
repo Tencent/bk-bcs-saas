@@ -940,7 +940,6 @@
                 }
                 if (this.searchNamespace) {
                     const args = this.searchNamespace.split(':')
-                    console.log(this.searchNamespace)
                     data.params.cluster_id = args[0]
                     data.params.namespace = args[1]
                 }
