@@ -62,6 +62,7 @@ class SingleClusterFeatureFlag(ClusterFeatureFlag):
 
 class DashboardClusterFeatureFlag(enum.FeatureFlag):
     """ 资源视图特有 FeatureFlag """
+
     OVERVIEW = enum.FeatureFlagField(name='OVERVIEW', label='集群总览', default=True)
     NODE = enum.FeatureFlagField(name='NODE', label='节点', default=True)
     NAMESPACE = enum.FeatureFlagField(name='NAMESPACE', label='命名空间', default=True)
@@ -81,7 +82,7 @@ def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str], view
     if view_mode == ViewMode.ResourceDashboard:
         return DashboardClusterFeatureFlag.get_default_flags()
 
-    if feature_type == ClusterFeatureType.SINGLE.value:
+    if feature_type == ClusterFeatureType.SINGLE:
         return SingleClusterFeatureFlag.get_default_flags()
 
     return {}

@@ -13,10 +13,12 @@
 #
 from backend.packages.blue_krill.data_types import enum
 
+# 未选择集群使用的占位符
 UNSELECTED_CLUSTER = '-'
 
 
 class ClusterFeatureType(str, enum.StructuredEnum):
+    """ 集群类型 """
     SINGLE = enum.EnumField('SINGLE', label="独立集群")
     FEDERATION = enum.EnumField('FEDERATION', label="联邦集群")
 
