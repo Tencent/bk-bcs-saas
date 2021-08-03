@@ -60,7 +60,7 @@
                         :pagination="pagination"
                         @page-change="handlePageChange"
                         @page-limit-change="handlePageLimitChange">
-                        <bk-table-column key="selection" :render-header="renderSelectionHeader" width="60">
+                        <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
                             <template slot-scope="{ row }">
                                 <bk-checkbox name="check-strategy" v-model="row.isChecked" @change="checkApp(row)" />
                             </template>
@@ -1125,7 +1125,6 @@
                             this.selectLists.forEach(selectAppItem => {
                                 if (appItem.id === selectAppItem.id) {
                                     this.$set(appItem, 'isChecked', true)
-                                    console.log(111)
                                 }
                             })
                         })
