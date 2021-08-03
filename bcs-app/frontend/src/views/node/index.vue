@@ -826,6 +826,7 @@
                 }
 
                 const searchParams = this.getSearchParams()
+                console.log(searchParams, 23333333333)
                 const ipParams = searchParams.ipParams || ''
                 const ipList = ipParams
                     ? searchParams.ipParams.split(',')
@@ -847,7 +848,7 @@
                     if (ipList.length) {
                         newNodeList.forEach(node => {
                             ipList.forEach(ip => {
-                                if (String(node.inner_ip || '').toLowerCase().indexOf(ip) > -1) {
+                                if (String(node.inner_ip || '').toLowerCase() === ip) {
                                     resultMap[node.inner_ip] = node
                                 }
                             })
