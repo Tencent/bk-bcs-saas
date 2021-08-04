@@ -41,7 +41,7 @@ LOG_LEVEL = "DEBUG"
 LOGGING = get_logging_config(LOG_LEVEL)
 
 # 设置搭建的社区版域名
-BK_PAAS_HOST = os.environ.get("BKV3_PAAS_HOST", "")
+BK_PAAS_HOST = os.environ.get("BKPAAS_PAAS2_URL", "")
 SESSION_COOKIE_DOMAIN = "." + parse.urlparse(BK_PAAS_HOST).netloc.split(":")[0]
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
@@ -57,7 +57,7 @@ DEVOPS_BCS_HOST = os.environ.get("DEV_BCS_APP_HOST", "")
 DEVOPS_BCS_API_URL = os.environ.get("DEV_BCS_APP_HOST", "")
 DEVOPS_ARTIFACTORY_HOST = os.environ.get("BKAPP_ARTIFACTORY_HOST")
 
-BK_PAAS_INNER_HOST = os.environ.get("BKV3_PAAS_INNER_HOST", BK_PAAS_HOST)
+BK_PAAS_INNER_HOST = os.environ.get("BKPAAS_PAAS2_INNER_URL", BK_PAAS_HOST)
 
 REDIS_URL = os.environ.get("BKAPP_REDIS_URL", "redis://127.0.0.1/0")
 # 解析url
