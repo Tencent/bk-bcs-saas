@@ -62,11 +62,6 @@
 
 .helm-set-panel {
     padding: 20px;
-    .header {
-        font-weight: 700;
-        color: #333c48;
-        font-size: 16px;
-    }
     li {
         font-size: 14px;
     }

@@ -226,7 +226,6 @@
                     </bk-tab-panel>
                     <bk-tab-panel name="helm" :title="$t('Helm部署选项')">
                         <div class="helm-set-panel">
-                            <p class="header">Helm 命令行参数</p>
                             <ul class="mt10">
                                 <!-- 常用枚举项 -->
                                 <li v-for="command of commandList" :key="command.id">
@@ -245,7 +244,7 @@
                                         {{ $t('超时时间') }}
                                         <i style="font-size: 12px;cursor: pointer;"
                                             class="bcs-icon bcs-icon-info-circle"
-                                            v-bk-tooltips.top="'timeout'" />
+                                            v-bk-tooltips.top="'--timeout'" />
                                     </div>
                                     <bk-input
                                         v-model="timeoutValue"
@@ -264,8 +263,8 @@
                                             <span class="equals-sign">=</span>
                                             <bk-input style="width: 280px;" :placeholder="$t('值')" v-model="item.value" />
                                             <button class="action-btn" @click.stop.prevent>
-                                                <i class="bk-icon icon-plus-circle mr5" @click.stop.prevent="addHign"></i>
-                                                <i class="bk-icon icon-minus-circle" v-if="hignSetupMap.length > 1" @click.stop.prevent="delHign(index)"></i>
+                                                <i class="bk-icon icon-plus-circle mr5" v-if="index === 0" @click.stop.prevent="addHign"></i>
+                                                <i class="bk-icon icon-minus-circle" @click.stop.prevent="delHign(index)"></i>
                                             </button>
                                             <p class="error-key" v-if="item.errorKeyTip">{{ item.errorKeyTip }}</p>
                                         </li>
@@ -667,26 +666,26 @@
                     //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
                     // },
                     {
-                        id: 'skip-crds',
+                        id: '--skip-crds',
                         disabled: false,
                         desc: this.$t('忽略CRD')
                     },
                     {
-                        id: 'wait-for-jobs',
+                        id: '--wait-for-jobs',
                         disabled: false,
                         desc: this.$t('等待所有Jobs完成')
                     },
                     {
-                        id: 'wait',
+                        id: '--wait',
                         disabled: false,
                         desc: this.$t('等待所有Pod，PVC处于ready状态')
                     }
                 ],
                 helmCommandParams: {
-                    'skip-crds': false,
-                    'wait-for-jobs': false,
-                    'wait': false,
-                    'timeout': false
+                    '--skip-crds': false,
+                    '--wait-for-jobs': false,
+                    '--wait': false,
+                    '--timeout': false
                 },
                 notesdialog: {
                     isShow: false,
@@ -696,7 +695,7 @@
                 isNotesLoading: false,
                 isHignPanelShow: true,
                 hignSetupMap: [], // helm部署配置高级设置
-                timeoutValue: ''
+                timeoutValue: 600
             }
         },
         computed: {
@@ -1060,22 +1059,31 @@
                     const commonKeys = Object.keys(this.helmCommandParams)
                     this.originReleaseData.cmd_flags.forEach(item => {
                         const stringKey = Object.keys(item).join(',')
-                        const key = stringKey.slice(2, stringKey.length)
                         // 常用枚举项不包含则是用户自定义高级配置
-                        if (!commonKeys.includes(key)) {
+                        if (!commonKeys.includes(stringKey)) {
                             const obj = {}
                             obj.key = stringKey
                             obj.value = item[stringKey]
                             this.hignSetupMap.push(obj)
                         } else {
-                            if (key === 'timeout') {
-                                this.timeoutValue = item[stringKey]
+                            if (stringKey === '--timeout') {
+                                this.timeoutValue = item[stringKey].slice(0, item[stringKey].length - 1)
                             } else {
-                                this.helmCommandParams[key] = true
+                                this.helmCommandParams[stringKey] = true
                             }
                         }
                     })
                 }
+
+                // 如果没有用户自定义helm配置, 默认添加一条空数据
+                if (!this.hignSetupMap.length) {
+                    const obj = {
+                        key: '',
+                        value: ''
+                    }
+                    this.hignSetupMap.push(obj)
+                }
+
                 if (questions.questions) {
                     questions.questions.forEach(question => {
                         this.fieldset = this.originReleaseData.release.answers
@@ -1390,14 +1398,13 @@
                 for (const key in this.helmCommandParams) {
                     if (this.helmCommandParams[key]) {
                         const obj = {}
-                        const id = '--' + key
-                        obj[id] = true
+                        obj[key] = true
                         commands.push(obj)
                     }
                 }
-                if (this.timeoutValue !== null) {
+                if (this.timeoutValue) {
                     const obj = {}
-                    obj['--timeout'] = Number(this.timeoutValue)
+                    obj['--timeout'] = this.timeoutValue + 's'
                     commands.push(obj)
                 }
 
@@ -1415,7 +1422,6 @@
                         } else {
                             value = item.value
                         }
-                        console.log(value, 111111111111)
                         obj[item.key] = value
                         commands.push(obj)
                     }
@@ -1632,7 +1638,6 @@
                 const params = this.getAppParams()
                 const projectId = this.projectId
                 const appId = this.$route.params.appId
-
                 this.isDifferenceLoading = true
                 this.difference = ''
                 this.isChartVersionChange = ''
@@ -1732,10 +1737,17 @@
             },
 
             delHign (index) {
-                const hignList = []
-                hignList.splice(0, hignList.length, ...this.hignSetupMap)
-                hignList.splice(index, 1)
-                this.hignSetupMap.splice(0, this.hignSetupMap.length, ...hignList)
+                if (!index) {
+                    // 只剩一行时,置空数据
+                    this.hignSetupMap[0].key = ''
+                    this.hignSetupMap[0].value = ''
+                    this.hignSetupMap[0].errorKeyTip = ''
+                } else {
+                    const hignList = []
+                    hignList.splice(0, hignList.length, ...this.hignSetupMap)
+                    hignList.splice(index, 1)
+                    this.hignSetupMap.splice(0, this.hignSetupMap.length, ...hignList)
+                }
             },
 
             handleHignkeyChange (val, index) {

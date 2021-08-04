@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { defineComponent, computed, ref, watch, onMounted, toRefs } from '@vue/composition-api'
 import DashboardTopActions from './dashboard-top-actions'
 // import useCluster from './use-cluster'
@@ -11,11 +12,15 @@ import { sort } from '@/common/util'
 import yamljs from 'js-yaml'
 import * as ace from '@/components/ace-editor'
 import './base-layout.css'
+import fullScreen from '@open/directives/full-screen'
 
 export default defineComponent({
     name: 'BaseLayout',
     components: {
         ace
+    },
+    directives: {
+        'full-screen': fullScreen
     },
     props: {
         title: {
@@ -102,16 +107,13 @@ export default defineComponent({
             }
         }
         // 表格数据
-        const { isLoading, data, fetchList } = useTableData(ctx)
-        const webAnnotations = computed(() => { // 权限信息
-            // eslint-disable-next-line camelcase
-            return data.value?.web_annotations || { perms: { page: {} } }
-        })
+        const { isLoading, data, webAnnotations, fetchList } = useTableData(ctx)
+
         const pagePerms = computed(() => { // 界面权限
             return {
-                create: webAnnotations.value.perms.page.create_btn,
-                delete: webAnnotations.value.perms.page.delete_btn,
-                update: webAnnotations.value.perms.page.update_btn
+                create: webAnnotations.value.perms?.page?.create_btn || {},
+                delete: webAnnotations.value.perms?.page?.delete_btn || {},
+                update: webAnnotations.value.perms?.page?.update_btn || {}
             }
         })
         const tableData = computed(() => {
@@ -383,7 +385,9 @@ export default defineComponent({
                                     ? (this.$scopedSlots.detail && this.$scopedSlots.detail({
                                         ...this.curDetailRow
                                     }))
-                                    : <ace width="100%" height="100%" lang="yaml" readOnly={true} value={this.yaml}></ace>
+                                    : <ace v-full-screen={{ tools: ['fullscreen', 'copy'], content: this.yaml }}
+                                        width="100%" height="100%" lang="yaml"
+                                        readOnly={true} value={this.yaml}></ace>
                         }
                     }
                     }></bcs-sideslider>

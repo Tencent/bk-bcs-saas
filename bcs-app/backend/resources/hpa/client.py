@@ -11,17 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+import logging
+from typing import Optional
 
-from backend.resources.utils.format import ResourceDefaultFormatter
-from backend.utils.basic import getitems
+from backend.container_service.clusters.base.models import CtxCluster
+from backend.resources.constants import DEFAULT_HPA_API_VERSION, K8sResourceKind
+from backend.resources.resource import ResourceClient
+
+from .formatter import HPAFormatter4Dashboard
+
+logger = logging.getLogger(__name__)
 
 
-class CRDFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return {"name": getitems(resource_dict, "metadata.name"), "scope": getitems(resource_dict, "spec.scope")}
+class HPA(ResourceClient):
+    kind = K8sResourceKind.HorizontalPodAutoscaler.value
+    formatter = HPAFormatter4Dashboard()
 
-
-class CustomObjectFormatter(ResourceDefaultFormatter):
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        return resource_dict
+    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = DEFAULT_HPA_API_VERSION):
+        super().__init__(ctx_cluster, api_version)

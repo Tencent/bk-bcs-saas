@@ -23,6 +23,12 @@ from backend.utils.cache import rd_client
 logger = logging.getLogger(__name__)
 
 
+def log_error_cache(file_name: str, file_content: bytes):
+    """临时用于保存触发 maximum recursion depth 异常的 cache 文件"""
+    with open(f'/root/{file_name}', 'wb') as f:
+        f.write(file_content)
+
+
 class DiscovererCache:
     def __init__(self, cache_key):
         self.cache_key = cache_key
@@ -51,13 +57,17 @@ class BcsLazyDiscoverer(LazyDiscoverer):
             self._cache = {'library_version': __version__}
             refresh = True
         else:
+            cache_content = None
             try:
-                self._cache = json.loads(discoverer_cache.get_content(), cls=partial(CacheDecoder, self.client))
+                cache_content = discoverer_cache.get_content()
+                self._cache = json.loads(cache_content, cls=partial(CacheDecoder, self.client))
                 if self._cache.get('library_version') != __version__:
                     # Version mismatch, need to refresh cache
                     self.invalidate_cache()
             except Exception as e:
-                logger.exception("load cache error: %s", e)
+                logger.error("load cache error: %s", e)
+                # 临时用于记录 maximum recursion depth 异常的 cache 文件, 定位后删除
+                log_error_cache(discoverer_cache.cache_key, cache_content)
                 self.invalidate_cache()
         self._load_server_info()
         self.discover()

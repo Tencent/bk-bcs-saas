@@ -16,6 +16,7 @@ from unittest import mock
 import pytest
 
 from backend.resources.namespace.namespace_quota import NamespaceQuota
+from backend.tests.conftest import TEST_NAMESPACE
 
 from ..conftest import FakeBcsKubeConfigurationService
 
@@ -34,34 +35,31 @@ class TestNamespaceQuota:
     def client_obj(self, project_id, cluster_id):
         return NamespaceQuota('token', project_id, cluster_id)
 
-    def test_create_namespace_quota(self, client_obj, random_name):
-        client_obj.create_namespace_quota(random_name, {'cpu': '1000m'})
+    def test_create_namespace_quota(self, client_obj):
+        assert not client_obj.get_namespace_quota(TEST_NAMESPACE)
+        client_obj.create_namespace_quota(TEST_NAMESPACE, {'cpu': '1000m'})
 
-    def test_get_namespace_quota(self, client_obj, random_name):
-        client_obj.create_namespace_quota(random_name, {'cpu': '1000m'})
-
-        quota = client_obj.get_namespace_quota(random_name)
+    def test_get_namespace_quota(self, client_obj):
+        """ 测试获取 单个 NamespaceQuota """
+        quota = client_obj.get_namespace_quota(TEST_NAMESPACE)
         assert isinstance(quota, dict)
         assert 'hard' in quota
 
-    def test_list_namespace_quota(self, client_obj, random_name):
-        results = client_obj.list_namespace_quota(random_name)
-        assert len(results) == 0
+    def test_list_namespace_quota(self, client_obj):
+        """ 测试获取 NamespaceQuota 列表 """
+        results = client_obj.list_namespace_quota(TEST_NAMESPACE)
+        assert len(results) > 0
 
-        client_obj.create_namespace_quota(random_name, {'cpu': '1000m'})
-        results = client_obj.list_namespace_quota(random_name)
-        assert len(results) == 1
+    def test_update_or_create_namespace_quota(self, client_obj):
+        """
+        测试 NamespaceQuota 的 更新或创建
+        TODO create_namespace_quota 与 update_or_create_namespace_quota 逻辑相同，后续考虑废弃一个
+        """
+        client_obj.update_or_create_namespace_quota(TEST_NAMESPACE, {'cpu': '2000m'})
 
-    def test_delete_namespace_quota(self, client_obj, random_name):
-        client_obj.create_namespace_quota(random_name, {'cpu': '1000m'})
-        quota = client_obj.get_namespace_quota(random_name)
+        quota = client_obj.get_namespace_quota(TEST_NAMESPACE)
         assert isinstance(quota, dict)
 
-        client_obj.delete_namespace_quota(random_name)
-        assert not client_obj.get_namespace_quota(random_name)
-
-    def test_update_or_create_namespace_quota(self, client_obj, random_name):
-        client_obj.update_or_create_namespace_quota(random_name, {'cpu': '1000m'})
-
-        quota = client_obj.get_namespace_quota(random_name)
-        assert isinstance(quota, dict)
+    def test_delete_namespace_quota(self, client_obj):
+        client_obj.delete_namespace_quota(TEST_NAMESPACE)
+        assert not client_obj.get_namespace_quota(TEST_NAMESPACE)

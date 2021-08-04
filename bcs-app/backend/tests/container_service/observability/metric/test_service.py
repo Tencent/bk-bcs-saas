@@ -21,7 +21,7 @@ pytestmark = pytest.mark.django_db
 class TestService:
     """ 指标：Service 相关测试 """
 
-    def test_list(self, api_client, metric_api_common_patch, patch_k8s_client):
+    def test_list(self, api_client, patch_k8s_client):
         """ 测试获取 集群指标总览 接口 """
         response = api_client.get(f'/api/metrics/projects/{TEST_PROJECT_ID}/clusters/{TEST_CLUSTER_ID}/services/')
         assert response.json()['code'] == 0

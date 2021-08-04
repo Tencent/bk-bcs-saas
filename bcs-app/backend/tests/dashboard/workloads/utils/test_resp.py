@@ -24,7 +24,9 @@ container_name = 'echoserver'
 
 
 class TestContainerRespBuilder:
-    def test_build_list(self, dashboard_api_common_patch):
+    """ 测试容器信息构造逻辑 """
+
+    def test_build_list(self):
         """ 测试组装 Container 列表信息方法 """
         ret = ContainerRespBuilder(pod_manifest).build_list()
         assert ret == [

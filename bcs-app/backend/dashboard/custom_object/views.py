@@ -60,6 +60,7 @@ class CustomObjectViewSet(SystemViewSet):
         return Response()
 
     def patch_custom_object_scale(self, request, project_id, cluster_id, crd_name, name):
+        """ 自定义资源扩缩容 """
         req_data = request.data.copy()
         req_data["crd_name"] = crd_name
         serializer = PatchCustomObjectScaleSLZ(data=req_data)

@@ -19,6 +19,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
+from ruamel.yaml.error import YAMLFutureWarning
 
 from backend.components import paas_cc
 from backend.helm.helm.bcs_variable import collect_system_variable, get_valuefile_with_bcs_variable_injected
@@ -923,7 +924,13 @@ class SyncDict2YamlToolSLZ(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
+        """转换数据
+        NOTE: 兼容老版本处理，并且不允许重复KEY；当处理yaml出现异常时，抛出异常
+        """
+        try:
+            content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
+        except YAMLFutureWarning as e:
+            raise serializers.ValidationError(e)
         return {"yaml": content, "dict": validated_data["dict"]}
 
     class Meta:

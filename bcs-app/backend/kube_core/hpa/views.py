@@ -21,7 +21,7 @@ from backend.accounts import bcs_perm
 from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
 from backend.kube_core.hpa import constants, utils
-from backend.resources.hpa import exceptions as hpa_exceptions
+from backend.resources.exceptions import DeleteResourceError
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.network.serializers import BatchResourceSLZ
@@ -85,7 +85,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         try:
             utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
-        except hpa_exceptions.DeleteHPAError as error:
+        except DeleteResourceError as error:
             message = "删除HPA:{}失败, [命名空间:{}], {}".format(name, ns_name, error)
             utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)
@@ -116,7 +116,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             # 删除 hpa
             try:
                 utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
-            except hpa_exceptions.DeleteHPAError as error:
+            except DeleteResourceError as error:
                 failed_list.append({'name': name, 'desc': "{}[命名空间:{}]:{}".format(name, ns_name, error)})
             else:
                 success_list.append({'name': name, 'desc': "{}[命名空间:{}]".format(name, ns_name)})

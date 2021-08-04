@@ -342,7 +342,7 @@
             :quick-close="false"
             class="biz-cluster-set-variable-sideslider"
             @hidden="hideEditQuota">
-            <div slot="content">
+            <div slot="content" v-bkloading="{ isLoading: editQuotaConf.initLoading }">
                 <div class="wrapper" style="position: relative;">
                     <div class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
@@ -648,7 +648,8 @@
                     width: 680,
                     namespaceName: '',
                     ns: {},
-                    loading: false
+                    loading: false,
+                    initLoading: false
                 },
                 quotaData: {
                     limitsCpu: '400',
@@ -1302,7 +1303,8 @@
                     })
                 }
                 this.editQuotaConf.isShow = true
-                // this.editQuotaConf.loading = true
+                this.editQuotaConf.loading = true
+                this.editQuotaConf.initLoading = true
                 this.editQuotaConf.namespaceName = ns.name
                 this.editQuotaConf.title = this.$t('配额管理：{nsName}', {
                     nsName: ns.name
@@ -1326,9 +1328,8 @@
                 } catch (e) {
                     console.error(e)
                 } finally {
-                    setTimeout(() => {
-                        this.editQuotaConf.loading = false
-                    }, 300)
+                    this.editQuotaConf.initLoading = false
+                    this.editQuotaConf.loading = false
                 }
             },
 
