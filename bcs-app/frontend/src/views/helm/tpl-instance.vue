@@ -473,6 +473,16 @@
                 curValueFile: 'values.yaml',
                 isShowCommandParams: false,
                 commandList: [
+                    // {
+                    //     id: 'disable-openapi-validation',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
+                    // },
+                    // {
+                    //     id: 'no-hooks',
+                    //     disabled: false,
+                    //     desc: this.$t('如果选择，部署或更新时，忽略hooks')
+                    // },
                     {
                         id: '--skip-crds',
                         disabled: false,

@@ -1919,7 +1919,10 @@ export default {
     '资源定义': [],
     '存在时间': [],
     '自定义资源': ['CustomResource'],
-    '选择CRD': ['Select CRD']
+    '选择CRD': ['Select CRD'],
+    '请输入值': ['Please enter value'],
+    '请输入参数': ['Please enter parameters'],
+    '加载中': ['loading']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

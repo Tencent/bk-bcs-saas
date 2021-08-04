@@ -20,12 +20,14 @@ from backend.utils.basic import getitems
 
 class CRDFormatter(ResourceDefaultFormatter):
     def format_dict(self, resource_dict: Dict) -> Dict:
-        return {
+        res = self.format_common_dict(resource_dict)
+        res.update({
             'name': getitems(resource_dict, 'metadata.name'),
             'scope': getitems(resource_dict, 'spec.scope'),
             'kind': getitems(resource_dict, 'spec.names.kind'),
             'api_version': parse_cobj_api_version(resource_dict),
-        }
+        })
+        return res
 
 
 class CustomObjectFormatter(ResourceDefaultFormatter):

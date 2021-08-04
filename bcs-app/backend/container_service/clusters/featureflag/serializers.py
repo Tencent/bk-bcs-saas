@@ -14,12 +14,16 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from .constants import ViewMode
 from .featflag import UNSELECTED_CLUSTER, ClusterFeatureType
 
 
 class ClusterFeatureTypeSLZ(serializers.Serializer):
     cluster_id = serializers.CharField()
     cluster_feature_type = serializers.ChoiceField(choices=ClusterFeatureType.get_choices(), required=False)
+    view_mode = serializers.ChoiceField(
+        choices=ViewMode.get_choices(), default=ViewMode.ClusterManagement, required=False
+    )
 
     def validate(self, data):
         # cluster_id 为 -, 表示未指定具体集群
