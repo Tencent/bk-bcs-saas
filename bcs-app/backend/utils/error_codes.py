@@ -69,8 +69,10 @@ class ErrorCodes:
         status_code=status.HTTP_401_UNAUTHORIZED,
     )
     # 没有权限，最好使用drf permission class检查权限
+    # TODO Forbidden 没在使用？考虑当前pr移除
     Forbidden = ErrorCode(_('没有使用权限'), code_num=40301, status_code=status.HTTP_403_FORBIDDEN)
     # 权限中心错误码
+    # TODO IAMCheckFailed 没在使用？考虑当前pr移除
     IAMCheckFailed = ErrorCode(_('权限校验失败'), code_num=40302, status_code=status.HTTP_403_FORBIDDEN)
     # 资源未找到
     ResNotFoundError = ErrorCode(_('资源未找到'), code_num=40400, status_code=status.HTTP_404_NOT_FOUND)

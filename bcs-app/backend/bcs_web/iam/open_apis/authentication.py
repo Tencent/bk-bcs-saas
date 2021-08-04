@@ -34,7 +34,7 @@ class IamBasicAuthentication(BasicAuthentication):
             raise AuthenticationFailed(str(e))
         return result
 
-    def authenticate_credentials(self, userid, password):
+    def authenticate_credentials(self, userid, password, request=None):
         if userid != "bk_iam":
             raise AuthenticationFailed("username is not bk_iam")
 
