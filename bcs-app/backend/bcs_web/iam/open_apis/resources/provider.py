@@ -34,6 +34,14 @@ class BCSResourceProvider:
         page_obj = get_page_obj(data.get("page"))
         return filter_obj, page_obj
 
+    def _operate_list_resource_method(self, data, method_name, is_page=True, **options):
+        filter_obj, page = self._parse_filter_and_page(data)
+        operating_method = getattr(self.resource_provider, method_name)
+        if not is_page:
+            return operating_method(filter_obj, **options)
+        else:
+            return operating_method(filter_obj, page, **options)
+
     def provide(self, data, **options):
         handler = getattr(self, data["method"])
         return handler(data, **options)
@@ -43,21 +51,25 @@ class BCSResourceProvider:
         return result.to_list()
 
     def list_attr_value(self, data, **options):
-        filter, page = self._parse_filter_and_page(data)
-        result = self.resource_provider.list_attr_value(filter, page, **options)
+        # filter, page = self._parse_filter_and_page(data)
+        # result = self.resource_provider.list_attr_value(filter, page, **options)
+        result = self._operate_list_resource_method(data, "list_attr_value", **options)
         return result.to_dict()
 
     def list_instance(self, data, **options):
-        filter, page = self._parse_filter_and_page(data)
-        result = self.resource_provider.list_instance(filter, page, **options)
+        # filter, page = self._parse_filter_and_page(data)
+        # result = self.resource_provider.list_instance(filter, page, **options)
+        result = self._operate_list_resource_method(data, "list_instance", **options)
         return result.to_dict()
 
     def fetch_instance_info(self, data, **options):
-        filter, _ = self._parse_filter_and_page(data)
-        result = self.resource_provider.fetch_instance_info(filter, **options)
+        # filter, _ = self._parse_filter_and_page(data)
+        # result = self.resource_provider.fetch_instance_info(filter, **options)
+        result = self._operate_list_resource_method(data, "fetch_instance_info", False, **options)
         return result.to_list()
 
     def list_instance_by_policy(self, data, **options):
-        filter, page = self._parse_filter_and_page(data)
-        result = self.resource_provider.list_instance_by_policy(filter, page, **options)
+        # filter, page = self._parse_filter_and_page(data)
+        # result = self.resource_provider.list_instance_by_policy(filter, page, **options)
+        result = self._operate_list_resource_method(data, "list_instance_by_policy", **options)
         return result.to_list()

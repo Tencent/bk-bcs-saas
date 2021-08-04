@@ -23,10 +23,10 @@ class ProjectProvider(ResourceProvider):
     def list_attr(self, **options):
         return ListResult(results=[], count=0)
 
-    def list_attr_value(self, filter, page, **options):
+    def list_attr_value(self, filter_obj, page, **options):
         return ListResult(results=[], count=0)
 
-    def list_instance(self, filter, page, **options):
+    def list_instance(self, filter_obj, page, **options):
         access_token = ssm.get_client_access_token()["access_token"]
         projects = filter_projects(access_token)
         count = len(projects)
@@ -34,15 +34,15 @@ class ProjectProvider(ResourceProvider):
         results = [{"id": p["project_id"], "display_name": p["project_name"]} for p in projects]
         return ListResult(results=results, count=count)
 
-    def fetch_instance_info(self, filter, **options):
+    def fetch_instance_info(self, filter_obj, **options):
         access_token = ssm.get_client_access_token()["access_token"]
         query_params = None
-        if filter.ids:
-            query_params = {"project_ids": ",".join(filter.ids)}
+        if filter_obj.ids:
+            query_params = {"project_ids": ",".join(filter_obj.ids)}
         projects = filter_projects(access_token, query_params)
         results = [{"id": p["project_id"], "display_name": p["project_name"]} for p in projects]
         return ListResult(results=results, count=len(results))
 
-    def list_instance_by_policy(self, filter, page, **options):
+    def list_instance_by_policy(self, filter_obj, page, **options):
         # TODO 确认基于实例的查询是不是就是id的过滤查询
         return ListResult(results=[], count=0)
