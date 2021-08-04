@@ -1918,7 +1918,10 @@ export default {
     '示例': ['Example'],
     '资源定义': ['Resource definition'],
     '存在时间': ['Existence time'],
-    '污点': ['Taint']
+    '污点': ['Taint'],
+    '请输入值': ['Please enter value'],
+    '请输入参数': ['Please enter parameters'],
+    '加载中': ['loading']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
