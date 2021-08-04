@@ -11,8 +11,7 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-"""
-"""
+
 K8S 获取相关配置
 NOTE: 现阶段还没有kube agent的相关配置，需要bowei处理下后面的流程
 """

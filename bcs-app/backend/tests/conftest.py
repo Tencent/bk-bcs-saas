@@ -11,8 +11,7 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-"""
-"""
+
 单元测试可用环境变量说明
 值                          说明                          默认值
 TESTING_API_SERVER_URL  	测试环境/本地集群URL           'http://localhost:28180'

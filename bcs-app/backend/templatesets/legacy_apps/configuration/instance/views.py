@@ -11,8 +11,7 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-"""
-"""
+
 DONE：
 - 所有 Model 相关的查询都需要查询是否属于：project_id （没有存储外键关系，需要手动处理相应逻辑）
 - service 实例化：添加关联 application 的name 到 selector
