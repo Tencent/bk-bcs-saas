@@ -136,6 +136,8 @@ class Projects(viewsets.ViewSet):
         # 添加业务名称
         data["cc_app_name"] = get_application_name(request)
         data["can_edit"] = self.can_edit(request, project_id)
+        # TODO: 待拆分后，可以去掉func_list
+        self.register_function_controller([data])
         return Response(data)
 
     def validate_update_project_data(self, request):
