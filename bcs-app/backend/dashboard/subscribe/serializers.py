@@ -23,7 +23,7 @@ class FetchResourceWatchResultSLZ(serializers.Serializer):
 
     resource_version = serializers.CharField(label=_('资源版本号'), max_length=32)
     kind = serializers.CharField(label=_('资源类型'), max_length=128)
-    api_version = serializers.CharField(label=_('API版本'), max_length=16, required=False)
+    api_version = serializers.CharField(label=_('API版本'), max_length=128, required=False)
 
     def validate(self, attrs):
         """ 若不是确定支持的资源类型（如自定义资源），则需要提供 apiVersion，以免需先查询 CRD """
