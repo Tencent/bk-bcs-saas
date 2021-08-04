@@ -27,7 +27,7 @@
                     <span class="cluster-name-all">{{$t('容器服务')}}</span>
                 </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <span class="dot"></span>
+                <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
                 <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
@@ -215,7 +215,8 @@
                         id: 'dashboard',
                         name: this.$t('资源视图')
                     }
-                ]
+                ],
+                featureCluster: !localStorage.getItem('FEATURE_CLUSTER')
             }
         },
         computed: {
@@ -512,6 +513,7 @@
              * 集群切换
              */
             handleChangeCluster (cluster) {
+                localStorage.setItem('FEATURE_CLUSTER', true)
                 if (!cluster.cluster_id) {
                     sessionStorage.removeItem('bcs-selected-menu-data')
                     if (this.$route.meta.isDashboard) {
@@ -650,6 +652,7 @@
         height: 30px;
         text-align: center;
         line-height: 30px;
+        z-index: 100;
     }
     .biz-footer {
         text-align: right;
@@ -669,13 +672,10 @@
     .dot {
         position: absolute;
         display: inline-block;
-        width: 8px;
-        height: 8px;
-        min-width: 8px;
-        background-color: #88c3ff;
-        border: 2px solid #fff;
+        width: 16px;
+        height: 16px;
         top: 16px;
-        right: 10px;
-        border-radius: 50%;
+        right: 8px;
+        z-index: 1;
     }
 </style>
