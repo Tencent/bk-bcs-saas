@@ -65,7 +65,8 @@
                     <div class="example-desc" v-if="showDesc" ref="descWrapperRef">{{ activeExample.description }}</div>
                     <bcs-resize-layout :ext-cls="['custom-layout-cls', { 'hide-help': !showHelp }]"
                         :initial-divide="initialDivide"
-                        :disabled="!showHelp">
+                        :disabled="!showHelp"
+                        :style="{ height: fullScreen ? '100%' : 'auto' }">
                         <ResourceEditor
                             slot="aside"
                             :value="activeExample.manifest"
@@ -81,7 +82,7 @@
                             slot="main"
                             theme="dark"
                             class="references"
-                            :style="{ height: exampleEditorHeight - 2 + 'px' }"
+                            :style="{ height: fullScreen ? '100%' : exampleEditorHeight - 2 + 'px' }"
                             :code="examples.references" />
                     </bcs-resize-layout>
                 </div>
@@ -143,7 +144,7 @@
             BcsMd
         },
         props: {
-            // 命名空间（更新的时候需要，创建的时候为空）
+            // 命名空间（更新的时候需要--crds类型编辑是可能没有，创建的时候为空）
             namespace: {
                 type: String,
                 default: ''
@@ -168,11 +169,16 @@
             kind: {
                 type: String,
                 default: ''
+            },
+            // type 为crds时，必传
+            crd: {
+                type: String,
+                default: ''
             }
         },
         setup (props, ctx) {
             const { $i18n, $store, $bkMessage, $router, $bkInfo } = ctx.root
-            const { namespace, type, category, name, kind } = toRefs(props)
+            const { namespace, type, category, name, kind, crd } = toRefs(props)
 
             onMounted(() => {
                 document.addEventListener('keyup', handleExitFullScreen)
@@ -182,7 +188,7 @@
             })
 
             const isEdit = computed(() => { // 编辑态
-                return name.value && namespace.value
+                return name.value
             })
             const title = computed(() => { // 导航title
                 const prefix = isEdit.value ? $i18n.t('更新') : $i18n.t('创建')
@@ -206,6 +212,12 @@
             const subTitle = computed(() => { // 代码编辑器title
                 return detail.value?.metadata?.name || $i18n.t('资源定义')
             })
+            watch(fullScreen, (value) => {
+                // 退出全屏后隐藏侧栏帮助文档（防止位置错乱）
+                if (!value) {
+                    showHelp.value = false
+                }
+            })
             const disabledResourceUpdate = computed(() => { // 禁用当前更新或者创建操作
                 if (editorErr.value.message && editorErr.value.type === 'content') { // 编辑器格式错误
                     return true
@@ -222,12 +234,22 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const res = await $store.dispatch('dashboard/getResourceDetail', {
-                    $namespaceId: namespace.value,
-                    $category: category.value,
-                    $name: name.value,
-                    $type: type.value
-                })
+                let res: any = null
+                if (type.value === 'crds') {
+                    res = await $store.dispatch('dashboard/retrieveCustomResourceDetail', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        $name: name.value,
+                        namespace: namespace.value
+                    })
+                } else {
+                    res = await $store.dispatch('dashboard/getResourceDetail', {
+                        $namespaceId: namespace.value,
+                        $category: category.value,
+                        $name: name.value,
+                        $type: type.value
+                    })
+                }
                 original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
                 setDetail(res.data?.manifest)
                 isLoading.value = false
@@ -321,7 +343,7 @@
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
-                    kind: kind.value
+                    kind: type.value === 'crds' ? 'CustomObject' : kind.value // crds类型的模板kind固定为CustomObject
                 })
                 activeExample.value = examples.value?.items?.[0] || {}
                 exampleLoading.value = false
@@ -363,15 +385,28 @@
                 showDiff.value = !showDiff.value
             }
             const handleCreateResource = async () => {
-                const result = await $store.dispatch('dashboard/resourceCreate', {
-                    $type: type.value,
-                    $category: category.value,
-                    manifest: detail.value
-                }).catch(err => {
-                    editorErr.value.type = 'http'
-                    editorErr.value.message = err.message
-                    return false
-                })
+                let result = false
+                if (type.value === 'crds') {
+                    result = await $store.dispatch('dashboard/customResourceCreate', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                } else {
+                    result = await $store.dispatch('dashboard/resourceCreate', {
+                        $type: type.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                }
 
                 if (result) {
                     $bkMessage({
@@ -394,17 +429,31 @@
                     subTitle: $i18n.t('将执行 Replace 操作，若多人同时编辑可能存在冲突'),
                     defaultInfo: true,
                     confirmFn: async () => {
-                        const result = await $store.dispatch('dashboard/resourceUpdate', {
-                            $namespaceId: namespace.value,
-                            $type: type.value,
-                            $category: category.value,
-                            $name: name.value,
-                            manifest: detail.value
-                        }).catch(err => {
-                            editorErr.value.type = 'http'
-                            editorErr.value.message = err.message
-                            return false
-                        })
+                        let result = false
+                        if (type.value === 'crds') {
+                            result = await $store.dispatch('dashboard/customResourceUpdate', {
+                                $crd: crd.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        } else {
+                            result = await $store.dispatch('dashboard/resourceUpdate', {
+                                $namespaceId: namespace.value,
+                                $type: type.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        }
 
                         if (result) {
                             $bkMessage({

@@ -1,26 +1,37 @@
 <template>
-    <BaseLayout title="Endpoints" kind="Endpoints" category="endpoints" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
+    <BaseLayout title="GameDeployments" kind="GameDeployment" type="crds" category="custom_objects" default-crd="gamedeployments.tkex.tencent.com"
+        default-active-detail-type="yaml" :show-detail-tab="false" :show-crd="false">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleUpdateResource,
+                              handleDeleteResource,handleSortChange, handleShowDetail, renderCrdHeader, getJsonPathValue, additionalColumns, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable>
                     <template #default="{ row }">
                         <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column label="Endpoints" :resizable="false">
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" min-width="100" sortable>
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'endpoints').join(', ') || '--' }}</span>
+                        {{ row.metadata.namespace || '--' }}
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                     <template #default="{ row }">
                         <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column
+                    v-for="item in additionalColumns"
+                    :key="item.name"
+                    :label="item.name"
+                    :prop="item.JSONPath"
+                    :render-header="renderCrdHeader">
+                    <template #default="{ row }">
+                        <span>{{ getJsonPathValue(row, item.JSONPath) || '--' }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :resizable="false" width="150">
@@ -33,17 +44,14 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data, extData }">
-            <EndpointsDetail :data="data" :ext-data="extData"></EndpointsDetail>
-        </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
-    import EndpointsDetail from './endpoints-detail.vue'
 
     export default defineComponent({
-        components: { BaseLayout, EndpointsDetail }
+        name: 'GameDeployments',
+        components: { BaseLayout }
     })
 </script>

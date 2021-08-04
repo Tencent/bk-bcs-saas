@@ -1917,7 +1917,9 @@ export default {
     '放大': [],
     '示例': [],
     '资源定义': [],
-    '存在时间': []
+    '存在时间': [],
+    '自定义资源': ['CustomResource'],
+    '选择CRD': ['Select CRD']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

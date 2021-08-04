@@ -1,36 +1,41 @@
 <template>
-    <BaseLayout title="Ingresses" kind="Ingress" category="ingresses" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
+    <BaseLayout title="HPA" kind="HorizontalPodAutoscaler" type="hpa">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, handleShowDetail, handleUpdateResource, handleDeleteResource, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable>
                     <template #default="{ row }">
                         <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column label="Class" :resizable="false">
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable></bk-table-column>
+                <bk-table-column label="Reference">
                     <template #default="{ row }">
-                        <span>{{ row.spec.ingressClassName || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'reference') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Hosts" :resizable="false">
+                <bk-table-column label="Targets" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'hosts').join(', ') || '*' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'targets') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Address" :resizable="false">
+                <bk-table-column label="MinPods" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'addresses').join(', ') || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'min_pods') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Ports" :resizable="false">
+                <bk-table-column label="MaxPods" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'default_ports') || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'max_pods') }}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column label="Replicas" :resizable="false">
+                    <template #default="{ row }">
+                        <span>{{ handleGetExtData(row.metadata.uid, 'replicas') }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
@@ -49,16 +54,16 @@
             </bk-table>
         </template>
         <template #detail="{ data, extData }">
-            <IngressDetail :data="data" :ext-data="extData"></IngressDetail>
+            <HPADetail :data="data" :ext-data="extData"></HPADetail>
         </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
+    import HPADetail from './hpa-detail.vue'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
-    import IngressDetail from './ingress-detail.vue'
 
     export default defineComponent({
-        components: { BaseLayout, IngressDetail }
+        components: { BaseLayout, HPADetail }
     })
 </script>
