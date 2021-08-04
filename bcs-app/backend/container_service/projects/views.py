@@ -137,6 +137,7 @@ class Projects(viewsets.ViewSet):
         data["cc_app_name"] = get_application_name(request)
         data["can_edit"] = self.can_edit(request, project_id)
         # TODO: 待拆分后，可以去掉func_list
+        data["func_wlist"] = set()
         self.register_function_controller([data])
         return Response(data)
 
