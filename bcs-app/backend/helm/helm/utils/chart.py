@@ -26,7 +26,7 @@ from ..serializers import ChartSLZ
 class ChartList:
     project_id: str
 
-    def get_chart_data(self):
+    def get_chart_data(self) -> ReturnList:
         charts = Chart.objects.get_charts(self.project_id)
         slz = ChartSLZ(charts, many=True)
         charts_data = slz.data
