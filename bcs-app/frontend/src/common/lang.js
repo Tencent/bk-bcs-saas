@@ -1910,6 +1910,8 @@ export default {
     '等待所有Pod，PVC处于ready状态': ['Wait for all Pod and PVC to be ready'],
     '忽略CRD': ['Ignore the CRD'],
     '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character'],
+    '自定义资源': ['CustomResource'],
+    '选择CRD': ['Select CRD'],
     '内容未变更或格式错误': ['The content has not changed or the format is wrong'],
     '确认退出当前编辑状态': ['Confirm to exit the current editing state'],
     '退出后，你修改的内容将丢失': ['After you log out, your modified content will be lost'],

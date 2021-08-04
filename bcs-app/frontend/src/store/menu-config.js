@@ -31,6 +31,7 @@ export default function menuConfig () {
     const storage = window.i18n.t('存储')
     const workload = window.i18n.t('工作负载')
     const dashboardNamespace = window.i18n.t('命名空间')
+    const customResource = window.i18n.t('自定义资源')
 
     return {
         dashboardMenuList: [
@@ -158,6 +159,40 @@ export default function menuConfig () {
                     }
                 ],
                 id: 'RBAC'
+            },
+            {
+                name: 'HPA',
+                isSaveData: true,
+                icon: 'bcs-icon-hpa',
+                roleId: 'HPA:menu',
+                pathName: ['dashboardHPA', 'HorizontalPodAutoscaler'],
+                id: 'HPA'
+
+            },
+            {
+                name: customResource,
+                isSaveData: true,
+                icon: 'bcs-icon-lock-line',
+                roleId: 'custom:menu',
+                children: [
+                    {
+                        name: 'CRD',
+                        pathName: ['dashboardCRD', 'CRD']
+                    },
+                    {
+                        name: 'GameStatefulSets',
+                        pathName: ['dashboardGameStatefulSets', 'GameStatefulSet']
+                    },
+                    {
+                        name: 'GameDeployments',
+                        pathName: ['dashboardGameDeployments', 'GameDeployment']
+                    },
+                    {
+                        name: 'CustomObjects',
+                        pathName: ['dashboardCustomObjects', 'CustomObject']
+                    }
+                ],
+                id: 'HPA'
             }
         ],
         clusterMenuList: [
