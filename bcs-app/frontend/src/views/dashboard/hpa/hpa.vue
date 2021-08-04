@@ -1,6 +1,6 @@
 <template>
-    <BaseLayout title="Services" kind="Service" category="services" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
+    <BaseLayout title="HPA" kind="HorizontalPodAutoscaler" type="hpa">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, handleShowDetail, handleUpdateResource, handleDeleteResource, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
@@ -13,24 +13,29 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable></bk-table-column>
-                <bk-table-column label="Type" :resizable="false">
+                <bk-table-column label="Reference">
                     <template #default="{ row }">
-                        <span>{{ row.spec.type || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'reference') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Cluster-ip" :resizable="false">
+                <bk-table-column label="Targets" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ row.spec.clusterIP || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'targets') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="External-ip" :resizable="false">
+                <bk-table-column label="MinPods" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'externalIP').join(', ') || '--' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'min_pods') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Ports" :resizable="false">
+                <bk-table-column label="MaxPods" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'ports').join(', ') || '*' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'max_pods') }}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column label="Replicas" :resizable="false">
+                    <template #default="{ row }">
+                        <span>{{ handleGetExtData(row.metadata.uid, 'replicas') }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
@@ -49,16 +54,16 @@
             </bk-table>
         </template>
         <template #detail="{ data, extData }">
-            <ServiceDetail :data="data" :ext-data="extData"></ServiceDetail>
+            <HPADetail :data="data" :ext-data="extData"></HPADetail>
         </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
+    import HPADetail from './hpa-detail.vue'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
-    import ServiceDetail from './service-detail.vue'
 
     export default defineComponent({
-        components: { BaseLayout, ServiceDetail }
+        components: { BaseLayout, HPADetail }
     })
 </script>

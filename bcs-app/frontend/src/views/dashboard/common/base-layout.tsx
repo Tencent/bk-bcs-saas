@@ -6,7 +6,7 @@ import useInterval from './use-interval'
 import useNamespace from './use-namespace'
 import usePage from './use-page'
 import useSearch from './use-search'
-import useSubscribe from './use-subscribe'
+import useSubscribe, { ISubscribeData } from './use-subscribe'
 import useTableData from './use-table-data'
 import { sort } from '@/common/util'
 import yamljs from 'js-yaml'
@@ -28,7 +28,7 @@ export default defineComponent({
             default: '',
             required: true
         },
-        // 父分类，eg: workloads、networks（注意复数）
+        // 父分类（crds类型的需要特殊处理），eg: workloads、networks（注意复数）
         type: {
             type: String,
             default: '',
@@ -40,7 +40,7 @@ export default defineComponent({
             default: '',
             required: true
         },
-        // 轮询时类型，eg: Deployment、Ingress（注意首字母大写）
+        // 轮询时类型（type为crds时，kind仅作为资源详情展示的title用），eg: Deployment、Ingress（注意首字母大写）
         kind: {
             type: String,
             default: '',
@@ -51,43 +51,99 @@ export default defineComponent({
             type: Boolean,
             default: true
         },
+        // 是否显示创建资源按钮
         showCreate: {
             type: Boolean,
             default: true
+        },
+        defaultCrd: {
+            type: String,
+            default: ''
+        },
+        // 是否显示crd下拉菜单
+        showCrd: {
+            type: Boolean,
+            default: false
+        },
+        // 是否显示总览和yaml切换的tab
+        showDetailTab: {
+            type: Boolean,
+            default: true
+        },
+        // 默认展示详情标签
+        defaultActiveDetailType: {
+            type: String,
+            default: 'overview'
         }
     },
     setup (props, ctx) {
         const { $router, $i18n, $bkInfo, $store, $bkMessage } = ctx.root
-        const { type, category, kind, showNameSpace } = toRefs(props)
-        // 模糊搜索字段
-        const keys = ref(['metadata.name'])
-        // 命名空间
-        const namespaceValue = ref('')
-        // 详情侧栏
-        const showDetailPanel = ref(false)
-        // 当前详情行数据
-        const curDetailRow = ref<any>({
-            data: {},
-            extData: {}
+        const { type, category, kind, showNameSpace, showCrd, defaultActiveDetailType, defaultCrd } = toRefs(props)
+
+        // crd
+        const currentCrd = ref(defaultCrd.value)
+        const crdLoading = ref(false)
+        // crd 数据
+        const crdData = ref<ISubscribeData|null>(null)
+        // crd 列表
+        const crdList = computed(() => {
+            return crdData.value?.manifest?.items || []
         })
-        // 侧栏展示类型
-        const detailType = ref({
-            active: 'overview',
-            list: [
-                {
-                    id: 'overview',
-                    name: $i18n.t('总览')
-                },
-                {
-                    id: 'yaml',
-                    name: 'YAML'
+        const currentCrdExt = computed(() => {
+            const item = crdList.value.find(item => item.metadata.name === currentCrd.value)
+            return crdData.value?.manifest_ext?.[item?.metadata?.uid] || {}
+        })
+        // 自定义资源的kind类型是根据选择的crd确定的
+        const crdKind = computed(() => {
+            return currentCrdExt.value.kind
+        })
+        const handleGetCrdData = async () => {
+            crdLoading.value = true
+            const res = await fetchCustomResourceList()
+            crdData.value = res.data
+            crdLoading.value = false
+        }
+        const handleCrdChange = async (crd) => {
+            const { scope, kind, api_version } = currentCrdExt.value
+            namespaceValue.value = ''
+            namespaceDisabled.value = scope !== 'Namespaced'
+
+            if (crd) {
+                await handleFetchCustomResourceList(currentCrd.value, category.value)
+                handleStartSubscribe(kind, resourceVersion.value, api_version)
+            }
+        }
+        const renderCrdHeader = (h, { column }) => {
+            const additionalData = additionalColumns.value.find(item => item.name === column.label)
+            return h('span', {
+                directives: [
+                    {
+                        name: 'bk-tooltips',
+                        value: {
+                            content: additionalData?.description || column.label,
+                            placement: 'top',
+                            boundary: 'window'
+                        }
+                    }
+                ]
+            }, [column.label])
+        }
+        const getJsonPathValue = (row, path: string) => {
+            const keys = path.split('.').filter(str => !!str)
+            return keys.reduce((data, key) => {
+                if (typeof data === 'object') {
+                    return data?.[key]
                 }
-            ]
-        })
+                return data
+            }, row)
+        }
 
         // 初始化集群列表信息
         // useCluster(ctx)
 
+        // 命名空间
+        const namespaceValue = ref('')
+        const namespaceDisabled = ref(false)
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
         // 命名空间数据
@@ -107,7 +163,24 @@ export default defineComponent({
             }
         }
         // 表格数据
-        const { isLoading, data, webAnnotations, fetchList } = useTableData(ctx)
+        const {
+            isLoading,
+            data,
+            webAnnotations,
+            handleFetchList,
+            fetchCustomResourceList,
+            handleFetchCustomResourceList
+        } = useTableData(ctx)
+
+        // 获取表格数据
+        const handleGetTableData = async () => {
+            // 获取表格数据
+            type.value === 'crds'
+                ? await handleFetchCustomResourceList(currentCrd.value, category.value)
+                : await handleFetchList(type.value, category.value)
+            // 开启订阅（在获取表格数据之后）
+            handleStartSubscribe(subscribeKind.value, resourceVersion.value)
+        }
 
         const pagePerms = computed(() => { // 界面权限
             return {
@@ -115,6 +188,9 @@ export default defineComponent({
                 delete: webAnnotations.value.perms?.page?.delete_btn || {},
                 update: webAnnotations.value.perms?.page?.update_btn || {}
             }
+        })
+        const additionalColumns = computed(() => { // 动态表格字段
+            return webAnnotations.value.additional_columns || []
         })
         const tableData = computed(() => {
             const items = JSON.parse(JSON.stringify(data.value.manifest.items || []))
@@ -126,6 +202,7 @@ export default defineComponent({
         })
 
         // 模糊搜索功能
+        const keys = ref(['metadata.name']) // 模糊搜索字段
         const { tableDataMatchSearch, searchValue } = useSearch(tableData, keys)
 
         // 命名空间精确搜索
@@ -138,21 +215,30 @@ export default defineComponent({
         // 分页
         const { pagination, curPageData, pageConf, pageChange, pageSizeChange } = usePage(searchData)
         // 搜索时重置分页
-        watch([searchValue, namespaceValue], () => {
+        watch([searchValue, namespaceValue, currentCrd], () => {
             pageConf.current = 1
         })
 
         // 订阅事件
         const { initParams, handleSubscribe } = useSubscribe(data, ctx)
         const { start, stop } = useInterval(handleSubscribe, 5000)
-
-        watch(resourceVersion, (newVersion, oldVersion) => {
-            if (newVersion && newVersion !== oldVersion) {
-                stop()
-                initParams(kind.value, resourceVersion.value)
-                resourceVersion.value && start()
-            }
+        const subscribeKind = computed(() => {
+            // 自定义资源（非CustomResourceDefinition类型的crds）的kind是根据选择的crd动态获取的，不能取props的kind值
+            return (type.value === 'crds' && kind.value !== 'CustomResourceDefinition') ? crdKind.value : kind.value
         })
+
+        // watch(resourceVersion, (newVersion, oldVersion) => {
+        //     if (newVersion && newVersion !== oldVersion) {
+        //         handleStartSubscribe(subscribeKind.value, resourceVersion.value)
+        //     }
+        // })
+        const handleStartSubscribe = (kind: string, resourceVersion: string, apiVersion?: string) => {
+            if (!kind || !resourceVersion) return
+
+            stop()
+            initParams(kind, resourceVersion, apiVersion)
+            start()
+        }
 
         // 获取额外字段方法
         const handleGetExtData = (uid: string, ext?: string) => {
@@ -170,11 +256,32 @@ export default defineComponent({
                     namespace: row.metadata.namespace
                 },
                 query: {
-                    kind: kind.value
+                    kind: subscribeKind.value
                 }
             })
         }
 
+        // 详情侧栏
+        const showDetailPanel = ref(false)
+        // 当前详情行数据
+        const curDetailRow = ref<any>({
+            data: {},
+            extData: {}
+        })
+        // 侧栏展示类型
+        const detailType = ref({
+            active: defaultActiveDetailType.value,
+            list: [
+                {
+                    id: 'overview',
+                    name: window.i18n.t('总览')
+                },
+                {
+                    id: 'yaml',
+                    name: 'YAML'
+                }
+            ]
+        })
         // 显示侧栏详情
         const handleShowDetail = (row) => {
             curDetailRow.value.data = row
@@ -187,7 +294,7 @@ export default defineComponent({
         }
         // 重置详情类型
         watch(showDetailPanel, () => {
-            handleChangeDetailType('overview')
+            handleChangeDetailType(defaultActiveDetailType.value)
         })
         // yaml内容
         const yaml = computed(() => {
@@ -199,7 +306,9 @@ export default defineComponent({
                 name: 'dashboardResourceUpdate',
                 params: {
                     type: type.value,
-                    category: category.value
+                    // 兼容HPA类型没有子菜单情况
+                    category: category.value || '-',
+                    crd: currentCrd.value
                 },
                 query: {
                     kind: kind.value
@@ -215,10 +324,11 @@ export default defineComponent({
                     namespace,
                     type: type.value,
                     category: category.value,
-                    name
+                    name,
+                    crd: currentCrd.value
                 },
                 query: {
-                    kind: kind.value
+                    kind: type.value === 'crds' ? kind.value : row.kind
                 }
             })
         }
@@ -232,29 +342,43 @@ export default defineComponent({
                 subTitle: $i18n.t('确认删除资源 {kind}: {name}', { kind: row.kind, name }),
                 defaultInfo: true,
                 confirmFn: async (vm) => {
-                    const result = await $store.dispatch('dashboard/resourceDelete', {
-                        $namespaceId: namespace,
-                        $type: type.value,
-                        $category: category.value,
-                        $name: name
-                    })
+                    let result = false
+                    if (type.value === 'crds') {
+                        result = await $store.dispatch('dashboard/customResourceDelete', {
+                            data: { namespace },
+                            $crd: currentCrd.value,
+                            $category: category.value,
+                            $name: name
+                        })
+                    } else {
+                        result = await $store.dispatch('dashboard/resourceDelete', {
+                            $namespaceId: namespace,
+                            $type: type.value,
+                            $category: category.value,
+                            $name: name
+                        })
+                    }
                     result && $bkMessage({
                         theme: 'success',
                         message: $i18n.t('删除成功')
                     })
-                    fetchList(type.value, category.value)
+                    handleGetTableData()
                 }
             })
         }
 
-        onMounted(() => {
+        onMounted(async () => {
+            // 获取命名空间下拉列表
             showNameSpace.value && getNamespaceData()
-            fetchList(type.value, category.value)
+            // 获取CRD下拉列表
+            showCrd.value && handleGetCrdData()
+            handleGetTableData()
         })
 
         return {
             namespaceValue,
             namespaceLoading,
+            namespaceDisabled,
             showDetailPanel,
             curDetailRow,
             yaml,
@@ -266,6 +390,13 @@ export default defineComponent({
             data,
             curPageData,
             namespaceList,
+            currentCrd,
+            crdLoading,
+            crdList,
+            currentCrdExt,
+            additionalColumns,
+            getJsonPathValue,
+            renderCrdHeader,
             stop,
             handlePageChange: pageChange,
             handlePageSizeChange: pageSizeChange,
@@ -276,7 +407,8 @@ export default defineComponent({
             handleChangeDetailType,
             handleUpdateResource,
             handleDeleteResource,
-            handleCreateResource
+            handleCreateResource,
+            handleCrdChange
         }
     },
     render () {
@@ -304,13 +436,37 @@ export default defineComponent({
 
                         <div class="search-wapper">
                             {
+                                this.showCrd
+                                    ? (
+                                        <bcs-select loading={this.crdLoading}
+                                            class="dashboard-select"
+                                            v-model={this.currentCrd}
+                                            searchable
+                                            clearable={false}
+                                            placeholder={this.$t('选择CRD')}
+                                            onChange={this.handleCrdChange}>
+                                            {
+                                                this.crdList.map(option => (
+                                                    <bcs-option
+                                                        key={option.metadata.name}
+                                                        id={option.metadata.name}
+                                                        name={option.metadata.name}>
+                                                    </bcs-option>
+                                                ))
+                                            }
+                                        </bcs-select>
+                                    )
+                                    : null
+                            }
+                            {
                                 this.showNameSpace
                                     ? (
                                         <bcs-select
                                             loading={this.namespaceLoading}
-                                            class="namespace-select"
+                                            class="dashboard-select"
                                             v-model={this.namespaceValue}
                                             searchable
+                                            disabled={this.namespaceDisabled}
                                             placeholder={this.$t('请选择命名空间')}>
                                             {
                                                 this.namespaceList.map(option => (
@@ -329,6 +485,7 @@ export default defineComponent({
                                 class="search-input"
                                 clearable
                                 v-model={this.nameValue}
+                                right-icon="bk-icon icon-search"
                                 placeholder={this.$t('输入名称搜索')}>
                             </bk-input>
                         </div>
@@ -347,7 +504,10 @@ export default defineComponent({
                             handleShowDetail: this.handleShowDetail,
                             handleUpdateResource: this.handleUpdateResource,
                             handleDeleteResource: this.handleDeleteResource,
-                            pagePerms: this.pagePerms
+                            getJsonPathValue: this.getJsonPathValue,
+                            renderCrdHeader: this.renderCrdHeader,
+                            pagePerms: this.pagePerms,
+                            additionalColumns: this.additionalColumns
                         })
                     }
                 </div>
@@ -366,18 +526,22 @@ export default defineComponent({
                             header: () => (
                                 <div class="detail-header">
                                     <span>{this.curDetailRow.data?.metadata?.name}</span>
-                                    <div class="bk-button-group">
-                                        {
-                                            this.detailType.list.map(item => (
-                                                <bk-button class={{ 'is-selected': this.detailType.active === item.id }}
-                                                    onClick={() => {
-                                                        this.handleChangeDetailType(item.id)
-                                                    }}>
-                                                    {item.name}
-                                                </bk-button>
-                                            ))
-                                        }
-                                    </div>
+                                    {
+                                        this.showDetailTab
+                                            ? (<div class="bk-button-group">
+                                                {
+                                                    this.detailType.list.map(item => (
+                                                        <bk-button class={{ 'is-selected': this.detailType.active === item.id }}
+                                                            onClick={() => {
+                                                                this.handleChangeDetailType(item.id)
+                                                            }}>
+                                                            {item.name}
+                                                        </bk-button>
+                                                    ))
+                                                }
+                                            </div>)
+                                            : null
+                                    }
                                 </div>
                             ),
                             content: () =>

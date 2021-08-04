@@ -176,7 +176,7 @@ export function json2Query (param, key) {
             || param instanceof Boolean || typeof param === 'boolean'
     ) {
         paramStr += separator + key + mappingOperator + encodeURIComponent(param)
-    } else {
+    } else if (typeof param === 'object') {
         Object.keys(param).forEach(p => {
             const value = param[p]
             const k = (key === null || key === '' || key === undefined)

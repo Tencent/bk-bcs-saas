@@ -380,7 +380,7 @@ const store = new Vuex.Store({
                         break
                     }
                     const menu = list[i]
-                    if ((menu.pathName || []).indexOf(pathName) > -1) {
+                    if ((menu.pathName || []).indexOf(pathName) > -1 || (menu.pathName || []).indexOf(kind) > -1) {
                         // clearMenuListSelected(list)
                         menu.isSelected = true
                         continueLoop = false

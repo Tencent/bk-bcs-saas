@@ -1,6 +1,8 @@
 <template>
-    <BaseLayout title="Services" kind="Service" category="services" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
+    <BaseLayout title="GameStatefulSets" kind="GameStatefulSet" type="crds" category="custom_objects" default-crd="gamestatefulsets.tkex.tencent.com"
+        default-active-detail-type="yaml" :show-crd="false" :show-detail-tab="false">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleUpdateResource, handleDeleteResource,
+                              handleSortChange, handleShowDetail, renderCrdHeader, getJsonPathValue, additionalColumns, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
@@ -12,30 +14,24 @@
                         <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable></bk-table-column>
-                <bk-table-column label="Type" :resizable="false">
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" min-width="100" sortable>
                     <template #default="{ row }">
-                        <span>{{ row.spec.type || '--' }}</span>
-                    </template>
-                </bk-table-column>
-                <bk-table-column label="Cluster-ip" :resizable="false">
-                    <template #default="{ row }">
-                        <span>{{ row.spec.clusterIP || '--' }}</span>
-                    </template>
-                </bk-table-column>
-                <bk-table-column label="External-ip" :resizable="false">
-                    <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'externalIP').join(', ') || '--' }}</span>
-                    </template>
-                </bk-table-column>
-                <bk-table-column label="Ports" :resizable="false">
-                    <template #default="{ row }">
-                        <span>{{ handleGetExtData(row.metadata.uid, 'ports').join(', ') || '*' }}</span>
+                        {{ row.metadata.namespace || '--' }}
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                     <template #default="{ row }">
                         <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column
+                    v-for="item in additionalColumns"
+                    :key="item.name"
+                    :label="item.name"
+                    :prop="item.JSONPath"
+                    :render-header="renderCrdHeader">
+                    <template #default="{ row }">
+                        <span>{{ getJsonPathValue(row, item.JSONPath) || '--' }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :resizable="false" width="150">
@@ -48,17 +44,14 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data, extData }">
-            <ServiceDetail :data="data" :ext-data="extData"></ServiceDetail>
-        </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
-    import ServiceDetail from './service-detail.vue'
 
     export default defineComponent({
-        components: { BaseLayout, ServiceDetail }
+        name: 'GameStatefulSets',
+        components: { BaseLayout }
     })
 </script>
