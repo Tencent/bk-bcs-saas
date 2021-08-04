@@ -11,16 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
+from backend.packages.blue_krill.data_types import enum
 
-from backend.bcs_web import viewsets
-
-from .featflag import get_cluster_feature_flags
-from .serializers import ClusterFeatureTypeSLZ
+# 未选择集群使用的占位符
+UNSELECTED_CLUSTER = '-'
 
 
-class ClusterFeatureFlagViewSet(viewsets.SystemViewSet):
-    def get_cluster_feature_flags(self, request, project_id, cluster_id):
-        params = self.params_validate(ClusterFeatureTypeSLZ, cluster_id=cluster_id)
-        feat_flags = get_cluster_feature_flags(cluster_id, params.get('cluster_feature_type'), params['view_mode'])
-        return Response(feat_flags)
+class ClusterFeatureType(str, enum.StructuredEnum):
+    """ 集群类型 """
+    SINGLE = enum.EnumField('SINGLE', label="独立集群")
+    FEDERATION = enum.EnumField('FEDERATION', label="联邦集群")
+
+
+class ViewMode(str, enum.StructuredEnum):
+    """ 查看模式 """
+    ClusterManagement = enum.EnumField('ClusterManagement', label='集群管理')
+    ResourceDashboard = enum.EnumField('ResourceDashboard', label='资源视图')

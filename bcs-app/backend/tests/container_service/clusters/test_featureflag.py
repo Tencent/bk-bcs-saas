@@ -13,21 +13,34 @@
 #
 import pytest
 
-from backend.container_service.clusters.featureflag.featflag import (
-    UNSELECTED_CLUSTER,
-    ClusterFeatureType,
-    get_cluster_feature_flags,
-)
+from backend.container_service.clusters.featureflag.constants import UNSELECTED_CLUSTER, ClusterFeatureType, ViewMode
+from backend.container_service.clusters.featureflag.featflag import get_cluster_feature_flags
 
 
 @pytest.mark.parametrize(
-    'cluster_id, feature_type, expected_flags',
+    'cluster_id, feature_type, view_mode, expected_flags',
     [
-        (UNSELECTED_CLUSTER, None, {'CLUSTER': True, 'OVERVIEW': False, 'REPO': True}),
-        ('BCS-K8S-40000', ClusterFeatureType.SINGLE.value, {'CLUSTER': False, 'OVERVIEW': True, 'REPO': False}),
+        (
+            UNSELECTED_CLUSTER,
+            None,
+            ViewMode.ClusterManagement,
+            {'CLUSTER': True, 'OVERVIEW': False, 'REPO': True}
+        ),
+        (
+            'BCS-K8S-40000',
+            ClusterFeatureType.SINGLE,
+            ViewMode.ClusterManagement,
+            {'CLUSTER': False, 'OVERVIEW': True, 'REPO': False}
+        ),
+        (
+            'BCS-K8S-40000',
+            ClusterFeatureType.SINGLE,
+            ViewMode.ResourceDashboard,
+            {'NODE': True, 'WORKLOAD': True, 'CUSTOM_RESOURCE': True}
+        ),
     ],
 )
-def test_get_cluster_feature_flags(cluster_id, feature_type: str, expected_flags):
-    feature_flags = get_cluster_feature_flags(cluster_id, feature_type)
-    for feature in ['CLUSTER', 'OVERVIEW', 'REPO']:
+def test_get_cluster_feature_flags(cluster_id, feature_type: str, view_mode, expected_flags):
+    feature_flags = get_cluster_feature_flags(cluster_id, feature_type, view_mode)
+    for feature in expected_flags:
         assert feature_flags[feature] == expected_flags[feature]
