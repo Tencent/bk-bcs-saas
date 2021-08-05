@@ -12,12 +12,94 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, List, Optional, Type
 
-from backend.iam.permissions.perm import PermCtx
+from backend.iam.permissions import decorators
+from backend.iam.permissions.perm import PermCtx, Permission
+from backend.iam.permissions.request import ActionResourcesRequest, ResourceRequest
+from backend.iam.permissions.resources.project import related_project_perm
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+
+ResourceType = "templateset"
+
+
+class TemplateSetAction(str, StructuredEnum):
+    CREATE = EnumField("templateset_create", label="templateset_create")
+    VIEW = EnumField("templateset_view", label="templateset_view")
+    UPDATE = EnumField("templateset_update", label="templateset_update")
+    DELETE = EnumField("templateset_delete", label="templateset_delete")
+    INSTANTIATE = EnumField("templateset_instantiate", label="templateset_instantiate")
 
 
 @dataclass
-class TemplatesetPermCtx(PermCtx):
+class TemplateSetPermCtx(PermCtx):
     project_id: str = ''
-    template_id: Optional[str] = None
+    templateset_id: Optional[str] = None
+
+
+class TemplateSetRequest(ResourceRequest):
+    resource_type: str = ResourceType
+    attr = {'_bk_iam_path_': f'/templateset,{{templateset_id}}/'}
+
+    def _make_attribute(self, res_id: str) -> Dict:
+        self.attr['_bk_iam_path_'] = self.attr['_bk_iam_path_'].format(
+            templateset_id=self.attr_kwargs['templateset_id']
+        )
+        return self.attr
+
+
+class related_templateset_perm(decorators.RelatedPermission):
+    module_name: str = ResourceType
+
+    def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
+        """仅支持第一个参数是 PermCtx 子类实例"""
+        if len(args) <= 0:
+            raise TypeError('missing ClusterPermCtx instance argument')
+        if isinstance(args[0], PermCtx):
+            return TemplateSetPermCtx(
+                username=args[0].username, project_id=args[0].project_id, templateset_id=args[0].templateset_id
+            )
+        else:
+            raise TypeError('missing ClusterPermCtx instance argument')
+
+    def _action_request_list(self, perm_ctx: TemplateSetPermCtx) -> List[ActionResourcesRequest]:
+        """"""
+        resources = [perm_ctx.templateset_id] if perm_ctx.templateset_id else None
+        return [
+            ActionResourcesRequest(
+                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
+            )
+        ]
+
+
+class TemplateSetPermission(Permission):
+    """模板集权限"""
+
+    resource_type: str = ResourceType
+    resource_request_cls: Type[ResourceRequest] = TemplateSetRequest
+
+    @related_project_perm(method_name="can_view")
+    def can_create(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplateSetAction.CREATE, raise_exception)
+
+    @related_project_perm(method_name="can_view")
+    def can_view(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplateSetAction.VIEW, raise_exception, use_cache=True)
+
+    @related_templateset_perm(method_name="can_view")
+    def can_update(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplateSetAction.UPDATE, raise_exception)
+
+    @related_templateset_perm(method_name="can_view")
+    def can_delete(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplateSetAction.DELETE, raise_exception)
+
+    @related_templateset_perm(method_name="can_view")
+    def can_instantiate(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplateSetAction.INSTANTIATE, raise_exception)
+
+    def _make_res_request(self, res_id: str, perm_ctx: TemplateSetPermCtx) -> ResourceRequest:
+        return self.resource_request_cls(res_id, templateset_id=perm_ctx.templateset_id)
+
+    def _get_resource_id_from_ctx(self, perm_ctx: TemplateSetPermCtx) -> Optional[str]:
+        return perm_ctx.templateset_id
