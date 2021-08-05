@@ -107,7 +107,7 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('集群')" prop="status">
                             <template slot-scope="{ row }">
-                                <div style="overflow: hidden;">
+                                <div>
                                     {{$t('所属集群')}}：
                                     <bcs-popover :content="row.cluster_id || '--'" placement="top">
                                         <span class="biz-min-wrapper">{{row.cluster_name ? row.cluster_name : '--'}}</span>
@@ -128,7 +128,7 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('操作记录')" prop="create_time">
                             <template slot-scope="{ row }">
-                                <p class="updator" style="overflow: hidden;">{{$t('操作者')}}：{{ row.updator }}</p>
+                                <p class="updator">{{$t('操作者')}}：{{ row.updator }}</p>
                                 <p class="updated">{{$t('更新时间')}}：{{ row.updated }}</p>
                             </template>
                         </bk-table-column>

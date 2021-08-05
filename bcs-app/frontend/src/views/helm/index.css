@@ -598,5 +598,8 @@
     }
 }
 /deep/ .bk-table-body tr td .cell {
-    padding: 10px 15px;
+    -webkit-line-clamp: 2;
+}
+/deep/ .bk-table-body tr td {
+    height: 54px;
 }
