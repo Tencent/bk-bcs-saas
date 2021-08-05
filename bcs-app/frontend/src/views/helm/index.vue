@@ -110,9 +110,9 @@
                                 <div>
                                     {{$t('所属集群')}}：
                                     <bcs-popover :content="row.cluster_id || '--'" placement="top">
-                                        <span class="biz-min-wrapper">{{row.cluster_name ? row.cluster_name : '--'}}</span>
+                                        <span>{{row.cluster_name ? row.cluster_name : '--'}}</span>
                                     </bcs-popover>
-                                    <template v-if="$INTERNAL">
+                                    <template>
                                         <template v-if="row.cluster_env === 'stag'">
                                             <bk-tag type="filled" theme="warning" class="biz-small-tag m0 mt5">{{$t('测试')}}</bk-tag>
                                         </template>
