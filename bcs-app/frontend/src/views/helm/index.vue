@@ -105,9 +105,9 @@
                                 {{ `${row.chart_name}:${row.current_version}` }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('集群')" prop="status">
+                        <bk-table-column :label="$t('集群')" prop="status" min-width="100">
                             <template slot-scope="{ row }">
-                                <div>
+                                <div style="min-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     {{$t('所属集群')}}：
                                     <bcs-popover :content="row.cluster_id || '--'" placement="top">
                                         <span>{{row.cluster_name ? row.cluster_name : '--'}}</span>
@@ -121,7 +121,7 @@
                                         </template>
                                     </template>
                                 </div>
-                                <p>
+                                <p style="min-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{row.namespace}}</span>
                                 </p>
                             </template>
