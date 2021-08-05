@@ -675,7 +675,8 @@
         width: 16px;
         height: 16px;
         top: 16px;
-        right: 8px;
+        right: 4px;
         z-index: 1;
+        padding: 2px;
     }
 </style>
