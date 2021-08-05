@@ -23,7 +23,7 @@ from backend.helm.helm.models.repo import Repository
 from backend.utils.error_codes import error_codes
 
 
-class ChartsApiView(NoAccessTokenBaseAPIViewSet, chart_views.ChartView):
+class ChartsApiView(NoAccessTokenBaseAPIViewSet, chart_views.ChartViewSet):
     def list_charts(self, request, project_id_or_code):
         return self.list(request, request.project.project_id)
 
