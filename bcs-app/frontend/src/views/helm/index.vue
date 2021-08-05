@@ -74,30 +74,30 @@
                                     <a @click="showAppDetail(row)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else>
                                         {{ row.name }}
                                     </a>
-                                </div>
-                                <template v-if="row.transitioning_on">
-                                    <bk-tag theme="warning mt5" style="margin-left: -5px;">
-                                        <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
-                                            <div class="rotate rotate1"></div>
-                                            <div class="rotate rotate2"></div>
-                                            <div class="rotate rotate3"></div>
-                                            <div class="rotate rotate4"></div>
-                                            <div class="rotate rotate5"></div>
-                                            <div class="rotate rotate6"></div>
-                                            <div class="rotate rotate7"></div>
-                                            <div class="rotate rotate8"></div>
-                                        </div>
-                                        {{appAction[row.transitioning_action]}}中...
-                                    </bk-tag>
-                                </template>
-                                <template v-else-if="!row.transitioning_result && row.transitioning_action !== 'noop'">
-                                    <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
-                                        <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(row)">
-                                            <i class="bcs-icon bcs-icon-order"></i>
-                                            {{appAction[row.transitioning_action]}}{{$t('失败')}}
+                                    <template v-if="row.transitioning_on">
+                                        <bk-tag theme="warning mt5" style="margin-left: -5px;">
+                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
+                                                <div class="rotate rotate1"></div>
+                                                <div class="rotate rotate2"></div>
+                                                <div class="rotate rotate3"></div>
+                                                <div class="rotate rotate4"></div>
+                                                <div class="rotate rotate5"></div>
+                                                <div class="rotate rotate6"></div>
+                                                <div class="rotate rotate7"></div>
+                                                <div class="rotate rotate8"></div>
+                                            </div>
+                                            {{appAction[row.transitioning_action]}}中...
                                         </bk-tag>
-                                    </bcs-popover>
-                                </template>
+                                    </template>
+                                    <template v-else-if="!row.transitioning_result && row.transitioning_action !== 'noop'">
+                                        <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
+                                            <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(row)">
+                                                <i class="bcs-icon bcs-icon-order"></i>
+                                                {{appAction[row.transitioning_action]}}{{$t('失败')}}
+                                            </bk-tag>
+                                        </bcs-popover>
+                                    </template>
+                                </div>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('Chart')" prop="source">
