@@ -15,4 +15,4 @@ from django.conf.urls import url
 
 from . import views
 
-urlpatterns = [url(r"^projects/", views.ProjectAPIView.as_view())]
+urlpatterns = [url(r"^projects/", views.ProjectAPIView.as_view()), url(r"^clusters/", views.ClusterAPIView.as_view())]

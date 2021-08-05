@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from .cluster import ClusterProvider
+
 try:
     from iam.resource.utils import get_filter_obj, get_page_obj
 except Exception:
@@ -19,7 +21,7 @@ except Exception:
 from ..exceptions import ResNotFoundError
 from .project import ProjectProvider
 
-PROVIDER_CLS_MAP = {"project": ProjectProvider}
+PROVIDER_CLS_MAP = {"project": ProjectProvider, "cluster": ClusterProvider}
 
 
 class BCSResourceProvider:
