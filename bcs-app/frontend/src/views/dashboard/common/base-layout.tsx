@@ -93,6 +93,10 @@ export default defineComponent({
             const item = crdList.value.find(item => item.metadata.name === currentCrd.value)
             return crdData.value?.manifest_ext?.[item?.metadata?.uid] || {}
         })
+        // 未选择crd时提示
+        const crdTips = computed(() => {
+            return type.value === 'crds' && !currentCrd.value ? $i18n.t('请选择CRD') : ''
+        })
         // 自定义资源的kind类型是根据选择的crd确定的
         const crdKind = computed(() => {
             return currentCrdExt.value.kind
@@ -104,9 +108,8 @@ export default defineComponent({
             crdLoading.value = false
         }
         const handleCrdChange = async (crd) => {
-            const { scope, kind, api_version } = currentCrdExt.value
+            const { kind, api_version } = currentCrdExt.value
             namespaceValue.value = ''
-            namespaceDisabled.value = scope !== 'Namespaced'
 
             if (crd) {
                 await handleFetchCustomResourceList(currentCrd.value, category.value)
@@ -143,7 +146,10 @@ export default defineComponent({
 
         // 命名空间
         const namespaceValue = ref('')
-        const namespaceDisabled = ref(false)
+        const namespaceDisabled = computed(() => {
+            const { scope } = currentCrdExt.value
+            return type.value === 'crds' && scope !== 'Namespaced'
+        })
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
         // 命名空间数据
@@ -395,6 +401,7 @@ export default defineComponent({
             crdList,
             currentCrdExt,
             additionalColumns,
+            crdTips,
             getJsonPathValue,
             renderCrdHeader,
             stop,
@@ -424,11 +431,14 @@ export default defineComponent({
                     <div class="base-layout-operate mb20">
                         {
                             this.showCreate ? (
-                                <bk-button v-authority={{ clickable: this.pagePerms.create?.clickable, content: this.pagePerms.create?.tip }}
-                                    class="resource-create"
-                                    icon="plus"
-                                    theme="primary"
-                                    onClick={this.handleCreateResource}>
+                                <bk-button v-authority={{
+                                    clickable: this.pagePerms.create?.clickable,
+                                    content: this.pagePerms.create?.tip || this.crdTips
+                                }}
+                                class="resource-create"
+                                icon="plus"
+                                theme="primary"
+                                onClick={this.handleCreateResource}>
                                     { this.$t('创建') }
                                 </bk-button>
                             ) : <div></div>
@@ -462,6 +472,7 @@ export default defineComponent({
                                 this.showNameSpace
                                     ? (
                                         <bcs-select
+                                            v-bk-tooltips={{ disabled: !this.namespaceDisabled, content: this.crdTips }}
                                             loading={this.namespaceLoading}
                                             class="dashboard-select"
                                             v-model={this.namespaceValue}
