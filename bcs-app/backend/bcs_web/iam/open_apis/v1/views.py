@@ -16,3 +16,7 @@ from ..views import ResourceAPIView
 
 class ProjectAPIView(ResourceAPIView):
     pass
+
+
+class ClusterAPIView(ResourceAPIView):
+    pass
