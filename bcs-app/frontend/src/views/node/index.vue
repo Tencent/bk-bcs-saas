@@ -590,7 +590,7 @@
                                 })
                             })
                         } else {
-                            Object.entries(item.labels).forEach(entries => {
+                            Object.entries(item.labels || {}).forEach(entries => {
                                 item.transformLabels.push({
                                     key: entries[0],
                                     value: entries[1]
