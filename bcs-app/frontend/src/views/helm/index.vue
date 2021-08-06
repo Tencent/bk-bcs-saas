@@ -65,7 +65,7 @@
                                 <bk-checkbox name="check-strategy" v-model="row.isChecked" @change="checkApp(row)" />
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('Release名称')">
+                        <bk-table-column :label="$t('Release名称')" min-width="160">
                             <template slot-scope="{ row }">
                                 <div>
                                     <span v-if="row.transitioning_on" class="f14 fb app-name">
@@ -100,25 +100,23 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('Chart')" prop="source">
+                        <bk-table-column :label="$t('Chart')" prop="source" min-width="160">
                             <template slot-scope="{ row }">
                                 {{ `${row.chart_name}:${row.current_version}` }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('集群')" prop="status" min-width="100">
+                        <bk-table-column :label="$t('集群')" prop="status" :show-overflow-tooltip="false" min-width="250">
                             <template slot-scope="{ row }">
-                                <div style="min-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <div class="col-cluster">
                                     {{$t('所属集群')}}：
                                     <bcs-popover :content="row.cluster_id || '--'" placement="top">
                                         <span>{{row.cluster_name ? row.cluster_name : '--'}}</span>
                                     </bcs-popover>
-                                    <template>
-                                        <template v-if="row.cluster_env === 'stag'">
-                                            <bk-tag type="filled" theme="warning" class="biz-small-tag m0 mt5">{{$t('测试')}}</bk-tag>
-                                        </template>
-                                        <template v-else-if="row.cluster_env === 'prod'">
-                                            <bk-tag type="filled" theme="success" class="biz-small-tag m0 mt5">{{$t('正式')}}</bk-tag>
-                                        </template>
+                                    <template v-if="row.cluster_env === 'stag'">
+                                        <bk-tag type="filled" theme="warning" class="biz-small-tag m0">{{$t('测试')}}</bk-tag>
+                                    </template>
+                                    <template v-else-if="row.cluster_env === 'prod'">
+                                        <bk-tag type="filled" theme="success" class="biz-small-tag m0">{{$t('正式')}}</bk-tag>
                                     </template>
                                 </div>
                                 <p style="min-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -126,13 +124,13 @@
                                 </p>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作记录')" prop="create_time">
+                        <bk-table-column :label="$t('操作记录')" prop="create_time" width="260">
                             <template slot-scope="{ row }">
                                 <p class="updator">{{$t('操作者')}}：{{ row.updator }}</p>
                                 <p class="updated">{{$t('更新时间')}}：{{ row.updated }}</p>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')">
+                        <bk-table-column :label="$t('操作')" width="230">
                             <template slot-scope="{ row }">
                                 <bk-button class="ml5" text @click="showAppInfoSlider(row)">{{ $t('查看状态') }}</bk-button>
                                 <bk-button class="ml5" text @click="showAppDetail(row)">{{ $t('更新') }}</bk-button>
@@ -1328,7 +1326,7 @@
                 this.pagination.current = page
                 this.getAppList()
             },
-            
+
             /**
              * 自定义checkbox表格头
              */

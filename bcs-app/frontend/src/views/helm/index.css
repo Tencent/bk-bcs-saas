@@ -509,6 +509,11 @@
     padding: 0 20px;
     overflow-x: auto;
 }
+.col-cluster {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+}
 
 /* 自适应 */
 @media screen and (max-width: 1600px) {
