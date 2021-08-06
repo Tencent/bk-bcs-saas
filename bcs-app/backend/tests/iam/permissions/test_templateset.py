@@ -19,10 +19,10 @@ from backend.iam.permissions.exceptions import PermissionDeniedError
 from backend.iam.permissions.request import ActionResourcesRequest
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
 from backend.iam.permissions.resources.templateset import (
-    TemplateSetAction,
-    TemplateSetPermCtx,
+    TemplatesetAction,
+    TemplatesetPermCtx,
     TemplatesetPermission,
-    template_set_perm,
+    templateset_perm,
 )
 
 from ..fake_iam import FakeProjectPermission, FakeTemplateSetPermission
@@ -43,24 +43,24 @@ def template_set_permission_obj():
 class TestTemplateSetPermission:
     """
     模板集资源权限
-    note: 仅测试 template_set_create 和 template_set_view 两种代表性的权限，其他操作权限逻辑重复
+    note: 仅测试 templateset_create 和 templateset_view 两种代表性的权限，其他操作权限逻辑重复
     """
 
     def test_can_create(self, template_set_permission_obj, project_id, template_set_id):
-        perm_ctx = TemplateSetPermCtx(username=roles.ADMIN_USER, project_id=project_id)
+        perm_ctx = TemplatesetPermCtx(username=roles.ADMIN_USER, project_id=project_id)
         assert template_set_permission_obj.can_create(perm_ctx)
 
     def test_can_not_create(self, template_set_permission_obj, project_id, template_set_id):
-        perm_ctx = TemplateSetPermCtx(username=roles.ANONYMOUS_USER, project_id=project_id)
+        perm_ctx = TemplatesetPermCtx(username=roles.ANONYMOUS_USER, project_id=project_id)
         assert not template_set_permission_obj.can_create(perm_ctx, raise_exception=False)
 
     def test_can_view(self, template_set_permission_obj, project_id, template_set_id):
-        perm_ctx = TemplateSetPermCtx(username=roles.ADMIN_USER, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=roles.ADMIN_USER, project_id=project_id, templateset_id=template_set_id)
         assert template_set_permission_obj.can_view(perm_ctx)
 
     def test_can_not_view(self, template_set_permission_obj, project_id, template_set_id):
         """测试场景: 无权限不抛出异常"""
-        perm_ctx = TemplateSetPermCtx(
+        perm_ctx = TemplatesetPermCtx(
             username=roles.ANONYMOUS_USER, project_id=project_id, templateset_id=template_set_id
         )
         assert not template_set_permission_obj.can_view(perm_ctx, raise_exception=False)
@@ -75,7 +75,7 @@ class TestTemplateSetPermission:
             expected_action_list=[
                 ActionResourcesRequest(
                     resource_type=template_set_permission_obj.resource_type,
-                    action_id=TemplateSetAction.VIEW,
+                    action_id=TemplatesetAction.VIEW,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
@@ -108,7 +108,7 @@ class TestTemplateSetPermission:
             expected_action_list=[
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
-                    action_id=TemplateSetAction.VIEW,
+                    action_id=TemplatesetAction.VIEW,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
@@ -120,7 +120,7 @@ class TestTemplateSetPermission:
     def _test_can_not_view(
         self, username, template_set_permission_obj, project_id, template_set_id, expected_action_list
     ):
-        perm_ctx = TemplateSetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
         with pytest.raises(PermissionDeniedError) as exec:
             template_set_permission_obj.can_view(perm_ctx)
         assert exec.value.data['apply_url'] == generate_apply_url(username, expected_action_list)
@@ -130,7 +130,7 @@ class TestTemplateSetPermission:
     ):
         """测试场景：模板集和项目均无权限"""
         username = roles.ANONYMOUS_USER
-        perm_ctx = TemplateSetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
         with pytest.raises(PermissionDeniedError) as exec:
             template_set_permission_obj.can_instantiate(perm_ctx)
         assert exec.value.data['apply_url'] == generate_apply_url(
@@ -138,12 +138,12 @@ class TestTemplateSetPermission:
             [
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
-                    action_id=TemplateSetAction.INSTANTIATE,
+                    action_id=TemplatesetAction.INSTANTIATE,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
-                    action_id=TemplateSetAction.VIEW,
+                    action_id=TemplatesetAction.VIEW,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
@@ -155,7 +155,7 @@ class TestTemplateSetPermission:
     def test_can_not_instantiate_project(self, template_set_permission_obj, project_id, template_set_id):
         """测试场景：有模板集权限，无项目权限"""
         username = roles.TEMPLATE_SET_NO_PROJECT_USER
-        perm_ctx = TemplateSetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
         with pytest.raises(PermissionDeniedError) as exec:
             template_set_permission_obj.can_instantiate(perm_ctx)
         assert exec.value.data['apply_url'] == generate_apply_url(
@@ -168,19 +168,19 @@ class TestTemplateSetPermission:
         )
 
 
-@template_set_perm(method_name='can_instantiate')
-def instantiate_template_set(perm_ctx: TemplateSetPermCtx):
+@templateset_perm(method_name='can_instantiate')
+def instantiate_template_set(perm_ctx: TemplatesetPermCtx):
     """"""
 
 
 class TestTemplateSetPermDecorator:
     def test_can_instantiate(self, template_set_permission_obj, project_id, template_set_id):
-        perm_ctx = TemplateSetPermCtx(username=roles.ADMIN_USER, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=roles.ADMIN_USER, project_id=project_id, templateset_id=template_set_id)
         instantiate_template_set(perm_ctx)
 
     def test_can_not_instantiate(self, template_set_permission_obj, project_id, template_set_id):
         username = roles.ANONYMOUS_USER
-        perm_ctx = TemplateSetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
+        perm_ctx = TemplatesetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
         with pytest.raises(PermissionDeniedError) as exec:
             instantiate_template_set(perm_ctx)
         assert exec.value.data['apply_url'] == generate_apply_url(
@@ -188,12 +188,12 @@ class TestTemplateSetPermDecorator:
             [
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
-                    action_id=TemplateSetAction.INSTANTIATE,
+                    action_id=TemplatesetAction.INSTANTIATE,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
-                    action_id=TemplateSetAction.VIEW,
+                    action_id=TemplatesetAction.VIEW,
                     resources=[template_set_id],
                 ),
                 ActionResourcesRequest(
