@@ -23,7 +23,7 @@ from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnu
 ResourceType = "templateset"
 
 
-class TemplateSetAction(str, StructuredEnum):
+class TemplatesetAction(str, StructuredEnum):
     CREATE = EnumField("templateset_create", label="templateset_create")
     VIEW = EnumField("templateset_view", label="templateset_view")
     UPDATE = EnumField("templateset_update", label="templateset_update")
@@ -32,12 +32,12 @@ class TemplateSetAction(str, StructuredEnum):
 
 
 @dataclass
-class TemplateSetPermCtx(PermCtx):
+class TemplatesetPermCtx(PermCtx):
     project_id: str = ''
     templateset_id: Optional[str] = None
 
 
-class TemplateSetRequest(ResourceRequest):
+class TemplatesetRequest(ResourceRequest):
     resource_type: str = ResourceType
     attr = {'_bk_iam_path_': f'/templateset,{{templateset_id}}/'}
 
@@ -54,15 +54,15 @@ class related_templateset_perm(decorators.RelatedPermission):
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
         if len(args) <= 0:
-            raise TypeError('missing TemplateSetPermCtx instance argument')
+            raise TypeError('missing TemplatesetPermCtx instance argument')
         if isinstance(args[0], PermCtx):
-            return TemplateSetPermCtx(
+            return TemplatesetPermCtx(
                 username=args[0].username, project_id=args[0].project_id, templateset_id=args[0].templateset_id
             )
         else:
-            raise TypeError('missing TemplateSetPermCtx instance argument')
+            raise TypeError('missing TemplatesetPermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: TemplateSetPermCtx) -> List[ActionResourcesRequest]:
+    def _action_request_list(self, perm_ctx: TemplatesetPermCtx) -> List[ActionResourcesRequest]:
         """"""
         resources = [perm_ctx.templateset_id] if perm_ctx.templateset_id else None
         return [
@@ -72,7 +72,7 @@ class related_templateset_perm(decorators.RelatedPermission):
         ]
 
 
-class template_set_perm(decorators.Permission):
+class templateset_perm(decorators.Permission):
     module_name: str = ResourceType
 
 
@@ -80,30 +80,30 @@ class TemplatesetPermission(Permission):
     """模板集权限"""
 
     resource_type: str = ResourceType
-    resource_request_cls: Type[ResourceRequest] = TemplateSetRequest
+    resource_request_cls: Type[ResourceRequest] = TemplatesetRequest
 
     @related_project_perm(method_name="can_view")
-    def can_create(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, TemplateSetAction.CREATE, raise_exception)
+    def can_create(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplatesetAction.CREATE, raise_exception)
 
     @related_project_perm(method_name="can_view")
-    def can_view(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, TemplateSetAction.VIEW, raise_exception, use_cache=True)
+    def can_view(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplatesetAction.VIEW, raise_exception, use_cache=True)
 
     @related_templateset_perm(method_name="can_view")
-    def can_update(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, TemplateSetAction.UPDATE, raise_exception)
+    def can_update(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplatesetAction.UPDATE, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
-    def can_delete(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, TemplateSetAction.DELETE, raise_exception)
+    def can_delete(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplatesetAction.DELETE, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
-    def can_instantiate(self, perm_ctx: TemplateSetPermCtx, raise_exception: bool = True) -> bool:
-        return self.can_action(perm_ctx, TemplateSetAction.INSTANTIATE, raise_exception)
+    def can_instantiate(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        return self.can_action(perm_ctx, TemplatesetAction.INSTANTIATE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: TemplateSetPermCtx) -> ResourceRequest:
+    def _make_res_request(self, res_id: str, perm_ctx: TemplatesetPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, templateset_id=perm_ctx.templateset_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: TemplateSetPermCtx) -> Optional[str]:
+    def _get_resource_id_from_ctx(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
         return perm_ctx.templateset_id
