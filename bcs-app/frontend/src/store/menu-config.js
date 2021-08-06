@@ -172,7 +172,7 @@ export default function menuConfig () {
             {
                 name: customResource,
                 isSaveData: true,
-                icon: 'bcs-icon-lock-line',
+                icon: 'bcs-icon-customize',
                 roleId: 'custom:menu',
                 children: [
                     {
@@ -192,7 +192,7 @@ export default function menuConfig () {
                         pathName: ['dashboardCustomObjects', 'CustomObject']
                     }
                 ],
-                id: 'HPA'
+                id: 'CUSTOM_RESOURCE'
             }
         ],
         clusterMenuList: [

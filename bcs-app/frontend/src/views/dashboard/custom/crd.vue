@@ -1,5 +1,5 @@
 <template>
-    <BaseLayout title="CRD" kind="CustomResourceDefinition" type="crds" default-active-detail-type="yaml" :show-name-space="false" :show-create="false" :show-detail-tab="false">
+    <BaseLayout title="CRD" kind="CustomResourceDefinition" type="crd" default-active-detail-type="yaml" :show-name-space="false" :show-create="false" :show-detail-tab="false">
         <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, handleShowDetail }">
             <bk-table
                 :data="curPageData"

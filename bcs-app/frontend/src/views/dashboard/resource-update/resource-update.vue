@@ -40,7 +40,8 @@
                 </div>
                 <div class="code-example" ref="exampleWrapperRef" v-if="showExample">
                     <div class="top-operate">
-                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false">
+                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false"
+                            v-if="examples.items && examples.items.length">
                             <div class="dropdown-trigger-text" slot="dropdown-trigger">
                                 <span class="title">{{ activeExample.alias }}</span>
                                 <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
@@ -56,6 +57,7 @@
                                 </li>
                             </ul>
                         </bk-dropdown-menu>
+                        <span v-else><!-- 空元素为了flex布局 --></span>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
                             <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i :class="['bcs-icon bcs-icon-help-2', { active: showHelp }]"></i></span>
@@ -144,7 +146,7 @@
             BcsMd
         },
         props: {
-            // 命名空间（更新的时候需要--crds类型编辑是可能没有，创建的时候为空）
+            // 命名空间（更新的时候需要--crd类型编辑是可能没有，创建的时候为空）
             namespace: {
                 type: String,
                 default: ''
@@ -158,8 +160,7 @@
             // 子分类，eg: deployments、ingresses
             category: {
                 type: String,
-                default: '',
-                required: true
+                default: ''
             },
             // 名称（更新的时候需要，创建的时候为空）
             name: {
@@ -170,15 +171,19 @@
                 type: String,
                 default: ''
             },
-            // type 为crds时，必传
+            // type 为crd时，必传
             crd: {
                 type: String,
                 default: ''
+            },
+            defaultShowExample: {
+                type: Boolean,
+                default: false
             }
         },
         setup (props, ctx) {
             const { $i18n, $store, $bkMessage, $router, $bkInfo } = ctx.root
-            const { namespace, type, category, name, kind, crd } = toRefs(props)
+            const { namespace, type, category, name, kind, crd, defaultShowExample } = toRefs(props)
 
             onMounted(() => {
                 document.addEventListener('keyup', handleExitFullScreen)
@@ -202,7 +207,7 @@
             const isLoading = ref(false)
             const original = ref<any>({})
             const detail = ref<any>({})
-            const showExample = ref(!isEdit.value)
+            const showExample = ref(defaultShowExample.value)
             const fullScreen = ref(false)
             const height = ref(600)
             const editorErr = ref({
@@ -235,7 +240,7 @@
                 if (!isEdit.value) return null
                 isLoading.value = true
                 let res: any = null
-                if (type.value === 'crds') {
+                if (type.value === 'crd') {
                     res = await $store.dispatch('dashboard/retrieveCustomResourceDetail', {
                         $crd: crd.value,
                         $category: category.value,
@@ -343,7 +348,7 @@
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
-                    kind: type.value === 'crds' ? 'CustomObject' : kind.value // crds类型的模板kind固定为CustomObject
+                    kind: type.value === 'crd' ? 'CustomObject' : kind.value // crd类型的模板kind固定为CustomObject
                 })
                 activeExample.value = examples.value?.items?.[0] || {}
                 exampleLoading.value = false
@@ -386,7 +391,7 @@
             }
             const handleCreateResource = async () => {
                 let result = false
-                if (type.value === 'crds') {
+                if (type.value === 'crd') {
                     result = await $store.dispatch('dashboard/customResourceCreate', {
                         $crd: crd.value,
                         $category: category.value,
@@ -430,7 +435,7 @@
                     defaultInfo: true,
                     confirmFn: async () => {
                         let result = false
-                        if (type.value === 'crds') {
+                        if (type.value === 'crd') {
                             result = await $store.dispatch('dashboard/customResourceUpdate', {
                                 $crd: crd.value,
                                 $category: category.value,

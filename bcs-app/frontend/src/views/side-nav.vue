@@ -563,7 +563,7 @@
 
             handleChangeView (item) {
                 if (item.id === this.curViewType) return
-
+                this.$store.commit('updateViewMode', item.id)
                 item.id === 'dashboard' ? this.goDashboard() : this.goCluster()
             },
 

@@ -28,7 +28,7 @@ export default defineComponent({
             default: '',
             required: true
         },
-        // 父分类（crds类型的需要特殊处理），eg: workloads、networks（注意复数）
+        // 父分类（crd类型的需要特殊处理），eg: workloads、networks（注意复数）
         type: {
             type: String,
             default: '',
@@ -40,7 +40,7 @@ export default defineComponent({
             default: '',
             required: true
         },
-        // 轮询时类型（type为crds时，kind仅作为资源详情展示的title用），eg: Deployment、Ingress（注意首字母大写）
+        // 轮询时类型（type为crd时，kind仅作为资源详情展示的title用），eg: Deployment、Ingress（注意首字母大写）
         kind: {
             type: String,
             default: '',
@@ -56,6 +56,7 @@ export default defineComponent({
             type: Boolean,
             default: true
         },
+        // 默认CRD值
         defaultCrd: {
             type: String,
             default: ''
@@ -95,11 +96,15 @@ export default defineComponent({
         })
         // 未选择crd时提示
         const crdTips = computed(() => {
-            return type.value === 'crds' && !currentCrd.value ? $i18n.t('请选择CRD') : ''
+            return type.value === 'crd' && !currentCrd.value ? $i18n.t('请选择CRD') : ''
         })
         // 自定义资源的kind类型是根据选择的crd确定的
         const crdKind = computed(() => {
             return currentCrdExt.value.kind
+        })
+        // 自定义CRD
+        const customCrd = computed(() => {
+            return (type.value === 'crd' && kind.value !== 'CustomResourceDefinition')
         })
         const handleGetCrdData = async () => {
             crdLoading.value = true
@@ -107,14 +112,10 @@ export default defineComponent({
             crdData.value = res.data
             crdLoading.value = false
         }
-        const handleCrdChange = async (crd) => {
-            const { kind, api_version } = currentCrdExt.value
+        const handleCrdChange = async () => {
             namespaceValue.value = ''
 
-            if (crd) {
-                await handleFetchCustomResourceList(currentCrd.value, category.value)
-                handleStartSubscribe(kind, resourceVersion.value, api_version)
-            }
+            handleGetTableData()
         }
         const renderCrdHeader = (h, { column }) => {
             const additionalData = additionalColumns.value.find(item => item.name === column.label)
@@ -148,7 +149,7 @@ export default defineComponent({
         const namespaceValue = ref('')
         const namespaceDisabled = computed(() => {
             const { scope } = currentCrdExt.value
-            return type.value === 'crds' && scope !== 'Namespaced'
+            return type.value === 'crd' && scope && scope !== 'Namespaced'
         })
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
@@ -179,13 +180,15 @@ export default defineComponent({
         } = useTableData(ctx)
 
         // 获取表格数据
-        const handleGetTableData = async () => {
+        const handleGetTableData = async (subscribe = true) => {
             // 获取表格数据
-            type.value === 'crds'
+            const data = type.value === 'crd'
                 ? await handleFetchCustomResourceList(currentCrd.value, category.value)
                 : await handleFetchList(type.value, category.value)
-            // 开启订阅（在获取表格数据之后）
-            handleStartSubscribe(subscribeKind.value, resourceVersion.value)
+
+            // 重新订阅（获取表格数据之后，resourceVersion可能会变更）
+            subscribe && handleStartSubscribe()
+            return data
         }
 
         const pagePerms = computed(() => { // 界面权限
@@ -229,20 +232,18 @@ export default defineComponent({
         const { initParams, handleSubscribe } = useSubscribe(data, ctx)
         const { start, stop } = useInterval(handleSubscribe, 5000)
         const subscribeKind = computed(() => {
-            // 自定义资源（非CustomResourceDefinition类型的crds）的kind是根据选择的crd动态获取的，不能取props的kind值
-            return (type.value === 'crds' && kind.value !== 'CustomResourceDefinition') ? crdKind.value : kind.value
+            // 自定义资源（非CustomResourceDefinition类型的crd）的kind是根据选择的crd动态获取的，不能取props的kind值
+            return customCrd.value ? crdKind.value : kind.value
         })
 
-        // watch(resourceVersion, (newVersion, oldVersion) => {
-        //     if (newVersion && newVersion !== oldVersion) {
-        //         handleStartSubscribe(subscribeKind.value, resourceVersion.value)
-        //     }
-        // })
-        const handleStartSubscribe = (kind: string, resourceVersion: string, apiVersion?: string) => {
-            if (!kind || !resourceVersion) return
+        const handleStartSubscribe = () => {
+            const { api_version } = currentCrdExt.value
+            // 自定义的CRD订阅时必须传apiVersion
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (!subscribeKind.value || !resourceVersion.value || (customCrd.value && !api_version)) return
 
             stop()
-            initParams(kind, resourceVersion, apiVersion)
+            initParams(subscribeKind.value, resourceVersion.value, api_version)
             start()
         }
 
@@ -311,12 +312,12 @@ export default defineComponent({
             $router.push({
                 name: 'dashboardResourceUpdate',
                 params: {
-                    type: type.value,
-                    // 兼容HPA类型没有子菜单情况
-                    category: category.value || '-',
-                    crd: currentCrd.value
+                    crd: currentCrd.value,
+                    defaultShowExample: (type.value !== 'crd') as any
                 },
                 query: {
+                    type: type.value,
+                    category: category.value,
                     kind: kind.value
                 }
             })
@@ -328,13 +329,13 @@ export default defineComponent({
                 name: 'dashboardResourceUpdate',
                 params: {
                     namespace,
-                    type: type.value,
-                    category: category.value,
                     name,
                     crd: currentCrd.value
                 },
                 query: {
-                    kind: type.value === 'crds' ? kind.value : row.kind
+                    type: type.value,
+                    category: category.value,
+                    kind: type.value === 'crd' ? kind.value : row.kind
                 }
             })
         }
@@ -349,7 +350,7 @@ export default defineComponent({
                 defaultInfo: true,
                 confirmFn: async (vm) => {
                     let result = false
-                    if (type.value === 'crds') {
+                    if (type.value === 'crd') {
                         result = await $store.dispatch('dashboard/customResourceDelete', {
                             data: { namespace },
                             $crd: currentCrd.value,
@@ -374,11 +375,20 @@ export default defineComponent({
         }
 
         onMounted(async () => {
+            const list: Promise<any>[] = []
             // 获取命名空间下拉列表
-            showNameSpace.value && getNamespaceData()
+            if (showNameSpace.value) {
+                list.push(getNamespaceData())
+            }
             // 获取CRD下拉列表
-            showCrd.value && handleGetCrdData()
-            handleGetTableData()
+            if (showCrd.value || defaultCrd.value) {
+                list.push(handleGetCrdData())
+            }
+
+            list.push(handleGetTableData(false)) // 关闭默认触发订阅的逻辑，等待CRD类型的列表初始化完后开始订阅
+            await Promise.all(list)
+            // 所有资源就绪后开始订阅
+            handleStartSubscribe()
         })
 
         return {
@@ -518,7 +528,8 @@ export default defineComponent({
                             getJsonPathValue: this.getJsonPathValue,
                             renderCrdHeader: this.renderCrdHeader,
                             pagePerms: this.pagePerms,
-                            additionalColumns: this.additionalColumns
+                            additionalColumns: this.additionalColumns,
+                            namespaceDisabled: this.namespaceDisabled
                         })
                     }
                 </div>

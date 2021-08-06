@@ -1,5 +1,5 @@
 <template>
-    <BaseLayout title="GameDeployments" kind="GameDeployment" type="crds" category="custom_objects" default-crd="gamedeployments.tkex.tencent.com"
+    <BaseLayout title="GameDeployments" kind="GameDeployment" type="crd" category="custom_objects" default-crd="gamedeployments.tkex.tencent.com"
         default-active-detail-type="yaml" :show-detail-tab="false" :show-crd="false">
         <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleUpdateResource,
                               handleDeleteResource,handleSortChange, handleShowDetail, renderCrdHeader, getJsonPathValue, additionalColumns, pagePerms }">
@@ -19,11 +19,6 @@
                         {{ row.metadata.namespace || '--' }}
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
-                    <template #default="{ row }">
-                        <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
-                    </template>
-                </bk-table-column>
                 <bk-table-column
                     v-for="item in additionalColumns"
                     :key="item.name"
@@ -32,6 +27,11 @@
                     :render-header="renderCrdHeader">
                     <template #default="{ row }">
                         <span>{{ getJsonPathValue(row, item.JSONPath) || '--' }}</span>
+                    </template>
+                </bk-table-column>
+                <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
+                    <template #default="{ row }">
+                        <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :resizable="false" width="150">

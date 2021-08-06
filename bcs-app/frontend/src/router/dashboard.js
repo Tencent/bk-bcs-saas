@@ -249,9 +249,9 @@ const childRoutes = [
     },
     // resource update
     {
-        path: ':projectCode/:clusterId/dashboard/:type/:category/:namespace?/:name?',
+        path: ':projectCode/:clusterId/dashboard/resource/:namespace?/:name?',
         name: 'dashboardResourceUpdate',
-        props: (route) => ({ ...route.params, kind: route.query.kind }),
+        props: (route) => ({ ...route.params, ...route.query }),
         component: DashboardResourceUpdate,
         meta: { isDashboard: true }
     },
