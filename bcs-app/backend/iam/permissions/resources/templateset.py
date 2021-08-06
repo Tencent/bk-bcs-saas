@@ -72,7 +72,11 @@ class related_templateset_perm(decorators.RelatedPermission):
         ]
 
 
-class TemplateSetPermission(Permission):
+class template_set_perm(decorators.Permission):
+    module_name: str = ResourceType
+
+
+class TemplatesetPermission(Permission):
     """模板集权限"""
 
     resource_type: str = ResourceType

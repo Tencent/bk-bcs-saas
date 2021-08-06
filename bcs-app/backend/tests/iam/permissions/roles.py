@@ -28,3 +28,11 @@ PROJECT_NO_CLUSTER_USER = 'project_no_cluster_user'
 CLUSTER_NO_PROJECT_USER = 'cluster_no_project_user'
 
 NAMESPACE_NO_CLUSTER_PROJECT_USER = 'namespace_no_cluster_project_user'
+
+TEMPLATE_SET_USER = "template_set_user"
+
+PROJECT_TEMPLATE_SET_USER = 'project_template_set_user'
+
+PROJECT_NO_TEMPLATE_SET_USER = 'project_no_template_set_user'
+
+TEMPLATE_SET_NO_PROJECT_USER = 'template_set_no_project_user'
