@@ -65,9 +65,6 @@ class ChartDetailSLZ(serializers.ModelSerializer):
 
 
 class ChartSLZ(serializers.ModelSerializer):
-    defaultChartVersion = ChartVersionTinySLZ(read_only=True)
-    repository = MinimalRepoSLZ(read_only=True)
-
     updated_at = serializers.DateTimeField()
     changed_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
@@ -77,6 +74,11 @@ class ChartSLZ(serializers.ModelSerializer):
     class Meta:
         model = Chart
         fields = "__all__"
+
+
+class ChartWithVersionRepoSLZ(ChartSLZ):
+    defaultChartVersion = ChartVersionTinySLZ(read_only=True)
+    repository = MinimalRepoSLZ(read_only=True)
 
 
 class CreateRepoSLZ(serializers.Serializer):

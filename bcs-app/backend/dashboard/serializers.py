@@ -20,10 +20,10 @@ class ListResourceSLZ(serializers.Serializer):
     """ 查询 K8S 资源列表 """
 
     # NOTE：暂时只先支持 label_selector
-    label_selector = serializers.CharField(label=_('标签选择算符'), max_length=512, required=False)
+    label_selector = serializers.CharField(label=_('标签选择算符'), required=False)
     # 过滤子资源（Pod）用参数
     owner_name = serializers.CharField(label=_('所属资源名称'), max_length=256, required=False)
-    owner_kind = serializers.CharField(label=_('所属资源类型'), max_length=32, required=False)
+    owner_kind = serializers.CharField(label=_('所属资源类型'), max_length=64, required=False)
 
 
 class CreateResourceSLZ(serializers.Serializer):

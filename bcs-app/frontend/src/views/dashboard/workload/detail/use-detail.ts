@@ -89,11 +89,11 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
             name: 'dashboardResourceUpdate',
             params: {
                 namespace,
-                type,
-                category,
                 name
             },
             query: {
+                type,
+                category,
                 kind
             }
         })

@@ -12,19 +12,36 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from typing import List, Optional
+
 from django.db import models
 
 
 class RepositoryManager(models.Manager):
-    pass
+    def get_repos(self, repo_ids: List[int]) -> models.query.QuerySet:
+        """查询repo信息"""
+        return self.filter(id__in=repo_ids).values("id", "name", "url")
 
 
 class ChartManager(models.Manager):
-    pass
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted=False)
+
+    def get_charts(self, project_id: str, repo_id: Optional[int] = None) -> models.query.QuerySet:
+        """获取chart列表
+        返回chart所属的repo信息及chart的默认(最新)版本
+        """
+        qs = self.filter(repository__project_id=project_id).order_by("-changed_at")
+        if repo_id is not None:
+            qs = qs.filter(repository__id=repo_id)
+
+        return qs
 
 
 class ChartVersionManager(models.Manager):
-    pass
+    def get_versions(self, version_ids: int) -> models.query.QuerySet:
+        """通过版本ID获取版本信息"""
+        return self.filter(id__in=version_ids).values("id", "name", "version")
 
 
 class RepositoryAuthManager(models.Manager):

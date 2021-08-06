@@ -7,13 +7,13 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable>
                     <template #default="{ row }">
                         <bk-button class="bcs-button-ellipsis" text @click="gotoDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
-                <bk-table-column :label="$t('镜像')" width="450" :resizable="false" :show-overflow-tooltip="false">
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable></bk-table-column>
+                <bk-table-column :label="$t('镜像')" width="450" :show-overflow-tooltip="false">
                     <template slot-scope="{ row }">
                         <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
                             {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
