@@ -1935,7 +1935,8 @@ export default {
     '容器IP': ['Container IP'],
     '容器ID': ['Container ID'],
     '确认重置当前编辑状态': ['Confirm to reset the editing state'],
-    '重置后，你修改的内容将丢失': ['After resetting, your modified content will be lost']
+    '重置后，你修改的内容将丢失': ['After resetting, your modified content will be lost'],
+    '缩小': ['Zoom out']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
