@@ -99,7 +99,7 @@ class TestTemplateSetPermission:
         )
 
     def test_can_not_view_project_and_template_set(self, template_set_permission_obj, project_id, template_set_id):
-        """测试场景：集群和项目均无权限"""
+        """测试场景：模板集和项目均无权限"""
         self._test_can_not_view(
             roles.ANONYMOUS_USER,
             template_set_permission_obj,
@@ -153,7 +153,7 @@ class TestTemplateSetPermission:
         )
 
     def test_can_not_instantiate_project(self, template_set_permission_obj, project_id, template_set_id):
-        """测试场景：有集群权限，无项目权限"""
+        """测试场景：有模板集权限，无项目权限"""
         username = roles.TEMPLATE_SET_NO_PROJECT_USER
         perm_ctx = TemplateSetPermCtx(username=username, project_id=project_id, templateset_id=template_set_id)
         with pytest.raises(PermissionDeniedError) as exec:
