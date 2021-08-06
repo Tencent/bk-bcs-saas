@@ -53,6 +53,12 @@ def project_id():
 
 
 @pytest.fixture
+def template_set_id():
+    """使用环境变量或者生成一个随机集群 ID"""
+    return os.environ.get("TEST_TEMPLATE_SET_ID", generate_random_string(32))
+
+
+@pytest.fixture
 def request_user():
     return FancyDict({"username": "admin", "token": FancyDict({"access_token": "test_access_token"})})
 
