@@ -1,31 +1,30 @@
 <template>
-    <BaseLayout title="StorageClasses" kind="StorageClass" category="storage_classes" type="storages" :show-name-space="false" :show-create="false">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange }">
+    <BaseLayout title="CRD" kind="CustomResourceDefinition" type="crd" default-active-detail-type="yaml" :show-name-space="false" :show-create="false" :show-detail-tab="false">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, handleShowDetail }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable></bk-table-column>
-                <bk-table-column label="Provisioner">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable>
                     <template #default="{ row }">
-                        <span>{{ row.provisioner || '--' }}</span>
+                        <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Reclaim Policy">
+                <bk-table-column label="Scope" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ row.reclaimPolicy || 'Delete' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'scope') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="VolumeBindingMode">
+                <bk-table-column label="Kind" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ row.volumeBindingMode || 'Immediate' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'kind') }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="AllowVolumeExpansion">
+                <bk-table-column label="ApiVersion" :resizable="false">
                     <template #default="{ row }">
-                        <span>{{ row.allowVolumeExpansion || 'false' }}</span>
+                        <span>{{ handleGetExtData(row.metadata.uid, 'api_version') }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
@@ -33,12 +32,6 @@
                         <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
                     </template>
                 </bk-table-column>
-                <!-- <bk-table-column :label="$t('操作')" :resizable="false" width="150">
-                    <template #default="{ row }">
-                        <bk-button text @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
-                        <bk-button class="ml10" text @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
-                    </template>
-                </bk-table-column> -->
             </bk-table>
         </template>
     </BaseLayout>
@@ -48,6 +41,7 @@
     import BaseLayout from '@open/views/dashboard/common/base-layout'
 
     export default defineComponent({
+        name: 'CRD',
         components: { BaseLayout }
     })
 </script>
