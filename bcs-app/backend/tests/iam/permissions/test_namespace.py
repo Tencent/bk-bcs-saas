@@ -49,16 +49,16 @@ class TestNamespacePermission:
     note: 仅测试 namespace_use 这一代表性的权限，其他操作权限逻辑重复
     """
 
-    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, namespace_id):
+    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
         perm_ctx = NamespacePermCtx(
-            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, namespace_id=namespace_id
+            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
         )
         assert namespace_permission_obj.can_use(perm_ctx)
 
-    def test_can_not_use(self, namespace_permission_obj, project_id, cluster_id, namespace_id):
+    def test_can_not_use(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
         username = roles.ANONYMOUS_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, namespace_id=namespace_id
+            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
         )
         with pytest.raises(PermissionDeniedError) as exec:
             namespace_permission_obj.can_use(perm_ctx)
@@ -68,12 +68,12 @@ class TestNamespacePermission:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[namespace_id],
+                    resources=[cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[namespace_id],
+                    resources=[cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
@@ -84,11 +84,11 @@ class TestNamespacePermission:
             ],
         )
 
-    def test_can_not_use_cluster_project(self, namespace_permission_obj, project_id, cluster_id, namespace_id):
+    def test_can_not_use_cluster_project(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
         """测试场景: 有命名空间使用权限，但是无集群和项目权限"""
         username = roles.NAMESPACE_NO_CLUSTER_PROJECT_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, namespace_id=namespace_id
+            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
         )
 
         # 不抛出异常
@@ -116,16 +116,16 @@ def helm_install(perm_ctx: NamespacePermCtx):
 
 
 class TestNamespacePermDecorator:
-    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, namespace_id):
+    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
         perm_ctx = NamespacePermCtx(
-            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, namespace_id=namespace_id
+            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
         )
         helm_install(perm_ctx)
 
-    def test_can_not_manage(self, namespace_permission_obj, project_id, cluster_id, namespace_id):
+    def test_can_not_manage(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
         username = roles.ANONYMOUS_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, namespace_id=namespace_id
+            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
         )
         with pytest.raises(PermissionDeniedError) as exec:
             helm_install(perm_ctx)
@@ -135,12 +135,12 @@ class TestNamespacePermDecorator:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[namespace_id],
+                    resources=[cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[namespace_id],
+                    resources=[cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]

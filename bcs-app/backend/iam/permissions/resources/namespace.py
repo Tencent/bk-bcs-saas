@@ -37,7 +37,7 @@ class NamespaceAction(str, StructuredEnum):
 class NamespacePermCtx(PermCtx):
     project_id: str = ''
     cluster_id: str = ''
-    namespace_id: Optional[str] = None
+    cluster_ns_id: Optional[str] = None
 
 
 class NamespaceRequest(ResourceRequest):
@@ -64,14 +64,14 @@ class related_namespace_perm(decorators.RelatedPermission):
                 username=args[0].username,
                 project_id=args[0].project_id,
                 cluster_id=args[0].cluster_id,
-                namespace_id=args[0].namespace_id,
+                cluster_ns_id=args[0].cluster_ns_id,
             )
         else:
             raise TypeError('missing NamespacePermCtx instance argument')
 
     def _action_request_list(self, perm_ctx: NamespacePermCtx) -> List[ActionResourcesRequest]:
         """"""
-        resources = [perm_ctx.namespace_id] if perm_ctx.namespace_id else None
+        resources = [perm_ctx.cluster_ns_id] if perm_ctx.cluster_ns_id else None
         return [
             ActionResourcesRequest(
                 resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
@@ -113,4 +113,4 @@ class NamespacePermission(Permission):
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)
 
     def _get_resource_id_from_ctx(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
-        return perm_ctx.namespace_id
+        return perm_ctx.cluster_ns_id

@@ -22,7 +22,7 @@ from backend.tests.testing_utils.base import generate_random_string
 
 
 @pytest.fixture
-def namespace_id():
+def cluster_ns_id():
     return generate_random_string(32)
 
 

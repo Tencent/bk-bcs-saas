@@ -514,6 +514,7 @@ class PaaSCCConfig:
 
         # PaaSCC 系统接口地址
         self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+        self.get_cluster_by_id_url = f"{host}/clusters/{{cluster_id}}/"
         self.get_project_url = f"{host}/projects/{{project_id}}/"
         self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
@@ -541,6 +542,12 @@ class PaaSCCClient(BkApiClient):
     def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json('GET', url)
+
+    @response_handler()
+    def get_cluster_by_id(self, cluster_id: str) -> Dict:
+        """根据集群ID获取集群信息"""
+        url = self._config.get_cluster_by_id_url.format(cluster_id=cluster_id)
         return self._client.request_json('GET', url)
 
     @parse_response_data()
