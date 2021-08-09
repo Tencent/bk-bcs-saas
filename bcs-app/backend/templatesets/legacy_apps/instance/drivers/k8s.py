@@ -21,7 +21,8 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa import client as hpa_client
+from backend.resources.constants import DEFAULT_HPA_API_VERSION
+from backend.resources.hpa.client import HPA
 from backend.utils.exceptions import ComponentError, ConfigError, Rollback
 
 from .base import SchedulerBase
@@ -236,10 +237,10 @@ class Scheduler(SchedulerBase):
     def handler_k8shpa(self, ns, cluster_id, spec):
         """下发HPA配置"""
         ctx_cluster = CtxCluster.create(token=self.access_token, project_id=self.project_id, id=cluster_id)
-        client = hpa_client.HPA(ctx_cluster)
+        client = HPA(ctx_cluster)
 
         name = spec["metadata"]["name"]
-        spec['apiVersion'] = hpa_client.PREFERRED_API_VERSION
+        spec['apiVersion'] = DEFAULT_HPA_API_VERSION
 
         try:
             result = client.update_or_create(spec, name, ns)
