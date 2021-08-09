@@ -1746,6 +1746,7 @@ export default {
     '新增集群': ['Create Cluster'],
     '数据盘大小/CPU核数 > 50，申请的服务器有运管人工审批环节；如需加急，请联系{name}协助推动': ['The size of the data disk / number of CPU cores is greater than 50, and the application server has a manual approval process for operation management; if you need to expedite, please contact {name} for assistance'],
     '和集群所属区域一致': ['Consistent with the region to which the cluster belongs'],
+    '和集群所属网络类型一致': ['Consistent with the networkType of the cluster'],
     '已选择': ['Selected'],
     '资源视图': ['Dashboard'],
     '概览': ['Overview'],

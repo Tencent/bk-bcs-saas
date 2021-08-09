@@ -48,13 +48,15 @@
                         :disabled="defaultInfo.disabled">
                     </bk-selector>
                 </bk-form-item>
-                <bk-form-item property="networkKey" :label="$t('网络类型')" :required="true">
+                <bk-form-item property="networkKey" :label="$t('网络类型')" :desc="defaultInfo.netWorkDesc" :required="true">
                     <div class="bk-button-group">
                         <bcs-button
-                            :class="{ 'active': formdata.networkKey === 'overlay', 'network-btn': true }"
+                            :disabled="defaultInfo.networkKey !== 'overlay'"
+                            :class="{ 'active': formdata.networkKey === 'overlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'overlay' }"
                             @click="formdata.networkKey = 'overlay'">overlay</bcs-button>
                         <bcs-button
-                            :class="{ 'active': formdata.networkKey === 'underlay', 'network-btn': true }"
+                            :disabled="defaultInfo.networkKey !== 'underlay'"
+                            :class="{ 'active': formdata.networkKey === 'underlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'underlay' }"
                             @click="formdata.networkKey = 'underlay'">underlay</bcs-button>
                     </div>
                 </bk-form-item>
@@ -205,6 +207,7 @@
                 defaultInfo: {
                     areaDesc: '',
                     vpcDesc: '',
+                    netWorkDesc: '',
                     disabled: false
                 },
                 clusterInfo: {},
@@ -343,6 +346,7 @@
                 this.defaultInfo = {
                     areaDesc: this.$t('和集群所属区域一致'),
                     vpcDesc: this.$t('和集群所属vpc一致'),
+                    netWorkDesc: this.$t('和集群所属网络类型一致'),
                     disabled: true
                 }
             }
@@ -372,6 +376,10 @@
                         clusterId: this.clusterId
                     })
                     this.clusterInfo = res.data || {}
+                    if (this.clusterInfo.network_type && this.isBackfill) {
+                        this.formdata.networkKey = this.clusterInfo.network_type
+                        this.defaultInfo.networkKey = this.formdata.networkKey
+                    }
                 } catch (e) {
                     console.error(e)
                 }
@@ -531,12 +539,12 @@
             handleOpenApplyHost () {
                 // reset
                 this.formdata = {
+                    ...this.formdata,
                     region: '',
                     vpc_name: '',
                     disk_size: 50,
                     replicas: 1,
-                    cvm_type: '',
-                    networkKey: 'overlay'
+                    cvm_type: ''
                 }
 
                 this.hostData = {
@@ -644,6 +652,9 @@
             width: 100%;
             .network-btn {
                 width: 50%;
+            }
+            .network-zIndex {
+                z-index: 1;
             }
         }
         .form-item-inner {
