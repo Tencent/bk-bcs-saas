@@ -378,7 +378,7 @@
                     this.clusterInfo = res.data || {}
                     if (this.clusterInfo.network_type && this.isBackfill) {
                         this.formdata.networkKey = this.clusterInfo.network_type
-                        this.defaultInfo.networkKey = this.clusterInfo.network_type
+                        this.defaultInfo.networkKey = this.formdata.networkKey
                     }
                 } catch (e) {
                     console.error(e)
@@ -539,12 +539,12 @@
             handleOpenApplyHost () {
                 // reset
                 this.formdata = {
+                    ...this.formdata,
                     region: '',
                     vpc_name: '',
                     disk_size: 50,
                     replicas: 1,
-                    cvm_type: '',
-                    networkKey: 'overlay'
+                    cvm_type: ''
                 }
 
                 this.hostData = {
