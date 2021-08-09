@@ -36,7 +36,7 @@
                 :label-width="100"
                 :model="formdata"
                 :rules="rules">
-                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc" style="margin-right: 0px;">
+                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc" style="margin-right: 1px;">
                     <bk-selector :placeholder="$t('请选择地域')"
                         :selected.sync="formdata.region"
                         :list="areaList"
@@ -51,12 +51,10 @@
                 <bk-form-item property="networkKey" :label="$t('网络类型')" :required="true">
                     <div class="bk-button-group">
                         <bcs-button
-                            class="network-btn"
-                            :class="formdata.networkKey === 'overlay' ? 'active' : ''"
+                            :class="{ 'active': formdata.networkKey === 'overlay', 'network-btn': true }"
                             @click="formdata.networkKey = 'overlay'">overlay</bcs-button>
                         <bcs-button
-                            class="network-btn"
-                            :class="formdata.networkKey === 'underlay' ? 'active' : ''"
+                            :class="{ 'active': formdata.networkKey === 'underlay', 'network-btn': true }"
                             @click="formdata.networkKey = 'underlay'">underlay</bcs-button>
                     </div>
                 </bk-form-item>
