@@ -16,6 +16,7 @@ import App from '@/App'
 import router from '@/router'
 import store from '@open/store'
 import Authority from '@/directives/authority'
+import '@icon-cool/bk-icon-bk-bcs'
 
 Vue.config.devtools = NODE_ENV === 'development'
 

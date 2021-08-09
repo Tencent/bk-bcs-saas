@@ -1919,7 +1919,9 @@ export default {
     '资源定义': ['Resource definition'],
     '存在时间': ['Existence time'],
     '污点': ['Taint'],
-    '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode']
+    '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode'],
+    '自定义资源': ['CustomResource'],
+    '选择CRD': ['Select CRD']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

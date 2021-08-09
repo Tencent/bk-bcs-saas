@@ -3,7 +3,7 @@ import { json2Query } from '@open/common/util'
 import router from '@open/router'
 import store from '@open/store'
 
-const methodsWithoutData = ['delete', 'get', 'head', 'options']
+const methodsWithoutData = ['get', 'head', 'options']
 const defaultConfig = { needRes: false }
 
 export const request = (method, url) => (params = {}, config = {}) => {
@@ -26,8 +26,11 @@ export const request = (method, url) => (params = {}, config = {}) => {
     Object.keys(variableData).forEach(key => {
         if (!variableData[key]) {
             console.warn(`路由变量未配置${key}`)
+            // 去除后面的路径符号
+            newUrl = newUrl.replace(new RegExp(`\\${key}/`, 'g'), '')
+        } else {
+            newUrl = newUrl.replace(new RegExp(`\\${key}`, 'g'), variableData[key])
         }
-        newUrl = newUrl.replace(new RegExp(`\\${key}`, 'g'), variableData[key])
         delete params[key]
     })
 

@@ -97,7 +97,8 @@ const store = new Vuex.Store({
         // 功能开关
         featureFlag: {},
         // 当前一级导航路由名称
-        curNavName: ''
+        curNavName: '',
+        viewMode: ''
     },
     // 公共 getters
     getters: {
@@ -241,6 +242,9 @@ const store = new Vuex.Store({
          */
         updateCurNavName (state, data) {
             state.curNavName = data
+        },
+        updateViewMode (state, mode) {
+            state.viewMode = mode
         }
     },
     actions: {
@@ -380,7 +384,7 @@ const store = new Vuex.Store({
                         break
                     }
                     const menu = list[i]
-                    if ((menu.pathName || []).indexOf(pathName) > -1) {
+                    if ((menu.pathName || []).indexOf(pathName) > -1 || (menu.pathName || []).indexOf(kind) > -1) {
                         // clearMenuListSelected(list)
                         menu.isSelected = true
                         continueLoop = false
@@ -537,6 +541,10 @@ const store = new Vuex.Store({
                 params.cluster_feature_type = 'SINGLE'
             } else {
                 params.$clusterId = '-'
+            }
+
+            if (context.state.viewMode === 'dashboard') {
+                params.view_mode = 'ResourceDashboard'
             }
             const data = await projectFeatureFlag(params, {
                 cancelWhenRouteChange: false
