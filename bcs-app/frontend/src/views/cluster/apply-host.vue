@@ -36,7 +36,7 @@
                 :label-width="100"
                 :model="formdata"
                 :rules="rules">
-                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc">
+                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc" style="margin-right: 0px;">
                     <bk-selector :placeholder="$t('请选择地域')"
                         :selected.sync="formdata.region"
                         :list="areaList"
@@ -48,7 +48,19 @@
                         :disabled="defaultInfo.disabled">
                     </bk-selector>
                 </bk-form-item>
-                <bk-form-item ext-cls="mt0" property="vpc_name" :label="$t('所属VPC')" :required="true" :desc="defaultInfo.vpcDesc">
+                <bk-form-item property="networkKey" :label="$t('网络类型')" :required="true">
+                    <div class="bk-button-group">
+                        <bcs-button
+                            class="network-btn"
+                            :class="formdata.networkKey === 'overlay' ? 'active' : ''"
+                            @click="formdata.networkKey = 'overlay'">overlay</bcs-button>
+                        <bcs-button
+                            class="network-btn"
+                            :class="formdata.networkKey === 'underlay' ? 'active' : ''"
+                            @click="formdata.networkKey = 'underlay'">underlay</bcs-button>
+                    </div>
+                </bk-form-item>
+                <bk-form-item ext-cls="mt0" property="vpc_name" :label="$t('所属VPC')" :required="true" :desc="defaultInfo.vpcDesc" style="padding-top: 20px;">
                     <bk-selector :placeholder="$t('请选择VPC')"
                         :selected.sync="formdata.vpc_name"
                         :list="vpcList"
@@ -166,7 +178,8 @@
                     disk_size: 50,
                     replicas: 1,
                     cvm_type: '',
-                    vpc_name: ''
+                    vpc_name: '',
+                    networkKey: 'overlay'
                 },
                 rules: {
                     region: [{
@@ -300,6 +313,9 @@
             }
         },
         watch: {
+            'formdata.networkKey' (val, old) {
+                val && val !== old && this.changeNetwork()
+            },
             'formdata.cvm_type' () {
                 this.$refs.applyForm && this.$refs.applyForm.$refs.hostItem && this.$refs.applyForm.$refs.hostItem.clearError()
             },
@@ -395,6 +411,15 @@
                     this.isAreaLoading = false
                 }
             },
+
+            /**
+             * 选择网络类型
+             */
+            async changeNetwork (index, data) {
+                this.vpcList = []
+                await this.fetchVPC()
+            },
+
             async fetchVPC () {
                 if (!this.formdata.region) {
                     return
@@ -403,7 +428,8 @@
                     const res = await this.$store.dispatch('cluster/getVPC', {
                         projectId: this.projectId,
                         data: {
-                            region_name: this.formdata.region
+                            region_name: this.formdata.region,
+                            network_type: this.formdata.networkKey
                         }
                     })
                     const vpc = res.data || {}
@@ -511,7 +537,8 @@
                     vpc_name: '',
                     disk_size: 50,
                     replicas: 1,
-                    cvm_type: ''
+                    cvm_type: '',
+                    networkKey: 'overlay'
                 }
 
                 this.hostData = {
@@ -613,6 +640,12 @@
         &.has-append-item {
             .tooltips-icon {
                 right: 74px !important;
+            }
+        }
+        .bk-button-group {
+            width: 100%;
+            .network-btn {
+                width: 50%;
             }
         }
         .form-item-inner {
