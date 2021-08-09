@@ -44,7 +44,6 @@ export default function useIntervalFn (
             // 上一个接口未执行完，不执行本次轮询
             if (isPending.value) return
 
-            timer.value = null
             isPending.value = true
             // eslint-disable-next-line standard/no-callback-literal
             await cb(...args)

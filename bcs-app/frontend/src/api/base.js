@@ -10,7 +10,7 @@ export const stdLogsDownload = request('get', '/api/logs/projects/$projectId/clu
 export const stdLogsSession = request('post', '/api/logs/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/pods/$podId/stdlogs/sessions/')
 
 // dashbord
-export const dashbordList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/$type/$category/')
+export const dashbordList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/$type/$category/')// 注意：HPA类型没有子分类$category
 export const retrieveDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
 export const retrieveContainerDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/$category/$name/containers/$containerName/')
 export const podMetric = request('post', '/api/metrics/projects/$projectId/clusters/$clusterId/pods/$metric/')
@@ -24,6 +24,11 @@ export const resourceUpdate = request('put', '/api/dashboard/projects/$projectId
 export const resourceDelete = request('delete', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/$type/$category/$name/')
 export const exampleManifests = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/examples/manifests/')
 export const subscribeList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/subscribe/')
+export const customResourceList = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/') // 自定义资源和HPA列表
+export const retrieveCustomResourceDetail = request('get', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/$name/') // 自定义资源详情
+export const customResourceCreate = request('post', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/') // 自定义资源创建
+export const customResourceUpdate = request('put', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/$name/') // 自定义资源更新
+export const customResourceDelete = request('delete', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/$name/') // 自定义资源删除
 
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
@@ -63,5 +68,10 @@ export default {
     getNodeTaints,
     setNodeTaints,
     subscribeList,
-    namespaceList
+    namespaceList,
+    customResourceList,
+    retrieveCustomResourceDetail,
+    customResourceCreate,
+    customResourceUpdate,
+    customResourceDelete
 }

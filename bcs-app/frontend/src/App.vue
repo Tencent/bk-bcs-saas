@@ -225,6 +225,8 @@
                 }
 
                 this.handleSetClusterInfo(curClusterId)
+                // 获取当前视图类型
+                this.$store.commit('updateViewMode', this.$route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster')
                 // 获取菜单配置信息
                 await this.$store.dispatch('getFeatureFlag')
                 // 更新菜单

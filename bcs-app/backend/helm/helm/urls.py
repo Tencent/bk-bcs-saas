@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.conf.urls import url
 
 from . import views
@@ -41,28 +42,11 @@ urlpatterns = [
         views.RepositoryView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update'}),
         name='api.helm.helm_repositories_delete',
     ),
-    # chart
-    url(
-        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/charts/$',
-        views.ChartView.as_view({"get": "list"}),
-        name='api.helm.helm_repo_chart_list',
-    ),
-    url(
-        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
-        'charts/(?P<chart_id>[0-9]+)/$',
-        views.ChartView.as_view({'get': 'retrieve'}),
-        name='api.helm.helm_repo_chart_detail',
-    ),
     # 用户可能并不关心 chart 属于那个 repo，只是想从所有的chart中找某个chart
     url(
         r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/charts/$',
-        views.ChartView.as_view({"get": "list"}),
+        views.ChartViewSet.as_view({"get": "list"}),
         name='api.helm.helm_repo_chart_list',
-    ),
-    url(
-        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/' 'charts/(?P<chart_id>[0-9]+)/$',
-        views.ChartView.as_view({'get': 'retrieve'}),
-        name='api.helm.helm_repo_chart_detail',
     ),
     # chart version
     url(

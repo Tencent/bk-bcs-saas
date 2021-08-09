@@ -576,7 +576,7 @@
              * 弹层表格全选
              */
             toogleCheckCurPage () {
-                this.$nextTick(() => {
+                setTimeout(() => {
                     const isChecked = this.isCheckCurPageAll
                     this.candidateHostList.forEach(host => {
                         if (!host.is_used && String(host.agent) === '1') {
@@ -594,8 +594,7 @@
                 if (!hosts.length) {
                     return
                 }
-
-                this.$nextTick(() => {
+                setTimeout(() => {
                     const illegalLen = hosts.filter(host => host.is_used || String(host.agent) !== '1').length
                     const selectedHosts = hosts.filter(host =>
                         host.isChecked === true && !host.is_used && String(host.agent) === '1'

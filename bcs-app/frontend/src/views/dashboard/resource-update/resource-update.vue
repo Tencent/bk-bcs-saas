@@ -40,7 +40,8 @@
                 </div>
                 <div class="code-example" ref="exampleWrapperRef" v-if="showExample">
                     <div class="top-operate">
-                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false">
+                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false"
+                            v-if="examples.items && examples.items.length">
                             <div class="dropdown-trigger-text" slot="dropdown-trigger">
                                 <span class="title">{{ activeExample.alias }}</span>
                                 <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
@@ -56,6 +57,7 @@
                                 </li>
                             </ul>
                         </bk-dropdown-menu>
+                        <span v-else><!-- 空元素为了flex布局 --></span>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
                             <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i :class="['bcs-icon bcs-icon-help-2', { active: showHelp }]"></i></span>
@@ -65,7 +67,8 @@
                     <div class="example-desc" v-if="showDesc" ref="descWrapperRef">{{ activeExample.description }}</div>
                     <bcs-resize-layout :ext-cls="['custom-layout-cls', { 'hide-help': !showHelp }]"
                         :initial-divide="initialDivide"
-                        :disabled="!showHelp">
+                        :disabled="!showHelp"
+                        :style="{ height: fullScreen ? '100%' : 'auto' }">
                         <ResourceEditor
                             slot="aside"
                             :value="activeExample.manifest"
@@ -81,7 +84,7 @@
                             slot="main"
                             theme="dark"
                             class="references"
-                            :style="{ height: exampleEditorHeight - 2 + 'px' }"
+                            :style="{ height: fullScreen ? '100%' : exampleEditorHeight - 2 + 'px' }"
                             :code="examples.references" />
                     </bcs-resize-layout>
                 </div>
@@ -143,7 +146,7 @@
             BcsMd
         },
         props: {
-            // 命名空间（更新的时候需要，创建的时候为空）
+            // 命名空间（更新的时候需要--crd类型编辑是可能没有，创建的时候为空）
             namespace: {
                 type: String,
                 default: ''
@@ -157,8 +160,7 @@
             // 子分类，eg: deployments、ingresses
             category: {
                 type: String,
-                default: '',
-                required: true
+                default: ''
             },
             // 名称（更新的时候需要，创建的时候为空）
             name: {
@@ -168,11 +170,20 @@
             kind: {
                 type: String,
                 default: ''
+            },
+            // type 为crd时，必传
+            crd: {
+                type: String,
+                default: ''
+            },
+            defaultShowExample: {
+                type: Boolean,
+                default: false
             }
         },
         setup (props, ctx) {
             const { $i18n, $store, $bkMessage, $router, $bkInfo } = ctx.root
-            const { namespace, type, category, name, kind } = toRefs(props)
+            const { namespace, type, category, name, kind, crd, defaultShowExample } = toRefs(props)
 
             onMounted(() => {
                 document.addEventListener('keyup', handleExitFullScreen)
@@ -182,7 +193,7 @@
             })
 
             const isEdit = computed(() => { // 编辑态
-                return name.value && namespace.value
+                return name.value
             })
             const title = computed(() => { // 导航title
                 const prefix = isEdit.value ? $i18n.t('更新') : $i18n.t('创建')
@@ -196,7 +207,7 @@
             const isLoading = ref(false)
             const original = ref<any>({})
             const detail = ref<any>({})
-            const showExample = ref(!isEdit.value)
+            const showExample = ref(defaultShowExample.value)
             const fullScreen = ref(false)
             const height = ref(600)
             const editorErr = ref({
@@ -205,6 +216,12 @@
             })
             const subTitle = computed(() => { // 代码编辑器title
                 return detail.value?.metadata?.name || $i18n.t('资源定义')
+            })
+            watch(fullScreen, (value) => {
+                // 退出全屏后隐藏侧栏帮助文档（防止位置错乱）
+                if (!value) {
+                    showHelp.value = false
+                }
             })
             const disabledResourceUpdate = computed(() => { // 禁用当前更新或者创建操作
                 if (editorErr.value.message && editorErr.value.type === 'content') { // 编辑器格式错误
@@ -222,12 +239,22 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const res = await $store.dispatch('dashboard/getResourceDetail', {
-                    $namespaceId: namespace.value,
-                    $category: category.value,
-                    $name: name.value,
-                    $type: type.value
-                })
+                let res: any = null
+                if (type.value === 'crd') {
+                    res = await $store.dispatch('dashboard/retrieveCustomResourceDetail', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        $name: name.value,
+                        namespace: namespace.value
+                    })
+                } else {
+                    res = await $store.dispatch('dashboard/getResourceDetail', {
+                        $namespaceId: namespace.value,
+                        $category: category.value,
+                        $name: name.value,
+                        $type: type.value
+                    })
+                }
                 original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
                 setDetail(res.data?.manifest)
                 isLoading.value = false
@@ -321,7 +348,7 @@
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
-                    kind: kind.value
+                    kind: type.value === 'crd' ? 'CustomObject' : kind.value // crd类型的模板kind固定为CustomObject
                 })
                 activeExample.value = examples.value?.items?.[0] || {}
                 exampleLoading.value = false
@@ -363,15 +390,28 @@
                 showDiff.value = !showDiff.value
             }
             const handleCreateResource = async () => {
-                const result = await $store.dispatch('dashboard/resourceCreate', {
-                    $type: type.value,
-                    $category: category.value,
-                    manifest: detail.value
-                }).catch(err => {
-                    editorErr.value.type = 'http'
-                    editorErr.value.message = err.message
-                    return false
-                })
+                let result = false
+                if (type.value === 'crd') {
+                    result = await $store.dispatch('dashboard/customResourceCreate', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                } else {
+                    result = await $store.dispatch('dashboard/resourceCreate', {
+                        $type: type.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                }
 
                 if (result) {
                     $bkMessage({
@@ -394,17 +434,31 @@
                     subTitle: $i18n.t('将执行 Replace 操作，若多人同时编辑可能存在冲突'),
                     defaultInfo: true,
                     confirmFn: async () => {
-                        const result = await $store.dispatch('dashboard/resourceUpdate', {
-                            $namespaceId: namespace.value,
-                            $type: type.value,
-                            $category: category.value,
-                            $name: name.value,
-                            manifest: detail.value
-                        }).catch(err => {
-                            editorErr.value.type = 'http'
-                            editorErr.value.message = err.message
-                            return false
-                        })
+                        let result = false
+                        if (type.value === 'crd') {
+                            result = await $store.dispatch('dashboard/customResourceUpdate', {
+                                $crd: crd.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        } else {
+                            result = await $store.dispatch('dashboard/resourceUpdate', {
+                                $namespaceId: namespace.value,
+                                $type: type.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        }
 
                         if (result) {
                             $bkMessage({
