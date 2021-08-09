@@ -119,7 +119,7 @@
                                         <bk-tag type="filled" theme="success" class="biz-small-tag m0">{{$t('正式')}}</bk-tag>
                                     </template>
                                 </div>
-                                <p style="min-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <p>
                                     {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{row.namespace}}</span>
                                 </p>
                             </template>
