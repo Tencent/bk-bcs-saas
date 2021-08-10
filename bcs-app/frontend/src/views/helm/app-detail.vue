@@ -694,7 +694,7 @@
                 isHignPanelShow: true,
                 hignSetupMap: [], // helm部署配置高级设置
                 timeoutValue: 600,
-                hignDesc: this.$t('如果想要设置wait，则输入格式--wait = true')
+                hignDesc: this.$t('设置Flags，如设置wait，输入格式为 --wait = true')
             }
         },
         computed: {
