@@ -176,21 +176,12 @@ class BcsInfoProvider:
 
     def provide_container_env(self):
         """
-        io_tencent_bcs_app_appid    # 项目对应的cc业务ID，request.project.cc_app_id
-        io_tencent_bcs_cluster      # 集群ID
         io_tencent_bcs_namespace    # 命名空间
-        io_tencent_bkdata_baseall_dataid           # 基础性能采集，数据平台统一给的固定值:6566
-        io_tencent_bkdata_container_stdlog_dataid  # 标准日志采集dataid
-
-        io_tencent_bcs_controller_type  # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet
-        io_tencent_bcs_controller_name  # 应用名称, metadata.name 中的值
         io_tencent_bcs_custom_labels    # 附加日志数据，如：'{"set": "set1", "module": "m1"}'
         """
         data = [
-            {
-                "name": "io_tencent_bcs_custom_labels",
-                "value": get_custom_labels,
-            },
+            {"name": "io_tencent_bcs_namespace", "value": self.namespace},
+            {"name": "io_tencent_bcs_custom_labels", "value": get_custom_labels},
         ]
 
         return data

@@ -88,6 +88,9 @@ spec:
       #@overlay/match by=overlay.all,expects="0+"
       #@overlay/match-child-defaults expects="0+"
       - env:
+        #@overlay/append
+        - name: "io_tencent_bcs_namespace"
+          value: #@ namespace
         #@overlay/match by="name",expects="0+"
         #@overlay/merge
         - name: "io_tencent_bcs_custom_labels"
