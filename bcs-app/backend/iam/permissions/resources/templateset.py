@@ -52,13 +52,13 @@ class related_templateset_perm(decorators.RelatedPermission):
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
         if len(args) <= 0:
-            raise TypeError('missing TemplateSetPermCtx instance a rgument')
+            raise TypeError('missing TemplatesetPermCtx instance a rgument')
         if isinstance(args[0], PermCtx):
             return TemplatesetPermCtx(
                 username=args[0].username, project_id=args[0].project_id, template_id=args[0].template_id
             )
         else:
-            raise TypeError('missing TemplateSetPermCtx instance argument')
+            raise TypeError('missing TemplatesetPermCtx instance argument')
 
     def _action_request_list(self, perm_ctx: TemplatesetPermCtx) -> List[ActionResourcesRequest]:
         """"""

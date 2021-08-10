@@ -25,14 +25,14 @@ from backend.iam.permissions.resources.templateset import (
     templateset_perm,
 )
 
-from ..fake_iam import FakeProjectPermission, FakeTemplateSetPermission
+from ..fake_iam import FakeProjectPermission, FakeTemplatesetPermission
 from . import roles
 from .conftest import generate_apply_url
 
 
 @pytest.fixture
 def templateset_permission_obj():
-    templateset_patcher = mock.patch.object(TemplatesetPermission, '__bases__', (FakeTemplateSetPermission,))
+    templateset_patcher = mock.patch.object(TemplatesetPermission, '__bases__', (FakeTemplatesetPermission,))
     project_patcher = mock.patch.object(ProjectPermission, '__bases__', (FakeProjectPermission,))
     with templateset_patcher, project_patcher:
         templateset_patcher.is_local = True  # 标注为本地属性，__exit__ 的时候恢复成 patcher.temp_original
@@ -40,7 +40,7 @@ def templateset_permission_obj():
         yield TemplatesetPermission()
 
 
-class TestTemplateSetPermission:
+class TestTemplatesetPermission:
     """
     模板集资源权限
     note: 仅测试 templateset_create 和 templateset_view 两种代表性的权限，其他操作权限逻辑重复
@@ -167,7 +167,7 @@ def instantiate_templateset(perm_ctx: TemplatesetPermCtx):
     """"""
 
 
-class TestTemplateSetPermDecorator:
+class TestTemplatesetPermDecorator:
     def test_can_instantiate(self, templateset_permission_obj, project_id, template_id):
         perm_ctx = TemplatesetPermCtx(username=roles.ADMIN_USER, project_id=project_id, template_id=template_id)
         instantiate_templateset(perm_ctx)

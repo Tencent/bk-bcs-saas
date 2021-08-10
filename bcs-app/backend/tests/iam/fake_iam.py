@@ -79,7 +79,7 @@ class FakeNamespacePermission(Permission):
     iam = FakeNamespaceIAM()
 
 
-class FakeTemplateSetIAM:
+class FakeTemplatesetIAM:
     def __init__(self, *args, **kwargs):
         """"""
 
@@ -97,5 +97,5 @@ class FakeTemplateSetIAM:
         return self.is_allowed(request)
 
 
-class FakeTemplateSetPermission(Permission):
-    iam = FakeTemplateSetIAM()
+class FakeTemplatesetPermission(Permission):
+    iam = FakeTemplatesetIAM()
