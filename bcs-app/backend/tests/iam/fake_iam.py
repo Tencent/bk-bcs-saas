@@ -77,3 +77,25 @@ class FakeNamespaceIAM:
 
 class FakeNamespacePermission(Permission):
     iam = FakeNamespaceIAM()
+
+
+class FakeTemplatesetIAM:
+    def __init__(self, *args, **kwargs):
+        """"""
+
+    def is_allowed(self, request: Request) -> bool:
+        if request.subject.id in [
+            roles.ADMIN_USER,
+            roles.TEMPLATESET_USER,
+            roles.PROJECT_TEMPLATESET_USER,
+            roles.TEMPLATESET_NO_PROJECT_USER,
+        ]:
+            return True
+        return False
+
+    def is_allowed_with_cache(self, request: Request) -> bool:
+        return self.is_allowed(request)
+
+
+class FakeTemplatesetPermission(Permission):
+    iam = FakeTemplatesetIAM()

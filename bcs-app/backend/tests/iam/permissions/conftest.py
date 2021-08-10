@@ -26,6 +26,12 @@ def namespace_id():
     return generate_random_string(32)
 
 
+@pytest.fixture
+def template_id():
+    """生成一个随机模板集 ID"""
+    return generate_random_string(32)
+
+
 def generate_apply_url(username: str, action_request_list: List[ActionResourcesRequest]) -> List[str]:
     expect = []
     for req in action_request_list:
