@@ -346,7 +346,7 @@
                 this.defaultInfo = {
                     areaDesc: this.$t('和集群所属区域一致'),
                     vpcDesc: this.$t('和集群所属vpc一致'),
-                    netWorkDesc: this.$t('和集群所属网络类型一致'),
+                    netWorkDesc: this.$t('和集群网络类型一致'),
                     disabled: true
                 }
             }
