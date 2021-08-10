@@ -245,6 +245,9 @@
                                     <!-- 高级选项 -->
                                     <button class="bk-text-button f12 mb10 pl0 mt10" @click.stop.prevent="toggleHign">
                                         {{$t('高级设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
+                                        <i style="font-size: 12px; cursor: pointer;"
+                                            class="bcs-icon bcs-icon-info-circle ml5"
+                                            v-bk-tooltips.top="hignDesc" />
                                     </button>
                                     <div v-show="isHignPanelShow">
                                         <div class="biz-key-value-wrapper mb10">
@@ -502,7 +505,8 @@
                         key: '',
                         value: ''
                     }
-                ]
+                ],
+                hignDesc: this.$t('如果想要设置wait，则输入格式--wait = true')
             }
         },
         computed: {

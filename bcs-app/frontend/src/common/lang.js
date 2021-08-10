@@ -1922,7 +1922,8 @@ export default {
     '污点': ['Taint'],
     '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode'],
     '自定义资源': ['CustomResource'],
-    '选择CRD': ['Select CRD']
+    '选择CRD': ['Select CRD'],
+    '如果想要设置wait，则输入格式--wait = true': ['If you want to set wait, enter the format --wait = true']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
