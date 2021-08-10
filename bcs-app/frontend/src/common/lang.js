@@ -1912,7 +1912,7 @@ export default {
     '忽略CRD': ['Ignore the CRD'],
     '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character'],
     '内容未变更或格式错误': ['The content has not changed or the format is wrong'],
-    '确认退出当前编辑状态': ['Confirm to exit the current editing state'],
+    '确认退出当前编辑状态': ['Confirm to exit the editing state'],
     '退出后，你修改的内容将丢失': ['After you log out, your modified content will be lost'],
     '上传（仅支持YAML格式）': ['Upload (only YAML format is supported'],
     '放大': ['enlarge'],
@@ -1923,7 +1923,22 @@ export default {
     '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode'],
     '自定义资源': ['CustomResource'],
     '选择CRD': ['Select CRD'],
-    '设置Flags，如设置wait，输入格式为 --wait = true': ['If you want to set wait, enter the format --wait = true']
+    '设置Flags，如设置wait，输入格式为 --wait = true': ['If you want to set wait, enter the format --wait = true'],
+    '确认删除当前资源': ['Confirm to delete the resource'],
+    '下一步': ['Next'],
+    '显示差异': ['Diff'],
+    '继续编辑': ['Edit'],
+    '状态（Conditions）': ['Status(Conditions)'],
+    '类别': ['Type'],
+    '最后迁移时间': ['LastTransitionTime'],
+    '原因': ['reason'],
+    '消息': ['message'],
+    '主机IP': ['Host IP'],
+    '容器IP': ['Container IP'],
+    '容器ID': ['Container ID'],
+    '确认重置当前编辑状态': ['Confirm to reset the editing state'],
+    '重置后，你修改的内容将丢失': ['After resetting, your modified content will be lost'],
+    '缩小': ['Zoom out']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

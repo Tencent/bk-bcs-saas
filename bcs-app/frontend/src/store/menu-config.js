@@ -137,7 +137,7 @@ export default function menuConfig () {
                         pathName: ['dashboardStoragePersistentVolumes', 'PersistentVolume']
                     },
                     {
-                        name: 'PersistentVolumesClaims',
+                        name: 'PersistentVolumeClaims',
                         pathName: ['dashboardStoragePersistentVolumesClaims', 'PersistentVolumeClaim']
                     },
                     {
