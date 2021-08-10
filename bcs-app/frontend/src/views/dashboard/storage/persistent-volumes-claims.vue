@@ -1,6 +1,6 @@
 <template>
-    <BaseLayout title="PersistentVolumeClaims" kind="PersistentVolumeClaim" category="persistent_volume_claims" type="storages" :show-create="false">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange }">
+    <BaseLayout title="PersistentVolumeClaims" kind="PersistentVolumeClaim" category="persistent_volume_claims" type="storages">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange, handleUpdateResource, handleDeleteResource }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
@@ -44,12 +44,12 @@
                         <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
                     </template>
                 </bk-table-column>
-                <!-- <bk-table-column :label="$t('操作')" :resizable="false" width="150">
+                <bk-table-column :label="$t('操作')" :resizable="false" width="150">
                     <template #default="{ row }">
                         <bk-button text @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
                         <bk-button class="ml10" text @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
                     </template>
-                </bk-table-column> -->
+                </bk-table-column>
             </bk-table>
         </template>
     </BaseLayout>
