@@ -273,7 +273,7 @@ class ResourceClient:
         :param formatter: 指定的格式化器（自定义资源用）
         :return: 指定资源 watch 结果
         """
-        formatter = formatter if formatter else self.formatter
+        formatter = formatter or self.formatter
         return [
             {
                 'kind': r['object'].kind,
