@@ -51,11 +51,11 @@
                 <bk-form-item property="networkKey" :label="$t('网络类型')" :desc="defaultInfo.netWorkDesc" :required="true">
                     <div class="bk-button-group">
                         <bcs-button
-                            :disabled="defaultInfo.networkKey !== 'overlay'"
+                            :disabled="defaultInfo.networkKey && defaultInfo.networkKey !== 'overlay'"
                             :class="{ 'active': formdata.networkKey === 'overlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'overlay' }"
                             @click="formdata.networkKey = 'overlay'">overlay</bcs-button>
                         <bcs-button
-                            :disabled="defaultInfo.networkKey !== 'underlay'"
+                            :disabled="defaultInfo.networkKey && defaultInfo.networkKey !== 'underlay'"
                             :class="{ 'active': formdata.networkKey === 'underlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'underlay' }"
                             @click="formdata.networkKey = 'underlay'">underlay</bcs-button>
                     </div>

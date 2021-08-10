@@ -55,7 +55,7 @@
 
                 <div class="biz-namespace" style="padding-bottom: 100px;" v-bkloading="{ isLoading: isPageLoading }">
                     <bk-table
-                        :data="appList"
+                        :data="curPageData"
                         size="small"
                         :pagination="pagination"
                         @page-change="handlePageChange"
@@ -74,30 +74,30 @@
                                     <a @click="showAppDetail(row)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else>
                                         {{ row.name }}
                                     </a>
-                                    <template v-if="row.transitioning_on">
-                                        <bk-tag theme="warning mt5" style="margin-left: -5px;">
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
-                                                <div class="rotate rotate1"></div>
-                                                <div class="rotate rotate2"></div>
-                                                <div class="rotate rotate3"></div>
-                                                <div class="rotate rotate4"></div>
-                                                <div class="rotate rotate5"></div>
-                                                <div class="rotate rotate6"></div>
-                                                <div class="rotate rotate7"></div>
-                                                <div class="rotate rotate8"></div>
-                                            </div>
-                                            {{appAction[row.transitioning_action]}}中...
-                                        </bk-tag>
-                                    </template>
-                                    <template v-else-if="!row.transitioning_result && row.transitioning_action !== 'noop'">
-                                        <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
-                                            <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(row)">
-                                                <i class="bcs-icon bcs-icon-order"></i>
-                                                {{appAction[row.transitioning_action]}}{{$t('失败')}}
-                                            </bk-tag>
-                                        </bcs-popover>
-                                    </template>
                                 </div>
+                                <template v-if="row.transitioning_on">
+                                    <bk-tag theme="warning mt5" style="margin-left: -5px;">
+                                        <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
+                                            <div class="rotate rotate1"></div>
+                                            <div class="rotate rotate2"></div>
+                                            <div class="rotate rotate3"></div>
+                                            <div class="rotate rotate4"></div>
+                                            <div class="rotate rotate5"></div>
+                                            <div class="rotate rotate6"></div>
+                                            <div class="rotate rotate7"></div>
+                                            <div class="rotate rotate8"></div>
+                                        </div>
+                                        {{appAction[row.transitioning_action]}}中...
+                                    </bk-tag>
+                                </template>
+                                <template v-else-if="!row.transitioning_result && row.transitioning_action !== 'noop'">
+                                    <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
+                                        <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(row)">
+                                            <i class="bcs-icon bcs-icon-order"></i>
+                                            {{appAction[row.transitioning_action]}}{{$t('失败')}}
+                                        </bk-tag>
+                                    </bcs-popover>
+                                </template>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('Chart')" prop="source" min-width="160">
@@ -962,6 +962,8 @@
                     this.searchScope = data.params.cluster_id
                     this.pagination.count = res.data.results.length
                     this.appList = res.data.results
+                    this.curPageData = this.getDataByPage(this.pagination.current)
+                    
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
 
                     this.getAppsStatus()
@@ -1312,6 +1314,9 @@
              * @param {number} pageSize pageSize
              */
             handlePageLimitChange (pageSize) {
+                this.appList.forEach(item => {
+                    item.isChecked = false
+                })
                 this.pagination.limit = pageSize
                 this.pagination.current = 1
                 this.handlePageChange(this.pagination.current)
@@ -1323,8 +1328,31 @@
              * @param {number} page 当前页
              */
             handlePageChange (page) {
+                this.isCheckAll = false
                 this.pagination.current = page
-                this.getAppList()
+                this.curPageData = this.getDataByPage(page)
+            },
+
+            /**
+             * 获取分页数据
+             * @param  {number} page 第几页
+             * @return {object} data 数据
+             */
+            getDataByPage (page) {
+                let startIndex = (page - 1) * this.pagination.limit
+                let endIndex = page * this.pagination.limit
+                this.isPageLoading = true
+                if (startIndex < 0) {
+                    startIndex = 0
+                }
+                if (endIndex > this.appList.length) {
+                    endIndex = this.appList.length
+                }
+                setTimeout(() => {
+                    this.isPageLoading = false
+                }, 200)
+                this.selectLists = []
+                return this.appList.slice(startIndex, endIndex)
             },
 
             /**
@@ -1340,9 +1368,9 @@
              * @param {Object} row 当前对象
              */
             checkApp (row) {
-                const selectedAppList = this.appList.filter(item => item.isChecked === true)
-                this.selectLists = selectedAppList
-                this.isCheckAll = selectedAppList.length === this.appList.length
+                this.selectLists = this.curPageData.filter(item => item.isChecked === true)
+                console.log(this.selectLists)
+                this.isCheckAll = this.selectLists.length === this.curPageData.length
             },
 
             /**
@@ -1350,10 +1378,10 @@
              */
             checkAllApp (value) {
                 const isChecked = value
-                this.appList.forEach(item => {
+                this.curPageData.forEach(item => {
                     this.$set(item, 'isChecked', isChecked)
                 })
-                this.selectLists = isChecked ? this.appList : []
+                this.selectLists = isChecked ? this.curPageData : []
             }
         }
     }
