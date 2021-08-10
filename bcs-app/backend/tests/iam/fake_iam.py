@@ -86,9 +86,9 @@ class FakeTemplateSetIAM:
     def is_allowed(self, request: Request) -> bool:
         if request.subject.id in [
             roles.ADMIN_USER,
-            roles.TEMPLATE_SET_USER,
-            roles.PROJECT_TEMPLATE_SET_USER,
-            roles.TEMPLATE_SET_NO_PROJECT_USER,
+            roles.TEMPLATESET_USER,
+            roles.PROJECT_TEMPLATESET_USER,
+            roles.TEMPLATESET_NO_PROJECT_USER,
         ]:
             return True
         return False
