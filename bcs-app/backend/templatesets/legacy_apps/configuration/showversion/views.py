@@ -196,7 +196,9 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             show_version = models.ShowVersion.objects.get(template_id=template.id, id=show_version_id)
             version_name = show_version.name
             show_version.delete()
-            audit_ctx_kwargs.update({'extra': show_version_id, 'description': _("删除版本[{}]").format(version_name)})
+            audit_ctx_kwargs.update(
+                {'extra': {'show_version_id': show_version_id}, 'description': _("删除版本[{}]").format(version_name)}
+            )
 
         self.audit_ctx.update_fields(**audit_ctx_kwargs)
 
