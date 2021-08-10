@@ -36,10 +36,12 @@ class ResourceProvider:
         return handler(data, **options)
 
     def list_attr(self, data: Dict, **options) -> List[Dict]:
+        """查询某个资源类型可用于配置权限的属性列表"""
         result = self.resource_provider.list_attr(**options)
         return result.to_list()
 
     def list_attr_value(self, data: Dict, **options) -> Dict:
+        """获取一个资源类型某个属性的值列表"""
         filter_obj, page_obj = self._parse_filter_and_page(data)
         result = self.resource_provider.list_attr_value(filter_obj, page_obj, **options)
         return result.to_dict()
@@ -57,6 +59,7 @@ class ResourceProvider:
         return result.to_list()
 
     def list_instance_by_policy(self, data: Dict, **options) -> List[Dict]:
+        """根据策略表达式查询资源实例"""
         filter_obj, page_obj = self._parse_filter_and_page(data)
         result = self.resource_provider.list_instance_by_policy(filter_obj, page_obj, **options)
         return result.to_list()

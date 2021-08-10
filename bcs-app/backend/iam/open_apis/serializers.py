@@ -18,5 +18,5 @@ from .constants import MethodChoices, ResourceType
 class QueryResourceSLZ(serializers.Serializer):
     method = serializers.ChoiceField(choices=MethodChoices.get_choices())
     type = serializers.ChoiceField(choices=ResourceType.get_choices())
-    filter = serializers.JSONField(default={})
-    page = serializers.JSONField(default={})
+    filter = serializers.JSONField(default=dict)
+    page = serializers.JSONField(default=dict)
