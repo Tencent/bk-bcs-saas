@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from iam.collection import FancyDict
 from iam.resource.utils import Page, get_filter_obj, get_page_obj
@@ -36,8 +36,11 @@ class ResourceProvider:
         handler = getattr(self, method)
         return handler(data, **options)
 
-    def list_attr(self, data: Dict, **options) -> List[Dict]:
-        """查询某个资源类型可用于配置权限的属性列表"""
+    def list_attr(self, data: Optional[Dict] = None, **options) -> List[Dict]:
+        """
+        查询某个资源类型可用于配置权限的属性列表
+        :param data: 占位字段，为了上面provide方法的处理统一
+        """
         result = self.resource_provider.list_attr(**options)
         return result.to_list()
 
