@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import copy
-from typing import Dict
+from typing import Dict, Optional
 
 from .data import paas_cc_json
 
@@ -24,6 +24,17 @@ class FakePaaSCCMod:
         resp_get_project_ok = dict(paas_cc_json.resp_get_project_ok)
         resp_get_project_ok['data']['project_id'] = project_id
         return self._resp(resp_get_project_ok)
+
+    def get_projects(self, access_token: str, query_params: Optional[Dict]) -> Dict:
+        resp = self._resp(paas_cc_json.resp_filter_projects_ok)
+
+        if not query_params:
+            return resp
+
+        project_id_list = query_params['project_ids'].split(',')
+        resp['data']['results'][0]['project_id'] = project_id_list[0]
+
+        return resp
 
     def get_all_clusters(self, access_token, project_id, limit=None, offset=None, desire_all_data=0):
         resp = self._resp(paas_cc_json.resp_get_clusters_ok)

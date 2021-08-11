@@ -39,7 +39,7 @@ urlpatterns = [
         include("backend.templatesets.open_apis.template_urls"),
     ),
     # 提供给iam拉取资源实例的url(已注册到iam后台)
-    url(r"^iam/", include("backend.bcs_web.iam.open_apis.urls")),
+    url(r"^iam/", include("backend.iam.open_apis.urls")),
     # metrics接口
     url(
         r"^metrics/projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w-]+)/",
