@@ -14,7 +14,7 @@ from iam.collection import FancyDict
 from iam.resource.provider import ListResult, ResourceProvider
 from iam.resource.utils import Page
 
-from backend.container_service.projects.base import filter_projects
+from backend.container_service.projects.base import list_projects
 
 from .utils import get_system_token
 
@@ -23,14 +23,14 @@ class ProjectProvider(ResourceProvider):
     """项目资源的 Provider"""
 
     def list_instance(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
-        projects = filter_projects(get_system_token())
+        projects = list_projects(get_system_token())
         projects_slice = projects[page_obj.slice_from : page_obj.slice_to]
         results = [{'id': p['project_id'], 'display_name': p['project_name']} for p in projects_slice]
         return ListResult(results=results, count=len(projects))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         query_params = {'project_ids': ','.join(filter_obj.ids)} if filter_obj.ids else None
-        projects = filter_projects(get_system_token(), query_params)
+        projects = list_projects(get_system_token(), query_params)
         results = [{'id': p['project_id'], 'display_name': p['project_name']} for p in projects]
         return ListResult(results=results, count=len(results))
 

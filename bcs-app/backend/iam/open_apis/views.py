@@ -41,5 +41,5 @@ class ResourceAPIView(APIView):
 
         validated_data = serializer.validated_data
         provider = ResourceProvider(resource_type=validated_data["type"])
-        resp = provider.provide(validated_data, **self._get_options(request))
+        resp = provider.provide(method=validated_data['method'], data=validated_data, **self._get_options(request))
         return Response(resp)

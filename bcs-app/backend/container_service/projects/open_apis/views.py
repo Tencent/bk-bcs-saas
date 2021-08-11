@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.apis.authentication import JWTAuthentication
 from backend.bcs_web.apis.permissions import AccessTokenPermission
-from backend.container_service.projects.base import filter_projects
+from backend.container_service.projects.base import list_projects
 from backend.container_service.projects.views import NavProjectPermissionViewSet
 from backend.utils.renderers import BKAPIRenderer
 
@@ -26,5 +26,5 @@ class ProjectsViewSet(NavProjectPermissionViewSet):
     permission_classes = (AccessTokenPermission,)
 
     def list_projects(self, request):
-        projects = filter_projects(request.user.token.access_token)
+        projects = list_projects(request.user.token.access_token)
         return Response(projects)

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 from backend.packages.blue_krill.data_types.enum import StructuredEnum
 
 
-class MethodChoices(str, StructuredEnum):
+class MethodType(str, StructuredEnum):
     """
     权限中心拉取资源的 method 参数值
     字段协议说明 https://bk.tencent.com/docs/document/6.0/160/8427?r=1

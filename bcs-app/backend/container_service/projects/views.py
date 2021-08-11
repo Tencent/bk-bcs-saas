@@ -254,11 +254,11 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
         access_token = request.user.token.access_token
 
         if project_code:
-            projects = Project.filter_projects(access_token, {"english_names": project_code})
+            projects = Project.list_projects(access_token, {"english_names": project_code})
         elif project_name:
-            projects = Project.filter_projects(access_token, {"project_names": project_name})
+            projects = Project.list_projects(access_token, {"project_names": project_name})
         else:
-            projects = Project.filter_projects(access_token)
+            projects = Project.list_projects(access_token)
 
         if not projects:
             return Response(projects)

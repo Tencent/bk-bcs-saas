@@ -12,11 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import serializers
 
-from .constants import MethodChoices, ResourceType
+from .constants import MethodType, ResourceType
 
 
 class QueryResourceSLZ(serializers.Serializer):
-    method = serializers.ChoiceField(choices=MethodChoices.get_choices())
+    method = serializers.ChoiceField(choices=MethodType.get_choices())
     type = serializers.ChoiceField(choices=ResourceType.get_choices())
     filter = serializers.JSONField(default=dict)
     page = serializers.JSONField(default=dict)

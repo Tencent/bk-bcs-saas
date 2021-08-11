@@ -25,7 +25,7 @@ def query_projects(access_token, query_params=None):
     return paas_cc.get_projects(access_token, query_params)
 
 
-def filter_projects(access_token, query_params=None):
+def list_projects(access_token, query_params=None):
     data = query_projects(access_token, query_params)
     projects = data.get("results") or []
     # 为了兼容导航的参数要求, 增加了project_code字段

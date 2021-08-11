@@ -27,12 +27,13 @@ class ResourceProvider:
         """:param resource_type: 资源类型 如 project, cluster 等"""
         self.resource_provider = PROVIDER_CLS_MAP[resource_type]()
 
-    def provide(self, data: Dict, **options) -> Union[List, Dict]:
+    def provide(self, method: str, data: Dict, **options) -> Union[List, Dict]:
         """
         根据 method 值, 调用对应的方法返回数据
-        method 包括 list_attr, list_attr_value, list_instance 等
+        :param method: 值包括 list_attr, list_attr_value, list_instance 等
+        :param data: 其他查询条件数据，如分页数据等
         """
-        handler = getattr(self, data["method"])
+        handler = getattr(self, method)
         return handler(data, **options)
 
     def list_attr(self, data: Dict, **options) -> List[Dict]:
