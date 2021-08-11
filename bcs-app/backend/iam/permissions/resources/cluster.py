@@ -14,14 +14,14 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type
 
+from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
-from backend.iam.permissions.resources.project import related_project_perm
+from backend.iam.permissions.request import ActionResourcesRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from .. import decorators
-from ..request import ActionResourcesRequest
+from .project import ProjectPermission, related_project_perm
 
-ResourceType = 'cluster'
+ClusterType = 'cluster'
 
 
 class ClusterAction(str, StructuredEnum):
@@ -38,7 +38,7 @@ class ClusterPermCtx(PermCtx):
 
 
 class ClusterRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = ClusterType
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -48,7 +48,7 @@ class ClusterRequest(ResourceRequest):
 
 class related_cluster_perm(decorators.RelatedPermission):
 
-    module_name: str = ResourceType
+    module_name: str = ClusterType
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -72,14 +72,15 @@ class related_cluster_perm(decorators.RelatedPermission):
 
 
 class cluster_perm(decorators.Permission):
-    module_name: str = ResourceType
+    module_name: str = ClusterType
 
 
 class ClusterPermission(Permission):
     """集群权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = ClusterType
     resource_request_cls: Type[ResourceRequest] = ClusterRequest
+    parent_perm_obj = ProjectPermission()
 
     @related_project_perm(method_name='can_view')
     def can_create(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
@@ -97,8 +98,11 @@ class ClusterPermission(Permission):
     def can_delete(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, ClusterAction.DELETE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
+    def make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
         return perm_ctx.cluster_id
+
+    def _get_parent_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+        return perm_ctx.project_id

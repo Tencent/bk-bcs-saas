@@ -45,6 +45,24 @@ class TestClusterPermission:
         perm_ctx = ClusterPermCtx(username=roles.ADMIN_USER, project_id=project_id)
         assert cluster_permission_obj.can_create(perm_ctx)
 
+    def test_can_not_create(self, cluster_permission_obj, project_id, cluster_id):
+        perm_ctx = ClusterPermCtx(username=roles.ANONYMOUS_USER, project_id=project_id)
+        with pytest.raises(PermissionDeniedError) as exec:
+            cluster_permission_obj.can_create(perm_ctx)
+        assert exec.value.data['apply_url'] == generate_apply_url(
+            roles.ANONYMOUS_USER,
+            [
+                ActionResourcesRequest(
+                    resource_type=ProjectPermission.resource_type,
+                    action_id=ClusterAction.CREATE,
+                    resources=[project_id],
+                ),
+                ActionResourcesRequest(
+                    resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
+                ),
+            ],
+        )
+
     def test_can_view(self, cluster_permission_obj, project_id, cluster_id):
         perm_ctx = ClusterPermCtx(username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id)
         assert cluster_permission_obj.can_view(perm_ctx)
@@ -82,7 +100,9 @@ class TestClusterPermission:
             cluster_id,
             expected_action_list=[
                 ActionResourcesRequest(
-                    resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
+                    resource_type=ProjectPermission.resource_type,
+                    action_id=ProjectAction.VIEW,
+                    resources=[project_id],
                 )
             ],
         )
@@ -101,7 +121,9 @@ class TestClusterPermission:
                     resources=[cluster_id],
                 ),
                 ActionResourcesRequest(
-                    resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
+                    resource_type=ProjectPermission.resource_type,
+                    action_id=ProjectAction.VIEW,
+                    resources=[project_id],
                 ),
             ],
         )

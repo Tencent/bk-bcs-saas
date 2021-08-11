@@ -18,7 +18,7 @@ from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import ActionResourcesRequest, PermCtx, Permission, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-ResourceType = 'project'
+ProjectType = 'project'
 
 
 class ProjectAction(str, StructuredEnum):
@@ -28,7 +28,7 @@ class ProjectAction(str, StructuredEnum):
 
 
 class ProjectRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = ProjectType
 
 
 @dataclass
@@ -39,7 +39,7 @@ class ProjectPermCtx(PermCtx):
 class ProjectPermission(Permission):
     """项目权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = ProjectType
     resource_request_cls: Type[ResourceRequest] = ProjectRequest
 
     def can_create(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
@@ -51,13 +51,16 @@ class ProjectPermission(Permission):
     def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
         return perm_ctx.project_id
+
+    def _get_parent_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
+        return None
 
 
 class related_project_perm(decorators.RelatedPermission):
 
-    module_name: str = ResourceType
+    module_name: str = ProjectType
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""

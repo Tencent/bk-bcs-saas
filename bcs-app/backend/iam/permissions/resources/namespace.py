@@ -14,15 +14,14 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type
 
-from backend.iam.permissions.perm import PermCtx
+from backend.iam.permissions import decorators
+from backend.iam.permissions.perm import PermCtx, Permission
+from backend.iam.permissions.request import ActionResourcesRequest, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from .. import decorators
-from ..perm import Permission
-from ..request import ActionResourcesRequest, ResourceRequest
-from .cluster import related_cluster_perm
+from .cluster import ClusterPermission, related_cluster_perm
 
-ResourceType = 'namespace'
+NamespaceType = 'namespace'
 
 
 class NamespaceAction(str, StructuredEnum):
@@ -41,7 +40,7 @@ class NamespacePermCtx(PermCtx):
 
 
 class NamespaceRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = NamespaceType
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/cluster,{{cluster_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -53,7 +52,7 @@ class NamespaceRequest(ResourceRequest):
 
 class related_namespace_perm(decorators.RelatedPermission):
 
-    module_name: str = ResourceType
+    module_name: str = NamespaceType
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -80,14 +79,15 @@ class related_namespace_perm(decorators.RelatedPermission):
 
 
 class namespace_perm(decorators.Permission):
-    module_name: str = ResourceType
+    module_name: str = NamespaceType
 
 
 class NamespacePermission(Permission):
     """命名空间权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = NamespaceType
     resource_request_cls: Type[ResourceRequest] = NamespaceRequest
+    parent_perm_obj = ClusterPermission()
 
     @related_cluster_perm(method_name='can_view')
     def can_create(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
@@ -109,8 +109,11 @@ class NamespacePermission(Permission):
     def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
+    def make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
         return perm_ctx.cluster_ns_id
+
+    def _get_parent_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+        return perm_ctx.cluster_id

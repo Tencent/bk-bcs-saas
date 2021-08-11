@@ -38,7 +38,7 @@ def generate_apply_url(username: str, action_request_list: List[ActionResourcesR
         suffix = ''
         if req.resources:
             suffix = ''.join(req.resources)
-        expect.append(f'{req.resource_type}{req.action_id}{suffix}')
+        expect.append(f'{req.resource_type}:{req.action_id}:{suffix}')
 
     return expect
 
