@@ -12,11 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
-from backend.iam.permissions.request import ActionResourcesRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 from .project import ProjectPermission, related_project_perm
@@ -61,15 +60,6 @@ class related_cluster_perm(decorators.RelatedPermission):
         else:
             raise TypeError('missing ClusterPermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: ClusterPermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.cluster_id] if perm_ctx.cluster_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]
-
 
 class cluster_perm(decorators.Permission):
     module_name: str = ClusterType
@@ -80,7 +70,7 @@ class ClusterPermission(Permission):
 
     resource_type: str = ClusterType
     resource_request_cls: Type[ResourceRequest] = ClusterRequest
-    parent_perm_obj = ProjectPermission()
+    parent_res_perm = ProjectPermission()
 
     @related_project_perm(method_name='can_view')
     def can_create(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:

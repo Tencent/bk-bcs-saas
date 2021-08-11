@@ -99,10 +99,6 @@ class RelatedPermission(metaclass=ABCMeta):
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """将被装饰的方法中的 perm_ctx 转换成 perm_obj.method_name 需要的 perm_ctx"""
 
-    @abstractmethod
-    def _action_request_list(self, perm_ctx: PermCtx) -> List[ActionResourcesRequest]:
-        """从 perm_ctx 中解析生成 action_request_list"""
-
     @property
     def action_id(self) -> str:
         return f'{self.perm_obj.resource_type}_{self.method_name[4:]}'

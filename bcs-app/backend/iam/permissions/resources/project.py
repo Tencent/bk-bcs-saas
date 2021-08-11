@@ -12,10 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import List, Optional, Type
+from typing import Optional, Type
 
 from backend.iam.permissions import decorators
-from backend.iam.permissions.perm import ActionResourcesRequest, PermCtx, Permission, ResourceRequest
+from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 ProjectType = 'project'
@@ -70,12 +70,3 @@ class related_project_perm(decorators.RelatedPermission):
             return ProjectPermCtx(username=args[0].username, project_id=args[0].project_id)
         else:
             raise TypeError('missing ProjectPermCtx instance argument')
-
-    def _action_request_list(self, perm_ctx: ProjectPermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.project_id] if perm_ctx.project_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]

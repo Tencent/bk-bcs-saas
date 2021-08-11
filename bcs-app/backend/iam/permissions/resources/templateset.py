@@ -12,11 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission
-from backend.iam.permissions.request import ActionResourcesRequest, ResourceRequest
+from backend.iam.permissions.request import ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 from .project import ProjectPermission, related_project_perm
@@ -61,15 +61,6 @@ class related_templateset_perm(decorators.RelatedPermission):
         else:
             raise TypeError('missing TemplatesetPermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: TemplatesetPermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.template_id] if perm_ctx.template_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]
-
 
 class templateset_perm(decorators.Permission):
     module_name: str = TemplatesetType
@@ -80,7 +71,7 @@ class TemplatesetPermission(Permission):
 
     resource_type: str = TemplatesetType
     resource_request_cls: Type[ResourceRequest] = TemplatesetRequest
-    parent_perm_obj = ProjectPermission()
+    parent_res_perm = ProjectPermission()
 
     @related_project_perm(method_name="can_view")
     def can_create(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:

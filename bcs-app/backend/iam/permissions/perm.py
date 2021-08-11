@@ -131,7 +131,7 @@ class Permission(ABC, IAMClient):
 
     resource_type: str = ''
     resource_request_cls: Type[ResourceRequest] = ResourceRequest
-    parent_perm_obj: Optional['Permission'] = None
+    parent_res_perm: Optional['Permission'] = None  # 父级资源的权限类对象
 
     def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception: bool, use_cache: bool = False) -> bool:
         """
@@ -161,8 +161,8 @@ class Permission(ABC, IAMClient):
         """创建当前资源 request"""
         return self.resource_request_cls(res_id)
 
-    def has_parent(self) -> bool:
-        return self.parent_perm_obj is not None
+    def has_parent_resource(self) -> bool:
+        return self.parent_res_perm is not None
 
     def _can_action(self, perm_ctx: PermCtx, action_id: str, use_cache: bool = False) -> bool:
         res_id = self._get_resource_id(perm_ctx)
@@ -172,11 +172,11 @@ class Permission(ABC, IAMClient):
             return self.resource_inst_allowed(perm_ctx.username, action_id, res_request, use_cache)
 
         # 与当前资源实例无关, 并且无关联上级资源, 按资源实例无关处理
-        if not self.has_parent():
+        if not self.has_parent_resource():
             return self.resource_type_allowed(perm_ctx.username, action_id, use_cache)
 
         # 有关联上级资源
-        request_method = getattr(self.parent_perm_obj, 'make_res_request')
+        request_method = getattr(self.parent_res_perm, 'make_res_request')
         res_request = request_method(res_id=self._get_parent_resource_id(perm_ctx), perm_ctx=perm_ctx)
         return self.resource_inst_allowed(perm_ctx.username, action_id, res_request, use_cache)
 
@@ -188,15 +188,15 @@ class Permission(ABC, IAMClient):
 
         if res_id:
             resources = [res_id]
-        elif self.has_parent():
-            resource_type = self.parent_perm_obj.resource_type
+        elif self.has_parent_resource():
+            resource_type = self.parent_res_perm.resource_type
             resources = [self._get_parent_resource_id(perm_ctx)]
 
         raise PermissionDeniedError(
             f"no {action_id} permission",
             username=perm_ctx.username,
             action_request_list=[
-                ActionResourcesRequest(resource_type=resource_type, action_id=action_id, resources=resources)
+                ActionResourcesRequest(action_id=action_id, resource_type=resource_type, resources=resources)
             ],
         )
 
