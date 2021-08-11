@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 import pprint
 import time
@@ -265,15 +266,21 @@ class ResourceClient:
         """删除某个资源"""
         return self.api.delete(name, namespace, body, label_selector, field_selector, **kwargs)
 
-    def watch(self, **kwargs) -> List:
-        """获取较指定的 ResourceVersion 更新的资源状态变更信息"""
+    def watch(self, formatter=None, **kwargs) -> List:
+        """
+        获取较指定的 ResourceVersion 更新的资源状态变更信息
+
+        :param formatter: 指定的格式化器（自定义资源用）
+        :return: 指定资源 watch 结果
+        """
+        formatter = formatter or self.formatter
         return [
             {
                 'kind': r['object'].kind,
                 'operate': r['type'],
                 'uid': r['object'].metadata.uid,
                 'manifest': r['raw_object'],
-                'manifest_ext': self.formatter.format_dict(r['raw_object']),
+                'manifest_ext': formatter.format_dict(r['raw_object']),
             }
             for r in self.api.watch(**kwargs)
         ]

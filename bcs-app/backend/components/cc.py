@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 import re
+from dataclasses import asdict, dataclass
+from typing import Dict, List, Optional
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from requests import PreparedRequest
+from requests.auth import AuthBase
 from rest_framework.exceptions import ValidationError
 
+from backend.components.base import BaseHttpClient, BkApiClient, response_handler, update_request_body
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -32,6 +38,8 @@ FUNCTION_PATH_MAP = {
     "search_host": "/v2/cc/search_host/",
     "list_biz_hosts": "/v2/cc/list_biz_hosts/",
 }
+# 默认开发商账号
+DEFAULT_SUPPLIER_ACCOUNT = None
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +336,66 @@ def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
         data["bk_supplier_account"] = bk_supplier_account
 
     return http_post(f"{CC_HOST}{PREFIX_PATH}{suffix_path}", json=data)
+
+
+class BkCCConfig:
+    """蓝鲸配置平台配置信息，提供后续使用的host， url等"""
+
+    def __init__(self, host: str):
+        # 请求域名
+        self.host = host
+
+        # 请求地址
+        self.search_biz_url = f"{host}/{PREFIX_PATH}/v2/cc/search_business/"
+
+
+class BkCCAuth(AuthBase):
+    """用于蓝鲸配置平台接口的鉴权校验"""
+
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = DEFAULT_SUPPLIER_ACCOUNT):
+        self.bk_app_code = settings.BCS_APP_CODE
+        self.bk_app_secret = settings.BCS_APP_SECRET
+        self.operator = username
+        self.bk_username = username
+        self.bk_supplier_account = bk_supplier_account
+
+    def __call__(self, r: PreparedRequest):
+        data = {
+            "bk_app_code": self.bk_app_code,
+            "bk_app_secret": self.bk_app_secret,
+            "bk_username": self.bk_username,
+            "operator": self.operator,
+        }
+        if self.bk_supplier_account:
+            data["bk_supplier_account"] = self.bk_supplier_account
+        r.body = update_request_body(r.body, data)
+        return r
+
+
+@dataclass
+class PageData:
+    start: int = 0
+    limit: int = 200
+    sort: str = ""  # 排序字段
+
+
+class BkCCClient(BkApiClient):
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = DEFAULT_SUPPLIER_ACCOUNT):
+        self._config = BkCCConfig(host=settings.COMPONENT_HOST)
+        self._client = BaseHttpClient(BkCCAuth(username, bk_supplier_account=bk_supplier_account))
+
+    @response_handler(default_data={})
+    def search_biz(self, page: PageData, fields: Optional[List] = None, condition: Optional[Dict] = None) -> Dict:
+        """获取业务信息
+        :param page: 分页条件
+        :param fields: 返回的字段
+        :param condition: 查询条件
+        :returns: 返回业务信息，格式:{'count': 1, 'info': [{'id': 1}]}
+        """
+        url = self._config.search_biz_url
+        data = asdict(page)
+        data.update({"fields": fields, "condition": condition})
+        return self._client.request_json("POST", url, json=data)
 
 
 # 加载cc_ext的函数

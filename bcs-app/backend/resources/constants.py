@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
@@ -18,7 +19,13 @@ from backend.utils.basic import ChoicesEnum
 KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
-DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
+DEFAULT_CRON_JOB_API_VERSION = 'batch/v1beta1'
+
+# HPA 需要指定 api_version
+DEFAULT_HPA_API_VERSION = 'autoscaling/v2beta2'
+
+# 至多展示的 HPA 指标数量
+HPA_METRIC_MAX_DISPLAY_NUM = 3
 
 
 class WorkloadTypes(ChoicesEnum):
@@ -63,6 +70,11 @@ class K8sResourceKind(ChoicesEnum):
     StorageClass = "StorageClass"
     # rbac
     ServiceAccount = "ServiceAccount"
+    # CustomResource
+    CustomResourceDefinition = "CustomResourceDefinition"
+    CustomObject = "CustomObject"
+    # hpa
+    HorizontalPodAutoscaler = "HorizontalPodAutoscaler"
     # other
     Event = "Event"
     Namespace = "Namespace"
@@ -90,6 +102,11 @@ class K8sResourceKind(ChoicesEnum):
         (StorageClass, "StorageClass"),
         # rbac
         (ServiceAccount, "ServiceAccount"),
+        # CustomResource
+        (CustomResourceDefinition, "CustomResourceDefinition"),
+        (CustomObject, "CustomObject"),
+        # hpa
+        (HorizontalPodAutoscaler, "HorizontalPodAutoscaler"),
         # other
         (Event, "Event"),
         (Namespace, "Namespace"),
@@ -176,6 +193,16 @@ class PersistentVolumeAccessMode(str, StructuredEnum):
     def shortname(self):
         """k8s 官方缩写"""
         return self.get_choice_label(self.value)
+
+
+class MetricSourceType(str, StructuredEnum):
+    """ k8s MetricSourceType """
+
+    Object = EnumField('Object')
+    Pods = EnumField('Pods')
+    Resource = EnumField('Resource')
+    External = EnumField('External')
+    ContainerResource = EnumField('ContainerResource')
 
 
 class NodeConditionStatus(str, StructuredEnum):

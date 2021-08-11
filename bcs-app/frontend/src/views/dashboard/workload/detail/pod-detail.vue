@@ -146,7 +146,7 @@
                                     <span>{{ row.spec.volumeMode || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'pvcs','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'pvcs','age') }}
@@ -164,7 +164,7 @@
                                     <span>{{ handleGetExtData(row.metadata.uid, 'configmaps','data').join(', ') || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'configmaps','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'configmaps','age') }}
@@ -187,7 +187,7 @@
                                     <span>{{ handleGetExtData(row.metadata.uid, 'secrets','data').join(', ') || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'secrets','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'secrets','age') }}
@@ -213,7 +213,8 @@
         </div>
         <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
             <template #content>
-                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+                <Ace v-full-screen="{ tools: ['fullscreen', 'copy'], content: yaml }"
+                    width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
             </template>
         </bcs-sideslider>
     </div>
@@ -227,6 +228,7 @@
     import useDetail from './use-detail'
     import { formatTime } from '@/common/util'
     import Ace from '@/components/ace-editor'
+    import fullScreen from '@open/directives/full-screen'
 
     export interface IDetail {
         manifest: any;
@@ -247,7 +249,8 @@
             Ace
         },
         directives: {
-            bkOverflowTips
+            bkOverflowTips,
+            'full-screen': fullScreen
         },
         props: {
             namespace: {

@@ -77,8 +77,8 @@
                         <bk-table-column :label="$t('组件')" min-width="150" prop="component" />
                         <bk-table-column :label="$t('对象及级别')" min-width="150" prop="extra">
                             <template slot-scope="{ row }">
-                                <p class="extra-info" :title="row.level || '--'"><span>{{$t('级别：')}}</span>{{ row.level || '--' }}</p>
-                                <p class="extra-info" :title="row.kind || '--'"><span>{{$t('对象：')}}</span>{{ row.kind || '--' }}</p>
+                                <p class="extra-info" :title="row.extra.level || '--'"><span>{{$t('级别：')}}</span>{{ row.extra.level || '--' }}</p>
+                                <p class="extra-info" :title="row.extra.kind || '--'"><span>{{$t('对象：')}}</span>{{ row.extra.kind || '--' }}</p>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('所属集群')" min-width="200" prop="cluster_id">

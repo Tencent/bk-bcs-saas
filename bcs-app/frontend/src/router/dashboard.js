@@ -10,10 +10,13 @@ const DashboardWorkloadStatefulSets = () => import(/* webpackChunkName: 'dashboa
 const DashboardWorkloadCronJobs = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/cronjobs.vue')
 const DashboardWorkloadJobs = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/jobs.vue')
 const DashboardWorkloadPods = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/pods.vue')
-const DashboardWorkloadGameStatefulSets = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/gamestatefulsets.vue')
-const DashboardWorkloadGameDeployments = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/gamedeployments.vue')
-const DashboardWorkloadCustomObjects = () => import(/* webpackChunkName: 'dashboard-workload' */'@/views/dashboard/workload/customobjects.vue')
 const DashboardWorkloadDetail = () => import(/* webpackChunkName: 'dashboard-workload-detail' */'@/views/dashboard/workload/detail/index.vue')
+
+// 自定义资源
+const DashboardCRD = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/crd.vue')
+const DashboardGameStatefulSets = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/gamestatefulsets.vue')
+const DashboardGameDeployments = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/gamedeployments.vue')
+const DashboardCustomObjects = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/customobjects.vue')
 
 // network
 const DashboardNetworkIngress = () => import(/* webpackChunkName: 'dashboard-network' */'@/views/dashboard/network/ingress.vue')
@@ -33,6 +36,9 @@ const DashboardStorageStorageClass = () => import(/* webpackChunkName: 'dashboar
 const DashboardRbacServiceAccounts = () => import(/* webpackChunkName: 'dashboard-rbac' */'@/views/dashboard/rbac/service-accounts.vue')
 
 const DashboardResourceUpdate = () => import(/* webpackChunkName: 'dashboard-resource' */'@/views/dashboard/resource-update/resource-update.vue')
+
+// HPA
+const DashboardHPA = () => import(/* webpackChunkName: 'dashboard-hpa' */'@/views/dashboard/hpa/hpa.vue')
 
 const childRoutes = [
     // dashboard 首页
@@ -107,25 +113,31 @@ const childRoutes = [
         component: DashboardWorkloadPods,
         meta: { isDashboard: true }
     },
-    // dashboard workload gamestatefulsets
     {
-        path: ':projectCode/:clusterId/dashboard/workload/gamestatefulsets',
-        name: 'dashboardWorkloadGameStatefulSets',
-        component: DashboardWorkloadGameStatefulSets,
+        path: ':projectCode/:clusterId/dashboard/custom/crd',
+        name: 'dashboardCRD',
+        component: DashboardCRD,
         meta: { isDashboard: true }
     },
-    // dashboard workload gamedeployments
+    // dashboard gamestatefulsets
     {
-        path: ':projectCode/:clusterId/dashboard/workload/gamedeployments',
-        name: 'dashboardWorkloadGameDeployments',
-        component: DashboardWorkloadGameDeployments,
+        path: ':projectCode/:clusterId/dashboard/custom/gamestatefulsets',
+        name: 'dashboardGameStatefulSets',
+        component: DashboardGameStatefulSets,
         meta: { isDashboard: true }
     },
-    // dashboard workload customobjects
+    // dashboard gamedeployments
     {
-        path: ':projectCode/:clusterId/dashboard/workload/customobjects',
-        name: 'dashboardWorkloadCustomObjects',
-        component: DashboardWorkloadCustomObjects,
+        path: ':projectCode/:clusterId/dashboard/custom/gamedeployments',
+        name: 'dashboardGameDeployments',
+        component: DashboardGameDeployments,
+        meta: { isDashboard: true }
+    },
+    // dashboard customobjects
+    {
+        path: ':projectCode/:clusterId/dashboard/custom/customobjects',
+        name: 'dashboardCustomObjects',
+        component: DashboardCustomObjects,
         meta: { isDashboard: true }
     },
     // dashboard workload detail
@@ -237,10 +249,17 @@ const childRoutes = [
     },
     // resource update
     {
-        path: ':projectCode/:clusterId/dashboard/:type/:category/:namespace?/:name?',
+        path: ':projectCode/:clusterId/dashboard/resource/:namespace?/:name?',
         name: 'dashboardResourceUpdate',
-        props: (route) => ({ ...route.params, kind: route.query.kind }),
+        props: (route) => ({ ...route.params, ...route.query }),
         component: DashboardResourceUpdate,
+        meta: { isDashboard: true }
+    },
+    // hpa
+    {
+        path: ':projectCode/:clusterId/dashboard/hpa',
+        name: 'dashboardHPA',
+        component: DashboardHPA,
         meta: { isDashboard: true }
     }
 ]

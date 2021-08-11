@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 
 import mock
@@ -20,17 +21,9 @@ from django.conf import settings
 from backend.container_service.observability.metric.constants import MetricDimension
 from backend.tests.conftest import TEST_CLUSTER_ID
 from backend.tests.resources.formatter.conftest import NETWORK_CONFIG_DIR
-from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 # 指标相关配置 目录
 METRIC_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/container_service/observability/metric/contents/'
-
-
-@pytest.fixture
-def metric_api_common_patch():
-    """ 指标类 API 通用 mock patch """
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
-        yield
 
 
 @pytest.fixture
@@ -148,6 +141,8 @@ def sm_api_patch():
         new=lambda *args, **kwargs: None,
     ), mock.patch(
         f'{common_prefix}.ServiceMonitorDetailViewSet._update_manifest', new=lambda _, manifest, params: manifest
+    ), mock.patch(
+        f'{common_prefix}.ServiceMonitorMixin._validate_namespace_use_perm', new=lambda *args, **kwargs: None
     ):
         yield
 

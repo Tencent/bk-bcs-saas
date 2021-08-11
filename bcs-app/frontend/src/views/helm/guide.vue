@@ -12,7 +12,6 @@
 
 <script>
     import MarkdownIt from 'markdown-it'
-    import Clipboard from 'clipboard'
 
     export default {
         props: {
@@ -56,42 +55,22 @@
                 const md = new MarkdownIt({
                     linkify: false
                 })
-                this.markdown = md.render(markdown)
-                this.$nextTick(() => {
-                    // 让markdown文档里的标签新开窗口打开
-                    const markdownDom = document.getElementById('markdown')
-                    if (!markdownDom) return
-
-                    markdownDom.querySelectorAll('a').forEach(item => {
-                        item.target = '_blank'
-                    })
-                    markdownDom.querySelectorAll('pre').forEach(item => {
-                        const btn = document.createElement('button')
-                        const codeBox = document.createElement('div')
-                        const code = item.querySelector('code').innerText
-                        btn.className = 'bk-button bk-default bk-button-mini copy-btn'
-                        codeBox.className = 'code-box'
-                        btn.innerHTML = '<span><i class="bcs-icon bcs-icon-clipboard mr5"></i>' + this.$t('复制') + '</span>'
-                        btn.setAttribute('data-clipboard-text', code)
-                        item.appendChild(btn)
-                        codeBox.appendChild(item.querySelector('code'))
-                        item.appendChild(codeBox)
-                    })
-                })
-
-                if (this.clipboardInstance && this.clipboardInstance.off) {
-                    this.clipboardInstance.off('success')
+                // create render rules
+                const defaultRender = md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+                    return self.renderToken(tokens, idx, options)
                 }
-                setTimeout(() => {
-                    this.clipboardInstance = new Clipboard('.copy-btn')
-                    console.log(this.clipboardInstance)
-                    this.clipboardInstance.on('success', e => {
-                        this.$bkMessage({
-                            theme: 'success',
-                            message: this.$t('复制成功')
-                        })
-                    })
-                }, 2000)
+                md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+                    const aIndex = tokens[idx].attrIndex('target')
+
+                    if (aIndex < 0) {
+                        tokens[idx].attrPush(['target', '_blank'])
+                    } else {
+                        tokens[idx].attrs[aIndex][1] = '_blank'
+                    }
+                    return defaultRender(tokens, idx, options, env, self)
+                }
+
+                this.markdown = md.render(markdown)
             }
         }
     }

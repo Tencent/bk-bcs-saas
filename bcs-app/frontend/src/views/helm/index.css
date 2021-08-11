@@ -507,7 +507,12 @@
 
 .biz-namespace {
     padding: 0 20px;
-    overflow: auto;
+    overflow-x: auto;
+}
+.col-cluster {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
 }
 
 /* 自适应 */
@@ -596,4 +601,11 @@
         width: 200px;
         padding: 0 10px;
     }
+}
+/deep/ .bk-table-body tr td .cell {
+    -webkit-line-clamp: 2;
+}
+
+/deep/ .bk-table-body tr td {
+    height: 54px;
 }

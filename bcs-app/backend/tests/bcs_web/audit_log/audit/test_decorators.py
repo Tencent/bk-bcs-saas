@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 
 import mock
@@ -24,26 +25,15 @@ from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType, ResourceType
 from backend.bcs_web.audit_log.models import UserActivityLog
-from backend.bcs_web.viewsets import SystemViewSet
 from backend.templatesets.legacy_apps.configuration.auditor import TemplatesetAuditor
-from backend.tests.bcs_mocks.misc import FakeProjectPermissionAllowAll
-from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
+from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 pytestmark = pytest.mark.django_db
 
 factory = APIRequestFactory()
 
 
-@pytest.fixture(autouse=True)
-def patch_permissions():
-    """Patch permission checks to allow API requests"""
-    with mock.patch('backend.bcs_web.permissions.PaaSCCClient', new=StubPaaSCCClient), mock.patch(
-        'backend.bcs_web.permissions.permissions.ProjectPermission', new=FakeProjectPermissionAllowAll
-    ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None):
-        yield
-
-
-class TemplatesetsViewSet(SystemViewSet):
+class TemplatesetsViewSet(FakeSystemViewSet):
     @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Retrieve)
     def list(self, request, project_id):
         return Response()
@@ -66,9 +56,9 @@ def install_chart(audit_ctx: AuditContext):
     )
 
 
-class HelmViewSet(SystemViewSet):
+class HelmViewSet(FakeSystemViewSet):
     def create(self, request, project_id):
-        install_chart(request.audit_ctx)
+        install_chart(AuditContext(user=request.user.username, project_id=project_id))
         return Response()
 
     def upgrade(self, request, project_id):
@@ -96,10 +86,7 @@ class TestAuditDecorator:
             project_id=project_id, user=bk_user.username, activity_type=ActivityType.Retrieve
         )
         assert activity_log.activity_status == ActivityStatus.Succeed
-        assert (
-            activity_log.description
-            == f'{ActivityType.Retrieve} template {ActivityStatus.get_choice_label(ActivityStatus.Succeed)}'
-        )
+        assert activity_log.description == f'查询 模板集 成功'
 
     def test_log_audit_on_view_failed(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'post': 'create'})
@@ -112,10 +99,7 @@ class TestAuditDecorator:
         )
         assert activity_log.activity_status == ActivityStatus.Failed
         assert json.loads(activity_log.extra)['version'] == '1.6.0'
-        assert (
-            activity_log.description == f"{ActivityType.Add} template nginx "
-            f"{ActivityStatus.get_choice_label(ActivityStatus.Failed)}: {ValidationError('invalid manifest')}"
-        )
+        assert activity_log.description == f"创建 模板集 nginx 失败: {ValidationError('invalid manifest')}"
 
     def test_log_audit_ignore_exceptions(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'delete': 'delete'})

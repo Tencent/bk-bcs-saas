@@ -15,6 +15,7 @@
 
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
+                    <bk-button class="left" theme="primary" @click="handleGotoDashboard">{{$t('切换到资源视图')}}</bk-button>
                     <div class="right">
                         <searcher
                             :placeholder="$t('输入名称，按Enter搜索')"
@@ -293,6 +294,15 @@
             reloadCurPage () {
                 this.initPageConf()
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
+            },
+            handleGotoDashboard () {
+                const routerUrl = this.$router.resolve({
+                    name: 'dashboardStoragePersistentVolumesClaims',
+                    params: {
+                        clusterId: this.searchClusterId
+                    }
+                })
+                window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
             }
         }
     }

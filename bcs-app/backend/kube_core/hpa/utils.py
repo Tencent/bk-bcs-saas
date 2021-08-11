@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 
 from django.conf import settings
@@ -21,9 +22,9 @@ from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client as activity_client
 from backend.components.bcs import mesos
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa import exceptions as hpa_exceptions
-from backend.resources.hpa import hpa as hpa_client
-from backend.resources.hpa.format import HPAFormatter
+from backend.resources.exceptions import DeleteResourceError
+from backend.resources.hpa import client as hpa_client
+from backend.resources.hpa.formatter import HPAFormatter
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
@@ -149,7 +150,7 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
     result = client.delete_hpa(namespace, name)
 
     if result.get("code") != 0:
-        raise hpa_exceptions.DeleteHPAError(_("删除HPA资源失败"))
+        raise DeleteResourceError(_("删除HPA资源失败"))
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
@@ -165,7 +166,7 @@ def delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name):
             client.delete_ignore_nonexistent(name=name, namespace=ns_name)
         except Exception as error:
             logger.error("delete hpa error, namespace: %s, name: %s, error: %s", ns_name, name, error)
-            raise hpa_exceptions.DeleteHPAError(_("删除HPA资源失败"))
+            raise DeleteResourceError(_("删除HPA资源失败"))
 
         # 删除成功则更新状态
         InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name).update(
