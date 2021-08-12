@@ -1,0 +1,49 @@
+spec_version: 2
+app_version: "1.0"
+app:
+  region: default
+  bk_app_code: "bk-bcs-saas"
+  bk_app_name: 蓝鲸容器服务SaaS
+  market:
+    category: 运维工具
+    introduction: 应用简介
+    description: 应用描述
+    display_options:
+      width: 800
+      height: 600
+modules:
+  bcs-app-web:
+    language: Python
+    is_default: False
+    source_dir: /
+    processes:
+      web:
+        command: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
+        plan: 4C1G5R
+        replicas: 2
+      celery:
+        command: celery -A backend.celery_app worker -l info
+        plan: 4C1G5R
+        replicas: 1
+      celery-beat:
+        command: celery -A backend.celery_app beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
+        plan: 4C1G5R
+        replicas: 1
+  bcs-app-channel:
+    language: Python
+    is_default: False
+    source_dir: /
+    processes:
+      channel:
+        command: gunicorn backend.asgi -b :28801 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
+        plan: 4C1G5R
+        replicas: 1
+  bcs-app-console:
+    language: Python
+    is_default: False
+    source_dir: /
+    processes:
+      web-console:
+        command: python -m backend.web_console
+        plan: 4C1G5R
+        replicas: 1

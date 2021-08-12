@@ -1,6 +1,5 @@
 web: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
 channel: gunicorn backend.asgi -b :28801 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
-admin-web: gunicorn wsgi -b :28001 -w 2 --access-logfile - --error-logfile -
 web-console: python -m backend.web_console
 celery-beat: celery -A backend.celery_app beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
 celery: celery -A backend.celery_app worker -l info

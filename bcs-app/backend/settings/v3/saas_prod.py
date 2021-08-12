@@ -80,8 +80,6 @@ DATABASES["default"] = {
 LOG_LEVEL = "INFO"
 LOG_FILE = os.path.join(LOGGING_DIR, f"{APP_ID}.log")
 LOGGING = get_logging_config(LOG_LEVEL, None, LOG_FILE)
-# don't need stdout
-LOGGING["handlers"]["console"]["class"] = "logging.NullHandler"
 
 REDIS_URL = os.environ.get("BKAPP_REDIS_URL")
 # 解析url
