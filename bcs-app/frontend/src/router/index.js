@@ -50,7 +50,7 @@ const routes = [
     {
         // domain/bcs
         // path: '/bcs',
-        path: `${SITE_URL}`,
+        path: `${SITE_URL}/:projectCode/${CONTAINER_ORCHESTRATION}`,
         name: 'containerServiceMain',
         component: ContainerServiceEntry,
         children: children

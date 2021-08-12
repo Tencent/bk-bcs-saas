@@ -15,7 +15,7 @@ const EventQuery = () => import(/* webpackChunkName: 'mc' */'@open/views/mc/even
 
 const childRoutes = [
     {
-        path: ':projectCode/mc',
+        path: 'mc',
         name: 'mcMain',
         component: MC,
         children: [

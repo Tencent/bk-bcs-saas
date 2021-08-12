@@ -19,13 +19,7 @@ const ContainerDetailForNode = () => import(/* webpackChunkName: 'cluster' */'@o
 
 const childRoutes = [
     {
-        path: ':projectCode',
-        redirect: {
-            name: 'clusterMain'
-        }
-    },
-    {
-        path: ':projectCode/',
+        path: '',
         redirect: {
             name: 'clusterMain'
         }
@@ -33,44 +27,44 @@ const childRoutes = [
     // domain/bcs/projectId => domain/bcs/projectCode/cluster 容器服务的首页是具体项目的集群页面
     // 集群首页
     {
-        path: ':projectCode/cluster',
+        path: 'cluster',
         name: 'clusterMain',
         component: Cluster
     },
     // 创建集群
     {
-        path: ':projectCode/cluster/create',
+        path: 'cluster/create',
         name: 'clusterCreate',
         component: global.REGION === 'ieod' ? ClusterCreate : ClusterCreateExternal
     },
     // 集群总览
     {
-        path: ':projectCode/cluster/:clusterId/overview',
+        path: 'cluster/:clusterId/overview',
         name: 'clusterOverview',
         component: ClusterOverview,
-        alias: ':projectCode/cluster/:clusterId'
+        alias: 'cluster/:clusterId'
     },
     // 集群里的节点列表
     {
-        path: ':projectCode/cluster/:clusterId/node',
+        path: 'cluster/:clusterId/node',
         name: 'clusterNode',
         component: ClusterNode
     },
     // 集群里的集群信息
     {
-        path: ':projectCode/cluster/:clusterId/info',
+        path: 'cluster/:clusterId/info',
         name: 'clusterInfo',
         component: ClusterInfo
     },
     // 集群里的具体节点
     {
-        path: ':projectCode/cluster/:clusterId/node/:nodeId',
+        path: 'cluster/:clusterId/node/:nodeId',
         name: 'clusterNodeOverview',
         component: ClusterNodeOverview
     },
     // 节点详情页面跳转的容器详情页面
     {
-        path: ':projectCode/cluster/:clusterId/node/:nodeId/container/:containerId',
+        path: 'cluster/:clusterId/node/:nodeId/container/:containerId',
         name: 'containerDetailForNode',
         component: ContainerDetailForNode
     }

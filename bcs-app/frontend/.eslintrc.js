@@ -61,7 +61,8 @@ module.exports = {
         SENTRY_URL: true,
         SITE_URL: true,
         RELEASE_VERSION: true,
-        BK_IAM_APP_URL: true
+        BK_IAM_APP_URL: true,
+        CONTAINER_ORCHESTRATION: true
     },
     // add your custom rules hered
     rules: {

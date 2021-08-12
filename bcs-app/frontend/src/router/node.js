@@ -14,7 +14,7 @@ const Node = () => import(/* webpackChunkName: 'node' */'@open/views/node')
 const childRoutes = [
     // domain/bcs/projectCode/node 节点页面
     {
-        path: ':projectCode/node',
+        path: 'node',
         name: 'nodeMain',
         component: Node
     }
