@@ -10,7 +10,7 @@ const BcsPolaris = () => import(/* webpackChunkName: 'network' */'@open/views/cr
 
 const childRoutes = [
     {
-        path: ':projectCode/crdcontroller/DbPrivilege',
+        path: 'crdcontroller/DbPrivilege',
         name: 'dbCrdcontroller',
         component: Index,
         meta: {
@@ -19,7 +19,7 @@ const childRoutes = [
     },
 
     {
-        path: ':projectCode/crdcontroller/BcsLog',
+        path: 'crdcontroller/BcsLog',
         name: 'logCrdcontroller',
         component: Index,
         meta: {
@@ -28,25 +28,25 @@ const childRoutes = [
     },
 
     {
-        path: ':projectCode/cluster/:clusterId/crdcontroller/DbPrivilege/instances',
+        path: 'cluster/:clusterId/crdcontroller/DbPrivilege/instances',
         name: 'crdcontrollerDBInstances',
         component: DBList
     },
 
     {
-        path: ':projectCode/cluster/:clusterId/crdcontroller/BcsPolaris/instances',
+        path: 'cluster/:clusterId/crdcontroller/BcsPolaris/instances',
         name: 'crdcontrollerPolarisInstances',
         component: BcsPolaris
     },
 
     {
-        path: ':projectCode/cluster/:clusterId/crdcontroller/BcsLog/instances',
+        path: 'cluster/:clusterId/crdcontroller/BcsLog/instances',
         name: 'crdcontrollerLogInstances',
         component: LogList
     },
 
     {
-        path: ':projectCode/cluster/:clusterId/crdcontroller/:name/instances/:id',
+        path: 'cluster/:clusterId/crdcontroller/:name/instances/:id',
         name: 'crdcontrollerInstanceDetail',
         component: Detail
     }

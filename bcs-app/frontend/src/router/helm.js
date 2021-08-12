@@ -19,27 +19,27 @@ const helmAppDetail = () => import(/* webpackChunkName: 'helm' */'@open/views/he
 
 const childRoutes = [
     {
-        path: ':projectCode/helm',
+        path: 'helm',
         name: 'helms',
         component: helms
     },
     {
-        path: ':projectCode/helm/list',
+        path: 'helm/list',
         name: 'helmTplList',
         component: helmTplList
     },
     {
-        path: ':projectCode/helm/tpl/:tplId',
+        path: 'helm/tpl/:tplId',
         name: 'helmTplDetail',
         component: helmTplDetail
     },
     {
-        path: ':projectCode/helm/instance/:tplId',
+        path: 'helm/instance/:tplId',
         name: 'helmTplInstance',
         component: helmTplInstance
     },
     {
-        path: ':projectCode/helm/app/:appId',
+        path: 'helm/app/:appId',
         name: 'helmAppDetail',
         component: helmAppDetail
     }

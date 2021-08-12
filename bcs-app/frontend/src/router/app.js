@@ -7,7 +7,7 @@ const App = () => import(/* webpackChunkName: 'app-entry' */'@open/views/app')
 const childRoutes = [
     // domain/bcs/projectId/app 应用页面
     {
-        path: ':projectCode/app',
+        path: 'app',
         component: App,
         children: [
             // mesos 应用
