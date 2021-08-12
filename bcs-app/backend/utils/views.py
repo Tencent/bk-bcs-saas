@@ -362,7 +362,7 @@ class VueTemplateView(APIView):
             "CONTAINER_ORCHESTRATION": "",  # 前端路由, 默认地址不变
         }
 
-        # mesos 需要修复API和静态资源路径
+        # mesos 需要修改 API 和静态资源路径
         if kind == "mesos":
             context["DEVOPS_BCS_API_URL"] = os.path.join(context["DEVOPS_BCS_API_URL"], "mesos")
             context["STATIC_URL"] = os.path.join(context["STATIC_URL"], "mesos")
