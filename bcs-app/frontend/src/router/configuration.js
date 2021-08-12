@@ -76,7 +76,7 @@ const K8sYamlTemplateset = () => import(/* webpackChunkName: 'K8sYamlTemplateset
 
 const childRoutes = [
     {
-        path: ':projectCode/configuration',
+        path: 'configuration',
         name: 'configurationMain',
         component: Configuration,
         children: [

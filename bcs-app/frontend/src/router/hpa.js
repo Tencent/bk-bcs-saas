@@ -7,7 +7,7 @@ const HPAIndex = () => import(/* webpackChunkName: 'helm' */'@open/views/hpa')
 
 const childRoutes = [
     {
-        path: ':projectCode/hpa',
+        path: 'hpa',
         name: 'hpa',
         component: HPAIndex
     }

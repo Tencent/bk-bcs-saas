@@ -9,27 +9,27 @@ const LoadBalanceDetail = () => import(/* webpackChunkName: 'network' */'@open/v
 const CloudLoadBalanceDetail = () => import(/* webpackChunkName: 'network' */'@open/views/network/cloudloadbalance-detail')
 const childRoutes = [
     {
-        path: ':projectCode/service',
+        path: 'service',
         name: 'service',
         component: Service
     },
     {
-        path: ':projectCode/loadbalance',
+        path: 'loadbalance',
         name: 'loadBalance',
         component: LoadBalance
     },
     {
-        path: ':projectCode/cloudloadbalance',
+        path: 'cloudloadbalance',
         name: 'cloudLoadBalance',
         component: CloudLoadBalance
     },
     {
-        path: ':projectCode/cluster/:clusterId/namespace/:namespace/loadbalance/:lbId/detail',
+        path: 'cluster/:clusterId/namespace/:namespace/loadbalance/:lbId/detail',
         name: 'loadBalanceDetail',
         component: LoadBalanceDetail
     },
     {
-        path: ':projectCode/cloudloadbalance/:instanceId/detail/:instanceName/:instanceNamespace/:instanceCategory',
+        path: 'cloudloadbalance/:instanceId/detail/:instanceName/:instanceNamespace/:instanceCategory',
         name: 'cloudLoadBalanceDetail',
         component: CloudLoadBalanceDetail
     }

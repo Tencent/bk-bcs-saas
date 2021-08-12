@@ -12,7 +12,7 @@ const childRoutes = [
     // 是因为如果把 depot 作为 cluster 的 children，那么必须要在 Cluster 的 component 中
     // 通过 router-view 来渲染子组件，但在业务逻辑中，depot 和 cluster 是平级的
     {
-        path: ':projectCode/depot',
+        path: 'depot',
         name: 'depotMain',
         component: Depot,
         children: [

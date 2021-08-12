@@ -16,7 +16,7 @@ const ResourceIngress = () => import(/* webpackChunkName: 'resource' */'@open/vi
 
 const childRoutes = [
     {
-        path: ':projectCode/resource',
+        path: 'resource',
         name: 'resourceMain',
         component: Resource,
         children: [

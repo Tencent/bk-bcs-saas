@@ -7,13 +7,13 @@ const List = () => import(/* webpackChunkName: 'network' */'@open/views/log/list
 
 const childRoutes = [
     {
-        path: ':projectCode/log-collection',
+        path: 'log-collection',
         name: 'logCollection',
         component: Index
     },
 
     {
-        path: ':projectCode/cluster/:clusterId/log-collection/:crdKind/instances',
+        path: 'cluster/:clusterId/log-collection/:crdKind/instances',
         name: 'logCollectionInstances',
         component: List
     }
