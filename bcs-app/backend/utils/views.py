@@ -359,13 +359,14 @@ class VueTemplateView(APIView):
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
             "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false")),
-            "CONTAINER_ORCHESTRATION": kind,
+            "CONTAINER_ORCHESTRATION": "",  # 前端路由, 默认地址不变
         }
 
         # mesos 需要修复API和静态资源路径
         if kind == "mesos":
             context["DEVOPS_BCS_API_URL"] = os.path.join(context["DEVOPS_BCS_API_URL"], "mesos")
             context["STATIC_URL"] = os.path.join(context["STATIC_URL"], "mesos")
+            context["CONTAINER_ORCHESTRATION"] = kind
 
         # 增加扩展的字段渲染前端页面，用于多版本
         ext_context = getattr(settings, 'EXT_CONTEXT', {})
