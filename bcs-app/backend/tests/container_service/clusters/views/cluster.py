@@ -19,18 +19,12 @@ from backend.container_service.clusters.views.cluster import ClusterInfo
 from backend.tests.resources.conftest import FakeBcsKubeConfigurationService
 
 
-@pytest.fixture(autouse=True)
-def use_faked_configuration():
-    with patch(
-        'backend.resources.utils.kube_client.BcsKubeConfigurationService',
-        new=FakeBcsKubeConfigurationService,
-    ):
-        yield
-
-
-def test_query_cluster_version(request_user, project_id, cluster_id):
+@patch('backend.resources.utils.kube_client.BcsKubeConfigurationService', new=FakeBcsKubeConfigurationService)
+def test_successful_query_cluster_version(request_user, project_id, cluster_id):
     version = ClusterInfo().query_cluster_version(request_user.token.access_token, project_id, cluster_id)
-    if version:
-        assert version.startswith("v1")
-    else:
-        assert version == ""
+    assert version.startswith("v1")
+
+
+def test_failed_query_cluster_version(request_user, project_id, cluster_id):
+    version = ClusterInfo().query_cluster_version(request_user.token.access_token, project_id, cluster_id)
+    assert version == "N/A"

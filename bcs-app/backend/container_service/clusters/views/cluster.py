@@ -416,7 +416,8 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             return version["kubernetes"]["gitVersion"]
         except Exception as e:
             logger.error("query cluster version error, %s", e)
-            return ""
+            # N/A 表示集群不可用
+            return "N/A"
 
 
 class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
