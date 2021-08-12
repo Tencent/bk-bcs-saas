@@ -98,7 +98,7 @@
                             </bk-table-column>
                             <bk-table-column label="ip: port weight" min-width="180" :show-overflow-tooltip="true">
                                 <template slot-scope="{ row }">
-                                    <div v-if="row.status.syncStatus && row.status.syncStatus.lastRemoteInstances">
+                                    <div v-if="row.status && row.status.syncStatus && row.status.syncStatus.lastRemoteInstances">
                                         <div v-for="(remote, remoteIndex) in row.status.syncStatus.lastRemoteInstances" :key="remoteIndex" style="padding: 5px 0;">
                                             <p class="polaris-cell-item">{{ remote.ip || '--' }}: {{ remote.port || '--' }} {{ remote.weight || '--' }}</p>
                                         </div>
@@ -108,7 +108,7 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('状态')" width="270">
                                 <template slot-scope="{ row }">
-                                    <div v-if="row.status.syncStatus" style="padding: 5px 0;">
+                                    <div v-if="row.status && row.status.syncStatus" style="padding: 5px 0;">
                                         <p class="polaris-cell-item" style="padding-bottom: 5px;" :title="row.status.syncStatus.state">{{ $t('同步状态') }}：{{ row.status.syncStatus.state || '--' }}</p>
                                         <p class="polaris-cell-item" style="padding-bottom: 5px;" :title="row.status.syncStatus.lastSyncLatencyomitempty">{{ $t('同步耗时') }}：{{ row.status.syncStatus.lastSyncLatencyomitempty || '--' }}</p>
                                         <p class="polaris-cell-item" :title="row.status.syncStatus.lastSyncTime">{{ $t('最后同步时间') }}：{{ row.status.syncStatus.lastSyncTime || '--' }}</p>
