@@ -27,7 +27,7 @@
             render-directive="if"
             header-position="left"
             ext-cls="apply-host-dialog">
-            <bk-alert type="error" class="mb20" v-if="applyHostButton.tips">
+            <bk-alert type="info" class="mb20" v-if="applyHostButton.tips">
                 <template #title><div v-html="applyHostButton.tips"></div></template>
             </bk-alert>
             <bk-form ext-cls="apply-form"
