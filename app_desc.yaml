@@ -47,3 +47,4 @@ modules:
         command: python -m backend.web_console
         plan: 4C1G5R
         replicas: 1
+
