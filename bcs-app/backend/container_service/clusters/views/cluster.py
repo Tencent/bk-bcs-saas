@@ -412,8 +412,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         """
         try:
             client = get_dynamic_client(access_token, project_id, cluster_id)
-            version = client.version
-            return version["kubernetes"]["gitVersion"]
+            return client.version["kubernetes"]["gitVersion"]
         except Exception as e:
             logger.error("query cluster version error, %s", e)
             # N/A 表示集群不可用
