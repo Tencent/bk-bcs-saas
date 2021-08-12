@@ -19,7 +19,7 @@ from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.resources.namespace import utils as ns_utils
-from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.error_codes import error_codes
 
@@ -77,9 +77,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         namespaces = ns_utils.get_k8s_namespaces(access_token, project_id, cluster_id)
         # NOTE: 忽略k8s系统和平台自身的namespace
         namespace_name_list = [
-            info["resourceName"]
-            for info in namespaces
-            if info["resourceName"] not in K8S_SYS_NAMESPACE and info["resourceName"] not in K8S_PLAT_NAMESPACE
+            info["resourceName"] for info in namespaces if info["resourceName"] not in K8S_PLAT_NAMESPACE
         ]
         if not (cc_namespaces and namespaces):
             return Response()
