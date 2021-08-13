@@ -328,7 +328,7 @@ class VueTemplateView(APIView):
 
         # 缓存 项目类型
         @cache.region.cache_on_arguments(expiration_time=60 * 60)
-        def cached_project_kind(project_code) -> str:
+        def cached_project_kind(project_code):
             """缓存项目类型"""
             result = paas_cc.get_project(request.user.token.access_token, project_code)
             if result['code'] != 0:
