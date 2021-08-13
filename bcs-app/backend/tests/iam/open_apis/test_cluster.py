@@ -26,7 +26,7 @@ def patch_paas_cc():
         yield
 
 
-class TestNamespaceAPI:
+class TestClusterAPI:
     def test_list_instance(self, project_id):
         request = factory.post(
             '/apis/iam/v1/clusters/',
@@ -44,7 +44,7 @@ class TestNamespaceAPI:
 
     def test_fetch_instance_info_with_no_exist_cluster_ids(self, cluster_id, project_id):
         """
-        传入cluster_id查询特定cluster_id数据。查询到空列表
+        传入不存在cluster_id查询特定cluster_id数据。查询到空列表
         -------
 
         """
@@ -63,7 +63,7 @@ class TestNamespaceAPI:
 
     def test_fetch_instance_info_with_existed_cluster_ids(self, cluster_id, project_id):
         """
-        传入cluster_id查询特定cluster_id数据。
+        传入存在的cluster_id查询特定cluster_id数据。
         -------
 
         """
