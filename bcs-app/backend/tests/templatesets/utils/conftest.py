@@ -10,18 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import mock
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def patch4resource_api():
-    with mock.patch(
-        'backend.iam.open_apis.authentication.IamBasicAuthentication.authenticate', new=lambda *args, **kwargs: None
-    ), mock.patch(
-        'backend.components.ssm.get_client_access_token', new=lambda *args, **kwargs: {"access_token": "test"}
-    ):
-        yield
+@pytest.fixture
+def template_data(fake_project_id, fake_templateset_ids, fake_templateset_names):
+    template_data = [
+        {"id": fake_templateset_ids[0], "project_id": fake_project_id, "name": fake_templateset_names[0]},
+        {"id": fake_templateset_ids[1], "project_id": fake_project_id, "name": fake_templateset_names[1]},
+    ]
+    return template_data
 
 
 @pytest.fixture
@@ -37,12 +35,3 @@ def fake_templateset_ids():
 @pytest.fixture
 def fake_templateset_names():
     return ["templateset_0001", "templateset_0002"]
-
-
-@pytest.fixture
-def template_data(fake_project_id, fake_templateset_ids, fake_templateset_names):
-    template_data = [
-        {"id": fake_templateset_ids[0], "project_id": fake_project_id, "name": fake_templateset_names[0]},
-        {"id": fake_templateset_ids[1], "project_id": fake_project_id, "name": fake_templateset_names[1]},
-    ]
-    return template_data

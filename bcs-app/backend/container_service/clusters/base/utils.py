@@ -30,6 +30,13 @@ def get_clusters(access_token, project_id):
     return resp.get("data", {}).get("results") or []
 
 
+def filter_clusters(access_token, project_id: str, cluster_ids: list) -> list:
+    resp = paas_cc.get_cluster_list(access_token, project_id, cluster_ids)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(f"get clusters error, {resp.get('message')}")
+    return resp.get("data", {}).get("results") or []
+
+
 def get_cluster_versions(access_token, kind="", ver_id="", env=""):
     resp = paas_cc.get_cluster_versions(access_token, kind=kind, ver_id=ver_id, env=env)
     if resp.get('code') != ErrorCode.NoError:

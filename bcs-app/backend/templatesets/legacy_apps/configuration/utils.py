@@ -18,6 +18,7 @@ import json
 import logging
 import re
 from collections import Counter
+from typing import List, Optional
 
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
@@ -224,3 +225,25 @@ def update_template_with_perm_check(request, template, tmpl_args):
     if template.name != tmpl_args.get('name'):
         perm.update_name(template.name)
     return template
+
+
+def filter_templatesets(
+    project_id: str, template_ids: Optional[List[int]] = None, fields: Optional[List[str]] = None
+) -> List:
+    """
+    根据传入project_id和template_ids筛选符合条件的模板集
+    Parameters
+    ----------
+    project_id (str): 项目id
+    template_ids (list of int): 模板集id列表。为None或[]时表示不根据此条件过滤
+    fields (list of str): 待查询字段
+    Returns
+    -------
+
+    """
+    fields = fields or []
+    templateset_queryset = Template.objects.filter(project_id=project_id)
+    if template_ids:
+        templateset_queryset = templateset_queryset.filter(id__in=template_ids)
+    templateset_queryset = templateset_queryset.values(*fields)
+    return list(templateset_queryset.values(*fields))

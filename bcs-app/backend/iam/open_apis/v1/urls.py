@@ -17,4 +17,6 @@ from .. import views
 urlpatterns = [
     url(r'^projects/', views.ResourceAPIView.as_view()),
     url(r'^namespaces/', views.ResourceAPIView.as_view()),
+    url(r'^clusters/', views.ResourceAPIView.as_view()),
+    url(r'^templatesets/', views.ResourceAPIView.as_view()),
 ]

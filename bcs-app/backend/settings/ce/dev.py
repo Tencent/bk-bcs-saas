@@ -23,7 +23,7 @@ DATABASES["default"] = {
     "ENGINE": "django.db.backends.mysql",
     "NAME": "bcs-app",
     "USER": "root",
-    "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+    "PASSWORD": os.environ.get("DB_PASSWORD", "123456"),
     "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
     "PORT": "3306",
     "OPTIONS": {
