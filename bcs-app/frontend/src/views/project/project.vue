@@ -1,11 +1,12 @@
 <template>
-    <div class="project-manage">
+    <div class="project-manage" v-bkloading="{ isLoading: basicLoading, zIndex: 10 }">
         <div class="title mb20">
             {{$t('项目管理')}}
         </div>
-        <bk-alert class="mb20" type="info" :title="$t('项目管理')"></bk-alert>
+        <!-- <bk-alert class="mb20" type="info" :title="$t('项目管理')"></bk-alert> -->
         <div class="operate mb15">
-            <bk-button class="create-btn" theme="primary" icon="plus">{{$t('创建项目')}}</bk-button>
+            <bk-button class="create-btn" theme="primary" icon="plus"
+                @click="handleCreateProject">{{$t('创建项目')}}</bk-button>
             <bk-input
                 class="search-input"
                 clearable
@@ -14,13 +15,13 @@
                 v-model="keyword">
             </bk-input>
         </div>
-        <bk-table :data="onlineProjectList" size="medium">
+        <bk-table :data="filterList" size="medium">
             <bk-table-column :label="$t('项目名称')" prop="project_name">
                 <template #default="{ row }">
                     <div class="row-name">
                         <span class="row-name-left">{{row.project_name[0]}}</span>
                         <div class="row-name-right">
-                            <bk-button theme="primary" text @click="handleChangeProject(row)">
+                            <bk-button theme="primary" text @click="handleGotoProject(row)">
                                 {{row.project_name}}
                             </bk-button>
                             <span class="time">{{ row.updated_at }}</span>
@@ -31,27 +32,37 @@
             <bk-table-column :label="$t('项目英文名')" prop="english_name"></bk-table-column>
             <bk-table-column :label="$t('项目说明')" prop="description"></bk-table-column>
             <bk-table-column :label="$t('创建者')" prop="creator"></bk-table-column>
-            <bk-table-column label="操作" width="200">
-                <template #default>
-                    <bk-button class="mr10" theme="primary" text>{{$t('编辑项目')}}</bk-button>
-                    <bk-button theme="primary" text>{{$t('申请监控中心')}}</bk-button>
+            <bk-table-column label="操作" width="120">
+                <template #default="{ row }">
+                    <bk-button class="mr10" theme="primary" text @click="handleEditProject(row)">{{$t('编辑项目')}}</bk-button>
+                    <!-- <bk-button theme="primary" text>{{$t('申请监控中心')}}</bk-button> -->
                 </template>
             </bk-table-column>
         </bk-table>
+        <ProjectCreate v-model="showCreateDialog" :project-data="curProjectData"></ProjectCreate>
     </div>
 </template>
 <script lang="ts">
-    import { defineComponent, computed, ref } from '@vue/composition-api'
+    import { defineComponent, ref, onMounted, computed } from '@vue/composition-api'
+    import ProjectCreate from './project-create.vue'
     export default defineComponent({
         name: "ProjectManagement",
+        components: {
+            ProjectCreate
+        },
         setup: (props, ctx) => {
             const { $store, $router } = ctx.root
-            const onlineProjectList = computed(() => {
-                return $store.state.sideMenu.onlineProjectList
+            const projectList = ref<any[]>([])
+            const filterList = computed(() => {
+                return projectList.value.filter(item => item.project_name.indexOf(keyword.value) > -1)
             })
             const keyword = ref('')
-            const handleChangeProject = (row) => {
-                $router.replace({
+            const basicLoading = ref(false)
+            const showCreateDialog = ref(false)
+            const curProjectData = ref(null)
+            const handleGotoProject = (row) => {
+                window.$currentProjectId = row.project_code
+                $router.push({
                     name: 'clusterMain',
                     params: {
                         projectCode: row.project_code,
@@ -61,18 +72,39 @@
                 const event = new CustomEvent('change::$currentProjectId', { detail: { currentProjectId: row.project_code } })
                 window.dispatchEvent(event)
             }
+            const handleEditProject = (row) => {
+                curProjectData.value = row
+                showCreateDialog.value = true
+            }
+            const handleCreateProject = () => {
+                curProjectData.value = null
+                showCreateDialog.value = true
+            }
+
+            onMounted(async () => {
+                basicLoading.value = true
+                const data = await $store.dispatch('getProjectList').catch(() => ([]))
+                projectList.value = data
+                basicLoading.value = false
+            })
 
             return {
+                basicLoading,
                 keyword,
-                onlineProjectList,
-                handleChangeProject
+                projectList,
+                filterList,
+                showCreateDialog,
+                curProjectData,
+                handleGotoProject,
+                handleEditProject,
+                handleCreateProject
             }
         }
     })
 </script>
 <style lang="postcss" scoped>
 .project-manage {
-    padding: 20px 60px 0;
+    padding: 20px 60px 20px 60px;
     background: #f5f7fa;
     width: 100%;
     .title {
@@ -110,6 +142,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            flex: 1;
         }
     }
 }

@@ -568,36 +568,50 @@
             },
 
             goDashboard () {
+                this.$router.push({
+                    name: 'dashboard',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode
+                    }
+                })
                 // 从 metric 管理 router 跳转过来时，url 有 cluster_id 的 query
-                const newQuery = JSON.parse(JSON.stringify(this.$route.query))
-                delete newQuery.cluster_id
-                this.$router.replace({ query: newQuery })
+                // const newQuery = JSON.parse(JSON.stringify(this.$route.query))
+                // delete newQuery.cluster_id
+                // this.$router.replace({ name: this.$route.name, query: newQuery })
 
-                setTimeout(() => {
-                    const routerUrl = this.$router.resolve({
-                        name: 'dashboard',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode
-                        }
-                    })
-                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
-                    sessionStorage.removeItem('bcs-selected-menu-data')
-                }, 0)
+                // setTimeout(() => {
+                //     const routerUrl = this.$router.resolve({
+                //         name: 'dashboard',
+                //         params: {
+                //             projectId: this.projectId,
+                //             projectCode: this.projectCode
+                //         }
+                //     })
+                //     window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                //     sessionStorage.removeItem('bcs-selected-menu-data')
+                // }, 0)
             },
 
             goCluster () {
-                setTimeout(() => {
-                    const routerUrl = this.$router.resolve({
-                        name: 'clusterMain',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode
-                        }
-                    })
-                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
-                    sessionStorage.removeItem('bcs-selected-menu-data')
-                }, 0)
+                this.$router.push({
+                    name: 'clusterMain',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode
+                    }
+                })
+                // setTimeout(() => {
+                //     const routerUrl = this.$router.resolve({
+                //         name: 'clusterMain',
+                //         params: {
+                //             projectId: this.projectId,
+                //             projectCode: this.projectCode
+                //         }
+                //     })
+                //     window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                //     sessionStorage.removeItem('bcs-selected-menu-data')
+                // }, 0)
             }
         }
     }

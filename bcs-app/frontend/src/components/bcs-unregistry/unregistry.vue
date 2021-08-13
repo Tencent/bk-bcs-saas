@@ -5,7 +5,7 @@
         <main class="main">
             <div class="form-item">
                 <div class="form-item-label">{{ $t('业务编排类型') }}</div>
-                <div class="form-item-content">
+                <div class="form-item-content kind">
                     <div v-for="item in kindList"
                         :class="['kind-panel', { active: kind === item.id, disabled: item.disabled }]"
                         :key="item.id"
@@ -212,6 +212,9 @@
                 }
                 &.cc-list {
                     background: #fff;
+                }
+                &.kind {
+                    justify-content: flex-start;
                 }
             }
             &-tips {

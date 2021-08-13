@@ -2622,3 +2622,6 @@ div::-webkit-scrollbar-thumb {
 .navigation-message-theme {
     padding: 0 !important;
 }
+.bk-select-extension:hover {
+    background-color: unset;
+}

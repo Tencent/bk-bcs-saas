@@ -45,6 +45,7 @@ export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectI
 
 // project
 export const createProject = request('post', '/api/nav/projects/')
+export const editProject = request('put', '/api/nav/projects/$projectId')
 
 export default {
     stdLogs,
@@ -77,5 +78,6 @@ export default {
     retrieveCustomResourceDetail,
     customResourceCreate,
     customResourceUpdate,
-    customResourceDelete
+    customResourceDelete,
+    editProject
 }

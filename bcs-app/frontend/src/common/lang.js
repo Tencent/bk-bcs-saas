@@ -1947,7 +1947,12 @@ export default {
     '请输入项目描述': [],
     '请输入4-12字符的项目名称': [],
     '项目名称': [],
-    '退出': []
+    '退出': [],
+    '创建项目': ['Create Project'],
+    '输入关键字搜索': ['Enter a keyword search'],
+    '创建者': ['Creator'],
+    '编辑项目': ['Edit'],
+    '申请监控中心': ['Application monitor']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

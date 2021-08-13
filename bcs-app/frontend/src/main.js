@@ -68,4 +68,9 @@ function loadScriptCallback (e) {
         template: '<App/>'
     })
 }
-loadScript(DEVOPS_HOST + '/console/static/devops-utils.js', loadScriptCallback)
+
+if (window.REGION === 'ieod') {
+    loadScript(DEVOPS_HOST + '/console/static/devops-utils.js', loadScriptCallback)
+} else {
+    loadScriptCallback()
+}
