@@ -17,7 +17,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.apps import utils as app_utils
 from backend.apps.constants import EnvType, ProjectKind
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 
 
 class BaseNamespaceSLZ(serializers.Serializer):
@@ -54,8 +54,8 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
     def validate_name(self, name):
         project_kind = self.context['request'].project.kind
         if project_kind != ProjectKind.MESOS.value:
-            if name in K8S_SYS_PLAT_NAMESPACES:
-                raise ValidationError(f'namespace: {",".join(K8S_SYS_PLAT_NAMESPACES)} can not be used')
+            if name in K8S_PLAT_NAMESPACE:
+                raise ValidationError(f'namespace: {",".join(K8S_PLAT_NAMESPACE)} can not be used')
 
         # namespace name is unique in same cluster
         access_token = self.context['request'].user.token.access_token
