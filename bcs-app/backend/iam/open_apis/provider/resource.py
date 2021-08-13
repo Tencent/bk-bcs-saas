@@ -16,10 +16,17 @@ from iam.collection import FancyDict
 from iam.resource.utils import Page, get_filter_obj, get_page_obj
 
 from ..constants import ResourceType
+from .cluster import ClusterProvider
 from .namespace import NamespaceProvider
 from .project import ProjectProvider
+from .templateset import TemplatesetProvider
 
-PROVIDER_CLS_MAP = {ResourceType.Project: ProjectProvider, ResourceType.Namespace: NamespaceProvider}
+PROVIDER_CLS_MAP = {
+    ResourceType.Project: ProjectProvider,
+    ResourceType.Namespace: NamespaceProvider,
+    ResourceType.Cluster: ClusterProvider,
+    ResourceType.Templateset: TemplatesetProvider,
+}
 
 
 class ResourceProvider:

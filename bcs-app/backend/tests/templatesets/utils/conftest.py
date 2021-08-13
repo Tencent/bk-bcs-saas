@@ -10,21 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import mock
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def patch4resource_api():
-    with mock.patch(
-        'backend.iam.open_apis.authentication.IamBasicAuthentication.authenticate', new=lambda *args, **kwargs: None
-    ), mock.patch(
-        'backend.components.ssm.get_client_access_token', new=lambda *args, **kwargs: {"access_token": "test"}
-    ):
-        yield
-
-
-# todo  待优化 和templatesets/utils/conftest中数据重复
+# todo  待优化 和iam/open_apis/conftest中数据重复
 @pytest.fixture()
 def template_data(fake_project_id, fake_templateset_ids):
     template_data = [
