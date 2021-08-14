@@ -289,7 +289,7 @@ class VueTemplateView(APIView):
         """
         获取去除后 project_code, mesos 的路径
         """
-        request_paths = self.request.get_full_path().lstrip('/').split("/")
+        request_paths = self.request.get_full_path_info().lstrip('/').split("/")
 
         if self.container_orchestration == "mesos":
             paths = request_paths[2:]
@@ -312,6 +312,7 @@ class VueTemplateView(APIView):
 
     def make_redirect_url(self, project_code: str, kind: str) -> str:
         """跳转连接"""
+
         if kind == "mesos":
             redirect_url = os.path.join(
                 settings.DEVOPS_BCS_HOST, settings.SITE_URL, project_code, "mesos", self.request_url_suffix
@@ -320,6 +321,14 @@ class VueTemplateView(APIView):
             redirect_url = os.path.join(
                 settings.DEVOPS_BCS_HOST, settings.SITE_URL, project_code, self.request_url_suffix
             )
+
+        logger.info(
+            "vue page orchestration: %s, kind: %s, request_url: %s, redirect_url: %s",
+            self.container_orchestration,
+            kind,
+            self.request.get_full_path_info(),
+            redirect_url,
+        )
 
         return redirect_url
 
