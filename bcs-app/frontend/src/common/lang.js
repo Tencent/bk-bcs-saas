@@ -1938,7 +1938,8 @@ export default {
     '容器ID': ['Container ID'],
     '确认重置当前编辑状态': ['Confirm to reset the editing state'],
     '重置后，你修改的内容将丢失': ['After resetting, your modified content will be lost'],
-    '缩小': ['Zoom out']
+    '缩小': ['Zoom out'],
+    '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
