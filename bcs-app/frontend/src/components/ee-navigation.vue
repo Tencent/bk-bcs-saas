@@ -1,7 +1,7 @@
 <template>
     <bcs-navigation navigation-type="top-bottom" :need-menu="false" :side-title="$t('蓝鲸容器管理平台')">
         <template slot="side-icon">
-            <img src="@/images/bcs2.svg" class="all-icon">
+            <img src="@/images/bcs.svg" class="all-icon">
         </template>
         <template #header>
             <div class="bcs-navigation-header">
@@ -94,7 +94,18 @@
             }
         },
         async created () {
-            window.$syncUrl = () => {}
+            if (!window.$syncUrl) {
+                window.$syncUrl = (path, flag = false) => {
+                    const resolve = this.$router.resolve({ path: `${SITE_URL}${path}` })
+                    if (this.$route.name === resolve?.route?.name && !flag) return
+
+                    window.location.href = `${SITE_URL}${path}`
+                    // console.log(curPath, path)
+                    // this.$router.push({
+                    //     path: `${SITE_URL}${path}`
+                    // })
+                }
+            }
             const list = []
             list.push(this.$store.dispatch('getProjectList').catch(() => ([])))
             list.push(this.$store.dispatch('userInfo').catch(e => console.log(e)))
@@ -122,6 +133,7 @@
             },
             handleGotoProjectManage () {
                 this.$refs.projectSelectRef && this.$refs.projectSelectRef.close()
+                if (this.$route.name === 'projectManage') return
                 this.$router.replace({
                     name: 'projectManage'
                 })
