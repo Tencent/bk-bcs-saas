@@ -14,7 +14,7 @@ app:
 modules:
   bcs-app-web:
     language: Python
-    is_default: False
+    is_default: True
     source_dir: /bcs-app
     processes:
       web:
