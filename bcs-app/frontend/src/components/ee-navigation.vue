@@ -97,7 +97,7 @@
             if (!window.$syncUrl) {
                 window.$syncUrl = (path, flag = false) => {
                     const resolve = this.$router.resolve({ path: `${SITE_URL}${path}` })
-                    if (this.$route.name === resolve?.route?.name && !flag) return
+                    if (this.$route.name === resolve?.route?.name || !flag) return
 
                     window.location.href = `${SITE_URL}${path}`
                     // console.log(curPath, path)
