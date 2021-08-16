@@ -2,8 +2,8 @@ spec_version: 2
 app_version: "1.0"
 app:
   region: default
-  bk_app_code: "bk-bcs-saas"
-  bk_app_name: 蓝鲸容器服务SaaS
+  bk_app_code: "bk-bcs-saas-smart"
+  bk_app_name: 蓝鲸容器服务SaaS(Smart)
   market:
     category: 运维工具
     introduction: 应用简介
