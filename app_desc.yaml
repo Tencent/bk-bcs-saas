@@ -15,7 +15,7 @@ modules:
   bcs-app-web:
     language: Python
     is_default: False
-    source_dir: /
+    source_dir: /bcs-app
     processes:
       web:
         command: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
@@ -32,7 +32,7 @@ modules:
   bcs-app-channel:
     language: Python
     is_default: False
-    source_dir: /
+    source_dir: /bcs-app
     processes:
       channel:
         command: gunicorn backend.asgi -b :28801 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
@@ -41,7 +41,7 @@ modules:
   bcs-app-console:
     language: Python
     is_default: False
-    source_dir: /
+    source_dir: /bcs-app
     processes:
       web-console:
         command: python -m backend.web_console
