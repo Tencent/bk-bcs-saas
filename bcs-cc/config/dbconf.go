@@ -11,7 +11,10 @@
 
 package config
 
-import "os"
+import (
+	"os"
+	"strconv"
+)
 
 // DBConf :
 type DBConf struct {
@@ -29,13 +32,13 @@ type DBConf struct {
 
 // Init :
 func (c *DBConf) Init() {
-	port, _ := strconv.Atoi(os.Getenv("GCS_MYSQL_PORT"))
+	port, _ := strconv.Atoi(os.Getenv("MYSQL_PORT"))
 	c.Type = "mysql"
-	c.Host = os.Getenv("GCS_MYSQL_HOST")
+	c.Host = os.Getenv("MYSQL_HOST")
 	c.Port = port
-	c.User = os.Getenv("GCS_MYSQL_USER")
-	c.Password = os.Getenv("GCS_MYSQL_PASSWORD")
-	c.DBName = os.Getenv("GCS_MYSQL_NAME")
+	c.User = os.Getenv("MYSQL_USER")
+	c.Password = os.Getenv("MYSQL_PASSWORD")
+	c.DBName = os.Getenv("MYSQL_NAME")
 
 	c.MaxIdleConns = 10
 	c.MaxOpenConns = 100
