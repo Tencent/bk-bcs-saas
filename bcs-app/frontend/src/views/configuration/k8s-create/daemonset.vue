@@ -82,14 +82,14 @@
                                         <div class="bk-form-item">
                                             <div class="bk-form-content" style="margin-left: 0;">
                                                 <div class="bk-form-inline-item is-required">
-                                                    <label class="bk-label" style="width: 105px;">{{$t('应用名称')}}：</label>
-                                                    <div class="bk-form-content" style="margin-left: 105px;">
+                                                    <label class="bk-label" style="width: 140px;">{{$t('应用名称')}}：</label>
+                                                    <div class="bk-form-content" style="margin-left: 140px;">
                                                         <div class="bk-form-input-group">
                                                             <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('applicationName') }]" :placeholder="$t('请输入64个字符以内')" style="width: 310px;" v-model="curApplication.config.metadata.name" maxlength="64" name="applicationName" v-validate="{ required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/ }">
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="bk-form-tip is-danger" style="margin-left: 105px;" v-if="errors.has('applicationName')">
+                                                <div class="bk-form-tip is-danger" style="margin-left: 140px;" v-if="errors.has('applicationName')">
                                                     <p class="bk-tip-text">{{$t('名称必填，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)')}}</p>
                                                 </div>
                                             </div>
@@ -97,8 +97,8 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('重要级别')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('重要级别')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bk-radio-group v-model="curApplication.config.monitorLevel">
                                                 <bk-radio class="mr20" :value="'important'">{{$t('重要')}}</bk-radio>
                                                 <bk-radio class="mr20" :value="'general'">{{$t('一般')}}</bk-radio>
@@ -108,15 +108,15 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('描述')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <textarea class="bk-form-textarea" :placeholder="$t('请输入256个字符以内')" v-model="curApplication.desc" maxlength="256"></textarea>
                                         </div>
                                     </div>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">{{$t('标签')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('标签')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bk-keyer
                                                 :key-list.sync="curLabelList"
                                                 :var-list="varList"
@@ -134,7 +134,7 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isMorePanelShow }]" @click.stop.prevent="toggleMore">
                                                 {{$t('更多设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
                                             </button>
@@ -143,7 +143,7 @@
                                                 {{$t('Pod模板设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
                                             </button>
                                         </div>
-                                        <bk-tab :type="'fill'" :active-name="'tab1'" :size="'small'" v-show="isMorePanelShow" style="margin-left: 105px;">
+                                        <bk-tab :type="'fill'" :active-name="'tab1'" :size="'small'" v-show="isMorePanelShow" style="margin-left: 140px;">
                                             <bk-tab-panel name="tab1" :title="$t('更新策略')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
@@ -260,7 +260,7 @@
                                             </bk-tab-panel>
                                         </bk-tab>
 
-                                        <bk-tab :type="'fill'" :active-name="'tab2'" :size="'small'" v-show="isPodPanelShow" style="margin-left: 105px;">
+                                        <bk-tab :type="'fill'" :active-name="'tab2'" :size="'small'" v-show="isPodPanelShow" style="margin-left: 140px;">
                                             <bk-tab-panel name="tab2" :title="$t('注解')">
                                                 <div class="bk-form m20">
                                                     <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer" @change="updateApplicationRemark"></bk-keyer>
@@ -269,8 +269,8 @@
                                             <bk-tab-panel name="tab3" :title="$t('Restart策略')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('重启策略')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('重启策略')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <bk-radio-group v-model="curApplication.config.spec.template.spec.restartPolicy">
                                                                 <bk-radio :value="policy" v-for="(policy, index) in restartPolicy" :key="index">
                                                                     {{policy}}
@@ -283,8 +283,8 @@
                                             <bk-tab-panel name="tab4" :title="$t('Kill策略')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('宽期限')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('宽期限')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <div class="bk-form-input-group">
                                                                 <bkbcs-input
                                                                     type="number"
@@ -333,8 +333,8 @@
                                             <bk-tab-panel name="tab6" :title="$t('网络')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('网络策略')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('网络策略')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <bk-selector
                                                                 style="width: 300px;"
                                                                 :placeholder="$t('请选择')"
@@ -347,8 +347,8 @@
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('DNS策略')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('DNS策略')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <bk-selector
                                                                 style="width: 300px;"
                                                                 :placeholder="$t('请选择')"
@@ -571,15 +571,15 @@
                                     <div class="bk-form-item is-required">
                                         <div class="bk-form-content" style="margin-left: 0">
                                             <div class="bk-form-inline-item is-required">
-                                                <label class="bk-label" style="width: 105px;">{{$t('容器名称')}}：</label>
-                                                <div class="bk-form-content" style="margin-left: 105px;">
+                                                <label class="bk-label" style="width: 140px;">{{$t('容器名称')}}：</label>
+                                                <div class="bk-form-content" style="margin-left: 140px;">
                                                     <input type="text" :class="['bk-form-input', { 'is-danger': errors.has('containerName') }]" :placeholder="$t('请输入64个字符以内')" style="width: 310px;" v-model="curContainer.name" maxlength="64" name="containerName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,63}$/ }">
                                                 </div>
                                             </div>
 
                                             <div class="bk-form-inline-item">
-                                                <label class="bk-label" style="width: 105px;">{{$t('类型')}}：</label>
-                                                <div class="bk-form-content" style="margin-left: 105px;">
+                                                <label class="bk-label" style="width: 140px;">{{$t('类型')}}：</label>
+                                                <div class="bk-form-content" style="margin-left: 140px;">
                                                     <bk-radio-group v-model="curContainer.webCache.containerType">
                                                         <bk-radio :value="'container'">
                                                             Container
@@ -595,14 +595,14 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('描述')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" :placeholder="$t('请输入256个字符以内')" v-model="curContainer.webCache.desc" maxlength="256"></textarea>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 107px;">{{$t('镜像及版本')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('镜像及版本')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="mb10">
                                                 <span @click="handleChangeImageMode">
                                                     <bk-switcher
@@ -702,7 +702,7 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <table class="biz-simple-table">
                                                 <thead>
                                                     <tr>
@@ -759,7 +759,7 @@
                                         </div>
                                     </div>
 
-                                    <div style="margin-left: 105px;" v-show="isPartBShow">
+                                    <div style="margin-left: 140px;" v-show="isPartBShow">
                                         <bk-tab :type="'fill'" :active-name="'tab1'" :size="'small'">
                                             <bk-tab-panel name="tab1" :title="$t('命令')">
                                                 <div class="bk-form m20">
@@ -974,14 +974,14 @@
                                             <bk-tab-panel name="tab4" :title="$t('资源限制')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('特权')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('特权')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <bk-checkbox v-model="curContainer.securityContext.privileged">{{$t('可完全访问母机资源')}}</bk-checkbox>
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">CPU：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">CPU：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <div class="bk-form-input-group mr5">
                                                                 <span class="input-group-addon is-left">
                                                                     requests
@@ -1030,8 +1030,8 @@
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">{{$t('内存')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 105px;">
+                                                        <label class="bk-label" style="width: 140px;">{{$t('内存')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 140px;">
                                                             <div class="bk-form-input-group mr5">
                                                                 <span class="input-group-addon is-left">
                                                                     requests
@@ -1556,7 +1556,7 @@
                                         </bk-tab>
                                     </div>
                                 </div>
-                                <div class="operation-area mt30 mb50" style="margin-left: 105px;">
+                                <div class="operation-area mt30 mb50" style="margin-left: 140px;">
                                 </div>
                             </div>
                         </template>
