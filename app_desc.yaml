@@ -54,4 +54,12 @@ modules:
         command: python -m backend.web_console
         plan: 4C1G5R
         replicas: 1
-
+  bcs-cc:
+    language: Go
+    is_default: False
+    services:
+      - name: mysql
+    processes:
+      bcs-cc: 
+        command: bcs-cc-test cc -c etc/test.yaml
+        replicas: 1
