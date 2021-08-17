@@ -10,8 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from .cluster import ClusterRequest
-from .constants import ResourceType
-from .namespace import NamespaceRequest
-from .project import ProjectRequest
-from .templateset import TemplatesetRequest
+
+from .permissions import resources
+from .permissions.request import ResourceRequest
+
+ResourceType = resources.ResourceType
+
+ResourceRequestMap = {
+    ResourceType.Project: resources.ProjectRequest,
+    ResourceType.Cluster: resources.ClusterRequest,
+    ResourceType.Namespace: resources.NamespaceRequest,
+    ResourceType.Templateset: resources.TemplatesetRequest,
+}
+
+
+def make_res_request(res_type: str, res_id: str, **attr_kwargs) -> ResourceRequest:
+    return ResourceRequestMap[res_type](res_id, **attr_kwargs)

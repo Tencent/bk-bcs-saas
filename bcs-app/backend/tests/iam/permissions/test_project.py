@@ -18,10 +18,10 @@ import pytest
 from backend.iam.permissions.exceptions import PermissionDeniedError
 from backend.iam.permissions.perm import ActionResourcesRequest
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermCtx, ProjectPermission
+from backend.tests.iam.conftest import generate_apply_url
 
 from ..fake_iam import FakeProjectPermission
 from . import roles
-from .conftest import generate_apply_url
 
 
 @pytest.fixture

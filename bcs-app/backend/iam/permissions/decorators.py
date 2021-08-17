@@ -14,12 +14,11 @@
 import importlib
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import List
 
 import wrapt
 
 from .exceptions import PermissionDeniedError
-from .perm import ActionResourcesRequest, PermCtx
+from .perm import PermCtx
 from .perm import Permission as PermPermission
 
 logger = logging.getLogger(__name__)

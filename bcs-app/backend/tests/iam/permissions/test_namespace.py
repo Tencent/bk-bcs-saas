@@ -22,13 +22,14 @@ from backend.iam.permissions.resources.namespace import (
     NamespaceAction,
     NamespacePermCtx,
     NamespacePermission,
+    compress_cluster_ns_id,
     namespace_perm,
 )
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
+from backend.tests.iam.conftest import generate_apply_url
 
 from ..fake_iam import FakeClusterPermission, FakeNamespacePermission, FakeProjectPermission
 from . import roles
-from .conftest import generate_apply_url
 
 
 @pytest.fixture
@@ -79,12 +80,12 @@ class TestNamespacePermission:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[cluster_ns_id],
+                    resources=[perm_ctx.cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[cluster_ns_id],
+                    resources=[perm_ctx.cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
@@ -170,12 +171,12 @@ class TestNamespacePermDecorator:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[cluster_ns_id],
+                    resources=[perm_ctx.cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[cluster_ns_id],
+                    resources=[perm_ctx.cluster_ns_id],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
@@ -185,3 +186,14 @@ class TestNamespacePermDecorator:
                 ),
             ],
         )
+
+
+@pytest.mark.parametrize(
+    'cluster_namespace_id, expected',
+    [
+        ('BCS-K8S-40000:test-default', '40000:test-default'),
+        ('BCS-K8S-40000:' + 'abc' * 30, '95afa5b2fe10b65fc59c516a6f8cf1e7'),
+    ],
+)
+def test_compress_cluster_ns_id(cluster_namespace_id, expected):
+    assert compress_cluster_ns_id(cluster_namespace_id) == expected

@@ -19,10 +19,10 @@ from backend.iam.permissions.exceptions import PermissionDeniedError
 from backend.iam.permissions.request import ActionResourcesRequest
 from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermCtx, ClusterPermission, cluster_perm
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
+from backend.tests.iam.conftest import generate_apply_url
 
 from ..fake_iam import FakeClusterPermission, FakeProjectPermission
 from . import roles
-from .conftest import generate_apply_url
 
 
 @pytest.fixture

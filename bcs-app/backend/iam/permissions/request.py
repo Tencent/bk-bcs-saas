@@ -53,5 +53,5 @@ class ActionResourcesRequest:
     """
 
     action_id: str
-    resource_type: str
+    resource_type: Optional[str] = None
     resources: Optional[List[str]] = None

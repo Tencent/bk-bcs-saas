@@ -18,6 +18,7 @@ from iam.resource.utils import Page
 
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
+from backend.iam.permissions.resources.namespace import compress_cluster_ns_id
 
 from .utils import get_system_token
 
@@ -30,24 +31,31 @@ class NamespaceProvider(ResourceProvider):
         namespace_list = self._list_namespaces(cluster_id)
 
         namespace_slice = namespace_list[page_obj.slice_from : page_obj.slice_to]
-        results = [{'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']} for ns in namespace_slice]
+        results = [
+            {'id': compress_cluster_ns_id(f"{cluster_id}:{ns['name']}"), 'display_name': ns['name']}
+            for ns in namespace_slice
+        ]
 
         return ListResult(results=results, count=len(namespace_list))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         cluster_id = filter_obj.parent['id']
         namespace_list = self._list_namespaces(cluster_id)
+        compressed_cluster_ns = {
+            compress_cluster_ns_id(f"{cluster_id}:{ns['name']}"): ns['name'] for ns in namespace_list
+        }
 
-        if filter_obj.ids:
-            # cluster_ns_id 结构如 BCS-K8S-40000:test
-            filter_ns_list = [cluster_ns_id.split(':')[1] for cluster_ns_id in filter_obj.ids]
+        if not filter_obj.ids:
             results = [
-                {'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']}
-                for ns in namespace_list
-                if ns['name'] in filter_ns_list
+                {'id': compressed_id, 'display_name': name} for compressed_id, name in compressed_cluster_ns.items()
             ]
-        else:
-            results = [{'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']} for ns in namespace_list]
+            return ListResult(results=results, count=len(results))
+
+        results = []
+        for compressed_id in filter_obj.ids:
+            name = compressed_cluster_ns.get(compressed_id)
+            if name:
+                results.append({'id': compressed_id, 'display_name': name})
 
         return ListResult(results=results, count=len(results))
 

@@ -10,8 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from .cluster import ClusterRequest
-from .constants import ResourceType
-from .namespace import NamespaceRequest
-from .project import ProjectRequest
-from .templateset import TemplatesetRequest
+from backend.packages.blue_krill.data_types.enum import StructuredEnum
+
+
+class ResourceType(str, StructuredEnum):
+    Project = 'project'
+    Cluster = 'cluster'
+    Namespace = 'namespace'
+    Templateset = "templateset"

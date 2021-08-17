@@ -19,9 +19,8 @@ from backend.iam.permissions.perm import PermCtx, Permission
 from backend.iam.permissions.request import ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
+from .constants import ResourceType
 from .project import ProjectPermission, related_project_perm
-
-TemplatesetType = "templateset"
 
 
 class TemplatesetAction(str, StructuredEnum):
@@ -39,7 +38,7 @@ class TemplatesetPermCtx(PermCtx):
 
 
 class TemplatesetRequest(ResourceRequest):
-    resource_type: str = TemplatesetType
+    resource_type: str = ResourceType.Templateset
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -48,7 +47,7 @@ class TemplatesetRequest(ResourceRequest):
 
 
 class related_templateset_perm(decorators.RelatedPermission):
-    module_name: str = TemplatesetType
+    module_name: str = ResourceType.Templateset
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -63,13 +62,13 @@ class related_templateset_perm(decorators.RelatedPermission):
 
 
 class templateset_perm(decorators.Permission):
-    module_name: str = TemplatesetType
+    module_name: str = ResourceType.Templateset
 
 
 class TemplatesetPermission(Permission):
     """模板集权限"""
 
-    resource_type: str = TemplatesetType
+    resource_type: str = ResourceType.Templateset
     resource_request_cls: Type[ResourceRequest] = TemplatesetRequest
     parent_res_perm = ProjectPermission()
 

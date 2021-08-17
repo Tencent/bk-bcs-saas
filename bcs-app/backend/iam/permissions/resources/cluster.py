@@ -18,9 +18,8 @@ from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
+from .constants import ResourceType
 from .project import ProjectPermission, related_project_perm
-
-ClusterType = 'cluster'
 
 
 class ClusterAction(str, StructuredEnum):
@@ -37,7 +36,7 @@ class ClusterPermCtx(PermCtx):
 
 
 class ClusterRequest(ResourceRequest):
-    resource_type: str = ClusterType
+    resource_type: str = ResourceType.Cluster
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -47,7 +46,7 @@ class ClusterRequest(ResourceRequest):
 
 class related_cluster_perm(decorators.RelatedPermission):
 
-    module_name: str = ClusterType
+    module_name: str = ResourceType.Cluster
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -62,13 +61,13 @@ class related_cluster_perm(decorators.RelatedPermission):
 
 
 class cluster_perm(decorators.Permission):
-    module_name: str = ClusterType
+    module_name: str = ResourceType.Cluster
 
 
 class ClusterPermission(Permission):
     """集群权限"""
 
-    resource_type: str = ClusterType
+    resource_type: str = ResourceType.Cluster
     resource_request_cls: Type[ResourceRequest] = ClusterRequest
     parent_res_perm = ProjectPermission()
 
