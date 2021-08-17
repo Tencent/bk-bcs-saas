@@ -22,7 +22,7 @@ from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.resources.namespace import NamespaceQuota
-from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.legacy_apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -51,11 +51,11 @@ def get_namespace(access_token, project_id, cluster_id):
         raise error_codes.APIError(f'get namespace error, {resp.get("message")}')
     data = resp.get('data') or []
     namespace_list = []
-    # 过滤掉 系统命名空间和平台占用命名空间
+    # 过滤掉 平台占用命名空间
     # TODO: 命名空间是否有状态不为Active的场景
     for info in data:
         resource_name = info['resourceName']
-        if resource_name in K8S_SYS_NAMESPACE or resource_name in K8S_PLAT_NAMESPACE:
+        if resource_name in K8S_PLAT_NAMESPACE:
             continue
         namespace_list.append(resource_name)
     return namespace_list

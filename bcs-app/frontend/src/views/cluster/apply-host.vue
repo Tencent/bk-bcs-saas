@@ -14,10 +14,6 @@
             <bk-button v-else
                 :theme="theme"
                 :disabled="applyHostButton.disabled"
-                v-bk-tooltips="{
-                    content: applyHostButton.tips,
-                    disabled: !applyHostButton.tips
-                }"
                 @click="handleOpenApplyHost">
                 {{$t('申请服务器')}}
             </bk-button>
@@ -31,6 +27,9 @@
             render-directive="if"
             header-position="left"
             ext-cls="apply-host-dialog">
+            <bk-alert type="info" class="mb20" v-if="applyHostButton.tips">
+                <template #title><div v-html="applyHostButton.tips"></div></template>
+            </bk-alert>
             <bk-form ext-cls="apply-form"
                 ref="applyForm"
                 :label-width="100"
@@ -578,7 +577,8 @@
                         const tipsContentMap = {
                             RUNNING: this.$t('主机申请中')
                         }
-                        this.applyHostButton.tips = `${tipsContentMap[status] || this.$t('主机申请失败')}，<a href="${data.scr_url}" target="_blank" style="color: #3a84ff;">${this.$t('查看详情')}</a>`
+                        this.applyHostButton.tips = `${tipsContentMap[status] || this.$t('项目下存在主机申请失败的单据，请联系申请者【{name}】或', { name: data.operator })}
+                        <a href="${data.scr_url}" target="_blank" style="color: #3a84ff;">${this.$t('查看详情')}</a>`
                     } else {
                         this.applyHostButton.tips = ''
                     }
