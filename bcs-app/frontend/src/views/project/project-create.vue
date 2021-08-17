@@ -130,4 +130,9 @@
     })
 </script>
 <style lang="postcss" scoped>
+    .create-input {
+        /deep/ .bk-textarea-wrapper .bk-form-textarea {
+            line-height: 20px;
+        }
+    }
 </style>
