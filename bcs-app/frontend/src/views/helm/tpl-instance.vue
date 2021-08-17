@@ -882,6 +882,7 @@
                     this.curTplYaml = files[`${tplName}/values.yaml`]
                     this.yamlFile = files[`${tplName}/values.yaml`]
                     this.editYaml()
+                    this.curTpl.description = res.data.data.description
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
