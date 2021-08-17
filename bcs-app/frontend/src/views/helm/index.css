@@ -605,9 +605,7 @@
 /deep/ .bk-table-body tr td .cell {
     -webkit-line-clamp: 2;
 }
-/deep/ .bk-table-body tr .bk-table-1-column-2  .cell {
-    -webkit-line-clamp: 1;
-}
+
 /deep/ .bk-table-body tr td {
     height: 54px;
 }

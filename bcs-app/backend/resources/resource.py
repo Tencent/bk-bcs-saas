@@ -266,15 +266,21 @@ class ResourceClient:
         """删除某个资源"""
         return self.api.delete(name, namespace, body, label_selector, field_selector, **kwargs)
 
-    def watch(self, **kwargs) -> List:
-        """获取较指定的 ResourceVersion 更新的资源状态变更信息"""
+    def watch(self, formatter=None, **kwargs) -> List:
+        """
+        获取较指定的 ResourceVersion 更新的资源状态变更信息
+
+        :param formatter: 指定的格式化器（自定义资源用）
+        :return: 指定资源 watch 结果
+        """
+        formatter = formatter or self.formatter
         return [
             {
                 'kind': r['object'].kind,
                 'operate': r['type'],
                 'uid': r['object'].metadata.uid,
                 'manifest': r['raw_object'],
-                'manifest_ext': self.formatter.format_dict(r['raw_object']),
+                'manifest_ext': formatter.format_dict(r['raw_object']),
             }
             for r in self.api.watch(**kwargs)
         ]
