@@ -2592,6 +2592,21 @@ export default {
 
         handleShowEditorSearch () {
             this.$refs.yamlEditor && this.$refs.yamlEditor.showSearchBox()
+        },
+
+        handleCopyContent (value) {
+            const textarea = document.createElement('textarea')
+            document.body.appendChild(textarea)
+            textarea.value = value
+            textarea.select()
+            if (document.execCommand('copy')) {
+                document.execCommand('copy')
+            }
+            document.body.removeChild(textarea)
+            this.$bkMessage({
+                theme: 'success',
+                message: this.$t('复制成功')
+            })
         }
     }
 }
