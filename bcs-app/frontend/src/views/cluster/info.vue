@@ -512,8 +512,11 @@
             clusterId () {
                 return this.$route.params.clusterId
             },
+            clusterList () {
+                return this.$store.state.cluster.clusterList
+            },
             curCluster () {
-                const data = this.$store.state.cluster.clusterList.find(item => item.cluster_id === this.clusterId) || {}
+                const data = this.clusterList.find(item => item.cluster_id === this.clusterId) || {}
                 this.curClusterInPage = Object.assign({}, data)
                 return JSON.parse(JSON.stringify(data))
             },
@@ -921,6 +924,13 @@
                         message: res.message || res.data.msg || res.statusText
                     })
                 })
+                // 更新集群信息
+                const curClusterList = this.clusterList.map(item => {
+                    if (item.cluster_id === clusterId) {
+                        item.name = this.clusterEditName
+                    }
+                })
+                this.$store.commit('cluster/forceUpdateClusterList', curClusterList)
             },
 
             updateClusterDesc () {
