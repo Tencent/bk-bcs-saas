@@ -399,6 +399,7 @@ export default {
     '请确保该节点已经没有运行中的容器': ['Make sure the node has no running containers'],
     '更多': ['More'],
     'pod迁移': ['Pod migration'],
+    '仅移除记录': ['Remove records only'],
     'taskgroup迁移': ['Taskgroup migration'],
     '按照规则修改主机名': ['Modify the host name according to the rules'],
     '安装容器服务相关的组件': ['Install container service related components'],
