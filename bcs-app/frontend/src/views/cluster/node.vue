@@ -813,7 +813,7 @@
                                 </span>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('机房')" :show-overflow-tooltip="true">
+                        <!-- <bk-table-column :label="$t('机房')" :show-overflow-tooltip="true">
                             <template slot-scope="{ row }">
                                 {{row.idcunit || '--'}}
                             </template>
@@ -827,7 +827,7 @@
                             <template slot-scope="{ row }">
                                 {{row.device_class || '--'}}
                             </template>
-                        </bk-table-column>
+                        </bk-table-column> -->
                         <div class="bk-message-box no-data" slot="empty">
                             <p class="message empty-message" v-if="ccSearchKeys.length">{{$t('无匹配的主机资源')}}</p>
                             <p class="message empty-message" v-else>{{$t('您在当前业务下没有主机资源，请联系业务运维')}}</p>

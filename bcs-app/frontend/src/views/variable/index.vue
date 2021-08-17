@@ -64,7 +64,7 @@
                                 </template>
 
                                 <template v-if="row.category === 'sys'">
-                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled" v-bk-tooltips.left="row.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')">{{$t('删除')}}</a>
+                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled" v-bk-tooltips.left="row.category === 'sys' ? $t('系统内置变量，不能编辑') : $t('已经被引用，不能删除')">{{$t('删除')}}</a>
                                 </template>
                                 <template v-else>
                                     <a href="javascript:void(0);" class="ml10 bk-text-button" @click="removeVar(row)">{{$t('删除')}}</a>
