@@ -12,12 +12,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from typing import Dict
+
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
+from backend.resources.namespace import Namespace
 from backend.resources.namespace import utils as ns_utils
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
@@ -31,16 +35,37 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         )
         return Response(namespaces)
 
-    def create_mesos_namespace(self, access_token, username, project_id, cluster_id, ns_name):
+    def create_mesos_namespace(
+        self,
+        access_token: str,
+        username: str,
+        project_id: str,
+        cluster_id: str,
+        ns_name: str,
+        ns_perm_client: bcs_perm.Namespace,
+    ) -> Dict:
         """创建mesos命名空间
         注意: mesos中namespace只是一个概念，不是一个资源；因此，不需要在mesos集群创建
         """
         namespace = ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
-        # TODO: 现阶段不向权限中心注入
+        # 注入到权限中心
+        ns_perm_client.register(namespace["id"], f"{ns_name}({cluster_id})")
         return namespace
 
-    def create_k8s_namespace(self, access_token, username, project_id, cluster_id, ns_name):
-        raise error_codes.NotOpen()
+    def create_k8s_namespace(
+        self,
+        access_token: str,
+        username: str,
+        project_id: str,
+        cluster_id: str,
+        ns_name: str,
+        ns_perm_client: bcs_perm.Namespace,
+    ):
+        # TODO: 需要注意需要迁移到权限中心V3，可以通过注入的ID，反查命名空间名称、集群ID及项目ID
+        # 连接集群创建命名空间
+
+        namespace = ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
+        ns_perm_client.register(namespace["id"], f"{ns_name}({cluster_id})")
 
     def create_namespace(self, request, project_id_or_code, cluster_id):
         project_id = request.project.project_id
