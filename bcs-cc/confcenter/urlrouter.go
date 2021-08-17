@@ -14,7 +14,7 @@ package confcenter
 import (
 	"github.com/gin-gonic/gin"
 
-	"bcs_cc/confcenter/apis"
+	"bcs-cc/confcenter/apis"
 )
 
 // URLConf : api router

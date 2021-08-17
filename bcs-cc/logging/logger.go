@@ -12,8 +12,8 @@
 package logging
 
 import (
-	"bcs_cc/config"
-	"bcs_cc/storage"
+	"bcs-cc/config"
+	"bcs-cc/storage"
 	"fmt"
 	"runtime"
 

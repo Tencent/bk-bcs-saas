@@ -14,8 +14,8 @@ package storage
 import (
 	"fmt"
 
-	"bcs_cc/bkcrypt"
-	"bcs_cc/config"
+	"bcs-cc/bkcrypt"
+	"bcs-cc/config"
 
 	"github.com/jinzhu/gorm"
 	// import pkg :

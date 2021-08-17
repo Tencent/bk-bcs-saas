@@ -1,7 +1,7 @@
 package models
 
 import (
-	"bcs_cc/utils"
+	"bcs-cc/utils"
 	"fmt"
 
 	"github.com/jinzhu/gorm"

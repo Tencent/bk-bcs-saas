@@ -14,8 +14,8 @@ package apis
 import (
 	"fmt"
 
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"

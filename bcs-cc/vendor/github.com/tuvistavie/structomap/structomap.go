@@ -3,9 +3,10 @@ package structomap
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/fatih/structs"
 	"github.com/huandu/xstrings"
-	"reflect"
 )
 
 // KeyCase represenets the word case of the output keys
@@ -167,7 +168,7 @@ func (b *Base) ConvertKeys(keyConverter KeyConverter) Serializer {
 // UsePascalCase uses PascalCase keys for the serializer
 func (b *Base) UsePascalCase() Serializer {
 	return b.ConvertKeys(func(k string) string {
-		return xstrings.ToCamelCase(k)
+		return xstrings.ToCamelCase(xstrings.ToSnakeCase(k))
 	})
 }
 
