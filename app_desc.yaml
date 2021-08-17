@@ -57,6 +57,7 @@ modules:
   bcs-cc:
     language: Go
     is_default: False
+    source_dir: bcs-cc
     services:
       - name: mysql
     processes:
