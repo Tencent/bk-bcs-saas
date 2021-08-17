@@ -12,7 +12,7 @@
 package utils
 
 import (
-	"bcs_cc/logging"
+	"bcs-cc/logging"
 	"encoding/hex"
 	"fmt"
 	"math/rand"

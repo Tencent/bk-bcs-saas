@@ -15,8 +15,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"bcs_cc/storage"
-	"bcs_cc/utils"
+	"bcs-cc/storage"
+	"bcs-cc/utils"
 )
 
 // FunctionControl : function controller

@@ -11,6 +11,8 @@
 
 package config
 
+import "os"
+
 // DBConf :
 type DBConf struct {
 	Type         string `yaml:"type"`
@@ -27,12 +29,13 @@ type DBConf struct {
 
 // Init :
 func (c *DBConf) Init() {
+	port, _ := strconv.Atoi(os.Getenv("GCS_MYSQL_PORT"))
 	c.Type = "mysql"
-	c.Host = "127.0.0.1"
-	c.Port = 3306
-	c.User = "root"
-	c.Password = ""
-	c.DBName = "bcs_cc"
+	c.Host = os.Getenv("GCS_MYSQL_HOST")
+	c.Port = port
+	c.User = os.Getenv("GCS_MYSQL_USER")
+	c.Password = os.Getenv("GCS_MYSQL_PASSWORD")
+	c.DBName = os.Getenv("GCS_MYSQL_NAME")
 
 	c.MaxIdleConns = 10
 	c.MaxOpenConns = 100

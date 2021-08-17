@@ -19,10 +19,10 @@ import (
 	"io/ioutil"
 	"time"
 
-	"bcs_cc/components/auth"
-	"bcs_cc/config"
-	"bcs_cc/logging"
-	"bcs_cc/utils"
+	"bcs-cc/components/auth"
+	"bcs-cc/config"
+	"bcs-cc/logging"
+	"bcs-cc/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"

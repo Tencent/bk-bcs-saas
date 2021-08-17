@@ -12,9 +12,9 @@
 package apis
 
 import (
-	"bcs_cc/components/auth"
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/components/auth"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 
 	"github.com/gin-gonic/gin"
 )

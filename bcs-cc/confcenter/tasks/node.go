@@ -12,11 +12,11 @@
 package tasks
 
 import (
-	"bcs_cc/components/auth"
-	"bcs_cc/components/bcs"
-	"bcs_cc/logging"
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/components/auth"
+	"bcs-cc/components/bcs"
+	"bcs-cc/logging"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 
 	set "gopkg.in/fatih/set.v0"
 )

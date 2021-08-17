@@ -1,4 +1,4 @@
-# structomap [![Build Status](https://travis-ci.org/tuvistavie/structomap.svg)](https://travis-ci.org/tuvistavie/structomap) [![Coverage Status](https://coveralls.io/repos/tuvistavie/structomap/badge.svg?branch=master)](https://coveralls.io/r/tuvistavie/structomap?branch=master) [![GoDoc](https://godoc.org/github.com/tuvistavie/structomap?status.svg)](https://godoc.org/github.com/tuvistavie/structomap)
+# structomap [![Build Status](https://travis-ci.org/danhper/structomap.svg)](https://travis-ci.org/danhper/structomap) [![Coverage Status](https://coveralls.io/repos/danhper/structomap/badge.svg?branch=master)](https://coveralls.io/r/danhper/structomap?branch=master) [![GoDoc](https://godoc.org/github.com/danhper/structomap?status.svg)](https://godoc.org/github.com/danhper/structomap)
 
 This package helps you to transform your `struct` into `map` easily. It provides a `structomap.Serializer` interface implemented by the `structomap.Base` type which contains chainable function to add, remove or modify fields. The `struct` is transformed to a `map[string]interface{}` using the `Transform(entity interface{})` method.
 It is then up to you to encode the result in JSON, XML or whatever you like.
@@ -6,7 +6,7 @@ It is then up to you to encode the result in JSON, XML or whatever you like.
 Here is an example.
 
 ```go
-import "github.com/tuvistavie/structomap"
+import "github.com/danhper/structomap"
 
 type User struct {
     ID        int
@@ -18,7 +18,7 @@ type User struct {
     UpdatedAt time.Time
 }
 
-currentTime := time.Date(2015, 05, 13, 15, 30, 0, 0, time.UTC),
+currentTime := time.Date(2015, 05, 13, 15, 30, 0, 0, time.UTC)
 
 user := User{
     ID: 1, Email: "x@example.com", FirstName: "Foo", LastName:  "Bar",
@@ -139,4 +139,4 @@ This is released under the MIT license. See the [LICENSE](./LICENSE) file for mo
 
 ## Godoc
 
-The full documentation is available at https://godoc.org/github.com/tuvistavie/structomap.
+The full documentation is available at https://godoc.org/github.com/danhper/structomap.

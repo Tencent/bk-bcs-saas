@@ -1,7 +1,7 @@
 VERSION := 1.0.0
 
 BASEDIR := $(shell pwd)
-PROJECTNAME := bcs_cc
+PROJECTNAME := bcs-cc
 
 # filter
 SOURCEFILES := $(shell find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./src/*"  -not -path "./editions/*" -not -path "./contrib/*" -print)
@@ -10,26 +10,25 @@ SOURCEFILES := $(shell find . -type f -name "*.go" -not -path "./vendor/*" -not 
 BUILDSRCDIR := ${BASEDIR}/src
 BUILDPKGDIR := ${BASEDIR}/pkg
 BUILDDIR := ${BASEDIR}/bin
-BUILDTARGET := ${BUILDDIR}/bcs_cc
+BUILDTARGET := ${BUILDDIR}/bcs-cc
 
 GOPATH := ${BASEDIR}
-GO15VENDOREXPERIMENT := 1
-GOENV := GOPATH=${GOPATH} GO15VENDOREXPERIMENT=${GO15VENDOREXPERIMENT}
+GOENV := GOPATH=${GOPATH}
 
 # json package
 BUILDARGS := -tags=jsoniter
-LDFLAGS := -X bcs_cc/config.Edition=default -X bcs_cc/config.Version=${VERSION} -X bcs_cc/config.BuildTime=`date +%Y-%m-%dT%T%z`
-DEBUGLDFLAGS := -n -X bcs_cc/config.Mode=debug ${LDFLAGS}
-RELEASELDFLAGS := -s -w -X bcs_cc/config.Mode=release ${LDFLAGS}
+LDFLAGS := -X bcs-cc/config.Edition=default -X bcs-cc/config.Version=${VERSION} -X bcs-cc/config.BuildTime=`date +%Y-%m-%dT%T%z`
+DEBUGLDFLAGS := -n -X bcs-cc/config.Mode=debug ${LDFLAGS}
+RELEASELDFLAGS := -s -w -X bcs-cc/config.Mode=release ${LDFLAGS}
 
 
 .PHONY: build
-build: ${BUILDDIR} ${BUILDSRCDIR} ${SOURCEFILES}
-	${GOENV} go build ${BUILDARGS} -i -ldflags "${DEBUGLDFLAGS}" -o ${BUILDTARGET} ${PROJECTNAME}
+build: ${BUILDDIR} ${SOURCEFILES}
+	go build ${BUILDARGS} -ldflags "${DEBUGLDFLAGS}" -o ${BUILDTARGET} ${PROJECTNAME}
 
 .PHONY: release
 release: ${BUILDDIR} ${BUILDSRCDIR}
-	${GOENV} go build ${BUILDARGS} -v -ldflags "${RELEASELDFLAGS}" -o ${BUILDTARGET} ${PROJECTNAME}
+	go build ${BUILDARGS} -v -ldflags "${RELEASELDFLAGS}" -o ${BUILDTARGET} ${PROJECTNAME}
 
 ${BUILDDIR}:
 	mkdir -p ${BUILDPKGDIR}
@@ -44,11 +43,11 @@ dev-init: ${BUILDDIR} ${BUILDSRCDIR}
 
 .PHONY: test
 test:
-	cd tests; ${GOENV} go test
+	cd tests; go test
 
 .PHONY: codecheck
 codecheck:
-	${GOENV} find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./src/*" -exec gofmt -d {} \; -exec golint {} \;
+	find . -type f -name "*.go" -not -path "./vendor/*" -not -path "./src/*" -exec gofmt -d {} \; -exec golint {} \;
 
 
 .PHONY: migrations
@@ -57,7 +56,7 @@ migrations:
 
 .PHONY: go-env
 go-env:
-	@${GOENV} go env
+	go env
 
 .PHONY: clean
 clean:

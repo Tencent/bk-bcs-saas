@@ -14,7 +14,7 @@ package models
 import (
 	"errors"
 
-	"bcs_cc/storage"
+	"bcs-cc/storage"
 
 	"github.com/jinzhu/gorm"
 	"github.com/tuvistavie/structomap"

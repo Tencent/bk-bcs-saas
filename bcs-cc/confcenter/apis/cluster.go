@@ -12,9 +12,9 @@
 package apis
 
 import (
-	"bcs_cc/config"
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/config"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 	"errors"
 	"fmt"
 	"math"

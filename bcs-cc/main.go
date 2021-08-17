@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"os"
 
-	"bcs_cc/confcenter"
-	"bcs_cc/config"
-	"bcs_cc/logging"
-	"bcs_cc/storage/migrations"
+	"bcs-cc/confcenter"
+	"bcs-cc/config"
+	"bcs-cc/logging"
+	"bcs-cc/storage/migrations"
 )
 
 // CustomCommand : interface of commands
