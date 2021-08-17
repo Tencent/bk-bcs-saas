@@ -16,6 +16,9 @@ modules:
     language: Python
     is_default: True
     source_dir: bcs-app
+    services:
+        - name: MySQL
+        - name: RabbitMQ
     processes:
       web:
         command: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
@@ -33,6 +36,8 @@ modules:
     language: Python
     is_default: False
     source_dir: bcs-app
+    services:
+        - name: MySQL
     processes:
       channel:
         command: gunicorn backend.asgi -b :28801 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
@@ -42,6 +47,8 @@ modules:
     language: Python
     is_default: False
     source_dir: bcs-app
+    services:
+        - name: MySQL
     processes:
       web-console:
         command: python -m backend.web_console
