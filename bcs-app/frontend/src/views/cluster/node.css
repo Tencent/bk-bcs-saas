@@ -842,16 +842,6 @@
     }
 }
 
-.create-selector-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    .footer-tips {
-        text-align: left;
-        font-size: 12px;
-    }
-}
-
 .biz-table {
     border-top: 1px solid #E9EDF2;
 }
