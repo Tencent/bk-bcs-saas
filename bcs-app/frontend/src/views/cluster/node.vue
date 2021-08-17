@@ -837,28 +837,12 @@
             </template>
             <div slot="footer">
                 <template>
-                    <div class="create-selector-footer">
-                        <ul class="footer-tips" v-if="curClusterInPage.type !== 'tke'">
-                            <template>
-                                <li>{{$t('安装GSE Agent; 可以通过')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.so">SO</a>{{$t('安装')}}</li>
-                                <li>{{$t('操作系统版本: Tencent tlinux release 2.2 (Final)；如果不满足可以在')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.uwork">Uwork</a>{{$t('重装')}}</li>
-                                <li>{{$t('回收外网IP；如果存在外网，可以在')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.ipSniper">Sniper</a>{{$t('回收外网IP')}}</li>
-                                <li>{{$t('安装NAT模块：下载相应的')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.mirror">{{$t('NAT模块')}}</a>{{$t('，然后进行安装; 重装系统后，如果内核版本大于0048，说明已经安装NAT模块')}}</li>
-                            </template>
-                        </ul>
-                        <div class="footer-tips" v-else>
-                            <!-- <p v-if="isEn">Default password is: <span style="color: red;">bG5T2OTx3rP6</span>, Please change the password in time.</p>
-                            <p v-else>初始化成功后，默认密码为: <span style="color: red;">bG5T2OTx3rP6</span>，请及时修改密码</p> -->
-                        </div>
-                        <div>
-                            <bk-button type="primary" :loading="isCreating" @click="chooseServer">
-                                {{$t('确定')}}
-                            </bk-button>
-                            <bk-button type="button" :disabled="isCreating" @click="closeDialog">
-                                {{$t('取消')}}
-                            </bk-button>
-                        </div>
-                    </div>
+                    <bk-button type="primary" :loading="isCreating" @click="chooseServer">
+                        {{$t('确定')}}
+                    </bk-button>
+                    <bk-button type="button" :disabled="isCreating" @click="closeDialog">
+                        {{$t('取消')}}
+                    </bk-button>
                 </template>
             </div>
         </bk-dialog>
