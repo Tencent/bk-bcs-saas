@@ -29,6 +29,7 @@ Vue.use(VueRouter)
 
 const ContainerServiceEntry = () => import(/* webpackChunkName: 'containerserviceentry' */'@/views')
 const None = () => import(/* webpackChunkName: 'none' */'@open/views/none')
+const ProjectManage = () => import(/* webpackChunkName: 'projectmanage' */'@open/views/project/project.vue')
 
 const children = clusterRoutes.concat(
     nodeRoutes,
@@ -62,6 +63,24 @@ const routes = [
         component: None
     }
 ]
+
+if (window.REGION !== 'ieod') {
+    routes.push(...[
+        {
+            path: '/',
+            redirect: {
+                name: 'projectManage'
+            }
+        },
+        {
+            path: `/projectmanage`,
+            name: 'projectManage',
+            components: {
+                project: ProjectManage
+            }
+        }
+    ])
+}
 
 const router = new VueRouter({
     mode: 'history',

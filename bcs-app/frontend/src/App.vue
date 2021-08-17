@@ -1,19 +1,8 @@
 <template>
-    <div id="app" class="biz-app" :class="systemCls">
-        <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
-        <div style="height: 100%;" v-if="isLoading">
-            <div class="bk-loading" style="background-color: rgba(255, 255, 255, 1)">
-                <div class="bk-loading-wrapper">
-                    <div class="bk-dot-loading" style="height: 20px;">
-                        <div class="point point1"></div>
-                        <div class="point point2"></div>
-                        <div class="point point3"></div>
-                        <div class="point point4"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <template v-else>
+    <div id="app" class="biz-app" :class="systemCls" v-bkloading="{ isLoading: isLoading && projectCode, zIndex: 10 }">
+        <router-view name="project"></router-view>
+        <template v-if="!isLoading && $route.name !== 'projectManage'">
+            <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
             <div class="app-container" :style="{ minHeight: minHeight + 'px' }" v-if="isUserBKService">
                 <router-view :key="routerKey" />
             </div>
@@ -58,7 +47,7 @@
                 enableBtn: false, // 提交按钮是否可用
                 projectId: '',
                 projectCode: '',
-                isLoading: true
+                isLoading: true // 需要等蓝盾触发 change::$currentProjectId 方法后才能显示路由界面
             }
         },
         computed: {
@@ -188,7 +177,6 @@
             // 初始化BCS基本数据（有先后顺序，请勿乱动）
             async initBcsBaseData (projectCode) {
                 this.isLoading = true
-                this.initProjectId(projectCode)
                 // 清空集群列表
                 this.$store.commit('cluster/forceUpdateClusterList', [])
                 // 切换不同项目时清空单集群信息
@@ -198,6 +186,7 @@
                     this.$store.commit('updateCurClusterId', '')
                 }
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
+                this.initProjectId(projectCode)
                 // 检查是否开启容器服务
                 await this.checkProject()
                 if (!this.isUserBKService) {
@@ -290,8 +279,8 @@
              * 初始化时，将通过 projectCode 值获取 projectId 并存储在路由中
              */
             initProjectId (projectCode = window.$currentProjectId || this.$route.params.projectCode) {
-                if (window.$currentProjectId) {
-                    this.projectCode = window.$currentProjectId
+                if (projectCode) {
+                    this.projectCode = projectCode
                     this.$route.params.projectCode = this.projectCode
                     const project = getProjectByCode(this.projectCode)
                     const projectId = project.project_id
