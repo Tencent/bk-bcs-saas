@@ -19,6 +19,7 @@ from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.resources.namespace import Namespace
@@ -61,11 +62,12 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         ns_name: str,
         ns_perm_client: bcs_perm.Namespace,
     ):
-        # TODO: 需要注意需要迁移到权限中心V3，可以通过注入的ID，反查命名空间名称、集群ID及项目ID
+        # TODO: 需要注意需要迁移到权限中心V3，通过注册到V0权限中心的命名空间ID，反查命名空间名称、集群ID及项目ID
         # 连接集群创建命名空间
-
-        namespace = ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
-        ns_perm_client.register(namespace["id"], f"{ns_name}({cluster_id})")
+        ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
+        namespace = Namespace(ctx_cluster).get_or_create_cc_namespace(ns_name, username)
+        ns_perm_client.register(namespace["namespace_id"], f"{ns_name}({cluster_id})")
+        return namespace
 
     def create_namespace(self, request, project_id_or_code, cluster_id):
         project_id = request.project.project_id
@@ -77,12 +79,15 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         username = request.user.username
         project_id = request.project.project_id
 
+        # 命名空间权限Client
+        ns_perm_client = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
+
         project_kind_name = ProjectKind.get_choice_label(request.project.kind)
         namespace = getattr(self, f"create_{project_kind_name.lower()}_namespace")(
-            access_token, username, project_id, cluster_id, data["name"]
+            access_token, username, project_id, cluster_id, data["name"], ns_perm_client
         )
         # 创建命名空间下的变量值
-        ns_id = namespace["id"]
+        ns_id = namespace.get("namespace_id") or namespace.get("id")
         NameSpaceVariable.batch_save(ns_id, data["variables"])
         namespace["variables"] = data["variables"]
 
