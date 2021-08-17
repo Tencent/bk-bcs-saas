@@ -61,5 +61,5 @@ modules:
       - name: mysql
     processes:
       bcs-cc: 
-        command: bcs-cc-test cc -c etc/test.yaml
+        command: bcs-cc cc -c etc/prod.yaml
         replicas: 1
