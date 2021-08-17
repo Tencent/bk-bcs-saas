@@ -1031,7 +1031,7 @@
                 this.$refs.fileInput.click()
             },
 
-            handleFileInput () {
+            handleFileInput (e) {
                 const fileInput = this.$refs.fileInput
                 const self = this
                 if (fileInput.files && fileInput.files.length) {
@@ -1054,16 +1054,13 @@
                                     })
                                     self.refresh()
                                 }).catch((e) => {
-                                    self.$bkMessage({
-                                        theme: 'error',
-                                        message: e.message
-                                    })
                                 })
                             }
                         }
                         reader.readAsText(file)
                     }
                 }
+                e.target.value = ''
             },
 
             handleShowVarExample () {
