@@ -1940,6 +1940,21 @@ export default {
     '确认重置当前编辑状态': ['Confirm to reset the editing state'],
     '重置后，你修改的内容将丢失': ['After resetting, your modified content will be lost'],
     '缩小': ['Zoom out'],
+    '项目管理': ['Project management'],
+    '新建项目': ['New Project'],
+    '项目英文名': ['Project English name'],
+    '请输入2-32字符的小写字母+数字，以小写字母开头': ['Please enter 2-32 characters of lowercase letters + numbers, starting with a lowercase letter'],
+    '项目说明': ['description'],
+    '请输入项目描述': ['Please enter a project description'],
+    '请输入4-12字符的项目名称': ['Please enter a project name of 4-12 characters'],
+    '项目名称': ['project name'],
+    '退出': ['exit'],
+    '创建项目': ['Create Project'],
+    '输入关键字搜索': ['Enter a keyword search'],
+    '创建者': ['Creator'],
+    '编辑项目': ['Edit'],
+    '申请监控中心': ['Application monitor'],
+    '检索关键字': ['Search key'],
     '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
