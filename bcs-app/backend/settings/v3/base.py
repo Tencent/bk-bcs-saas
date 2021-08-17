@@ -131,18 +131,18 @@ DEVOPS_CI_API_HOST = ""
 
 # 应用访问路径
 SITE_URL = "/"
-ENVIRONMENT = os.environ.get("BKV3_ENV", "development")
+ENVIRONMENT = os.environ.get("BKPAAS_ENVIRONMENT", "prod")
 
 # 运行模式， DEVELOP(开发模式)， TEST(测试模式)， PRODUCT(正式模式)
 RUN_MODE = "DEVELOP"
-if ENVIRONMENT.endswith("production"):
+if ENVIRONMENT == "prod":
     RUN_MODE = "PRODUCT"
     DEBUG = False
-    SITE_URL = f"/o/{APP_ID}/"
-elif ENVIRONMENT.endswith("testing"):
+    SITE_URL = f"/prod--{APP_ID}/"
+elif ENVIRONMENT == "stag":
     RUN_MODE = "TEST"
     DEBUG = False
-    SITE_URL = f"/t/{APP_ID}/"
+    SITE_URL = f"/stag--{APP_ID}/"
 else:
     RUN_MODE = "DEVELOP"
     DEBUG = True
@@ -172,7 +172,7 @@ BROKER_URL = 'amqp://{user}:{password}@{host}:{port}/{vhost}'.format(
 # ref: https://docs.celeryproject.org/en/latest/history/whatsnew-4.0.html#lowercase-setting-names
 CELERY_BROKER_URL = BROKER_URL
 
-WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
+WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 5000))
 
 if IS_USE_CELERY:
     try:
