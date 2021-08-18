@@ -138,11 +138,9 @@ RUN_MODE = "DEVELOP"
 if ENVIRONMENT == "prod":
     RUN_MODE = "PRODUCT"
     DEBUG = False
-    SITE_URL = f"/prod--{APP_ID}/"
 elif ENVIRONMENT == "stag":
     RUN_MODE = "TEST"
     DEBUG = False
-    SITE_URL = f"/stag--{APP_ID}/"
 else:
     RUN_MODE = "DEVELOP"
     DEBUG = True
