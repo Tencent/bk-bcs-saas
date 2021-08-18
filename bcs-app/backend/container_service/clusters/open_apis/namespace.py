@@ -127,7 +127,7 @@ class NamespaceViewSet(UserViewSet):
         project_id: str,
         cluster_id: str,
         ns_name: str,
-    ):
+    ) -> Dict:
         # TODO: 需要注意需要迁移到权限中心V3，通过注册到V0权限中心的命名空间ID，反查命名空间名称、集群ID及项目ID
         # 连接集群创建命名空间
         ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
