@@ -298,9 +298,11 @@
                                     <th style="width: 160px; padding-left: 30px;">{{$t('主机名称')}}</th>
                                     <th style="width: 220px;">{{$t('内网IP')}}</th>
                                     <th style="width: 120px;">{{$t('Agent状态')}}</th>
-                                    <th v-if="$INTERNAL" style="width: 170px;">{{$t('机房')}}</th>
-                                    <th v-if="$INTERNAL" style="width: 150px;">{{$t('机架')}}</th>
-                                    <th v-if="$INTERNAL" style="width: 100px;">{{$t('机型')}}</th>
+                                    <template v-if="$INTERNAL">
+                                        <th style="width: 170px;">{{$t('机房')}}</th>
+                                        <th style="width: 150px;">{{$t('机架')}}</th>
+                                        <th style="width: 100px;">{{$t('机型')}}</th>
+                                    </template>
                                 </tr>
                             </thead>
                             <tbody>
@@ -344,30 +346,32 @@
                                                 {{$t('错误')}}
                                             </span>
                                         </td>
-                                        <td v-if="$INTERNAL">
-                                            <bcs-popover placement="top">
-                                                <div class="idcunit vm">{{host.idc || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.idc || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
-                                        <td v-if="$INTERNAL">
-                                            <bcs-popover placement="top">
-                                                <div class="server-rack vm">{{host.server_rack || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.server_rack || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
-                                        <td v-if="$INTERNAL">
-                                            <bcs-popover placement="top">
-                                                <div class="device-class vm">{{host.device_class || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.device_class || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
+                                        <template v-if="$INTERNAL">
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="idcunit vm">{{host.idc || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.idc || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="server-rack vm">{{host.server_rack || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.server_rack || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="device-class vm">{{host.device_class || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.device_class || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                        </template>
                                     </tr>
                                 </template>
                                 <template v-if="!curPageData.length && !dialogConf.loading">

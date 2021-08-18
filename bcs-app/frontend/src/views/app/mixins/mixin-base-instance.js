@@ -11,8 +11,9 @@ import 'echarts/lib/component/legend'
 import yamljs from 'js-yaml'
 import { Decimal } from 'decimal.js'
 
+
 import { instanceDetailChart } from '@open/common/chart-option'
-import { randomInt, catchErrorHandler, chartColors, formatBytes } from '@open/common/util'
+import { randomInt, catchErrorHandler, chartColors, formatBytes, copyText } from '@open/common/util'
 import ace from '@open/components/ace-editor'
 import BcsLog from '@open/components/bcs-log/index'
 import { createChartOption } from '../pod-chart-opts'
@@ -2595,14 +2596,7 @@ export default {
         },
 
         handleCopyContent (value) {
-            const textarea = document.createElement('textarea')
-            document.body.appendChild(textarea)
-            textarea.value = value
-            textarea.select()
-            if (document.execCommand('copy')) {
-                document.execCommand('copy')
-            }
-            document.body.removeChild(textarea)
+            copyText(value)
             this.$bkMessage({
                 theme: 'success',
                 message: this.$t('复制成功')
