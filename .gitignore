@@ -165,7 +165,6 @@ bcs-projmgr/frontend/src/assets/static/main.dll.js
 
 bcs-cc/pkg
 bcs-cc/src
-bcs-cc/bin
 /data/
 
 bcs-app/backend/settings/ce/dev_*.py

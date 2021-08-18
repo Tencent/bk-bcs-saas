@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# migrate
+make release
+bin/bcs-cc migrate -c etc/prod.yaml
