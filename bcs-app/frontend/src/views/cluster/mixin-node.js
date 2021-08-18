@@ -1375,7 +1375,7 @@ export default {
                 if (this.$INTERNAL) {
                     this.stopDialogConf.content = this.$t(
                         '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
-                        )
+                    )
                 }
             }
 
