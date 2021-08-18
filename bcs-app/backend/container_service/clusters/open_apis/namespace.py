@@ -18,7 +18,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.bcs_web.viewsets import UserViewSet
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
@@ -29,7 +29,7 @@ from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.error_codes import error_codes
 
 
-class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
+class NamespaceViewSet(UserViewSet):
     def list_by_cluster_id(self, request, project_id_or_code, cluster_id):
         namespaces = ns_utils.get_namespaces_by_cluster_id(
             request.user.token.access_token, request.project.project_id, cluster_id
@@ -53,7 +53,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         ns_perm_client.register(namespace["id"], f"{ns_name}({cluster_id})")
         return namespace
 
-    def create_k8s_namespace(
+    def create_kubernetes_namespace(
         self,
         access_token: str,
         username: str,
@@ -88,6 +88,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         )
         # 创建命名空间下的变量值
         ns_id = namespace.get("namespace_id") or namespace.get("id")
+        namespace["id"] = ns_id
         NameSpaceVariable.batch_save(ns_id, data["variables"])
         namespace["variables"] = data["variables"]
 
