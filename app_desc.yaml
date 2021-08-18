@@ -5,9 +5,9 @@ app:
   bk_app_code: "bcs-saas-s-mart"
   bk_app_name: "容器服务SaaS-Smart"
   market:
-    category: 运维工具
-    introduction: 应用简介
-    description: 应用描述
+    category: "运维工具"
+    introduction: "应用简介"
+    description: "应用描述"
     display_options:
       width: 800
       height: 600
@@ -19,6 +19,9 @@ modules:
     services:
         - name: mysql
         - name: rabbitmq
+        - name: redis
+          specs:
+            type: "独占实例"
     processes:
       web:
         command: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
@@ -38,6 +41,7 @@ modules:
     source_dir: bcs-app
     services:
         - name: mysql
+          shared_from: bcs-web-app
     processes:
       channel:
         command: gunicorn backend.asgi -b :5000 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
@@ -49,6 +53,7 @@ modules:
     source_dir: bcs-app
     services:
         - name: mysql
+          shared_from: bcs-web-app
     processes:
       web-console:
         command: python -m backend.web_console
