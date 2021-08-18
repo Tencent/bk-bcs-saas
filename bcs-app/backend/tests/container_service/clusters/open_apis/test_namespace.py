@@ -23,6 +23,7 @@ from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks import bcs_perm, paas_cc
 
 fake_data = {"id": 1, "name": generate_random_string(8)}
+fake_project_id = generate_random_string(32)
 pytestmark = pytest.mark.django_db
 
 
@@ -30,8 +31,6 @@ class TestNamespace:
     @pytest.fixture(autouse=True)
     def pre_patch(self):
         with patch("backend.accounts.bcs_perm.Namespace", new=bcs_perm.FakeNamespace), patch(
-            "backend.bcs_web.permissions.PaaSCCClient", new=paas_cc.StubPaaSCCClient
-        ), patch(
             "backend.bcs_web.permissions.bcs_perm.verify_project_by_user", new=lambda *args, **kwargs: True
         ), patch(
             "backend.resources.utils.kube_client.BcsKubeConfigurationService", new=FakeBcsKubeConfigurationService
@@ -42,32 +41,34 @@ class TestNamespace:
         ):
             yield
 
-    def test_create_mesos_namespace(self, cluster_id, project_id, request_user):
-        ns_data = NamespaceViewSet()._create_mesos_namespace(
-            request_user.token.access_token,
-            request_user.username,
-            project_id,
-            cluster_id,
-            fake_data["name"],
-        )
-        assert "id" in ns_data
-        assert ns_data["id"] == 1
-
-    def test_create_kubernetes_namespace(self, cluster_id, project_id, request_user):
-        ns_data = NamespaceViewSet()._create_kubernetes_namespace(
-            request_user.token.access_token,
-            request_user.username,
-            project_id,
-            cluster_id,
-            fake_data["name"],
-        )
-        assert "namespace_id" in ns_data
-        assert ns_data["namespace_id"] == 1
-
-    def test_create_namespace(self, cluster_id, project_id, api_client):
+    @patch(
+        "backend.bcs_web.permissions.PaaSCCClient",
+        new=paas_cc.StubPaaSCCClient,
+    )
+    def test_create_k8s_namespace(self, cluster_id, project_id, api_client):
+        """创建k8s命名空间
+        NOTE: 针对k8s会返回namespace_id字段
+        """
         url = f"/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/"
         resp = api_client.post(url, data=fake_data)
         assert resp.json()["code"] == 0
         data = resp.json()["data"]
+        assert "namespace_id" in data
+        assert isinstance(data, dict)
+        assert data["name"] == fake_data["name"]
+
+    @patch(
+        "backend.bcs_web.permissions.PaaSCCClient.get_project",
+        new=paas_cc.StubPaaSCCClient().get_mesos_project,
+    )
+    def test_create_mesos_namespace(self, cluster_id, project_id, api_client):
+        """创建k8s命名空间
+        NOTE: 针对mesos不会返回namespace_id字段
+        """
+        url = f"/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/"
+        resp = api_client.post(url, data=fake_data)
+        assert resp.json()["code"] == 0
+        data = resp.json()["data"]
+        assert "namespace_id" not in data
         assert isinstance(data, dict)
         assert data["name"] == fake_data["name"]
