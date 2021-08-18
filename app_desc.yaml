@@ -41,7 +41,7 @@ modules:
     source_dir: bcs-app
     services:
         - name: mysql
-          shared_from: bcs-web-app
+          shared_from: bcs-app-web
     processes:
       channel:
         command: gunicorn backend.asgi -b :5000 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
@@ -53,7 +53,7 @@ modules:
     source_dir: bcs-app
     services:
         - name: mysql
-          shared_from: bcs-web-app
+          shared_from: bcs-app-web
     processes:
       web-console:
         command: python -m backend.web_console
