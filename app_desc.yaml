@@ -40,7 +40,7 @@ modules:
         - name: mysql
     processes:
       channel:
-        command: gunicorn backend.asgi -b :28801 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
+        command: gunicorn backend.asgi -b :5000 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
         plan: 4C1G5R
         replicas: 1
   bcs-app-console:
