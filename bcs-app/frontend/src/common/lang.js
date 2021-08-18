@@ -399,6 +399,7 @@ export default {
     '请确保该节点已经没有运行中的容器': ['Make sure the node has no running containers'],
     '更多': ['More'],
     'pod迁移': ['Pod migration'],
+    '仅移除记录': ['Remove records only'],
     'taskgroup迁移': ['Taskgroup migration'],
     '按照规则修改主机名': ['Modify the host name according to the rules'],
     '安装容器服务相关的组件': ['Install container service related components'],
@@ -1953,6 +1954,7 @@ export default {
     '创建者': ['Creator'],
     '编辑项目': ['Edit'],
     '申请监控中心': ['Application monitor'],
+    '检索关键字': ['Search key'],
     '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })

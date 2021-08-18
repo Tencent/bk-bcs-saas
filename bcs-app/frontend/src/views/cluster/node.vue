@@ -813,21 +813,23 @@
                                 </span>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('机房')" :show-overflow-tooltip="true">
-                            <template slot-scope="{ row }">
-                                {{row.idcunit || '--'}}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('机架')" :show-overflow-tooltip="true">
-                            <template slot-scope="{ row }">
-                                {{row.server_rack || '--'}}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('机型')" :show-overflow-tooltip="true">
-                            <template slot-scope="{ row }">
-                                {{row.device_class || '--'}}
-                            </template>
-                        </bk-table-column>
+                        <template v-if="$INTERNAL">
+                            <bk-table-column :label="$t('机房')" :show-overflow-tooltip="true">
+                                <template slot-scope="{ row }">
+                                    {{row.idcunit || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('机架')" :show-overflow-tooltip="true">
+                                <template slot-scope="{ row }">
+                                    {{row.server_rack || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('机型')" :show-overflow-tooltip="true">
+                                <template slot-scope="{ row }">
+                                    {{row.device_class || '--'}}
+                                </template>
+                            </bk-table-column>
+                        </template>
                         <div class="bk-message-box no-data" slot="empty">
                             <p class="message empty-message" v-if="ccSearchKeys.length">{{$t('无匹配的主机资源')}}</p>
                             <p class="message empty-message" v-else>{{$t('您在当前业务下没有主机资源，请联系业务运维')}}</p>
@@ -836,7 +838,7 @@
                 </div>
             </template>
             <div slot="footer">
-                <template>
+                <template v-if="$INTERNAL">
                     <div class="create-selector-footer">
                         <ul class="footer-tips" v-if="curClusterInPage.type !== 'tke'">
                             <template>
@@ -859,6 +861,14 @@
                             </bk-button>
                         </div>
                     </div>
+                </template>
+                <template v-else>
+                    <bk-button type="primary" :loading="isCreating" @click="chooseServer">
+                        {{$t('确定')}}
+                    </bk-button>
+                    <bk-button type="button" :disabled="isCreating" @click="closeDialog">
+                        {{$t('取消')}}
+                    </bk-button>
                 </template>
             </div>
         </bk-dialog>

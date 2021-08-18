@@ -159,6 +159,7 @@
             handleRefresh () {
                 this.isRefresh = true
                 this.$emit('refresh')
+                this.$emit('update:searchKey', this.localKey)
             },
             clearSearch () {
                 this.localKey = ''

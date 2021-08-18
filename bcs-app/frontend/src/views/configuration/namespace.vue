@@ -1652,12 +1652,12 @@
                 }
 
                 const results = list.filter(ns => {
+                    // const envType = String(ns.env_type || '').toLowerCase()
+                    // || envType.indexOf(search) > -1
                     const name = String(ns.name || '').toLowerCase()
-                    const envType = String(ns.env_type || '').toLowerCase()
                     const clusterName = String(ns.cluster_name || '').toLowerCase()
 
                     return name.indexOf(search) > -1
-                        || envType.indexOf(search) > -1
                         || clusterName.indexOf(search) > -1
                 })
                 // const beforeLen = this.namespaceListTmp.length

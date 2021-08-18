@@ -561,6 +561,7 @@
                 if (!isPolling) {
                     await this.getClusters()
                 }
+                if (!this.clusterList.length) return
                 this.showLoading = true
                 try {
                     const api = this.isMesosProject ? 'cluster/getMesosNodeList' : 'cluster/getK8sNodes'
