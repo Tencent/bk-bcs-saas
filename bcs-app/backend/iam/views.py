@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework import permissions
 from rest_framework.response import Response
 
 from backend.bcs_web import viewsets
@@ -22,6 +23,8 @@ from .serializers import ResourceActionSLZ, ResourceMultiActionsSLZ
 
 
 class UserPermsViewSet(viewsets.SystemViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def get_perms(self, request):
         """查询多个 action_id 的权限"""
         validated_data = self.params_validate(ResourceMultiActionsSLZ)

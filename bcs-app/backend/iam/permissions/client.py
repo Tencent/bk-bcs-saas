@@ -80,7 +80,8 @@ class IAMClient:
         """
         actions = [Action(action_id) for action_id in action_ids]
         request = MultiActionRequest(settings.APP_ID, Subject("user", username), actions, [], None)
-        return self.iam.batch_resource_multi_actions_allowed(request, res_request.make_resources())
+        resources_list = [[res] for res in res_request.make_resources()]
+        return self.iam.batch_resource_multi_actions_allowed(request, resources_list)
 
     def _make_request(self, username: str, action_id: str, resources: Optional[List[Resource]] = None) -> Request:
         return Request(

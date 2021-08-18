@@ -135,4 +135,17 @@ class FakeIAMClient:
     def batch_resource_multi_actions_allowed(
         self, username: str, action_ids: List[str], res_request: ResourceRequest
     ) -> Dict[str, Dict[str, bool]]:
-        return {}
+        res = res_request.res
+        if isinstance(res, str):
+            res = [res]
+
+        perms = {}
+
+        for indx, r_id in enumerate(res):
+            if indx % 2 == 0:
+                p = {action_id: False for action_id in action_ids}
+            else:
+                p = {action_id: True for action_id in action_ids}
+            perms[r_id] = p
+
+        return perms

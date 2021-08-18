@@ -19,6 +19,8 @@ import pytest
 from backend.iam.permissions.apply_url import ApplyURLGenerator
 from backend.iam.permissions.perm import ActionResourcesRequest
 
+from .fake_iam import FakeIAMClient
+
 
 def generate_apply_url(username: str, action_request_list: List[ActionResourcesRequest]) -> List[str]:
     expect = []
