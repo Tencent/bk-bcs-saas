@@ -14,10 +14,6 @@
             <bk-button v-else
                 :theme="theme"
                 :disabled="applyHostButton.disabled"
-                v-bk-tooltips="{
-                    content: applyHostButton.tips,
-                    disabled: !applyHostButton.tips
-                }"
                 @click="handleOpenApplyHost">
                 {{$t('申请服务器')}}
             </bk-button>
@@ -31,12 +27,15 @@
             render-directive="if"
             header-position="left"
             ext-cls="apply-host-dialog">
+            <bk-alert type="info" class="mb20" v-if="applyHostButton.tips">
+                <template #title><div v-html="applyHostButton.tips"></div></template>
+            </bk-alert>
             <bk-form ext-cls="apply-form"
                 ref="applyForm"
                 :label-width="100"
                 :model="formdata"
                 :rules="rules">
-                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc">
+                <bk-form-item property="region" :label="$t('所属地域')" :required="true" :desc="defaultInfo.areaDesc" style="margin-right: 1px;">
                     <bk-selector :placeholder="$t('请选择地域')"
                         :selected.sync="formdata.region"
                         :list="areaList"
@@ -48,7 +47,19 @@
                         :disabled="defaultInfo.disabled">
                     </bk-selector>
                 </bk-form-item>
-                <bk-form-item ext-cls="mt0" property="vpc_name" :label="$t('所属VPC')" :required="true" :desc="defaultInfo.vpcDesc">
+                <bk-form-item property="networkKey" :label="$t('网络类型')" :desc="defaultInfo.netWorkDesc" :required="true">
+                    <div class="bk-button-group">
+                        <bcs-button
+                            :disabled="defaultInfo.networkKey && defaultInfo.networkKey !== 'overlay'"
+                            :class="{ 'active': formdata.networkKey === 'overlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'overlay' }"
+                            @click="formdata.networkKey = 'overlay'">overlay</bcs-button>
+                        <bcs-button
+                            :disabled="defaultInfo.networkKey && defaultInfo.networkKey !== 'underlay'"
+                            :class="{ 'active': formdata.networkKey === 'underlay', 'network-btn': true, 'network-zIndex': defaultInfo.networkKey === 'underlay' }"
+                            @click="formdata.networkKey = 'underlay'">underlay</bcs-button>
+                    </div>
+                </bk-form-item>
+                <bk-form-item ext-cls="mt0" property="vpc_name" :label="$t('所属VPC')" :required="true" :desc="defaultInfo.vpcDesc" style="padding-top: 20px;">
                     <bk-selector :placeholder="$t('请选择VPC')"
                         :selected.sync="formdata.vpc_name"
                         :list="vpcList"
@@ -166,7 +177,8 @@
                     disk_size: 50,
                     replicas: 1,
                     cvm_type: '',
-                    vpc_name: ''
+                    vpc_name: '',
+                    networkKey: 'overlay'
                 },
                 rules: {
                     region: [{
@@ -194,6 +206,7 @@
                 defaultInfo: {
                     areaDesc: '',
                     vpcDesc: '',
+                    netWorkDesc: '',
                     disabled: false
                 },
                 clusterInfo: {},
@@ -300,6 +313,9 @@
             }
         },
         watch: {
+            'formdata.networkKey' (val, old) {
+                val && val !== old && this.changeNetwork()
+            },
             'formdata.cvm_type' () {
                 this.$refs.applyForm && this.$refs.applyForm.$refs.hostItem && this.$refs.applyForm.$refs.hostItem.clearError()
             },
@@ -329,6 +345,7 @@
                 this.defaultInfo = {
                     areaDesc: this.$t('和集群所属区域一致'),
                     vpcDesc: this.$t('和集群所属vpc一致'),
+                    netWorkDesc: this.$t('和集群所属网络类型一致'),
                     disabled: true
                 }
             }
@@ -358,6 +375,10 @@
                         clusterId: this.clusterId
                     })
                     this.clusterInfo = res.data || {}
+                    if (this.clusterInfo.network_type && this.isBackfill) {
+                        this.formdata.networkKey = this.clusterInfo.network_type
+                        this.defaultInfo.networkKey = this.formdata.networkKey
+                    }
                 } catch (e) {
                     console.error(e)
                 }
@@ -395,6 +416,15 @@
                     this.isAreaLoading = false
                 }
             },
+
+            /**
+             * 选择网络类型
+             */
+            async changeNetwork (index, data) {
+                this.vpcList = []
+                await this.fetchVPC()
+            },
+
             async fetchVPC () {
                 if (!this.formdata.region) {
                     return
@@ -403,7 +433,8 @@
                     const res = await this.$store.dispatch('cluster/getVPC', {
                         projectId: this.projectId,
                         data: {
-                            region_name: this.formdata.region
+                            region_name: this.formdata.region,
+                            network_type: this.formdata.networkKey
                         }
                     })
                     const vpc = res.data || {}
@@ -507,6 +538,7 @@
             handleOpenApplyHost () {
                 // reset
                 this.formdata = {
+                    ...this.formdata,
                     region: '',
                     vpc_name: '',
                     disk_size: 50,
@@ -545,7 +577,8 @@
                         const tipsContentMap = {
                             RUNNING: this.$t('主机申请中')
                         }
-                        this.applyHostButton.tips = `${tipsContentMap[status] || this.$t('主机申请失败')}，<a href="${data.scr_url}" target="_blank" style="color: #3a84ff;">${this.$t('查看详情')}</a>`
+                        this.applyHostButton.tips = `${tipsContentMap[status] || this.$t('项目下存在主机申请失败的单据，请联系申请者【{name}】或', { name: data.operator })}
+                        <a href="${data.scr_url}" target="_blank" style="color: #3a84ff;">${this.$t('查看详情')}</a>`
                     } else {
                         this.applyHostButton.tips = ''
                     }
@@ -613,6 +646,15 @@
         &.has-append-item {
             .tooltips-icon {
                 right: 74px !important;
+            }
+        }
+        .bk-button-group {
+            width: 100%;
+            .network-btn {
+                width: 50%;
+            }
+            .network-zIndex {
+                z-index: 1;
             }
         }
         .form-item-inner {

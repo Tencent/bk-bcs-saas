@@ -18,10 +18,12 @@
 
                 <div class="biz-panel-header p20">
                     <div class="left">
-                        <router-link class="bk-button bk-primary" :to="{ name: 'helmTplList' }">
+                        <!-- <router-link class="bk-button bk-primary" :to="{ name: 'helmTplList' }">
                             <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('部署Helm Chart')}}</span>
-                        </router-link>
+                        </router-link> -->
+                        <!-- <bcs-button>批量下载</bcs-button>
+                        <bcs-button>批量删除</bcs-button> -->
                     </div>
                     <div class="right">
                         <search
@@ -52,139 +54,91 @@
                 </svg>
 
                 <div class="biz-namespace" style="padding-bottom: 100px;" v-bkloading="{ isLoading: isPageLoading }">
-                    <table class="bk-table biz-templateset-table mb20">
-                        <thead>
-                            <tr>
-                                <!-- <th class="logo-th center">{{$t('图标')}}</th> -->
-                                <th class="data-th">{{$t('Release名称')}}</th>
-                                <th class="chart-th">{{$t('Chart')}}</th>
-                                <th class="namespace-th">{{$t('集群')}}/{{$t('命名空间')}}</th>
-                                <th class="opera_record-th pl0">{{$t('操作记录')}}</th>
-                                <th class="action-th">{{$t('操作')}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template v-if="appList.length">
-                                <tr :key="appIndex" v-for="(app, appIndex) in appList">
-                                    <td colspan="66">
-                                        <table class="biz-inner-table">
-                                            <tr>
-                                                <td class="data">
-                                                    <div>
-                                                        <span v-if="app.transitioning_on" class="f14 fb app-name">
-                                                            {{app.name}}
-                                                        </span>
-                                                        <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bk-tooltips="app.name">
-                                                            {{app.name}}
-                                                        </a>
-                                                    </div>
-                                                    <template v-if="app.transitioning_on">
-                                                        <bk-tag theme="warning mt5" style="margin-left: -5px;">
-                                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
-                                                                <div class="rotate rotate1"></div>
-                                                                <div class="rotate rotate2"></div>
-                                                                <div class="rotate rotate3"></div>
-                                                                <div class="rotate rotate4"></div>
-                                                                <div class="rotate rotate5"></div>
-                                                                <div class="rotate rotate6"></div>
-                                                                <div class="rotate rotate7"></div>
-                                                                <div class="rotate rotate8"></div>
-                                                            </div>
-                                                            {{appAction[app.transitioning_action]}}中...
-                                                        </bk-tag>
-                                                    </template>
-                                                    <template v-else-if="!app.transitioning_result && app.transitioning_action !== 'noop'">
-                                                        <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
-                                                            <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(app)">
-                                                                <i class="bcs-icon bcs-icon-order"></i>
-                                                                {{appAction[app.transitioning_action]}}{{$t('失败')}}
-                                                            </bk-tag>
-                                                        </bcs-popover>
-                                                    </template>
-                                                </td>
-                                                <td class="chart">
-                                                    {{`${app.chart_name}:${app.current_version}`}}
-                                                </td>
-                                                <td class="namespace">
-                                                    <div style="margin-top: -5px;">
-                                                        {{$t('所属集群')}}：
-                                                        <bcs-popover :content="app.cluster_id || '--'" placement="top">
-                                                            <span class="biz-min-wrapper">{{app.cluster_name ? app.cluster_name : '--'}}</span>
-                                                        </bcs-popover>
-                                                        <template v-if="$INTERNAL">
-                                                            <template v-if="app.cluster_env === 'stag'">
-                                                                <bk-tag type="filled" theme="warning" class="biz-small-tag m0 mt5">{{$t('测试')}}</bk-tag>
-                                                            <!-- <span class="biz-mark" style="background-color: #ff9c01;">{{$t('测试')}}</span> -->
-                                                            </template>
-                                                            <template v-else-if="app.cluster_env === 'prod'">
-                                                                <bk-tag type="filled" theme="success" class="biz-small-tag m0 mt5">{{$t('正式')}}</bk-tag>
-                                                            <!-- <span class="biz-mark" style="background-color: #3a84ff;">{{$t('正式')}}</span> -->
-                                                            </template>
-                                                        </template>
-                                                    </div>
-                                                    <p>
-                                                        {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{app.namespace}}</span>
-                                                    </p>
-                                                </td>
-                                                <td class="opera_record">
-                                                    <p class="updator">{{$t('操作者')}}：{{app.updator}}</p>
-                                                    <p class="updated">{{$t('更新时间')}}：{{app.updated}}</p>
-                                                </td>
-                                                <td class="action" style="width: 215px">
-                                                    <div class="action-btn-group">
-                                                        <template v-if="app.transitioning_on">
-                                                            <bk-button disabled>
-                                                                <span>{{$t('操作')}}</span>
-                                                                <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                            </bk-button>
-                                                            <bk-button class="ml5" disabled>
-                                                                <span>{{$t('查看状态')}}</span>
-                                                            </bk-button>
-                                                        </template>
-                                                        <template v-else>
-                                                            <bk-dropdown-menu
-                                                                class="dropdown-menu"
-                                                                :align="'left'"
-                                                                ref="dropdown">
-                                                                <bk-button slot="dropdown-trigger" style="position: relative;">
-                                                                    <span class="f14">{{$t('操作')}}</span>
-                                                                    <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                                </bk-button>
-
-                                                                <ul class="bk-dropdown-list" slot="dropdown-content">
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" @click="showAppDetail(app)">{{$t('更新')}}</a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" @click="showRebackDialog(app)">{{$t('回滚')}}</a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" @click="deleteApp(app)">{{$t('删除')}}</a>
-                                                                    </li>
-                                                                </ul>
-                                                            </bk-dropdown-menu>
-                                                            <bk-button class="ml5" @click="showAppInfoSlider(app)">
-                                                                <span>{{$t('查看状态')}}</span>
-                                                            </bk-button>
-                                                        </template>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
+                    <bk-table
+                        :data="curPageData"
+                        size="small"
+                        :pagination="pagination"
+                        @page-change="handlePageChange"
+                        @page-limit-change="handlePageLimitChange">
+                        <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
+                            <template slot-scope="{ row }">
+                                <bk-checkbox name="check-strategy" v-model="row.isChecked" @change="checkApp(row)" />
                             </template>
-                            <template v-else>
-                                <tr>
-                                    <td colspan="7">
-                                        <div class="biz-guide-box" style="margin: 0 20px;">
-                                            <bcs-exception type="empty" scene="part"></bcs-exception>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('Release名称')" min-width="160">
+                            <template slot-scope="{ row }">
+                                <div>
+                                    <span v-if="row.transitioning_on" class="f14 fb app-name">
+                                        {{ row.name }}
+                                    </span>
+                                    <a @click="showAppDetail(row)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else>
+                                        {{ row.name }}
+                                    </a>
+                                </div>
+                                <template v-if="row.transitioning_on">
+                                    <bk-tag theme="warning mt5" style="margin-left: -5px;">
+                                        <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
+                                            <div class="rotate rotate1"></div>
+                                            <div class="rotate rotate2"></div>
+                                            <div class="rotate rotate3"></div>
+                                            <div class="rotate rotate4"></div>
+                                            <div class="rotate rotate5"></div>
+                                            <div class="rotate rotate6"></div>
+                                            <div class="rotate rotate7"></div>
+                                            <div class="rotate rotate8"></div>
                                         </div>
-                                    </td>
-                                </tr>
+                                        {{appAction[row.transitioning_action]}}中...
+                                    </bk-tag>
+                                </template>
+                                <template v-else-if="!row.transitioning_result && row.transitioning_action !== 'noop'">
+                                    <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
+                                        <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(row)">
+                                            <i class="bcs-icon bcs-icon-order"></i>
+                                            {{appAction[row.transitioning_action]}}{{$t('失败')}}
+                                        </bk-tag>
+                                    </bcs-popover>
+                                </template>
                             </template>
-                        </tbody>
-                    </table>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('Chart')" prop="source" min-width="160">
+                            <template slot-scope="{ row }">
+                                {{ `${row.chart_name}:${row.current_version}` }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('集群')" prop="status" :show-overflow-tooltip="false" min-width="250">
+                            <template slot-scope="{ row }">
+                                <div class="col-cluster">
+                                    {{$t('所属集群')}}：
+                                    <bcs-popover :content="row.cluster_id || '--'" placement="top">
+                                        <span>{{row.cluster_name ? row.cluster_name : '--'}}</span>
+                                    </bcs-popover>
+                                    <template v-if="row.cluster_env === 'stag'">
+                                        <bk-tag type="filled" theme="warning" class="biz-small-tag m0">{{$t('测试')}}</bk-tag>
+                                    </template>
+                                    <template v-else-if="row.cluster_env === 'prod'">
+                                        <bk-tag type="filled" theme="success" class="biz-small-tag m0">{{$t('正式')}}</bk-tag>
+                                    </template>
+                                </div>
+                                <p>
+                                    {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{row.namespace}}</span>
+                                </p>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作记录')" prop="create_time" width="260">
+                            <template slot-scope="{ row }">
+                                <p class="updator">{{$t('操作者')}}：{{ row.updator }}</p>
+                                <p class="updated">{{$t('更新时间')}}：{{ row.updated }}</p>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="230">
+                            <template slot-scope="{ row }">
+                                <bk-button class="ml5" text @click="showAppInfoSlider(row)">{{ $t('查看状态') }}</bk-button>
+                                <bk-button class="ml5" text @click="showAppDetail(row)">{{ $t('更新') }}</bk-button>
+                                <bk-button class="ml5" text @click="showRebackDialog(row)">{{ $t('回滚') }}</bk-button>
+                                <bk-button class="ml5" text @click="deleteApp(row)">{{ $t('删除') }}</bk-button>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
         </div>
@@ -473,7 +427,14 @@
                     destroy: this.$t('删除')
                 },
                 isOperaLayerShow: false, // 操作弹层显示，包括删除和回滚
-                appCheckTime: FAST_TIME
+                appCheckTime: FAST_TIME,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 10
+                },
+                selectLists: [],
+                isCheckAll: false // 表格全选状态
             }
         },
         computed: {
@@ -734,10 +695,10 @@
                 const projectId = this.projectId
                 const appId = app.id
                 const me = this
-                const boxStyle = {
-                    'margin-top': '-20px',
-                    'margin-bottom': '-20px'
-                }
+                // const boxStyle = {
+                //     'margin-top': '-20px',
+                //     'margin-bottom': '-20px'
+                // }
                 // const titleStyle = {
                 //     style: {
                 //         'text-align': 'left',
@@ -746,29 +707,30 @@
                 //         'color': '#313238'
                 //     }
                 // }
-                const itemStyle = {
-                    style: {
-                        'text-align': 'left',
-                        'font-size': '14px',
-                        'margin-bottom': '3px',
-                        'color': '#71747c'
-                    }
-                }
+                // const itemStyle = {
+                //     style: {
+                //         'text-align': 'left',
+                //         'font-size': '14px',
+                //         'margin-bottom': '3px',
+                //         'color': '#71747c'
+                //     }
+                // }
 
                 clearTimeout(this.statusTimer)
                 this.isOperaLayerShow = true
                 this.$bkInfo({
-                    title: this.$t('确认删除Release'),
+                    title: this.$t('确定删除该应用?'),
                     clsName: 'biz-remove-dialog',
+                    defaultInfo: true,
                     // content: me.$createElement('p', {
                     //     class: 'biz-confirm-desc'
                     // }, `确定要删除Release【${app.name}】？`),
-                    content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, [
-                        // me.$createElement('p', titleStyle, this.$t('确定要删除Release？')),
-                        me.$createElement('p', itemStyle, `${this.$t('名称')}：${app.name}`),
-                        me.$createElement('p', itemStyle, `${this.$t('所属集群')}：${app.cluster_name}`),
-                        me.$createElement('p', itemStyle, `${this.$t('命名空间')}：${app.namespace}`)
-                    ]),
+                    // content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, [
+                    //     // me.$createElement('p', titleStyle, this.$t('确定要删除Release？')),
+                    //     me.$createElement('p', itemStyle, `${this.$t('名称')}：${app.name}`),
+                    //     me.$createElement('p', itemStyle, `${this.$t('所属集群')}：${app.cluster_name}`),
+                    //     me.$createElement('p', itemStyle, `${this.$t('命名空间')}：${app.namespace}`)
+                    // ]),
                     async confirmFn () {
                         app.transitioning_action = 'delete'
                         app.transitioning_on = true
@@ -849,10 +811,10 @@
                 const keyword = this.searchKeyword
                 const keyList = ['name', 'namespace', 'cluster_name']
                 const list = JSON.parse(JSON.stringify(this.appListCache))
-
                 if (keyword) {
                     const results = list.filter(item => {
                         for (const key of keyList) {
+                            console.log(item['cluster_name'])
                             if (item[key].indexOf(keyword) > -1) {
                                 return true
                             }
@@ -967,7 +929,8 @@
                 const data = {
                     projectId: this.projectId,
                     params: {
-                        limit: 1000000,
+                        limit: this.pagination.limit,
+                        page: this.pagination.current,
                         offset: 0,
                         cluster_id: this.searchScope,
                         namespace: ''
@@ -997,7 +960,10 @@
                     const data = this.getParams()
                     const res = await this.$store.dispatch('helm/getAppList', data)
                     this.searchScope = data.params.cluster_id
+                    this.pagination.count = res.data.results.length
                     this.appList = res.data.results
+                    this.curPageData = this.getDataByPage(this.pagination.current)
+                    
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
 
                     this.getAppsStatus()
@@ -1152,7 +1118,16 @@
                         const res = await this.$store.dispatch('helm/getAppList', data)
 
                         this.appList = res.data.results
+                        this.pagination.count = res.data.results.length
                         this.appListCache = JSON.parse(JSON.stringify(res.data.results))
+                        // 轮询接口,保持选中状态
+                        this.appList.forEach(appItem => {
+                            this.selectLists.forEach(selectAppItem => {
+                                if (appItem.id === selectAppItem.id) {
+                                    this.$set(appItem, 'isChecked', true)
+                                }
+                            })
+                        })
 
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
@@ -1331,6 +1306,82 @@
                 this.isOperaLayerShow = false
                 this.appCheckTime = FAST_TIME
                 this.getAppsStatus()
+            },
+
+            /**
+             * 分页大小更改
+             *
+             * @param {number} pageSize pageSize
+             */
+            handlePageLimitChange (pageSize) {
+                this.appList.forEach(item => {
+                    item.isChecked = false
+                })
+                this.pagination.limit = pageSize
+                this.pagination.current = 1
+                this.handlePageChange(this.pagination.current)
+            },
+
+            /**
+             * 翻页回调
+             *
+             * @param {number} page 当前页
+             */
+            handlePageChange (page) {
+                this.isCheckAll = false
+                this.pagination.current = page
+                this.curPageData = this.getDataByPage(page)
+            },
+
+            /**
+             * 获取分页数据
+             * @param  {number} page 第几页
+             * @return {object} data 数据
+             */
+            getDataByPage (page) {
+                let startIndex = (page - 1) * this.pagination.limit
+                let endIndex = page * this.pagination.limit
+                this.isPageLoading = true
+                if (startIndex < 0) {
+                    startIndex = 0
+                }
+                if (endIndex > this.appList.length) {
+                    endIndex = this.appList.length
+                }
+                setTimeout(() => {
+                    this.isPageLoading = false
+                }, 200)
+                this.selectLists = []
+                return this.appList.slice(startIndex, endIndex)
+            },
+
+            /**
+             * 自定义checkbox表格头
+             */
+            renderSelectionHeader () {
+                return <bk-checkbox name="check-all-strategy" v-model={this.isCheckAll} onChange={this.checkAllApp} />
+            },
+
+            /**
+             * 列表每一行的 checkbox 点击
+             *
+             * @param {Object} row 当前对象
+             */
+            checkApp (row) {
+                this.selectLists = this.curPageData.filter(item => item.isChecked === true)
+                console.log(this.selectLists)
+                this.isCheckAll = this.selectLists.length === this.curPageData.length
+            },
+
+            /**
+             * 列表全选
+             */
+            checkAllApp (value) {
+                const isChecked = value
+                this.curPageData.forEach(item => {
+                    this.$set(item, 'isChecked', isChecked)
+                })
+                this.selectLists = isChecked ? this.curPageData : []
             }
         }
     }

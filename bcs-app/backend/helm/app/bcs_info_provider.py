@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 from dataclasses import dataclass
 
@@ -140,32 +141,14 @@ class BcsInfoProvider:
         data = {
             "io.tencent.paas.creator": self.context["creator"],  # 创建者rtx名
             "io.tencent.paas.updator": self.context["updator"],  # 更新着rtx名
-            # "io.tencent.paas.createTime": self.context["createTime"],  # 创建时间
-            # "io.tencent.paas.updateTime": self.context["updateTime"],  # 更新时间
-            # TODO: 现阶段为不影响用户使用期望结果，平台注入的信息，后续需要迁移到
-            "io.tencent.paas.source_type": source_type,  # 来源
             # 通过getter方法设置，可以保证应用更新时，版本号得到正确的更新
             "io.tencent.paas.version": chart_version_getter,  # 版本号（应用页面显示用）
-            "io.tencent.paas.projectid": self.project_id,  # 项目ID
-            "io.tencent.bkdata.baseall.dataid": self.bkdataid,  # 基础性能采集，数据平台统一给的固定值
-            "io.tencent.bkdata.container.stdlog.dataid": self.bkdata_container_stdlog_dataid,
-            # 标准日志采集dataid （参考后面使用统一的方法获取）# noqa
-            "io.tencent.bcs.app.appid": self.cc_app_id,  # 项目对应的cc业务ID
-            "io_tencent_bcs_cluster": self.cluster_id,  # 集群ID
-            "io.tencent.bcs.clusterid": self.cluster_id,  # 集群ID（兼容lol老数据）
-            "io.tencent.bcs.namespace": self.namespace,  # 命名空间
-            "io.tencent.bcs.kind": "Kubernetes",  # Kubernetes/Mesos 编排服务类型（参考后面使用统一的方法获取）
-            "io.tencent.bcs.monitor.level": self.monitor_level,  # 监控需要的重要级别，默认为 general
-            "io.tencent.bcs.controller.type": resource_kind_getter,
-            # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet, it will be injected with value from danymic getter  # noqa
-            "io.tencent.bcs.controller.name": resource_name_getter,
-            # 应用名称, metadata.name 中的值, it will be injected with injector with value from danymic getter  # noqa
         }
         return data
 
     def provide_pod_labels(self, source_type='helm'):
         labels = self.provide_labels(source_type)
-        labels.pop("io.tencent.paas.version")
+        labels.pop("io.tencent.paas.version", None)
         return labels
 
     def provide_labels(self, source_type='helm'):
@@ -174,33 +157,17 @@ class BcsInfoProvider:
         io.tencent.paas.version: test1              # 版本号（应用页面显示用）
         io.tencent.paas.projectid                   # 项目ID
 
-        io.tencent.bkdata.baseall.dataid: 6566     # 基础性能采集，数据平台统一给的固定值
-        io.tencent.bkdata.container.stdlog.dataid  # 标准日志采集dataid （参考后面使用统一的方法获取）
-
-        io.tencent.bcs.app.appid  # 项目对应的cc业务ID
-        io_tencent_bcs_cluster    # 集群ID
         io.tencent.bcs.clusterid  # 集群ID（兼容lol老数据）
         io.tencent.bcs.namespace  # 命名空间
-        io.tencent.bcs.kind       # Kubernetes/Mesos 编排服务类型（参考后面使用统一的方法获取）
 
-        io.tencent.bcs.monitor.level  # 监控需要的重要级别，默认为 general
         io.tencent.bcs.controller.type  # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet
         io.tencent.bcs.controller.name  # 应用名称, metadata.name 中的值
         """
         labels = {
             "io.tencent.paas.source_type": source_type,  # 来源
-            # 通过getter方法设置，可以保证应用更新时，版本号得到正确的更新
-            "io.tencent.paas.version": chart_version_getter,  # 版本号（应用页面显示用）
             "io.tencent.paas.projectid": self.project_id,  # 项目ID
-            "io.tencent.bkdata.baseall.dataid": self.bkdataid,  # 基础性能采集，数据平台统一给的固定值
-            "io.tencent.bkdata.container.stdlog.dataid": self.bkdata_container_stdlog_dataid,
-            # 标准日志采集dataid （参考后面使用统一的方法获取）# noqa
-            "io.tencent.bcs.app.appid": self.cc_app_id,  # 项目对应的cc业务ID
-            "io_tencent_bcs_cluster": self.cluster_id,  # 集群ID
             "io.tencent.bcs.clusterid": self.cluster_id,  # 集群ID（兼容lol老数据）
             "io.tencent.bcs.namespace": self.namespace,  # 命名空间
-            "io.tencent.bcs.kind": "Kubernetes",  # Kubernetes/Mesos 编排服务类型（参考后面使用统一的方法获取）
-            "io.tencent.bcs.monitor.level": self.monitor_level,  # 监控需要的重要级别，默认为 general
             "io.tencent.bcs.controller.type": resource_kind_getter,
             # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet, it will be injected with value from danymic getter  # noqa
             "io.tencent.bcs.controller.name": resource_name_getter,
@@ -210,49 +177,12 @@ class BcsInfoProvider:
 
     def provide_container_env(self):
         """
-        io_tencent_bcs_app_appid    # 项目对应的cc业务ID，request.project.cc_app_id
-        io_tencent_bcs_cluster      # 集群ID
         io_tencent_bcs_namespace    # 命名空间
-        io_tencent_bkdata_baseall_dataid           # 基础性能采集，数据平台统一给的固定值:6566
-        io_tencent_bkdata_container_stdlog_dataid  # 标准日志采集dataid
-
-        io_tencent_bcs_controller_type  # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet
-        io_tencent_bcs_controller_name  # 应用名称, metadata.name 中的值
         io_tencent_bcs_custom_labels    # 附加日志数据，如：'{"set": "set1", "module": "m1"}'
         """
         data = [
-            {
-                "name": "io_tencent_bcs_app_appid",
-                "value": self.cc_app_id,
-            },
-            {
-                "name": "io_tencent_bcs_cluster",
-                "value": self.cluster_id,
-            },
-            {
-                "name": "io_tencent_bcs_namespace",
-                "value": self.namespace,
-            },
-            {
-                "name": "io_tencent_bkdata_baseall_dataid",
-                "value": self.bkdataid,
-            },
-            {
-                "name": "io_tencent_bkdata_container_stdlog_dataid",
-                "value": self.bkdata_container_stdlog_dataid,
-            },
-            {
-                "name": "io_tencent_bcs_controller_type",
-                "value": resource_kind_getter,
-            },
-            {
-                "name": "io_tencent_bcs_controller_name",
-                "value": resource_name_getter,
-            },
-            {
-                "name": "io_tencent_bcs_custom_labels",
-                "value": get_custom_labels,
-            },
+            {"name": "io_tencent_bcs_namespace", "value": self.namespace},
+            {"name": "io_tencent_bcs_custom_labels", "value": get_custom_labels},
         ]
 
         return data

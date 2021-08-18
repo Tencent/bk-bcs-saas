@@ -27,12 +27,13 @@
                     <span class="cluster-name-all">{{$t('容器服务')}}</span>
                 </template>
                 <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
+                <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
                 <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
             </div>
             <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
                 <span v-for="item in viewList"
                     :key="item.id"
-                    :class="['tab', { active: curViewType === item.id }]"
+                    :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
                     @click="handleChangeView(item)">
                     {{item.name}}
                 </span>
@@ -214,7 +215,8 @@
                         id: 'dashboard',
                         name: this.$t('资源视图')
                     }
-                ]
+                ],
+                featureCluster: !localStorage.getItem('FEATURE_CLUSTER')
             }
         },
         computed: {
@@ -511,6 +513,7 @@
              * 集群切换
              */
             handleChangeCluster (cluster) {
+                localStorage.setItem('FEATURE_CLUSTER', true)
                 if (!cluster.cluster_id) {
                     sessionStorage.removeItem('bcs-selected-menu-data')
                     if (this.$route.meta.isDashboard) {
@@ -560,7 +563,7 @@
 
             handleChangeView (item) {
                 if (item.id === this.curViewType) return
-
+                this.$store.commit('updateViewMode', item.id)
                 item.id === 'dashboard' ? this.goDashboard() : this.goCluster()
             },
 
@@ -623,6 +626,7 @@
             height: 24px;
             padding: 0 26px;
             cursor: pointer;
+            white-space: nowrap;
             &.active {
                 background: #fff;
                 color: #3a84ff;
@@ -648,6 +652,7 @@
         height: 30px;
         text-align: center;
         line-height: 30px;
+        z-index: 100;
     }
     .biz-footer {
         text-align: right;
@@ -663,5 +668,15 @@
     }
     .cluster-name-all {
         font-size: 16px;
+    }
+    .dot {
+        position: absolute;
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        top: 16px;
+        right: 4px;
+        z-index: 1;
+        padding: 2px;
     }
 </style>

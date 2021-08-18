@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import base64
 import json
 import logging
@@ -35,7 +36,7 @@ from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.resources import namespace as ns_resource
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
 from backend.templatesets.legacy_apps.instance.constants import (
     K8S_IMAGE_SECRET_PRFIX,
@@ -203,7 +204,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
     def _ignore_ns_for_k8s(self, ns_list):
         """针对k8s集群，过滤掉系统和平台命名空间"""
-        return [ns for ns in ns_list if ns["name"] not in K8S_SYS_PLAT_NAMESPACES]
+        return [ns for ns in ns_list if ns["name"] not in K8S_PLAT_NAMESPACE]
 
     def list(self, request, project_id):
         """命名空间列表
@@ -229,7 +230,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             raise error_codes.APIError.f(result.get('message', ''))
 
         results = result["data"]["results"] or []
-        # 针对k8s集群过滤掉系统和平台命名空间
+        # 针对k8s集群过滤掉平台命名空间
         if request.project.kind == ProjectKind.K8S.value:
             results = self._ignore_ns_for_k8s(results)
 

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
@@ -18,7 +19,7 @@ from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.resources.namespace import utils as ns_utils
-from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.error_codes import error_codes
 
@@ -76,9 +77,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         namespaces = ns_utils.get_k8s_namespaces(access_token, project_id, cluster_id)
         # NOTE: 忽略k8s系统和平台自身的namespace
         namespace_name_list = [
-            info["resourceName"]
-            for info in namespaces
-            if info["resourceName"] not in K8S_SYS_NAMESPACE and info["resourceName"] not in K8S_PLAT_NAMESPACE
+            info["resourceName"] for info in namespaces if info["resourceName"] not in K8S_PLAT_NAMESPACE
         ]
         if not (cc_namespaces and namespaces):
             return Response()

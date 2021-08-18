@@ -1388,7 +1388,7 @@
 .default-info {
     .bk-info-box {
         .bk-dialog-header {
-            padding: 20px 30px 10px;
+            padding: 40px 30px 10px;
             .bk-dialog-header-inner {
                 text-align: center;
                 display: inline-block;

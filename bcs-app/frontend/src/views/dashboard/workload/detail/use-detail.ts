@@ -51,9 +51,9 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     // 界面权限
     const pagePerms = computed(() => {
         return {
-            create: webAnnotations.value.perms?.page?.create_btn || {},
-            delete: webAnnotations.value.perms?.page?.delete_btn || {},
-            update: webAnnotations.value.perms?.page?.update_btn || {}
+            create: webAnnotations.value?.perms?.page?.create_btn || {},
+            delete: webAnnotations.value?.perms?.page?.delete_btn || {},
+            update: webAnnotations.value?.perms?.page?.update_btn || {}
         }
     })
 
@@ -89,11 +89,11 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
             name: 'dashboardResourceUpdate',
             params: {
                 namespace,
-                type,
-                category,
                 name
             },
             query: {
+                type,
+                category,
                 kind
             }
         })

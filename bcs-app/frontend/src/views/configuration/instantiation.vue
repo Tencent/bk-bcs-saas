@@ -1163,6 +1163,7 @@
                         theme: 'error',
                         message: this.$t('请选择命名空间')
                     })
+                    this.dialogConf.isShow = false
                     return
                 }
 

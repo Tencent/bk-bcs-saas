@@ -257,6 +257,7 @@
                                         :current.sync="containerTablePageConf.curPage"
                                         :count.sync="containerTablePageConf.count"
                                         :limit="containerTablePageConf.pageSize"
+                                        :limit-list="containerTablePageConf.limitList"
                                         @change="pageChange">
                                     </bk-pagination>
                                 </div>
@@ -348,7 +349,8 @@
                     totalPage: 1,
                     pageSize: 5,
                     curPage: 1,
-                    show: false
+                    show: false,
+                    limitList: [5, 10, 20, 100]
                 },
                 containerTableCurPageData: [],
                 labelList: [],

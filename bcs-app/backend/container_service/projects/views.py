@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 
@@ -129,16 +130,16 @@ class Projects(viewsets.ViewSet):
 
     def info(self, request, project_id):
         """单个项目信息"""
-        project_resp = paas_cc.get_project(request.user.token.access_token, project_id)
-        if project_resp.get("code") != ErrorCode.NoError:
-            raise error_codes.APIError(f'not found project info, {project_resp.get("message")}')
-        data = project_resp["data"]
+        data = request.project
         data["created_at"], data["updated_at"] = self.normalize_create_update_time(
             data["created_at"], data["updated_at"]
         )
         # 添加业务名称
         data["cc_app_name"] = get_application_name(request)
         data["can_edit"] = self.can_edit(request, project_id)
+        # TODO: 待拆分后，可以去掉func_list
+        data["func_wlist"] = set()
+        self.register_function_controller([data])
         return Response(data)
 
     def validate_update_project_data(self, request):
