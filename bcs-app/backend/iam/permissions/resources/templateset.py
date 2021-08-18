@@ -12,15 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission
-from backend.iam.permissions.request import ActionResourcesRequest, ResourceRequest
-from backend.iam.permissions.resources.project import related_project_perm
+from backend.iam.permissions.request import ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-ResourceType = "templateset"
+from .constants import ResourceType
+from .project import ProjectPermission, related_project_perm
 
 
 class TemplatesetAction(str, StructuredEnum):
@@ -38,7 +38,7 @@ class TemplatesetPermCtx(PermCtx):
 
 
 class TemplatesetRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Templateset
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -47,7 +47,7 @@ class TemplatesetRequest(ResourceRequest):
 
 
 class related_templateset_perm(decorators.RelatedPermission):
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Templateset
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -60,25 +60,17 @@ class related_templateset_perm(decorators.RelatedPermission):
         else:
             raise TypeError('missing TemplatesetPermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: TemplatesetPermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.template_id] if perm_ctx.template_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]
-
 
 class templateset_perm(decorators.Permission):
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Templateset
 
 
 class TemplatesetPermission(Permission):
     """模板集权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Templateset
     resource_request_cls: Type[ResourceRequest] = TemplatesetRequest
+    parent_res_perm = ProjectPermission()
 
     @related_project_perm(method_name="can_view")
     def can_create(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
@@ -100,8 +92,11 @@ class TemplatesetPermission(Permission):
     def can_instantiate(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, TemplatesetAction.INSTANTIATE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: TemplatesetPermCtx) -> ResourceRequest:
+    def make_res_request(self, res_id: str, perm_ctx: TemplatesetPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
         return perm_ctx.template_id
+
+    def _get_parent_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
+        return perm_ctx.project_id

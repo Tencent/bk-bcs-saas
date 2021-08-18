@@ -11,12 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import base64
-import hashlib
 import logging
 
 import requests
 import yaml
+
+from backend.utils.basic import md5
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,6 @@ def make_requests_auth(auth):
         )
 
     raise NotImplementedError(auth["type"])
-
-
-def _md5(content):
-    h = hashlib.md5()
-    h.update(content.encode("utf-8"))
-    return h.hexdigest()
 
 
 def get_charts_info(url, auths):
@@ -61,7 +55,7 @@ def get_charts_info(url, auths):
         return (False, None, None)
 
     # 生成MD5，主要是便于后续校验是否变动
-    charts_info_hash = _md5(str(charts_info))
+    charts_info_hash = md5(str(charts_info))
     return (True, charts_info, charts_info_hash)
 
 

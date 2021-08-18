@@ -12,17 +12,31 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional, Type
 
-from backend.iam.permissions.perm import PermCtx
+from backend.iam.permissions import decorators
+from backend.iam.permissions.perm import PermCtx, Permission
+from backend.iam.permissions.request import ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+from backend.utils.basic import md5
 
-from .. import decorators
-from ..perm import Permission
-from ..request import ActionResourcesRequest, ResourceRequest
-from .cluster import related_cluster_perm
+from .cluster import ClusterPermission, related_cluster_perm
+from .constants import ResourceType
 
-ResourceType = 'namespace'
+
+def compress_cluster_ns_id(cluster_ns_id: Optional[str]) -> Optional[str]:
+    """超过32位长度后，通过摘要算法压缩至32位长度"""
+    if not cluster_ns_id:
+        return cluster_ns_id
+
+    # 去除集群前缀 BCS-K8S-
+    if cluster_ns_id.startswith('BCS-K8S-'):
+        cluster_ns_id = cluster_ns_id[8:]
+
+    if len(cluster_ns_id) <= 32:
+        return cluster_ns_id
+
+    return md5(cluster_ns_id)
 
 
 class NamespaceAction(str, StructuredEnum):
@@ -39,9 +53,13 @@ class NamespacePermCtx(PermCtx):
     cluster_id: str = ''
     cluster_ns_id: Optional[str] = None
 
+    def __post_init__(self):
+        """权限中心的 resource_id 长度限制为32位"""
+        self.cluster_ns_id = compress_cluster_ns_id(self.cluster_ns_id)
+
 
 class NamespaceRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Namespace
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/cluster,{{cluster_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -53,7 +71,7 @@ class NamespaceRequest(ResourceRequest):
 
 class related_namespace_perm(decorators.RelatedPermission):
 
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Namespace
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -69,25 +87,17 @@ class related_namespace_perm(decorators.RelatedPermission):
         else:
             raise TypeError('missing NamespacePermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: NamespacePermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.cluster_ns_id] if perm_ctx.cluster_ns_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]
-
 
 class namespace_perm(decorators.Permission):
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Namespace
 
 
 class NamespacePermission(Permission):
     """命名空间权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Namespace
     resource_request_cls: Type[ResourceRequest] = NamespaceRequest
+    parent_res_perm = ClusterPermission()
 
     @related_cluster_perm(method_name='can_view')
     def can_create(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
@@ -109,8 +119,11 @@ class NamespacePermission(Permission):
     def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
+    def make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
         return perm_ctx.cluster_ns_id
+
+    def _get_parent_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+        return perm_ctx.cluster_id

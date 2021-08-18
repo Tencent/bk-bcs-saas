@@ -11,9 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from iam import Request
+from typing import Dict, List
+
+from django.conf import settings
+from iam import Action, MultiActionRequest, Request, Subject
 
 from backend.iam.permissions.perm import Permission
+from backend.iam.permissions.request import ResourceRequest
 
 from .permissions import roles
 
@@ -99,3 +103,49 @@ class FakeTemplatesetIAM:
 
 class FakeTemplatesetPermission(Permission):
     iam = FakeTemplatesetIAM()
+
+
+class FakeIAMClient:
+    def resource_type_allowed(self, username: str, action_id: str, use_cache: bool = False) -> bool:
+        if action_id == 'project_create':
+            return True
+        return False
+
+    def resource_inst_allowed(
+        self, username: str, action_id: str, res_request: ResourceRequest, use_cache: bool = False
+    ) -> bool:
+        if action_id in ['cluster_create', 'cluster_view']:
+            return True
+        return False
+
+    def resource_type_multi_actions_allowed(self, username: str, action_ids: List[str]) -> Dict[str, bool]:
+        return {action_id: self.resource_type_allowed(username, action_id) for action_id in action_ids}
+
+    def resource_inst_multi_actions_allowed(
+        self, username: str, action_ids: List[str], res_request: ResourceRequest
+    ) -> Dict[str, bool]:
+        multi = {}
+        for action in action_ids:
+            is_allowed = False
+            if action in ['cluster_create', 'cluster_view']:
+                is_allowed = True
+            multi[action] = is_allowed
+        return multi
+
+    def batch_resource_multi_actions_allowed(
+        self, username: str, action_ids: List[str], res_request: ResourceRequest
+    ) -> Dict[str, Dict[str, bool]]:
+        res = res_request.res
+        if isinstance(res, str):
+            res = [res]
+
+        perms = {}
+
+        for indx, r_id in enumerate(res):
+            if indx % 2 == 0:
+                p = {action_id: False for action_id in action_ids}
+            else:
+                p = {action_id: True for action_id in action_ids}
+            perms[r_id] = p
+
+        return perms

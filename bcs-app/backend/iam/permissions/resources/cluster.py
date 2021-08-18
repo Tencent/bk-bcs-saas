@@ -12,16 +12,14 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional, Type
 
+from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
-from backend.iam.permissions.resources.project import related_project_perm
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from .. import decorators
-from ..request import ActionResourcesRequest
-
-ResourceType = 'cluster'
+from .constants import ResourceType
+from .project import ProjectPermission, related_project_perm
 
 
 class ClusterAction(str, StructuredEnum):
@@ -38,7 +36,7 @@ class ClusterPermCtx(PermCtx):
 
 
 class ClusterRequest(ResourceRequest):
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Cluster
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
@@ -48,7 +46,7 @@ class ClusterRequest(ResourceRequest):
 
 class related_cluster_perm(decorators.RelatedPermission):
 
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Cluster
 
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """仅支持第一个参数是 PermCtx 子类实例"""
@@ -61,25 +59,17 @@ class related_cluster_perm(decorators.RelatedPermission):
         else:
             raise TypeError('missing ClusterPermCtx instance argument')
 
-    def _action_request_list(self, perm_ctx: ClusterPermCtx) -> List[ActionResourcesRequest]:
-        """"""
-        resources = [perm_ctx.cluster_id] if perm_ctx.cluster_id else None
-        return [
-            ActionResourcesRequest(
-                resource_type=self.perm_obj.resource_type, action_id=self.action_id, resources=resources
-            )
-        ]
-
 
 class cluster_perm(decorators.Permission):
-    module_name: str = ResourceType
+    module_name: str = ResourceType.Cluster
 
 
 class ClusterPermission(Permission):
     """集群权限"""
 
-    resource_type: str = ResourceType
+    resource_type: str = ResourceType.Cluster
     resource_request_cls: Type[ResourceRequest] = ClusterRequest
+    parent_res_perm = ProjectPermission()
 
     @related_project_perm(method_name='can_view')
     def can_create(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
@@ -97,8 +87,11 @@ class ClusterPermission(Permission):
     def can_delete(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, ClusterAction.DELETE, raise_exception)
 
-    def _make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
+    def make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id)
 
-    def _get_resource_id_from_ctx(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+    def _get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
         return perm_ctx.cluster_id
+
+    def _get_parent_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+        return perm_ctx.project_id

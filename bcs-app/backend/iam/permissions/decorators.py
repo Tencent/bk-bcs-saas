@@ -14,13 +14,17 @@
 import importlib
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Type
 
 import wrapt
 
+from backend.utils.basic import str2bool
+
+from .client import IAMClient
 from .exceptions import PermissionDeniedError
-from .perm import ActionResourcesRequest, PermCtx
+from .perm import PermCtx
 from .perm import Permission as PermPermission
+from .request import ResourceRequest
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +103,6 @@ class RelatedPermission(metaclass=ABCMeta):
     def _convert_perm_ctx(self, instance, args, kwargs) -> PermCtx:
         """将被装饰的方法中的 perm_ctx 转换成 perm_obj.method_name 需要的 perm_ctx"""
 
-    @abstractmethod
-    def _action_request_list(self, perm_ctx: PermCtx) -> List[ActionResourcesRequest]:
-        """从 perm_ctx 中解析生成 action_request_list"""
-
     @property
     def action_id(self) -> str:
         return f'{self.perm_obj.resource_type}_{self.method_name[4:]}'
@@ -143,3 +143,50 @@ class Permission:
         getattr(self.perm_obj, self.method_name)(args[0])
 
         return wrapped(*args, **kwargs)
+
+
+class response_perms:
+    def __init__(
+        self,
+        action_id_list: List[str],
+        res_request_cls: Type[ResourceRequest],
+        resource_id_key: str = 'id',
+        auto_add: bool = True,
+    ):
+        self.action_id_list = action_id_list
+        self.res_request_cls = res_request_cls
+        self.resource_id_key = resource_id_key
+        self.auto_add = auto_add
+
+    @wrapt.decorator
+    def __call__(self, wrapped, instance, args, kwargs):
+        resp = wrapped(*args, **kwargs)
+        if not resp.data:
+            return resp
+
+        with_perms = self.auto_add
+        request = args[0]
+        if not self.auto_add:
+            with_perms = str2bool(request.query_params.get('with_perms') or True)
+
+        if not with_perms:
+            return resp
+
+        client = IAMClient()
+        if isinstance(resp.data, list):
+            res = [item.get(self.resource_id_key) for item in resp.data]
+        else:
+            res = resp.data.get(self.resource_id_key)
+
+        perms = client.batch_resource_multi_actions_allowed(
+            request.user.username,
+            self.action_id_list,
+            self.res_request_cls(res, **getattr(request, 'iam_path_attrs', {})),
+        )
+
+        if hasattr(resp, "web_annotations"):
+            resp.web_annotations = resp.web_annotations or {}
+            resp.web_annotations.update({"perms": perms})
+        else:
+            resp.web_annotations = {"perms": perms}
+        return resp

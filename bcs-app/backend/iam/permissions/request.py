@@ -52,6 +52,6 @@ class ActionResourcesRequest:
     note: resources 是由资源 ID 构成的列表. 为 None 时，表示资源无关.
     """
 
-    resource_type: str
     action_id: str
+    resource_type: Optional[str] = None
     resources: Optional[List[str]] = None

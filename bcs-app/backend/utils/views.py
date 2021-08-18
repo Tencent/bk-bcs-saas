@@ -39,6 +39,7 @@ from backend.components.base import (
     CompResponseError,
 )
 from backend.dashboard.exceptions import DashboardBaseError
+from backend.iam.permissions.exceptions import PermissionDeniedError
 from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
@@ -149,7 +150,7 @@ def custom_exception_handler(exc: Exception, context):
         data = {"code": 404, "message": _("资源未找到"), "data": None}
         set_rollback()
         return Response(data, status=200)
-    elif isinstance(exc, backend_exceptions.APIError):
+    elif isinstance(exc, (backend_exceptions.APIError, PermissionDeniedError)):
         data = {"code": exc.code, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
         set_rollback()
         return Response(data, status=exc.status_code)
