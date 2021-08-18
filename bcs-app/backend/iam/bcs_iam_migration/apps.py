@@ -18,4 +18,5 @@ from django.apps import AppConfig
 
 
 class BcsIamMigrationConfig(AppConfig):
-    name = "backend.bcs_web.iam.bcs_iam_migration"
+    name = "backend.iam.bcs_iam_migration"
+    label = "bcs_iam_migration"

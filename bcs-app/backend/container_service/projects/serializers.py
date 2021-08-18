@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 from backend.apps import constants
-from backend.bcs_web.iam.permissions import ProjectActions
+from backend.iam.legacy_perms import ProjectActions
 
 
 class UpdateProjectNewSLZ(serializers.Serializer):
