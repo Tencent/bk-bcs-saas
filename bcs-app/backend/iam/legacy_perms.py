@@ -15,15 +15,12 @@ specific language governing permissions and limitations under the License.
 from typing import Dict, Optional
 
 from django.conf import settings
+from iam import IAM, OP, Action, MultiActionRequest, Request, Resource, Subject
+from iam.api.client import Client
+from iam.api.http import http_get, http_post
+from iam.apply import models
+from iam.exceptions import AuthAPIError, AuthInvalidRequest
 
-try:
-    from iam import IAM, OP, Action, MultiActionRequest, Request, Resource, Subject
-    from iam.api.client import Client
-    from iam.api.http import http_get, http_post
-    from iam.apply import models
-    from iam.exceptions import AuthAPIError, AuthInvalidRequest
-except Exception:
-    pass
 from backend.utils.basic import ChoicesEnum
 from backend.utils.exceptions import PermissionDeniedError
 
