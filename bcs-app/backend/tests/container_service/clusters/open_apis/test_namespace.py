@@ -43,27 +43,23 @@ class TestNamespace:
             yield
 
     def test_create_mesos_namespace(self, cluster_id, project_id, request_user):
-        ns_perm_client = bcs_perm.FakeNamespace()
-        ns_data = NamespaceViewSet().create_mesos_namespace(
+        ns_data = NamespaceViewSet()._create_mesos_namespace(
             request_user.token.access_token,
             request_user.username,
             project_id,
             cluster_id,
             fake_data["name"],
-            ns_perm_client,
         )
         assert "id" in ns_data
         assert ns_data["id"] == 1
 
     def test_create_kubernetes_namespace(self, cluster_id, project_id, request_user):
-        ns_perm_client = bcs_perm.FakeNamespace()
-        ns_data = NamespaceViewSet().create_kubernetes_namespace(
+        ns_data = NamespaceViewSet()._create_kubernetes_namespace(
             request_user.token.access_token,
             request_user.username,
             project_id,
             cluster_id,
             fake_data["name"],
-            ns_perm_client,
         )
         assert "namespace_id" in ns_data
         assert ns_data["namespace_id"] == 1
