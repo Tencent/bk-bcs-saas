@@ -21,7 +21,7 @@ factory = APIRequestFactory()
 class TestTemplatesetAPI:
     """测试模板集资源拉取接口"""
 
-    @patch("backend.iam.open_apis.provider.templateset.filter_templatesets")
+    @patch("backend.iam.open_apis.provider.templateset.list_templatesets")
     def test_list_instance(self, mock_filter_templatesets, fake_project_id, fake_templateset_ids, template_data):
         """测试list_instance方法"""
         mock_filter_templatesets.return_value = template_data
@@ -40,7 +40,7 @@ class TestTemplatesetAPI:
         assert data['count'] == 2
         assert data['results'][0]['display_name'] == 'templateset_0001'
 
-    @patch("backend.iam.open_apis.provider.templateset.filter_templatesets")
+    @patch("backend.iam.open_apis.provider.templateset.list_templatesets")
     def test_fetch_instance_info_with_ids(
         self, mock_filter_templatesets, fake_project_id, fake_templateset_ids, template_data
     ):

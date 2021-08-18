@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from .utils import mockable_function
 
@@ -30,6 +30,10 @@ class StubPaaSCCClient:
     @mockable_function
     def get_cluster_by_id(self, cluster_id: str) -> Dict:
         return self.make_cluster_data_by_id(cluster_id)
+
+    @mockable_function
+    def list_clusters(self, project_id: str, cluster_ids: List[str]) -> Dict:
+        return [self.make_cluster_data(project_id, cluster_id) for cluster_id in cluster_ids]
 
     @mockable_function
     def get_project(self, project_id: str) -> Dict:

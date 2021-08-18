@@ -16,6 +16,7 @@ from rest_framework.test import APIRequestFactory
 
 from backend.iam.open_apis.views import ResourceAPIView
 from backend.tests.bcs_mocks.misc import FakePaaSCCMod
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
 factory = APIRequestFactory()
 
@@ -23,6 +24,12 @@ factory = APIRequestFactory()
 @pytest.fixture(autouse=True)
 def patch_paas_cc():
     with mock.patch('backend.container_service.clusters.base.utils.paas_cc', new=FakePaaSCCMod()):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def patch_paas_cc_client():
+    with mock.patch('backend.iam.open_apis.provider.cluster.PaaSCCClient', new=StubPaaSCCClient):
         yield
 
 
@@ -42,31 +49,8 @@ class TestClusterAPI:
         data = response.data
         assert data['count'] == 1
 
-    def test_fetch_instance_info_with_no_exist_cluster_ids(self, cluster_id, project_id):
-        """
-        传入不存在cluster_id查询特定cluster_id数据。查询到空列表
-        -------
-
-        """
-        request = factory.post(
-            '/apis/iam/v1/clusters/',
-            {
-                'method': 'fetch_instance_info',
-                'type': 'cluster',
-                'filter': {'ids': [cluster_id], 'parent': {'id': project_id}},
-            },
-        )
-        p_view = ResourceAPIView.as_view()
-        response = p_view(request)
-        data = response.data
-        assert len(data) == 0
-
-    def test_fetch_instance_info_with_existed_cluster_ids(self, cluster_id, project_id):
-        """
-        传入存在的cluster_id查询特定cluster_id数据。
-        -------
-
-        """
+    def test_fetch_instance_info_with_cluster_ids(self, cluster_id, project_id):
+        """传入存在的cluster_id查询特定cluster_id数据。"""
         cluster_id = "BCS-K8S-10000"
         request = factory.post(
             '/apis/iam/v1/clusters/',
@@ -80,19 +64,4 @@ class TestClusterAPI:
         response = p_view(request)
         data = response.data
         assert len(data) == 1
-        assert data[0]["id"] == f"{project_id}:BCS-K8S-10000"
-
-    def test_fetch_instance_info_without_cluster_ids(self, project_id):
-        """测试无cluster_id情况"""
-        request = factory.post(
-            '/apis/iam/v1/clusters/',
-            {
-                'method': 'fetch_instance_info',
-                'type': 'cluster',
-                'filter': {'ids': [], 'parent': {'id': project_id}},
-            },
-        )
-        p_view = ResourceAPIView.as_view()
-        response = p_view(request)
-        data = response.data
-        assert len(data) == 1
+        assert data[0]["id"] == "BCS-K8S-10000"

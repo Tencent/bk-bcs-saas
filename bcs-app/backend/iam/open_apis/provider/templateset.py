@@ -16,7 +16,7 @@ from iam.collection import FancyDict
 from iam.resource.provider import ListResult, ResourceProvider
 from iam.resource.utils import Page
 
-from backend.templatesets.legacy_apps.configuration.utils import filter_templatesets
+from backend.templatesets.legacy_apps.configuration.utils import list_templatesets
 
 
 class TemplatesetProvider(ResourceProvider):
@@ -28,19 +28,19 @@ class TemplatesetProvider(ResourceProvider):
         :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
         :param page_obj: 分页对象
         """
-        return self._filter_templateset(filter_obj, page_obj)
+        return self._list_templatesets(filter_obj, page_obj)
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         """
         批量获取模板集实例属性详情
         :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
         """
-        return self._filter_templateset(filter_obj)
+        return self._list_templatesets(filter_obj)
 
-    def _filter_templateset(self, filter_obj: FancyDict, page_obj: Optional[Page] = None) -> ListResult:
+    def _list_templatesets(self, filter_obj: FancyDict, page_obj: Optional[Page] = None) -> ListResult:
         """获取模板集且根据分页需求分页,转换数据后返回"""
         project_id = filter_obj.parent["id"]
-        templateset_list = filter_templatesets(project_id, filter_obj.ids, ["id", "project_id", "name"])
+        templateset_list = list_templatesets(project_id, filter_obj.ids, ["id", "project_id", "name"])
         count = len(templateset_list)
 
         if page_obj:

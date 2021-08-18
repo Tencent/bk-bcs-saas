@@ -227,7 +227,7 @@ def update_template_with_perm_check(request, template, tmpl_args):
     return template
 
 
-def filter_templatesets(
+def list_templatesets(
     project_id: str, template_ids: Optional[List[int]] = None, fields: Optional[List[str]] = None
 ) -> List:
     """

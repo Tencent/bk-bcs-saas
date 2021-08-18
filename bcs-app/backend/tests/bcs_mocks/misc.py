@@ -49,17 +49,7 @@ class FakePaaSCCMod:
         return self._filter_fake_clusters(project_id, set(cluster_ids))
 
     def _filter_fake_clusters(self, project_id: str, cluster_ids: Optional[Set] = None) -> dict:
-        """
-        获取模拟集群数据，并根据cluster_id筛选
-        Parameters
-        ----------
-        project_id
-        cluster_ids
-
-        Returns
-        -------
-
-        """
+        """获取模拟集群数据，并根据cluster_id筛选"""
         resp = self._resp(paas_cc_json.resp_get_clusters_ok)
         results = []
         for info in resp['data']['results']:

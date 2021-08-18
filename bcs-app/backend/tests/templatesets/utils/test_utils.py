@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import pytest
 
 from backend.templatesets.legacy_apps.configuration.models import Template
-from backend.templatesets.legacy_apps.configuration.utils import filter_templatesets
+from backend.templatesets.legacy_apps.configuration.utils import list_templatesets
 
 pytestmark = pytest.mark.django_db
 
@@ -32,11 +32,11 @@ class TestTemplatesetModelOperateUtils:
         self, fake_project_id, fake_templateset_ids, generate_templateset_data
     ):
         """测试根据templateset_id的过滤"""
-        result = filter_templatesets(fake_project_id, [fake_templateset_ids[1]], ["id", "project_id", "name"])
+        result = list_templatesets(fake_project_id, [fake_templateset_ids[1]], ["id", "project_id", "name"])
         assert len(result) == 1
         assert result[0]["id"] == 2
 
     def test_filter_templatesets_without_templateset_ids(self, fake_project_id, generate_templateset_data):
         """测试获取全部数据"""
-        result = filter_templatesets(fake_project_id, fields=["id", "project_id", "name"])
+        result = list_templatesets(fake_project_id, fields=["id", "project_id", "name"])
         assert len(result) == 2
