@@ -933,7 +933,13 @@
                     if (item.cluster_id === clusterId) {
                         item.name = this.clusterEditName
                     }
+                    return item
                 })
+                const storeCluster = this.$store.state.cluster.curCluster || {}
+                const newStoreCluster = curClusterList.find(item => item.cluster_id === storeCluster.cluster_id)
+                if (newStoreCluster) {
+                    this.$store.commit('cluster/forceUpdateCurCluster', newStoreCluster)
+                }
                 this.$store.commit('cluster/forceUpdateClusterList', curClusterList)
             },
 
