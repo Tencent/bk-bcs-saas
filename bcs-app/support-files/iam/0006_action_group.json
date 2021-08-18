@@ -36,7 +36,7 @@
                                     "id": "cluster_manage"
                                 },
                                 {
-                                    "id": "project_delete"
+                                    "id": "cluster_delete"
                                 }
                             ]
                         },
