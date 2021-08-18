@@ -1956,7 +1956,7 @@ export default {
     '申请监控中心': ['Application monitor'],
     '检索关键字': ['Search key'],
     '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or'],
-    '系统内置变量，不能删除': ['System variables, can not edit']
+    '系统内置变量，不能删除': ['System variables, can not delete']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
