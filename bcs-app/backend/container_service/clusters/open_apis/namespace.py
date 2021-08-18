@@ -58,7 +58,7 @@ class NamespaceViewSet(UserViewSet):
 
         # 命名空间权限Client
         ns_perm_client = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
-        ns_perm_client.register(namespace["id"], f"{namespace['ns_name']}({cluster_id})")
+        ns_perm_client.register(namespace["id"], f"{namespace['name']}({cluster_id})")
 
         return Response(namespace)
 
