@@ -112,7 +112,7 @@
             return {
                 tipDialogConf: {
                     isShow: false,
-                    width: this.width || 630
+                    width: this.width || 700
                 },
                 noticeList: [],
                 titleRender: '',
