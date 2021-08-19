@@ -6,7 +6,7 @@
             "data":{
                 "id": "bcs-saas-s-mart",
                 "name": "容器管理平台(SaaS_V3_Smart)",
-                "name_en": "BlueKing Container Service",
+                "name_en": "BlueKing Container Service V3 Smart",
                 "description": "蓝鲸容器管理平台基于原生Kubernetes和Mesos自研的两种模式，提供给用户高度可扩展、灵活易用的容器管理服务",
                 "description_en": "The BlueKing Container Management platform provides highly scalable, flexible and easy-to-use container management services base on native Kubernetes and Mesos self-developed mode",
                 "clients": "bcs-saas-s-mart,bk_bcs_monitor,bk_bcs,bk_devops,bk_harbor",
