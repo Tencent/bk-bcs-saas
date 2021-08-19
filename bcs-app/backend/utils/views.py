@@ -292,7 +292,7 @@ class VueTemplateView(TemplateView):
             "BK_CC_HOST": settings.BK_CC_HOST,
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
-            "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false")),
+            "SUPPORT_MESOS": str2bool(settings.SUPPORT_MESOS),
         }
 
         # 增加扩展的字段渲染前端页面，用于多版本
