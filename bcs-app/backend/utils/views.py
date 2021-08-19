@@ -40,7 +40,6 @@ from backend.components.base import (
     CompResponseError,
 )
 from backend.container_service.projects.base.constants import ProjectKind
-from backend.container_service.projects.utils import get_project_kind
 from backend.dashboard.exceptions import DashboardBaseError
 from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import cache
@@ -302,12 +301,16 @@ class VueTemplateView(APIView):
 
     def is_orchestration_match(self, kind: str) -> bool:
         """是否应该跳转"""
-        if not kind:
-            return True
-
+        # URL和项目类型匹配
         if self.container_orchestration == kind:
             return True
 
+        # 未开启BCS, 且当前是不带 mesos 的连接
+        if not kind and self.container_orchestration == "k8s":
+            return True
+
+        # 未开启, mesos链接, 需要跳转
+        # 2个不匹配，需要跳转
         return False
 
     def make_redirect_url(self, project_code: str, kind: str) -> str:
@@ -343,10 +346,16 @@ class VueTemplateView(APIView):
             if result['code'] != 0:
                 return ""
 
-            if get_project_kind(result['data']['kind']) == ProjectKind.K8S.value:
-                return "k8s"
+            # 未开启容器服务
+            if result['data']['kind'] == 0:
+                return ""
 
-            return "mesos"
+            # mesos
+            if result['data']['kind'] == ProjectKind.MESOS.value:
+                return "mesos"
+
+            # 包含 k8s, tke
+            return "k8s"
 
         kind = cached_project_kind(project_code)
 
