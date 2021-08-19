@@ -196,6 +196,8 @@
                     localStorage.removeItem('bcs-cluster')
                     sessionStorage.removeItem('bcs-cluster')
                     this.$store.commit('updateCurClusterId', '')
+                    localStorage.setItem('curProjectCode', projectCode)
+                    window.location.href = `${window.location.origin}${SITE_URL}/${projectCode}`
                 }
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
                 // 检查是否开启容器服务
