@@ -11,12 +11,31 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-# 本地开发配置文件
+# 生产环境配置文件
 from .base import *  # noqa
 
-LOG_LEVEL = 'DEBUG'
-LOGGING = get_logging_config(LOG_LEVEL)
+# ******************************** 日志 配置 ********************************
+BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/data/paas/apps/logs/')
+LOG_CLASS = 'logging.handlers.RotatingFileHandler'
+
+# 生产环境仅打印 ERROR 日志
+LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
+LOG_LEVEL = 'ERROR'
+
+# 兼容企业版
+LOGGING_DIR = os.environ.get('LOGGING_DIR', LOGGING_DIR)
+
+# 自动建立日志目录
+if not os.path.exists(LOGGING_DIR):
+    os.makedirs(LOGGING_DIR)
+
+LOG_FILE = os.path.join(LOGGING_DIR, f'{APP_ID}.log')
+LOGGING = get_logging_config(LOG_LEVEL, None, LOG_FILE)
+
+# ******************************** 容器服务相关配置 ********************************
 
 # PaaS域名，发送邮件链接需要
 PAAS_HOST = BK_PAAS_HOST
-PAAS_ENV = 'dev'
+PAAS_ENV = 'prod'
+
+BKE_SERVER_HOST = BCS_SERVER_HOST

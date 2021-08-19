@@ -11,21 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+# 预发布环境配置文件
 from .base import *  # noqa
 
 # ******************************** 日志 配置 ********************************
-LOG_LEVEL = 'INFO'
 BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/data/paas/apps/logs/')
-LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
-if RUN_MODE == 'DEVELOP':
-    LOG_LEVEL = 'DEBUG'
-elif RUN_MODE == 'TEST':
-    LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
-    LOG_LEVEL = 'INFO'
-elif RUN_MODE == 'PRODUCT':
-    LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
-    LOG_LEVEL = 'ERROR'
+
+# 预发布环境直接使用 INFO
+LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
+LOG_LEVEL = 'INFO'
 
 # 兼容企业版
 LOGGING_DIR = os.environ.get('LOGGING_DIR', LOGGING_DIR)
@@ -39,19 +34,8 @@ LOGGING = get_logging_config(LOG_LEVEL, None, LOG_FILE)
 
 # ******************************** 容器服务相关配置 ********************************
 
-APIGW_ENV = ''
-
-# 测试环境先禁用掉集群创建时的【prod】环境
-DISABLE_PROD = True
-
 # PaaS域名，发送邮件链接需要
 PAAS_HOST = BK_PAAS_HOST
-PAAS_ENV = 'dev'
-
-# BKE 配置
-# note：BKE_SERVER_HOST 配置为None时表示不使用bke，而是直接用本地kubectl
-BKE_CACERT = ''
+PAAS_ENV = 'stag'
 
 BKE_SERVER_HOST = BCS_SERVER_HOST
-
-HELM_INSECURE_SKIP_TLS_VERIFY = True
