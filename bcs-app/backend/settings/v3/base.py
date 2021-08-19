@@ -123,7 +123,7 @@ DEPOT_STAG = 'prod'
 DEPOT_PREFIX = ''
 
 # CI系统API地址
-DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_HOST')
+DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_URL')
 
 # V3 部署环境
 ENVIRONMENT = os.environ.get('BKPAAS_ENVIRONMENT', 'prod')
@@ -149,6 +149,9 @@ IS_USE_BCS_TLS = True
 # 初始化时渲染K8S/MESOS版本
 K8S_VERSION = os.environ.get('BKAPP_K8S_VERSION')
 MESOS_VERSION = os.environ.get('BKAPP_MESOS_VERSION')
+
+# 是否支持使用 Mesos 服务
+SUPPORT_MESOS = os.environ.get("BKAPP_SUPPORT_MESOS", "false")
 
 # admin 权限用户
 ADMIN_USERNAME = 'admin'
@@ -263,14 +266,14 @@ CELERY_IMPORTS = ("backend.celery_app",)
 
 # ******************************** BCS 或 依赖服务 URL / ADDR ********************************
 # 容器服务地址
-DEVOPS_HOST = os.environ.get('BKAPP_DEVOPS_HOST')
-DEVOPS_BCS_HOST = os.environ.get('BKAPP_BCS_DEVOPS_HOST')
+DEVOPS_HOST = os.environ.get('BKAPP_DEVOPS_URL')
+DEVOPS_BCS_HOST = os.environ.get('BKAPP_DEVOPS_BCS_URL')
 
 # 容器服务 API 地址
 DEVOPS_BCS_API_URL = os.environ.get('BKAPP_DEVOPS_BCS_API_URL')
-DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_HOST')
+DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
 
-BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_DOMAIN')}
+BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
 
 BK_PAAS_HOST = os.environ.get('BK_PAAS2_URL')
 BK_PAAS_INNER_HOST = os.environ.get('BK_PAAS2_INNER_URL', BK_PAAS_HOST)
@@ -280,7 +283,7 @@ APIGW_HOST = BK_PAAS_INNER_HOST
 BCS_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_api'
 
 # paas-cc 服务，后续接入 cmdb
-BK_CC_HOST = os.environ.get('BKV3_CC_HOST', '')
+BK_CC_HOST = os.environ.get('BKAPP_CC_URL', '')
 # BCS CC HOST
 BCS_CC_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
 
@@ -293,24 +296,24 @@ _URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
 URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 
 # SOPS API HOST
-SOPS_API_HOST = os.environ.get('SOPS_API_HOST')
+SOPS_API_HOST = os.environ.get('SOPS_API_URL')
 
 # 可能有带端口的情况，需要去除
 SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
 # ******************************** IAM & SSM 配置 ********************************
-BK_SSM_HOST = os.environ.get('BKAPP_SSM_HOST')
+BK_SSM_HOST = os.environ.get('BKAPP_SSM_URL')
 
 # BCS IAM MIGRATION相关，用于初始资源数据到权限中心
-BK_IAM_HOST = os.environ.get('BKAPP_IAM_HOST')
+BK_IAM_HOST = os.environ.get('BKAPP_IAM_URL')
 BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = 'bcs_iam_migration'
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or 'http://paas.service.consul'
 BK_IAM_INNER_HOST = BK_IAM_HOST
 
 # 权限中心前端地址
-BK_IAM_APP_URL = os.environ.get('BK_IAM_APP_URL')
+BK_IAM_APP_URL = os.environ.get('BKAPP_IAM_APP_URL')
 
 # ******************************** Helm 配置 ********************************
 # kubectl 只有1.12版本
@@ -330,7 +333,7 @@ KUBECTL_BIN_MAP = {
 
 # 企业版/社区版 helm没有平台k8s集群时，无法为项目分配chart repo服务
 # 为解决该问题，容器服务会绑定一个chart repo服务使用，所有项目公用这个chart repo
-HELM_MERELY_REPO_URL = os.environ.get("BKAPP_HARBOR_CHARTS_DOMAIN")
+HELM_MERELY_REPO_URL = os.environ.get("BKAPP_HARBOR_CHARTS_URL")
 HELM_MERELY_REPO_USERNAME = os.environ.get("BKAPP_HARBOR_CHARTS_USERNAME")
 HELM_MERELY_REPO_PASSWORD = os.environ.get("BKAPP_HARBOR_CHARTS_PASSWORD")
 
@@ -360,7 +363,7 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kub
 
 # ******************************** 监控 & 指标配置  ********************************
 
-THANOS_HOST = os.environ.get("BKAPP_THANOS_HOST")
+THANOS_HOST = os.environ.get("BKAPP_THANOS_URL")
 
 # 默认指标数据来源，现在支持bk-data, prometheus
 DEFAULT_METRIC_SOURCE = "prometheus"

@@ -15,8 +15,8 @@ from .base import *  # noqa
 
 # ******************************** 日志 配置 ********************************
 LOG_LEVEL = 'INFO'
-BK_LOG_DIR = os.environ.get('BKV3_LOG_DIR', '/data/paas/apps/logs/')
-LOGGING_DIR = os.path.join(BK_LOG_DIR, 'logs', APP_ID)
+BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/data/paas/apps/logs/')
+LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
 if RUN_MODE == 'DEVELOP':
     LOG_LEVEL = 'DEBUG'
