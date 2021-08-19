@@ -42,6 +42,8 @@ modules:
     services:
         - name: mysql
           shared_from: bcs-app-web
+        - name: redis
+          shared_from: bcs-app-web
     processes:
       channel:
         command: gunicorn backend.asgi -b :5000 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
@@ -54,8 +56,10 @@ modules:
     services:
         - name: mysql
           shared_from: bcs-app-web
+        - name: redis
+          shared_from: bcs-app-web
     processes:
-      web-console:
+      console:
         command: python -m backend.web_console
         plan: 4C1G5R
         replicas: 1
