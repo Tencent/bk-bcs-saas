@@ -63,19 +63,11 @@ LOGIN_SIMPLE = os.environ.get('LOGIN_SIMPLE', '')
 # 设置存储在 session 中的 token 一天后过期，默认为 5 分钟
 BKAUTH_SESSION_TIMEOUT = 86400
 
-# apigw 环境
-APIGW_ENV = 'test'
-APIGW_PAAS_CC_ENV = 'uat'
-# ci部分apigw 环境
-APIGW_CI_ENV = 'prod'
-
 # BK 环境的账号要单独申请
 BK_JFROG_ACCOUNT_DOMAIN = 'bk.artifactory.bking.com'
-BK_JFROG_ACCOUNT_AUTH = ''
 
 # 模板开启后台参数验证
 IS_TEMPLATE_VALIDATE = True
-IS_CUP_LIMIT = False
 
 # mesos 不同集群对应的apigw环境, 正式环境暂时没有
 # key 是 cc 中的environment变量, value 是bcs API 环境
@@ -105,14 +97,6 @@ CLUSTER_ENV_FOR_FRONT = {'debug': 'stag', 'prod': 'prod'}
 BCS_EVENT_ENV = ['prod']
 
 APIGW_PUBLIC_KEY = ''
-
-# 是否开启K8S
-OPEN_K8S = True
-# 使用使用 k8s 直连地址
-IS_K8S_DRIVER_NO_APIGW = False
-
-# OP SYSTEM ENV
-APIGW_OP_ENV = 'test'
 
 RUN_ENV = 'prod'
 
