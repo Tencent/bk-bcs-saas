@@ -178,10 +178,17 @@ class response_perms:
         else:
             res = resp.data.get(self.resource_id_key)
 
+        iam_path_attrs = {}
+        try:
+            iam_path_attrs = {'project_id': request.project.project_id}
+        except Exception:
+            pass
+
+        iam_path_attrs.update(getattr(request, 'iam_path_attrs', {}))
         perms = client.batch_resource_multi_actions_allowed(
             request.user.username,
             self.action_id_list,
-            self.res_request_cls(res, **getattr(request, 'iam_path_attrs', {})),
+            self.res_request_cls(res, **iam_path_attrs),
         )
 
         if hasattr(resp, "web_annotations"):

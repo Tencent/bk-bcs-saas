@@ -12,10 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, Optional, Type
+from typing import Dict, List, Optional, Type
 
 from backend.iam.permissions import decorators
+from backend.iam.permissions.exceptions import AttrValidationError
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
+from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 from .constants import ResourceType
@@ -42,6 +44,10 @@ class ClusterRequest(ResourceRequest):
     def _make_attribute(self, res_id: str) -> Dict:
         self.attr['_bk_iam_path_'] = self.attr['_bk_iam_path_'].format(project_id=self.attr_kwargs['project_id'])
         return self.attr
+
+    def _validate_attr_kwargs(self):
+        if 'project_id' not in self.attr_kwargs:
+            raise AttrValidationError('missing project_id')
 
 
 class related_cluster_perm(decorators.RelatedPermission):
@@ -89,6 +95,9 @@ class ClusterPermission(Permission):
 
     def make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id)
+
+    def get_parent_chain(self, perm_ctx: ClusterPermCtx) -> List[IAMResource]:
+        return [IAMResource(ResourceType.Project, perm_ctx.project_id)]
 
     def _get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
         return perm_ctx.cluster_id

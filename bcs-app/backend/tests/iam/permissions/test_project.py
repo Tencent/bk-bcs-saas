@@ -17,19 +17,10 @@ import pytest
 
 from backend.iam.permissions.exceptions import PermissionDeniedError
 from backend.iam.permissions.perm import ActionResourcesRequest
-from backend.iam.permissions.resources.project import ProjectAction, ProjectPermCtx, ProjectPermission
+from backend.iam.permissions.resources.project import ProjectAction, ProjectPermCtx
 from backend.tests.iam.conftest import generate_apply_url
 
-from ..fake_iam import FakeProjectPermission
 from . import roles
-
-
-@pytest.fixture
-def project_permission_obj():
-    patcher = mock.patch.object(ProjectPermission, '__bases__', (FakeProjectPermission,))
-    with patcher:
-        patcher.is_local = True  # 标注为本地属性，__exit__ 的时候恢复成 patcher.temp_original
-        yield ProjectPermission()
 
 
 class TestProjectPermission:

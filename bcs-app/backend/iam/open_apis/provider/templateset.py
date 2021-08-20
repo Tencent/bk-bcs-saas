@@ -28,27 +28,21 @@ class TemplatesetProvider(ResourceProvider):
         :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
         :param page_obj: 分页对象
         """
-        return self._list_templatesets(filter_obj, page_obj)
+        project_id = filter_obj.parent["id"]
+        template_list = list_templatesets(project_id, filter_obj.ids, ["id", "project_id", "name"])
+        count = len(template_list)
+        template_slice = template_list[page_obj.slice_from : page_obj.slice_to]
+        results = [{'id': template['id'], 'display_name': template['name']} for template in template_slice]
+        return ListResult(results=results, count=count)
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         """
         批量获取模板集实例属性详情
-        :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
+        :param filter_obj: 查询参数
         """
-        return self._list_templatesets(filter_obj)
-
-    def _list_templatesets(self, filter_obj: FancyDict, page_obj: Optional[Page] = None) -> ListResult:
-        """获取模板集且根据分页需求分页,转换数据后返回"""
-        project_id = filter_obj.parent["id"]
-        templateset_list = list_templatesets(project_id, filter_obj.ids, ["id", "project_id", "name"])
-        count = len(templateset_list)
-
-        if page_obj:
-            templateset_list = templateset_list[page_obj.slice_from : page_obj.slice_to]
-
-        results = [{'id': templateset['id'], 'display_name': templateset['name']} for templateset in templateset_list]
-
-        return ListResult(results=results, count=count)
+        template_list = list_templatesets(template_ids=filter_obj.ids, fields=["id", "project_id", "name"])
+        results = [{'id': template['id'], 'display_name': template['name']} for template in template_list]
+        return ListResult(results=results, count=len(template_list))
 
     def list_instance_by_policy(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         # TODO 确认基于实例的查询是不是就是id的过滤查询

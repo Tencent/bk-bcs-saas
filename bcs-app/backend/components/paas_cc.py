@@ -519,7 +519,7 @@ class PaaSCCConfig:
         self.get_project_url = f"{host}/projects/{{project_id}}/"
         self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
-        self.list_clusters = f"{host}/projects/{{project_id}}/clusters_list/"
+        self.list_clusters = f"{host}/cluster_list/"
 
         self.update_node_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
         self.get_cluster_namespace_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/namespaces/"
@@ -554,10 +554,10 @@ class PaaSCCClient(BkApiClient):
         return self._client.request_json('GET', url)
 
     @response_handler()
-    def list_clusters(self, project_id: str, cluster_ids: List[str]) -> Dict:
+    def list_clusters(self, cluster_ids: List[str]) -> Dict:
         """根据集群id列表批量获取集群信息"""
-        url = self._config.list_clusters.format(project_id=project_id)
-        data = {"cluster_ids": cluster_ids} if cluster_ids else None
+        url = self._config.list_clusters
+        data = {"cluster_ids": cluster_ids}
         return self._client.request_json('POST', url, json=data)
 
     @parse_response_data()

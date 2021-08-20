@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
 from iam.collection import FancyDict
 from iam.resource.provider import ListResult, ResourceProvider
 from iam.resource.utils import Page
@@ -18,6 +20,8 @@ from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
 from backend.container_service.clusters.base import get_clusters
 from backend.iam.open_apis.provider.utils import get_system_token
+
+logger = logging.getLogger(__name__)
 
 
 class ClusterProvider(ResourceProvider):
@@ -33,18 +37,16 @@ class ClusterProvider(ResourceProvider):
         cluster_list = get_clusters(get_system_token(), project_id)
         cluster_slice = cluster_list[page_obj.slice_from : page_obj.slice_to]
         results = [{'id': cluster['cluster_id'], 'display_name': cluster['name']} for cluster in cluster_slice]
-
         return ListResult(results=results, count=len(cluster_list))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         """
         批量获取集群实例属性详情
-        :param filter_obj: 查询参数字典。 以下为必传如: {"parent": {"id": 1}}
+        :param filter_obj: 查询参数字典
         """
-        project_id = filter_obj.parent["id"]
-        cluster_ids = filter_obj.ids or []
+        cluster_ids = filter_obj.ids
         paas_cc = PaaSCCClient(auth=ComponentAuth(get_system_token()))
-        cluster_list = paas_cc.list_clusters(project_id, cluster_ids)
+        cluster_list = paas_cc.list_clusters(cluster_ids)
         results = [{'id': cluster['cluster_id'], 'display_name': cluster['name']} for cluster in cluster_list]
         return ListResult(results=results, count=len(results))
 
