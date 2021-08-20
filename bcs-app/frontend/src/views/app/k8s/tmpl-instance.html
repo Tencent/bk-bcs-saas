@@ -435,7 +435,6 @@
                                                                     </li>
                                                                 </ul>
                                                             </bk-dropdown-menu>
-                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>{{$t('日志')}}</a>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -688,11 +687,11 @@
         :quick-close="true">
         <div slot="content" style="position: relative;">
             <div class="biz-log-box" :style="{height: `${winHeight - 60}px`}" v-bkloading="{isLoading: toJsonDialogConf.loading}">
-                <div class="copy-code" :title="$t('复制代码')">
-                    <bk-button class="copy-code-btn" :data-clipboard-text="copyContent" type="default">{{$t('复制代码')}}</bk-button>
+                <div class="copy-code">
+                    <bk-button class="copy-code-btn" style="position: absolute; top: -45px; right: 10px;" @click="handleCopyContent(editorConfig.value)" type="default">{{$t('复制代码')}}</bk-button>
                 </div>
                 <div class="copy-code">
-                    <bk-button class="copy-code-btn" style="right: 98px;" type="default" @click="handleShowEditorSearch">{{$t('检索关键字')}}</bk-button>
+                    <bk-button class="copy-code-btn" style="position: absolute; top: -45px; right: 110px;" type="default" @click="handleShowEditorSearch">{{$t('检索关键字')}}</bk-button>
                 </div>
                 <div class="code-fullscreen" :title="$t('全屏')"
                     @click="setFullScreen">

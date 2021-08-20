@@ -15,6 +15,8 @@ specific language governing permissions and limitations under the License.
 import uuid
 from typing import Dict, List
 
+from backend.container_service.projects.base.constants import ProjectKind
+
 from .utils import mockable_function
 
 
@@ -39,6 +41,13 @@ class StubPaaSCCClient:
     @mockable_function
     def get_project(self, project_id: str) -> Dict:
         return self.make_project_data(project_id)
+
+    @mockable_function
+    def get_mesos_project(self, project_id: str) -> Dict:
+        """返回mesos项目信息"""
+        data = self.make_project_data(project_id)
+        data["kind"] = ProjectKind.MESOS.value
+        return data
 
     @mockable_function
     def get_cluster_namespace_list(self, project_id: str, cluster_id: str) -> Dict:
