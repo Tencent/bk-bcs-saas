@@ -105,7 +105,7 @@
                                             </div>
                                         </div>
                                         <div class="inner">
-                                            <div class="inner-item" v-if="$INTERNAL">
+                                            <div class="inner-item">
                                                 <label class="title">{{$t('所属集群')}}</label>
                                                 <bk-selector
                                                     style="width: 268px;"
