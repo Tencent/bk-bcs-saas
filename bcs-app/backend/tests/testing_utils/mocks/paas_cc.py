@@ -17,6 +17,8 @@ from typing import Dict, List
 
 from backend.container_service.projects.base.constants import ProjectKind
 
+from backend.container_service.projects.base.constants import ProjectKind
+
 from .utils import mockable_function
 
 
