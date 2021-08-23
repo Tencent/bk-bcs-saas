@@ -12,10 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Optional, Type
+from typing import List, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
+from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 from .constants import ResourceType
@@ -50,6 +51,9 @@ class ProjectPermission(Permission):
 
     def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception)
+
+    def get_parent_chain(self, perm_ctx: ProjectPermCtx) -> List[IAMResource]:
+        return []
 
     def _get_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
         return perm_ctx.project_id

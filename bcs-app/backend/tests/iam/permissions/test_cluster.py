@@ -16,8 +16,9 @@ from unittest import mock
 import pytest
 
 from backend.iam.permissions.exceptions import PermissionDeniedError
-from backend.iam.permissions.request import ActionResourcesRequest
+from backend.iam.permissions.request import ActionResourcesRequest, IAMResource
 from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermCtx, ClusterPermission, cluster_perm
+from backend.iam.permissions.resources.constants import ResourceType
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
 from backend.tests.iam.conftest import generate_apply_url
 
@@ -84,6 +85,7 @@ class TestClusterPermission:
                     resource_type=cluster_permission_obj.resource_type,
                     action_id=ClusterAction.VIEW,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -119,6 +121,7 @@ class TestClusterPermission:
                     resource_type=cluster_permission_obj.resource_type,
                     action_id=ClusterAction.VIEW,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type,
@@ -147,9 +150,13 @@ class TestClusterPermission:
                     resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.MANAGE,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -195,9 +202,13 @@ class TestClusterPermDecorator:
                     resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.MANAGE,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]

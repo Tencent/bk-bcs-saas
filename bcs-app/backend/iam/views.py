@@ -10,16 +10,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
 from rest_framework import permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.bcs_web import viewsets
 
-from .permissions.apply_url import ApplyURLGenerator
+from .perm_maker import make_perm_ctx, make_res_permission
 from .permissions.client import IAMClient
-from .permissions.request import ActionResourcesRequest
+from .permissions.exceptions import AttrValidationError, PermissionDeniedError
 from .request_maker import make_res_request
 from .serializers import ResourceActionSLZ, ResourceMultiActionsSLZ
+
+logger = logging.getLogger(__name__)
 
 
 class UserPermsViewSet(viewsets.SystemViewSet):
@@ -31,15 +36,19 @@ class UserPermsViewSet(viewsets.SystemViewSet):
 
         client = IAMClient()
 
-        resource_type = validated_data.get('resource_type')
-        if not resource_type:  # 资源实例无关
+        resource_id = validated_data.get('resource_id')
+        if not resource_id:  # 资源实例无关
             perms = client.resource_type_multi_actions_allowed(request.user.username, validated_data['action_ids'])
             return Response({'perms': perms})
 
         # 资源实例相关
-        res_request = make_res_request(
-            resource_type, validated_data['resource_id'], **validated_data['iam_path_attrs']
-        )
+        try:
+            res_request = make_res_request(
+                validated_data['resource_type'], validated_data['resource_id'], **validated_data['perm_ctx']
+            )
+        except AttrValidationError as e:
+            raise ValidationError(e)
+
         perms = client.resource_inst_multi_actions_allowed(
             request.user.username, validated_data['action_ids'], res_request
         )
@@ -48,30 +57,19 @@ class UserPermsViewSet(viewsets.SystemViewSet):
     def get_perm_by_action_id(self, request, action_id):
         """查询指定 action_id 的权限"""
         validated_data = self.params_validate(ResourceActionSLZ, action_id=action_id)
+        resource_type, action = action_id.split('_')
 
-        client = IAMClient()
+        try:
+            perm_ctx = make_perm_ctx(request.user.username, resource_type, **validated_data['perm_ctx'])
+        except (ValueError, KeyError) as e:
+            raise ValidationError(e)
 
-        resource_type = validated_data.get('resource_type')
-        if resource_type:  # 资源实例相关
-            res_request = make_res_request(
-                resource_type, validated_data['resource_id'], **validated_data['iam_path_attrs']
-            )
-            is_allowed = client.resource_inst_allowed(request.user.username, action_id, res_request)
-        else:  # 资源实例无关
-            is_allowed = client.resource_type_allowed(request.user.username, action_id)
+        permission = make_res_permission(resource_type)
+        try:
+            getattr(permission, f'can_{action}')(perm_ctx)
+        except AttributeError:
+            raise ValidationError(f'action_id({action_id}) not supported')
+        except PermissionDeniedError as e:
+            return Response({'perms': {action_id: False, 'apply_url': e.data['apply_url']}})
 
-        perms = {action_id: is_allowed}
-        # 无权限时，带上权限申请跳转链接
-        if not is_allowed:
-            perms['apply_url'] = ApplyURLGenerator.generate_apply_url(
-                request.user.username,
-                action_request_list=[
-                    ActionResourcesRequest(
-                        action_id=action_id,
-                        resource_type=resource_type,
-                        resources=[validated_data['resource_id']] if resource_type else None,
-                    )
-                ],
-            )
-
-        return Response({'perms': perms})
+        return Response({'perms': {action_id: True}})

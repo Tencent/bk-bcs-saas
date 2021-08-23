@@ -41,30 +41,23 @@ class TestUserPermsViewSet:
             'action_ids': ['cluster_view', 'namespace_create'],
             'resource_type': 'cluster',
             'resource_id': cluster_id,
-            'iam_path_attrs': {'project_id': project_id},
+            'perm_ctx': {'project_id': project_id},
         }
         response = api_client.post(f'/api/iam/user_perms/', data)
         perms = response.json()['data']['perms']
         assert perms['cluster_view'] is True
         assert perms['namespace_create'] is False
 
-    def test_get_perm_by_action_id_resource_type(self, api_client):
+    def test_get_perm_by_action_id_resource_type(self, api_client, project_permission_obj):
         """资源实例无关"""
         response = api_client.post(f'/api/iam/user_perms/actions/project_create/')
-        assert response.json()['data']['perms']['project_create'] is True
-
-        response = api_client.post(f'/api/iam/user_perms/actions/bcs_project_create/')
         perms = response.json()['data']['perms']
-        assert perms['bcs_project_create'] is False
+        assert perms['project_create'] is False
         assert 'apply_url' in perms
 
-    def test_get_perm_by_action_id_resource_inst(self, api_client, project_id, cluster_id):
+    def test_get_perm_by_action_id_resource_inst(self, api_client, namespace_permission_obj, project_id, cluster_id):
         """资源实例相关"""
-        data = {
-            'resource_type': 'cluster',
-            'resource_id': cluster_id,
-            'iam_path_attrs': {'project_id': project_id},
-        }
+        data = {'perm_ctx': {'project_id': project_id, 'cluster_id': cluster_id}}
         response = api_client.post(f'/api/iam/user_perms/actions/namespace_create/', data=data)
         perms = response.json()['data']['perms']
         assert perms['namespace_create'] is False

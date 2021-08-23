@@ -45,3 +45,7 @@ class PermissionDeniedError(Exception):
 
     def __str__(self):
         return f'{self.code}: {self.message}'
+
+
+class AttrValidationError(Exception):
+    """ResourceRequest 属性字段校验异常"""

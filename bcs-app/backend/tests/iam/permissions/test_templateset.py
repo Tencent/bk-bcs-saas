@@ -16,7 +16,8 @@ from unittest import mock
 import pytest
 
 from backend.iam.permissions.exceptions import PermissionDeniedError
-from backend.iam.permissions.request import ActionResourcesRequest
+from backend.iam.permissions.request import ActionResourcesRequest, IAMResource
+from backend.iam.permissions.resources.constants import ResourceType
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
 from backend.iam.permissions.resources.templateset import (
     TemplatesetAction,
@@ -75,6 +76,7 @@ class TestTemplatesetPermission:
                     resource_type=templateset_permission_obj.resource_type,
                     action_id=TemplatesetAction.VIEW,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -108,6 +110,7 @@ class TestTemplatesetPermission:
                     resource_type=TemplatesetPermission.resource_type,
                     action_id=TemplatesetAction.VIEW,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -134,11 +137,13 @@ class TestTemplatesetPermission:
                     resource_type=TemplatesetPermission.resource_type,
                     action_id=TemplatesetAction.INSTANTIATE,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
                     action_id=TemplatesetAction.VIEW,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -184,11 +189,13 @@ class TestTemplatesetPermDecorator:
                     resource_type=TemplatesetPermission.resource_type,
                     action_id=TemplatesetAction.INSTANTIATE,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=TemplatesetPermission.resource_type,
                     action_id=TemplatesetAction.VIEW,
                     resources=[template_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]

@@ -16,20 +16,18 @@ from rest_framework.exceptions import ValidationError
 from .permissions.resources.constants import ResourceType
 
 
-class ResourceRequestSLZ(serializers.Serializer):
+class ResourceActionSLZ(serializers.Serializer):
+    action_id = serializers.CharField()
+    perm_ctx = serializers.JSONField(default=dict)
+
+
+class ResourceMultiActionsSLZ(serializers.Serializer):
+    action_ids = serializers.ListField(child=serializers.CharField(), min_length=1)
     resource_type = serializers.ChoiceField(choices=ResourceType.get_choices(), required=False)
     resource_id = serializers.CharField(required=False)
-    iam_path_attrs = serializers.JSONField(default=dict)
+    perm_ctx = serializers.JSONField(default=dict)
 
     def validate(self, data):
         if 'resource_type' in data and 'resource_id' not in data:
             raise ValidationError('missing param resource_id')
         return data
-
-
-class ResourceActionSLZ(ResourceRequestSLZ):
-    action_id = serializers.CharField()
-
-
-class ResourceMultiActionsSLZ(ResourceRequestSLZ):
-    action_ids = serializers.ListField(child=serializers.CharField(), min_length=1)

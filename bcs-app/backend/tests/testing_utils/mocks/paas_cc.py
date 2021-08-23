@@ -35,8 +35,8 @@ class StubPaaSCCClient:
         return self.make_cluster_data_by_id(cluster_id)
 
     @mockable_function
-    def list_clusters(self, project_id: str, cluster_ids: List[str]) -> Dict:
-        return [self.make_cluster_data(project_id, cluster_id) for cluster_id in cluster_ids]
+    def list_clusters(self, cluster_ids: List[str]) -> List:
+        return [self.make_cluster_data(uuid.uuid4().hex, cluster_id) for cluster_id in cluster_ids]
 
     @mockable_function
     def get_project(self, project_id: str) -> Dict:

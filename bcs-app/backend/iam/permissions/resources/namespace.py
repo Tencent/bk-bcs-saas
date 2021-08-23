@@ -12,11 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, Optional, Type
+from typing import Dict, List, Optional, Type
 
 from backend.iam.permissions import decorators
+from backend.iam.permissions.exceptions import AttrValidationError
 from backend.iam.permissions.perm import PermCtx, Permission
-from backend.iam.permissions.request import ResourceRequest
+from backend.iam.permissions.request import IAMResource, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import md5
 
@@ -24,19 +25,26 @@ from .cluster import ClusterPermission, related_cluster_perm
 from .constants import ResourceType
 
 
-def compress_cluster_ns_id(cluster_ns_id: Optional[str]) -> Optional[str]:
-    """超过32位长度后，通过摘要算法压缩至32位长度"""
-    if not cluster_ns_id:
-        return cluster_ns_id
+def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int = 32) -> Optional[str]:
+    """
+    计算出注册到权限中心的命名空间ID，具备唯一性. 当前的算法并不能完全避免冲突，但是冲突概率极低
+    :param cluster_id: 集群 ID
+    :param name: 命名空间名
+    :return: iam_ns_id，用于注册到权限中心
 
-    # 去除集群前缀 BCS-K8S-
-    if cluster_ns_id.startswith('BCS-K8S-'):
-        cluster_ns_id = cluster_ns_id[8:]
+    note: 权限中心对资源ID有长度限制，不超过32位
+    iam_ns_id 的初始结构是`集群ID:命名空间name`，如 `BCS-K8S-40000:default`
+    如果整体长度超过32，则进行压缩计算. 压缩计算需要保留集群ID，目的是用于 namespace provider 中的 fetch_instance_info
+    """
+    if not name:
+        return name
 
-    if len(cluster_ns_id) <= 32:
-        return cluster_ns_id
+    iam_ns_id = f'{cluster_id}:{name}'
+    if len(iam_ns_id) <= max_length:
+        return iam_ns_id
 
-    return md5(cluster_ns_id)
+    # md5 之后，从左取 max_length-len(cluster_id)-1 个字符
+    return f'{cluster_id}:{md5(name)[:max_length-len(cluster_id)-1]}'
 
 
 class NamespaceAction(str, StructuredEnum):
@@ -51,11 +59,12 @@ class NamespaceAction(str, StructuredEnum):
 class NamespacePermCtx(PermCtx):
     project_id: str = ''
     cluster_id: str = ''
-    cluster_ns_id: Optional[str] = None
+    name: Optional[str] = None  # 命名空间名
+    iam_ns_id: Optional[str] = None  # 注册到权限中心的命名空间ID
 
     def __post_init__(self):
         """权限中心的 resource_id 长度限制为32位"""
-        self.cluster_ns_id = compress_cluster_ns_id(self.cluster_ns_id)
+        self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
 
 
 class NamespaceRequest(ResourceRequest):
@@ -67,6 +76,13 @@ class NamespaceRequest(ResourceRequest):
             project_id=self.attr_kwargs['project_id'], cluster_id=self.attr_kwargs['cluster_id']
         )
         return self.attr
+
+    def _validate_attr_kwargs(self):
+        if 'project_id' not in self.attr_kwargs:
+            raise AttrValidationError('missing project_id')
+
+        if 'cluster_id' not in self.attr_kwargs:
+            raise AttrValidationError('missing cluster_id')
 
 
 class related_namespace_perm(decorators.RelatedPermission):
@@ -82,7 +98,7 @@ class related_namespace_perm(decorators.RelatedPermission):
                 username=args[0].username,
                 project_id=args[0].project_id,
                 cluster_id=args[0].cluster_id,
-                cluster_ns_id=args[0].cluster_ns_id,
+                name=args[0].name,
             )
         else:
             raise TypeError('missing NamespacePermCtx instance argument')
@@ -122,8 +138,14 @@ class NamespacePermission(Permission):
     def make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)
 
+    def get_parent_chain(self, perm_ctx: NamespacePermCtx) -> List[IAMResource]:
+        return [
+            IAMResource(ResourceType.Project, perm_ctx.project_id),
+            IAMResource(ResourceType.Cluster, perm_ctx.cluster_id),
+        ]
+
     def _get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
-        return perm_ctx.cluster_ns_id
+        return perm_ctx.iam_ns_id
 
     def _get_parent_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
         return perm_ctx.cluster_id

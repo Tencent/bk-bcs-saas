@@ -11,37 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from unittest import mock
-
 import pytest
 
 from backend.iam.permissions.exceptions import PermissionDeniedError
-from backend.iam.permissions.request import ActionResourcesRequest
+from backend.iam.permissions.request import ActionResourcesRequest, IAMResource
 from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermission
+from backend.iam.permissions.resources.constants import ResourceType
 from backend.iam.permissions.resources.namespace import (
     NamespaceAction,
     NamespacePermCtx,
     NamespacePermission,
-    compress_cluster_ns_id,
+    calc_iam_ns_id,
     namespace_perm,
 )
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
 from backend.tests.iam.conftest import generate_apply_url
 
-from ..fake_iam import FakeClusterPermission, FakeNamespacePermission, FakeProjectPermission
 from . import roles
-
-
-@pytest.fixture
-def namespace_permission_obj():
-    cluster_patcher = mock.patch.object(ClusterPermission, '__bases__', (FakeClusterPermission,))
-    project_patcher = mock.patch.object(ProjectPermission, '__bases__', (FakeProjectPermission,))
-    namespace_patcher = mock.patch.object(NamespacePermission, '__bases__', (FakeNamespacePermission,))
-    with cluster_patcher, project_patcher, namespace_patcher:
-        cluster_patcher.is_local = True  # 标注为本地属性，__exit__ 的时候恢复成 patcher.temp_original
-        project_patcher.is_local = True
-        namespace_patcher.is_local = True
-        yield NamespacePermission()
 
 
 class TestNamespacePermission:
@@ -59,7 +45,10 @@ class TestNamespacePermission:
             username,
             [
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -67,10 +56,10 @@ class TestNamespacePermission:
             ],
         )
 
-    def test_can_not_use(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
+    def test_can_not_use(self, namespace_permission_obj, project_id, cluster_id, namespace_name):
         username = roles.ANONYMOUS_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
+            username=username, project_id=project_id, cluster_id=cluster_id, name=namespace_name
         )
         with pytest.raises(PermissionDeniedError) as exec:
             namespace_permission_obj.can_use(perm_ctx)
@@ -80,15 +69,26 @@ class TestNamespacePermission:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[perm_ctx.cluster_ns_id],
+                    resources=[perm_ctx.iam_ns_id],
+                    parent_chain=[
+                        IAMResource(ResourceType.Project, project_id),
+                        IAMResource(ResourceType.Cluster, cluster_id),
+                    ],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[perm_ctx.cluster_ns_id],
+                    resources=[perm_ctx.iam_ns_id],
+                    parent_chain=[
+                        IAMResource(ResourceType.Project, project_id),
+                        IAMResource(ResourceType.Cluster, cluster_id),
+                    ],
                 ),
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -96,11 +96,11 @@ class TestNamespacePermission:
             ],
         )
 
-    def test_can_not_use_cluster_project(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
+    def test_can_not_use_cluster_project(self, namespace_permission_obj, project_id, cluster_id, namespace_name):
         """测试场景: 有命名空间使用权限，但是无集群和项目权限"""
         username = roles.NAMESPACE_NO_CLUSTER_PROJECT_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
+            username=username, project_id=project_id, cluster_id=cluster_id, name=namespace_name
         )
 
         # 不抛出异常
@@ -113,7 +113,10 @@ class TestNamespacePermission:
             username,
             [
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -140,11 +143,13 @@ class TestNamespacePermDecorator:
                     resource_type=ClusterPermission.resource_type,
                     action_id=NamespaceAction.CREATE,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.VIEW,
                     resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -152,16 +157,16 @@ class TestNamespacePermDecorator:
             ],
         )
 
-    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
+    def test_can_use(self, namespace_permission_obj, project_id, cluster_id, namespace_name):
         perm_ctx = NamespacePermCtx(
-            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
+            username=roles.ADMIN_USER, project_id=project_id, cluster_id=cluster_id, name=namespace_name
         )
         helm_install(perm_ctx)
 
-    def test_can_not_manage(self, namespace_permission_obj, project_id, cluster_id, cluster_ns_id):
+    def test_can_not_manage(self, namespace_permission_obj, project_id, cluster_id, namespace_name):
         username = roles.ANONYMOUS_USER
         perm_ctx = NamespacePermCtx(
-            username=username, project_id=project_id, cluster_id=cluster_id, cluster_ns_id=cluster_ns_id
+            username=username, project_id=project_id, cluster_id=cluster_id, name=namespace_name
         )
         with pytest.raises(PermissionDeniedError) as exec:
             helm_install(perm_ctx)
@@ -171,15 +176,26 @@ class TestNamespacePermDecorator:
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.USE,
-                    resources=[perm_ctx.cluster_ns_id],
+                    resources=[perm_ctx.iam_ns_id],
+                    parent_chain=[
+                        IAMResource(ResourceType.Project, project_id),
+                        IAMResource(ResourceType.Cluster, cluster_id),
+                    ],
                 ),
                 ActionResourcesRequest(
                     resource_type=NamespacePermission.resource_type,
                     action_id=NamespaceAction.VIEW,
-                    resources=[perm_ctx.cluster_ns_id],
+                    resources=[perm_ctx.iam_ns_id],
+                    parent_chain=[
+                        IAMResource(ResourceType.Project, project_id),
+                        IAMResource(ResourceType.Cluster, cluster_id),
+                    ],
                 ),
                 ActionResourcesRequest(
-                    resource_type=ClusterPermission.resource_type, action_id=ClusterAction.VIEW, resources=[cluster_id]
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.VIEW,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ProjectPermission.resource_type, action_id=ProjectAction.VIEW, resources=[project_id]
@@ -189,11 +205,12 @@ class TestNamespacePermDecorator:
 
 
 @pytest.mark.parametrize(
-    'cluster_namespace_id, expected',
+    'cluster_id, namespace_name, expected',
     [
-        ('BCS-K8S-40000:test-default', '40000:test-default'),
-        ('BCS-K8S-40000:' + 'abc' * 30, '95afa5b2fe10b65fc59c516a6f8cf1e7'),
+        ('BCS-K8S-40000', 'test-default', 'BCS-K8S-40000:test-default'),
+        ('BCS-K8S-40000', 'abc' * 30, 'BCS-K8S-40000:daa54284568d250dde'),
+        ('BCS-K8S-40000', None, None),
     ],
 )
-def test_compress_cluster_ns_id(cluster_namespace_id, expected):
-    assert compress_cluster_ns_id(cluster_namespace_id) == expected
+def test_calc_cluster_ns_id(cluster_id, namespace_name, expected):
+    assert calc_iam_ns_id(cluster_id, namespace_name) == expected

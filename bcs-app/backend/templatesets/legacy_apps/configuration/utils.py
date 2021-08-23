@@ -228,7 +228,7 @@ def update_template_with_perm_check(request, template, tmpl_args):
 
 
 def list_templatesets(
-    project_id: str, template_ids: Optional[List[int]] = None, fields: Optional[List[str]] = None
+    project_id: Optional[str] = None, template_ids: Optional[List[int]] = None, fields: Optional[List[str]] = None
 ) -> List:
     """
     根据传入project_id和template_ids筛选符合条件的模板集
@@ -236,8 +236,13 @@ def list_templatesets(
     :param template_ids: (list of int) 模板集id列表。为None或[]时表示不根据此条件过滤
     :param fields: (list of str): 待查询字段
     """
-    fields = fields or []
-    queryset = Template.objects.filter(project_id=project_id)
+    if project_id:
+        queryset = Template.objects.filter(project_id=project_id)
+    else:
+        queryset = Template.objects.all()
+
     if template_ids:
         queryset = queryset.filter(id__in=template_ids)
+
+    fields = fields or []
     return list(queryset.values(*fields))

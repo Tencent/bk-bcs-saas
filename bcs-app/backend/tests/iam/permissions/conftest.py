@@ -18,8 +18,8 @@ from backend.tests.testing_utils.base import generate_random_string
 
 
 @pytest.fixture
-def cluster_ns_id():
-    return f'BCS-K8S-{generate_random_string(16)}'
+def namespace_name():
+    return generate_random_string(16)
 
 
 @pytest.fixture

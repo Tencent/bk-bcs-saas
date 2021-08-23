@@ -11,11 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from collections import namedtuple
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from django.conf import settings
 from iam import Resource
+from iam.apply import models
 
 
 class ResourceRequest:
@@ -32,6 +34,7 @@ class ResourceRequest:
         if attr:
             self.attr = attr
         self.attr_kwargs = dict(**attr_kwargs)
+        self._validate_attr_kwargs()
 
     def make_resources(self) -> List[Resource]:
         if isinstance(self.res, str):
@@ -41,17 +44,45 @@ class ResourceRequest:
             Resource(settings.APP_ID, self.resource_type, res_id, self._make_attribute(res_id)) for res_id in self.res
         ]
 
+    def _validate_attr_kwargs(self):
+        """如果校验不通过，抛出 AttrValidateError 异常"""
+        return
+
     def _make_attribute(self, res_id: str) -> Dict:
         return {}
+
+
+IAMResource = namedtuple('IAMResource', 'resource_type resource_id')
 
 
 @dataclass
 class ActionResourcesRequest:
     """
-    操作资源请求
+    操作资源请求.
     note: resources 是由资源 ID 构成的列表. 为 None 时，表示资源无关.
+    资源实例相关时，resources 表示的资源必须具有相同的父实例。以命名空间为例，它们必须是同项目同集群下
     """
 
     action_id: str
     resource_type: Optional[str] = None
     resources: Optional[List[str]] = None
+    parent_chain: List[IAMResource] = None  # 按照父类层级排序(父->子) [(resource_type, resource_id), ]
+
+    def to_action(self) -> Union[models.ActionWithResources, models.ActionWithoutResources]:
+        # 资源实例相关
+        if self.resources:
+            parent_chain_node = self._to_parent_chain_node()
+            instances = [
+                models.ResourceInstance(parent_chain_node + [models.ResourceNode(self.resource_type, res_id, res_id)])
+                for res_id in self.resources
+            ]
+            related_resource_type = models.RelatedResourceType(settings.APP_ID, self.resource_type, instances)
+            return models.ActionWithResources(self.action_id, [related_resource_type])
+
+        # 资源实例无关
+        return models.ActionWithoutResources(self.action_id)
+
+    def _to_parent_chain_node(self) -> List[models.ResourceNode]:
+        if self.parent_chain:
+            return [models.ResourceNode(p.resource_type, p.resource_id, p.resource_id) for p in self.parent_chain]
+        return []

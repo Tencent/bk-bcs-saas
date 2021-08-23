@@ -14,11 +14,11 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Type
+from typing import List, Optional, Type
 
 from .client import IAMClient
 from .exceptions import PermissionDeniedError
-from .request import ActionResourcesRequest, ResourceRequest
+from .request import ActionResourcesRequest, IAMResource, ResourceRequest
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +74,10 @@ class Permission(ABC, IAMClient):
     def has_parent_resource(self) -> bool:
         return self.parent_res_perm is not None
 
+    @abstractmethod
+    def get_parent_chain(self, perm_ctx: PermCtx) -> List[IAMResource]:
+        """从 ctx 中获取 parent_chain"""
+
     def _can_action(self, perm_ctx: PermCtx, action_id: str, use_cache: bool = False) -> bool:
         res_id = self._get_resource_id(perm_ctx)
 
@@ -96,17 +100,26 @@ class Permission(ABC, IAMClient):
         resources = None
         resource_type = self.resource_type
 
+        parent_chain = None
+
         if res_id:
             resources = [res_id]
+            parent_chain = self.get_parent_chain(perm_ctx)
         elif self.has_parent_resource():
             resource_type = self.parent_res_perm.resource_type
             resources = [self._get_parent_resource_id(perm_ctx)]
+            parent_chain = self.parent_res_perm.get_parent_chain(perm_ctx)
 
         raise PermissionDeniedError(
             f"no {action_id} permission",
             username=perm_ctx.username,
             action_request_list=[
-                ActionResourcesRequest(action_id=action_id, resource_type=resource_type, resources=resources)
+                ActionResourcesRequest(
+                    action_id=action_id,
+                    resource_type=resource_type,
+                    resources=resources,
+                    parent_chain=parent_chain,
+                )
             ],
         )
 

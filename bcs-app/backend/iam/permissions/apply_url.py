@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 from typing import List
 
 from django.conf import settings
@@ -18,6 +19,8 @@ from iam import IAM
 from iam.apply import models
 
 from .request import ActionResourcesRequest
+
+logger = logging.getLogger(__name__)
 
 
 class ApplyURLGenerator:
@@ -30,7 +33,7 @@ class ApplyURLGenerator:
         参考 https://github.com/TencentBlueKing/iam-python-sdk/blob/master/docs/usage.md#14-获取无权限申请跳转url
         """
         app = cls._make_application(action_request_list)
-        ok, message, url = cls.iam.get_apply_url(app, bk_username=username)
+        ok, _, url = cls.iam.get_apply_url(app, bk_username=username)
         if not ok:
             return settings.BK_IAM_APP_URL
         return url
@@ -38,20 +41,4 @@ class ApplyURLGenerator:
     @staticmethod
     def _make_application(action_request_list: List[ActionResourcesRequest]) -> models.Application:
         """为 generate_apply_url 方法生成 models.Application"""
-        actions = []
-
-        for req in action_request_list:
-            if req.resources:
-                instances = [
-                    models.ResourceInstance([models.ResourceNode(req.resource_type, res_id, res_id)])
-                    for res_id in req.resources
-                ]
-                related_resource_type = models.RelatedResourceType(settings.APP_ID, req.resource_type, instances)
-                action = models.ActionWithResources(req.action_id, [related_resource_type])
-                actions.append(action)
-            else:
-                # 资源无关的 Application 构建
-                action = models.ActionWithoutResources(req.action_id)
-                actions.append(action)
-
-        return models.Application(settings.APP_ID, actions=actions)
+        return models.Application(settings.APP_ID, actions=[req.to_action() for req in action_request_list])
