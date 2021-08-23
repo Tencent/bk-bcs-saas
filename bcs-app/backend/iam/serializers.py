@@ -20,6 +20,13 @@ class ResourceActionSLZ(serializers.Serializer):
     action_id = serializers.CharField()
     perm_ctx = serializers.JSONField(default=dict)
 
+    def validate(self, data):
+        resource_type, action = data['action_id'].split('_')
+        if resource_type not in ResourceType.get_values():
+            raise ValidationError(f"invalid action_id({data['action_id']})")
+        data.update({'resource_type': resource_type, 'action': action})
+        return data
+
 
 class ResourceMultiActionsSLZ(serializers.Serializer):
     action_ids = serializers.ListField(child=serializers.CharField(), min_length=1)

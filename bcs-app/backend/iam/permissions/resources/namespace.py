@@ -31,7 +31,6 @@ def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int 
     :param cluster_id: 集群 ID
     :param name: 命名空间名
     :return: iam_ns_id，用于注册到权限中心
-
     note: 权限中心对资源ID有长度限制，不超过32位
     iam_ns_id 的初始结构是`集群ID:命名空间name`，如 `BCS-K8S-40000:default`
     如果整体长度超过32，则进行压缩计算. 压缩计算需要保留集群ID，目的是用于 namespace provider 中的 fetch_instance_info
@@ -65,6 +64,13 @@ class NamespacePermCtx(PermCtx):
     def __post_init__(self):
         """权限中心的 resource_id 长度限制为32位"""
         self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
+
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+        if not self.cluster_id:
+            raise AttrValidationError(f'invalid cluster_id:({self.cluster_id})')
 
 
 class NamespaceRequest(ResourceRequest):
