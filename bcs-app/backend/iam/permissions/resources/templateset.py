@@ -37,6 +37,11 @@ class TemplatesetPermCtx(PermCtx):
     project_id: str = ''
     template_id: Optional[str] = None
 
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+
 
 class TemplatesetRequest(ResourceRequest):
     resource_type: str = ResourceType.Templateset

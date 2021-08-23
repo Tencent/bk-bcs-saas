@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Type
 
 from .client import IAMClient
-from .exceptions import PermissionDeniedError
+from .exceptions import AttrValidationError, PermissionDeniedError
 from .request import ActionResourcesRequest, IAMResource, ResourceRequest
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,10 @@ class PermCtx:
 
     username: str
     force_raise: bool = False  # 如果为 True, 表示不做权限校验，直接以无权限方式抛出异常
+
+    def validate(self):
+        if not self.username:
+            raise AttrValidationError(f'invalid username:({self.username})')
 
 
 class Permission(ABC, IAMClient):

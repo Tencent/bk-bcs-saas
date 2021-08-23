@@ -37,15 +37,14 @@ class UserPermsViewSet(viewsets.SystemViewSet):
         client = IAMClient()
 
         resource_id = validated_data.get('resource_id')
-        if not resource_id:  # 资源实例无关
+        # 资源实例无关
+        if not resource_id:
             perms = client.resource_type_multi_actions_allowed(request.user.username, validated_data['action_ids'])
             return Response({'perms': perms})
 
         # 资源实例相关
         try:
-            res_request = make_res_request(
-                validated_data['resource_type'], validated_data['resource_id'], **validated_data['perm_ctx']
-            )
+            res_request = make_res_request(validated_data['resource_type'], resource_id, **validated_data['perm_ctx'])
         except AttrValidationError as e:
             raise ValidationError(e)
 
@@ -57,16 +56,16 @@ class UserPermsViewSet(viewsets.SystemViewSet):
     def get_perm_by_action_id(self, request, action_id):
         """查询指定 action_id 的权限"""
         validated_data = self.params_validate(ResourceActionSLZ, action_id=action_id)
-        resource_type, action = action_id.split('_')
 
+        resource_type = validated_data['resource_type']
         try:
             perm_ctx = make_perm_ctx(request.user.username, resource_type, **validated_data['perm_ctx'])
-        except (ValueError, KeyError) as e:
+        except AttrValidationError as e:
             raise ValidationError(e)
 
         permission = make_res_permission(resource_type)
         try:
-            getattr(permission, f'can_{action}')(perm_ctx)
+            getattr(permission, f"can_{validated_data['action']}")(perm_ctx)
         except AttributeError:
             raise ValidationError(f'action_id({action_id}) not supported')
         except PermissionDeniedError as e:

@@ -66,6 +66,13 @@ class NamespacePermCtx(PermCtx):
         """权限中心的 resource_id 长度限制为32位"""
         self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
 
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+        if not self.cluster_id:
+            raise AttrValidationError(f'invalid cluster_id:({self.cluster_id})')
+
 
 class NamespaceRequest(ResourceRequest):
     resource_type: str = ResourceType.Namespace

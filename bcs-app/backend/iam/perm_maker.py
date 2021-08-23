@@ -10,45 +10,44 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from .permissions import resources
+import importlib
+import logging
+
+from .permissions.exceptions import AttrValidationError
 from .permissions.perm import PermCtx, Permission
 
-ResourceType = resources.ResourceType
-
-ResourcePermMap = {
-    ResourceType.Project: resources.ProjectPermission,
-    ResourceType.Cluster: resources.ClusterPermission,
-    ResourceType.Namespace: resources.NamespacePermission,
-    ResourceType.Templateset: resources.TemplatesetPermission,
-}
+logger = logging.getLogger(__name__)
 
 
 def make_perm_ctx(username: str, res_type: str, **ctx_kwargs) -> PermCtx:
-
-    if res_type == ResourceType.Project:
-        return resources.ProjectPermCtx(username=username, project_id=ctx_kwargs.get('project_id'))
-
-    if res_type == ResourceType.Cluster:
-        return resources.ClusterPermCtx(
-            username=username, project_id=ctx_kwargs['project_id'], cluster_id=ctx_kwargs.get('cluster_id')
+    """根据资源类型，生成对应的perm ctx"""
+    p_module_name = __name__[: __name__.rfind(".")]
+    try:
+        perm_ctx_cls = getattr(
+            importlib.import_module(f'{p_module_name}.permissions.resources'), f'{res_type.capitalize()}PermCtx'
         )
+    except (ModuleNotFoundError, AttributeError) as e:
+        logger.error('make_res_permission error: %s', e)
+        raise
 
-    if res_type == ResourceType.Namespace:
-        return resources.NamespacePermCtx(
-            username=username,
-            project_id=ctx_kwargs['project_id'],
-            cluster_id=ctx_kwargs['cluster_id'],
-            name=ctx_kwargs.get('name'),
-        )
+    try:
+        perm_ctx = perm_ctx_cls(username=username, **ctx_kwargs)
+    except TypeError as e:
+        logger.exception(e)
+        raise AttrValidationError("perm ctx got an unexpected init argument")
 
-    if res_type == ResourceType.Templateset:
-        return resources.TemplatesetPermCtx(
-            username=username, project_id=ctx_kwargs['project_id'], template_id=ctx_kwargs.get('template_id')
-        )
-
-    raise ValueError(f'resource {res_type} has no perm ctx')
+    perm_ctx.validate()
+    return perm_ctx
 
 
 def make_res_permission(res_type: str) -> Permission:
-    """"""
-    return ResourcePermMap[res_type]()
+    """根据资源类型，生成对应的permission"""
+    p_module_name = __name__[: __name__.rfind(".")]
+    try:
+        perm_cls = getattr(
+            importlib.import_module(f'{p_module_name}.permissions.resources'), f'{res_type.capitalize()}Permission'
+        )
+        return perm_cls()
+    except (ModuleNotFoundError, AttributeError) as e:
+        logger.error('make_res_permission error: %s', e)
+        raise
