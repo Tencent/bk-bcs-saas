@@ -184,7 +184,7 @@ class response_perms:
         except Exception:
             pass
 
-        iam_path_attrs.update(getattr(request, 'iam_path_attrs', {}))
+        iam_path_attrs.update(resp.iam_path_attrs)
         perms = client.batch_resource_multi_actions_allowed(
             request.user.username,
             self.action_id_list,

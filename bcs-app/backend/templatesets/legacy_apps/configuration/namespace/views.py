@@ -49,7 +49,7 @@ from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.response import BKAPIResponse
+from backend.utils.response import BKAPIResponse, PermsResponse
 
 from ..constants import MesosResourceName
 from . import serializers as slz
@@ -307,7 +307,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         permissions = {'sync_namespace': enabled_sync_namespace(project_id)}
 
-        return BKAPIResponse(namespace_list, permissions=permissions)
+        return PermsResponse(namespace_list, iam_path_attrs={'cluster_id': cluster_id}, permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)

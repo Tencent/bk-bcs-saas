@@ -13,7 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from dataclasses import dataclass
-from typing import Union
+from typing import Dict, Optional, Union
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
@@ -99,6 +99,19 @@ class BKAPIResponse(Response):
         context['permissions'] = self.permissions
         context['web_annotations'] = self.web_annotations
         return super(BKAPIResponse, self).rendered_content
+
+
+class PermsResponse(BKAPIResponse):
+    def __init__(
+        self,
+        data: Union[list, dict],
+        message: str = '',
+        iam_path_attrs: Optional[Dict[str, str]] = None,
+        permissions: Union[None, dict] = None,
+        web_annotations: Union[None, dict] = None,
+    ):
+        super().__init__(data, message, permissions, web_annotations)
+        self.iam_path_attrs = iam_path_attrs or {}
 
 
 @dataclass
