@@ -77,16 +77,6 @@ class NamespacePermCtx(PermCtx):
         if not self.iam_ns_id:
             raise AttrValidationError(f'missing valid namespace name')
 
-    @property
-    def resource_id(self) -> str:
-        """获取用于注册到权限中心的资源 ID"""
-        return self.iam_ns_id
-
-    @property
-    def parent_resource_id(self) -> str:
-        """获取当前资源对应父类资源的 ID"""
-        return self.cluster_id
-
 
 class NamespaceRequest(ResourceRequest):
     resource_type: str = ResourceType.Namespace
@@ -168,3 +158,6 @@ class NamespacePermission(Permission):
             IAMResource(ResourceType.Project, perm_ctx.project_id),
             IAMResource(ResourceType.Cluster, perm_ctx.cluster_id),
         ]
+
+    def get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+        return perm_ctx.iam_ns_id

@@ -46,16 +46,6 @@ class ClusterPermCtx(PermCtx):
         if not self.cluster_id:
             raise AttrValidationError(f'missing valid cluster_id')
 
-    @property
-    def resource_id(self) -> str:
-        """获取用于注册到权限中心的资源 ID"""
-        return self.cluster_id
-
-    @property
-    def parent_resource_id(self) -> str:
-        """获取当前资源对应父类资源的 ID"""
-        return self.project_id
-
 
 class ClusterRequest(ResourceRequest):
     resource_type: str = ResourceType.Cluster
@@ -121,3 +111,6 @@ class ClusterPermission(Permission):
 
     def get_parent_chain(self, perm_ctx: ClusterPermCtx) -> List[IAMResource]:
         return [IAMResource(ResourceType.Project, perm_ctx.project_id)]
+
+    def get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+        return perm_ctx.cluster_id

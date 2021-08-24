@@ -42,16 +42,6 @@ class ProjectPermCtx(PermCtx):
         if not self.project_id:
             raise AttrValidationError(f'missing valid project_id')
 
-    @property
-    def resource_id(self) -> str:
-        """获取用于注册到权限中心的资源 ID"""
-        return self.project_id
-
-    @property
-    def parent_resource_id(self) -> str:
-        """获取当前资源对应父类资源的 ID"""
-        return ''
-
 
 class ProjectPermission(Permission):
     """项目权限"""
@@ -72,6 +62,9 @@ class ProjectPermission(Permission):
 
     def get_parent_chain(self, perm_ctx: ProjectPermCtx) -> List[IAMResource]:
         return []
+
+    def get_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
+        return perm_ctx.project_id
 
 
 class related_project_perm(decorators.RelatedPermission):

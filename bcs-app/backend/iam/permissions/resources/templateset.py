@@ -47,16 +47,6 @@ class TemplatesetPermCtx(PermCtx):
         if not self.template_id:
             raise AttrValidationError(f'missing valid template_id')
 
-    @property
-    def resource_id(self) -> str:
-        """获取用于注册到权限中心的资源 ID"""
-        return self.template_id
-
-    @property
-    def parent_resource_id(self) -> str:
-        """获取当前资源对应父类资源的 ID"""
-        return self.project_id
-
 
 class TemplatesetRequest(ResourceRequest):
     resource_type: str = ResourceType.Templateset
@@ -126,3 +116,6 @@ class TemplatesetPermission(Permission):
 
     def get_parent_chain(self, perm_ctx: TemplatesetPermCtx) -> List[IAMResource]:
         return [IAMResource(ResourceType.Project, perm_ctx.project_id)]
+
+    def get_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
+        return perm_ctx.template_id
