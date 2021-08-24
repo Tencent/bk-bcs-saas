@@ -231,37 +231,6 @@ HELM_MERELY_REPO_PASSWORD = os.environ.get("BKAPP_HARBOR_CHARTS_PASSWORD")
 # BKE企业版证书
 BKE_CACERT = os.path.join(HELM_BASE_DIR, 'etc/prod-server.crt')
 
-# ******************************** WebConsole 配置  ********************************
-
-# web-console配置需要，后台去除
-RDS_HANDER_SETTINGS = {
-    'level': 'INFO',
-    'class': 'backend.utils.log.LogstashRedisHandler',
-    'redis_url': REDIS_URL,
-    'queue_name': 'paas_backend_log_list',
-    'message_type': 'python-logstash',
-    'tags': ['sz', 'stag', 'paas-backend'],
-}
-
-# web_console监听地址
-WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 5000))
-
-# web_console运行模式, 支持external(平台托管), internal（自己集群托管）
-WEB_CONSOLE_MODE = 'internal'
-
-# web_console 镜像地址
-WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kubectld"
-
-# ******************************** 监控 & 指标配置  ********************************
-
-THANOS_HOST = os.environ.get("BKAPP_THANOS_URL")
-
-# 默认指标数据来源，现在支持bk-data, prometheus
-DEFAULT_METRIC_SOURCE = "prometheus"
-
-# 普罗米修斯项目白名单
-DEFAULT_METRIC_SOURCE_PROM_WLIST = []
-
 # ******************************** 数据库 & 缓存 ********************************
 
 DATABASES['default'] = {
@@ -354,3 +323,34 @@ if IS_USE_CELERY:
         print('use celery error: %s' % error)
 
 CELERY_IMPORTS = ("backend.celery_app",)
+
+# ******************************** WebConsole 配置  ********************************
+
+# web-console配置需要，后台去除
+RDS_HANDER_SETTINGS = {
+    'level': 'INFO',
+    'class': 'backend.utils.log.LogstashRedisHandler',
+    'redis_url': REDIS_URL,
+    'queue_name': 'paas_backend_log_list',
+    'message_type': 'python-logstash',
+    'tags': ['sz', 'stag', 'paas-backend'],
+}
+
+# web_console监听地址
+WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 5000))
+
+# web_console运行模式, 支持external(平台托管), internal（自己集群托管）
+WEB_CONSOLE_MODE = 'internal'
+
+# web_console 镜像地址
+WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kubectld"
+
+# ******************************** 监控 & 指标配置  ********************************
+
+THANOS_HOST = os.environ.get("BKAPP_THANOS_URL")
+
+# 默认指标数据来源，现在支持bk-data, prometheus
+DEFAULT_METRIC_SOURCE = "prometheus"
+
+# 普罗米修斯项目白名单
+DEFAULT_METRIC_SOURCE_PROM_WLIST = []
