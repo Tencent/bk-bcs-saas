@@ -19,6 +19,7 @@ from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
 from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
+from ..exceptions import AttrValidationError
 from .constants import ResourceType
 
 
@@ -36,6 +37,21 @@ class ProjectRequest(ResourceRequest):
 class ProjectPermCtx(PermCtx):
     project_id: Optional[str] = None
 
+    def validate_resource_id(self):
+        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+        if not self.project_id:
+            raise AttrValidationError(f'missing valid project_id')
+
+    @property
+    def resource_id(self) -> str:
+        """获取用于注册到权限中心的资源 ID"""
+        return self.project_id
+
+    @property
+    def parent_resource_id(self) -> str:
+        """获取当前资源对应父类资源的 ID"""
+        return ''
+
 
 class ProjectPermission(Permission):
     """项目权限"""
@@ -47,19 +63,15 @@ class ProjectPermission(Permission):
         return self.can_action(perm_ctx, ProjectAction.CREATE, raise_exception)
 
     def can_view(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, ProjectAction.VIEW, raise_exception, use_cache=True)
 
     def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception)
 
     def get_parent_chain(self, perm_ctx: ProjectPermCtx) -> List[IAMResource]:
         return []
-
-    def _get_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
-        return perm_ctx.project_id
-
-    def _get_parent_resource_id(self, perm_ctx: ProjectPermCtx) -> Optional[str]:
-        return None
 
 
 class related_project_perm(decorators.RelatedPermission):
