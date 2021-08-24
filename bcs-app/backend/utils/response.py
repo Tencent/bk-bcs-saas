@@ -105,8 +105,8 @@ class PermsResponse(BKAPIResponse):
     def __init__(
         self,
         data: Union[list, dict],
-        iam_path_attrs: Optional[Dict[str, str]] = None,
         message: str = '',
+        iam_path_attrs: Optional[Dict[str, str]] = None,
         permissions: Union[None, dict] = None,
         web_annotations: Union[None, dict] = None,
     ):
