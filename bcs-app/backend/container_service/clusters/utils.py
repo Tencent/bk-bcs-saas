@@ -154,10 +154,6 @@ def check_cluster_iam_perm_deco(action_id):
 
     def wrapper(func):
         def deco(self, *args):
-            args = (
-                args[0],
-                "123456",
-            )
             # args不定长 长度可能为2、3、4
             params = {"username": args[0].user.username, "project_id": args[1]}
             if len(args) > 2:
