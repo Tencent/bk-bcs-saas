@@ -28,8 +28,12 @@ from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.iam.permissions.decorators import response_perms
+from backend.iam.permissions.resources import TemplatesetRequest
+from backend.iam.permissions.resources.templateset import TemplatesetAction, TemplatesetPermCtx, TemplatesetPermission
 from backend.templatesets.legacy_apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
+from backend.utils.response import BKAPIResponse, PermsResponse
 
 from . import serializers_new
 from .auditor import TemplatesetAuditor
@@ -42,7 +46,7 @@ from .models import (
     get_template_by_project_and_id,
 )
 from .serializers import ResourceRequstSLZ, ResourceSLZ, TemplateCreateSLZ, get_template_info, is_tempalte_instance
-from .utils import create_template_with_perm_check, validate_resource_name
+from .utils import check_template_iam_perm_deco, create_template_with_audit, validate_resource_name
 
 
 def is_create_template(template_id):
@@ -62,13 +66,22 @@ class TemplatesView(APIView):
             params["name__icontains"] = name.strip()
         return self.queryset.filter(**params)
 
+    @response_perms(
+        action_id_list=[
+            TemplatesetAction.VIEW,
+            TemplatesetAction.UPDATE,
+            TemplatesetAction.DELETE,
+            TemplatesetAction.INSTANTIATE,
+        ],
+        res_request_cls=TemplatesetRequest,
+        resource_id_key='templateset_id',
+    )
     def get(self, request, project_id):
         serializer = serializers_new.SearchTemplateSLZ(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         templates = self.filter_queryset_with_params(project_id, data["search"])
-        num_of_templates = templates.count()
 
         # 获取项目类型 backend.utils.permissions做了处理
         kind = request.project.kind
@@ -78,33 +91,17 @@ class TemplatesView(APIView):
 
         serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={"kind": kind})
         template_list = serializer.data
-
-        # 初始化模板权限模板
-        perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
-        # 过滤有使用权限的模板集
-        template_list = perm.hook_perms(template_list, data["perm_can_use"])
-        return Response(
-            {
-                "code": 0,
-                "message": "OK",
-                "data": {
-                    "count": num_of_templates,
-                    "has_previous": True if offset != 0 else False,
-                    "has_next": True if (offset + limit) < num_of_templates else False,
-                    "results": template_list,
-                },
-                "permissions": {"create": perm.can_create(raise_exception=False)},
-            }
-        )
+        return PermsResponse(template_list, iam_path_attrs={'project_id': project_id})
 
 
 class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
+    @check_template_iam_perm_deco("can_create")
     @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Add)
     def create_draft(self, request, project_id, template_id):
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
             tpl_args = request.data.get("template", {})
-            template = create_template_with_perm_check(request, project_id, tpl_args)
+            template = create_template_with_audit(request, project_id, tpl_args)
         else:
             template = get_template_by_project_and_id(project_id, template_id)
 
@@ -121,6 +118,9 @@ class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
         request.audit_ctx.update_fields(
             resource=template.name, resource_id=template.id, extra=validated_data, description=_("保存草稿")
         )
+
+        templateset_perm = TemplatesetPermission()
+        templateset_perm.grant_resource_creator_actions(request.user.username, template.id, template.name)
 
         return Response(
             {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"]}
@@ -165,7 +165,7 @@ class CreateAppResourceView(APIView, TemplatePermission):
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
             tpl_args = request.data.get("template", {})
-            template = create_template_with_perm_check(request, project_id, tpl_args)
+            template = create_template_with_audit(request, project_id, tpl_args)
         else:
             template = get_template_by_project_and_id(project_id, template_id)
 
@@ -322,18 +322,14 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
         self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, extra=serializer.data)
         # 同步模板集名称到权限中心
-        self.perm.update_name(instance.name)
+        # self.perm.update_name(instance.name)
 
+    @check_template_iam_perm_deco("can_update")
     def post(self, request, project_id, pk):
         self.request = request
         self.project_id = project_id
         self.pk = pk
         template = validate_template_id(project_id, pk, is_return_tempalte=True)
-
-        # 验证用户是否有编辑权限
-        perm = bcs_perm.Templates(request, project_id, pk, template.name)
-        perm.can_edit(raise_exception=True)
-        self.perm = perm
 
         # 检查模板集是否可操作（即未被加锁）
         check_tempalte_available(template, request.user.username)
@@ -352,6 +348,7 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
 
         return super(SingleTemplateView, self).update(self.slz)
 
+    @check_template_iam_perm_deco("can_view")
     def get(self, request, project_id, pk):
         self.request = request
         self.project_id = project_id
@@ -371,15 +368,13 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         data_list = perm.hook_perms([data])
         return Response({"code": 0, "message": "OK", "data": data_list[0]})
 
+    @check_template_iam_perm_deco("can_delete")
     @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Delete)
     def delete(self, request, project_id, pk):
         self.request = request
         self.project_id = project_id
         self.pk = pk
-        # 验证用户是否删除权限
         template = validate_template_id(project_id, pk, is_return_tempalte=True)
-        perm = bcs_perm.Templates(request, project_id, pk, template.name)
-        perm.can_delete(raise_exception=True)
 
         # 检查模板集是否可操作（即未被加锁）
         check_tempalte_available(template, request.user.username)
@@ -397,19 +392,17 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         del_tem_name = f"{_del_prefix}{instance.name}"
         self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
         # 直接调用delete删除权限中心的资源
-        perm.delete()
+        # perm.delete()
 
         return Response({"code": 0, "message": "OK", "data": {"id": pk}})
 
+    @check_template_iam_perm_deco("can_create")
     @log_audit_on_view(TemplatesetAuditor, activity_type=ActivityType.Add)
     @transaction.atomic
     def put(self, request, project_id, pk):
         """复制模板"""
         self.request = request
-        # 验证用户是否使用权限
         template = validate_template_id(project_id, pk, is_return_tempalte=True)
-        perm = bcs_perm.Templates(request, project_id, pk, template.name)
-        perm.can_edit(raise_exception=True)
 
         self.project_id = project_id
         self.pk = pk
@@ -432,8 +425,12 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
 
         username = request.user.username
         template_id, version_id, show_version_id = old_tem.copy_tempalte(project_id, new_template_name, username)
+
+        templateset_perm = TemplatesetPermission()
+        templateset_perm.grant_resource_creator_actions(request.user.username, template_id, new_template_name)
+
         # 注册资源到权限中心
-        perm.register(template_id, new_template_name)
+        # perm.register(template_id, new_template_name)
         # 记录操作日志
         request.audit_ctx.update_fields(resource=new_template_name, resource_id=template_id, description=_("复制模板集"))
         return Response(

@@ -20,12 +20,11 @@ from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log import client
 from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters.base import utils as node_utils
-from backend.container_service.clusters.models import CommonStatus, NodeStatus, NodeUpdateLog
+from backend.container_service.clusters.models import CommonStatus, NodeStatus
 from backend.container_service.clusters.module_apis import get_cluster_node_mod
-from backend.container_service.clusters.utils import cluster_env_transfer
+from backend.container_service.clusters.utils import check_cluster_iam_perm_deco, cluster_env_transfer
 from backend.container_service.clusters.views.node_views import serializers as node_slz
 from backend.container_service.projects.base.constants import ProjectKind
-from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
@@ -55,6 +54,7 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
         node_list = self.get_node_list(request, project_id, cluster_id)
         return {info['id']: info for info in node_list}
 
+    @check_cluster_iam_perm_deco("can_manage")
     def reinstall_nodes(self, request, project_id, cluster_id):
         """当初始化失败时，允许用户批量重装
         1. 检测节点必须为当前项目下的同一集群

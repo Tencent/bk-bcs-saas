@@ -28,6 +28,7 @@ from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.audit.decorators import log_audit
 from backend.bcs_web.audit_log.constants import ActivityType
+from backend.iam.permissions.resources import TemplatesetPermCtx, TemplatesetPermission
 from backend.utils import cache
 from backend.utils.exceptions import ResNotFoundError
 
@@ -201,16 +202,9 @@ def update_template(audit_ctx, username, template, tmpl_args):
     return template
 
 
-def create_template_with_perm_check(request, project_id, tmpl_args):
-    # 验证用户是否有创建的权限
-    perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
-    # 如果没有权限，会抛出异常
-    perm.can_create(raise_exception=True)
-
+def create_template_with_audit(request, project_id, tmpl_args):
     audit_ctx = AuditContext(user=request.user.username, project_id=project_id)
     template = create_template(audit_ctx, request.user.username, project_id, tmpl_args)
-    # 注册资源到权限中心
-    perm.register(template.id, tmpl_args['name'])
     return template
 
 
@@ -246,3 +240,22 @@ def list_templatesets(
 
     fields = fields or []
     return list(queryset.values(*fields))
+
+
+def check_template_iam_perm_deco(action_id):
+    """校验模板集接口对接iam权限"""
+
+    def wrapper(func):
+        def deco(self, *args):
+            # args不定长 长度可能为2、3、4
+            params = {"username": args[0].user.username, "project_id": args[1]}
+            if len(args) > 2:
+                params.update({"templateset_id": args[2]})
+            templateset_perm = TemplatesetPermission()
+            perm_ctx = TemplatesetPermCtx(**params)
+            getattr(templateset_perm, action_id)(perm_ctx)
+            return func(self, *args)
+
+        return deco
+
+    return wrapper
