@@ -766,11 +766,11 @@
         }
     }
 
-    .copy-code {
+    /* .copy-code {
         position: absolute;
         top: -46px;
         right: 20px;
-    }
+    } */
 }
 
 .biz-app-instance-restart-data {

@@ -882,6 +882,7 @@
                     this.curTplYaml = files[`${tplName}/values.yaml`]
                     this.yamlFile = files[`${tplName}/values.yaml`]
                     this.editYaml()
+                    this.curTpl.description = res.data.data.description
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -936,10 +937,21 @@
             async getTplVersions () {
                 const projectId = this.projectId
                 try {
-                    const tplId = this.curTpl.name
-                    const isPublic = this.curTpl.repository.name === 'public-repo'
-                    const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
-                    this.curTplVersions = res.data
+                    if (this.$INTERNAL) {
+                        // 内部版本
+                        const tplId = this.curTpl.name
+                        const isPublic = this.curTpl.repository.name === 'public-repo'
+                        const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
+                        this.curTplVersions = res.data
+                    } else {
+                        // 外部版本
+                        const tplId = this.curTpl.id
+                        const res = await this.$store.dispatch('helm/getTplVersions', {
+                            projectId,
+                            tplId
+                        })
+                        this.curTplVersions = res.data.results || []
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
