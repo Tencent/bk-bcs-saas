@@ -15,7 +15,7 @@
 from .base import *  # noqa
 
 # ******************************** 日志 配置 ********************************
-BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/data/paas/apps/logs/')
+BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/apps/logs/')
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
 
 # 生产环境仅打印 ERROR 日志
