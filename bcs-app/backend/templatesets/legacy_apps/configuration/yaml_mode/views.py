@@ -20,12 +20,14 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.components import paas_cc
+from backend.iam.permissions.resources import TemplatesetPermission
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from ..mixins import TemplatePermission
 from ..models import get_template_by_project_and_id
 from ..showversion.serializers import GetLatestShowVersionSLZ, GetShowVersionSLZ
+from ..utils import check_template_iam_perm_deco
 from . import init_tpls, serializers
 from .deployer import DeployController
 from .release import ReleaseData, ReleaseDataProcessor
@@ -49,6 +51,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         request_data.update(**kwargs)
         return request_data
 
+    @check_template_iam_perm_deco("can_create")
     def create_template(self, request, project_id):
         """
         request.data = {
@@ -67,6 +70,10 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = serializers.CreateTemplateSLZ(data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
+
+        templateset_perm = TemplatesetPermission()
+        templateset_perm.grant_resource_creator_actions(request.user.username, template.id, template.name)
+
         return Response({"template_id": template.id})
 
     def update_template(self, request, project_id, template_id):

@@ -25,6 +25,7 @@ from backend.components import cc
 from backend.container_service.clusters.base import get_cluster_coes
 from backend.container_service.clusters.base.constants import ClusterCOES
 from backend.container_service.infras.hosts import perms as host_perms
+from backend.iam.permissions.resources import ClusterPermCtx, ClusterPermission
 from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import PermissionDeniedError
 from backend.utils.funutils import convert_mappings
@@ -146,3 +147,26 @@ def get_ops_platform(request, coes=None, project_id=None, cluster_id=None):
         return 'gcloud_v3_inner'
     else:
         return 'gcloud_v1_inner'
+
+
+def check_cluster_iam_perm_deco(action_id):
+    """校验cluster相关iam权限"""
+
+    def wrapper(func):
+        def deco(self, *args):
+            args = (
+                args[0],
+                "123456",
+            )
+            # args不定长 长度可能为2、3、4
+            params = {"username": args[0].user.username, "project_id": args[1]}
+            if len(args) > 2:
+                params.update({"cluster_id": args[2]})
+            cluster_perm = ClusterPermission()
+            perm_ctx = ClusterPermCtx(**params)
+            getattr(cluster_perm, action_id)(perm_ctx)
+            return func(self, *args)
+
+        return deco
+
+    return wrapper

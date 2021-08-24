@@ -21,6 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
 from backend.accounts.bcs_perm import Cluster
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
@@ -35,19 +36,23 @@ from backend.container_service.clusters.constants import ClusterNetworkType, Clu
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
 from backend.container_service.clusters.module_apis import get_cluster_mod
 from backend.container_service.clusters.utils import (
+    check_cluster_iam_perm_deco,
     cluster_env_transfer,
     get_cmdb_hosts,
     get_ops_platform,
     status_transfer,
 )
+from backend.iam.permissions.decorators import response_perms
+from backend.iam.permissions.resources import ClusterRequest
+from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermission
 from backend.resources.utils.kube_client import get_dynamic_client
 from backend.uniapps.application import constants as app_constants
 from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.func_controller import get_func_controller
-from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
+from backend.utils.response import PermsResponse
 
 # 导入cluster模块
 cluster = get_cluster_mod()
@@ -133,46 +138,34 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         can_create_prod = prod_cluster_perm.can_create(raise_exception=False)
         return can_create_test, can_create_prod
 
+    @response_perms(
+        action_id_list=[ClusterAction.VIEW, ClusterAction.MANAGE, ClusterAction.DELETE],
+        res_request_cls=ClusterRequest,
+        resource_id_key='cluster_id',
+    )
     def list(self, request, project_id):
         """get project cluster list"""
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get("results") or []
-        cluster_node_map = self.cluster_has_node(request, project_id)
-        # add allow delete perm
-        for info in cluster_data:
-            info["environment"] = cluster_env_transfer(info["environment"])
-            # allow delete cluster
-            allow_delete = False if cluster_node_map.get(info["cluster_id"]) else True
-            info["allow"] = info["allow_delete"] = allow_delete
-        perm_can_use = True if request.GET.get("perm_can_use") == "1" else False
-
         self.register_function_controller(cluster_data)
-
-        cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
-        # add can create cluster perm for prod/test
-        can_create_test, can_create_prod = self.get_cluster_create_perm(request, project_id)
-
-        return response.Response(
-            {
-                "code": ErrorCode.NoError,
-                "data": {"count": len(cluster_results), "results": cluster_results},
-                "permissions": {
-                    "test": can_create_test,
-                    "prod": can_create_prod,
-                    "create": can_create_test or can_create_prod,
-                },
-            }
-        )
+        return PermsResponse(cluster_data, iam_path_attrs={'project_id': project_id})
 
     def list_clusters(self, request, project_id):
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get("results") or []
         return response.Response({"clusters": cluster_data})
 
+    @check_cluster_iam_perm_deco("can_create")
     def create(self, request, project_id):
         """create cluster"""
         cluster_client = cluster.CreateCluster(request, project_id)
-        return cluster_client.create()
+        cluster_info = cluster_client.create()
+
+        cluster_perm = ClusterPermission()
+        cluster_perm.grant_resource_creator_actions(
+            request.user.username, cluster_info["cluster_id"], cluster_info["name"]
+        )
+        return Response()
 
 
 class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
@@ -187,6 +180,7 @@ class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
         allow = False if len(cluster_node_list) else True
         return response.Response({"allow": allow})
 
+    @check_cluster_iam_perm_deco("can_delete")
     def delete(self, request, project_id, cluster_id):
         """删除项目下集群"""
         cluster_client = cluster.DeleteCluster(request, project_id, cluster_id)
@@ -244,19 +238,15 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
             raise error_codes.APIError(result.get("message"))
         return result.get("data") or {}
 
-    def update_data(self, data, project_id, cluster_id, cluster_perm):
+    def update_data(self, data, project_id):
         if data["cluster_type"] == "public":
             data["related_projects"] = [project_id]
-            cluster_perm.register(cluster_id, "公共集群", "prod")
-        elif data.get("name"):
-            cluster_perm.update_cluster(cluster_id, data["name"])
         return data
 
+    @check_cluster_iam_perm_deco("can_manage")
     def update(self, request, project_id, cluster_id):
-        cluster_perm = Cluster(request, project_id, cluster_id)
-        cluster_perm.can_edit(raise_exception=True)
         data = self.get_params(request)
-        data = self.update_data(data, project_id, cluster_id, cluster_perm)
+        data = self.update_data(data, project_id)
         # update cluster info
         with client.ContextActivityLogClient(
             project_id=project_id,
@@ -267,7 +257,6 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
             cluster_info = self.update_cluster(request, project_id, cluster_id, data)
         # render environment for frontend
         cluster_info["environment"] = cluster_env_transfer(cluster_info["environment"])
-
         return response.Response(cluster_info)
 
 

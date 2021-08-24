@@ -96,7 +96,7 @@ class CreateTemplateSLZ(YamlTemplateSLZ):
             "project_id": project_id,
             "edit_mode": TemplateEditMode.YAML.value,
         }
-        template = utils.create_template_with_perm_check(request, project_id, desc_args)
+        template = utils.create_template_with_audit(request, project_id, desc_args)
         files2res.create_resources(template, validated_data["show_version"], validated_data["template_files"])
         return template
 

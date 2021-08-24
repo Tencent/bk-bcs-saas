@@ -40,8 +40,12 @@ from backend.container_service.clusters.models import CommonStatus, NodeLabel, N
 from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
 from backend.container_service.clusters.serializers import NodeLabelParamsSLZ
 from backend.container_service.clusters.tools.node import query_cluster_nodes
-from backend.container_service.clusters.utils import cluster_env_transfer, custom_paginator, status_transfer
-from backend.utils.basic import getitems
+from backend.container_service.clusters.utils import (
+    check_cluster_iam_perm_deco,
+    cluster_env_transfer,
+    custom_paginator,
+    status_transfer,
+)
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
@@ -289,6 +293,7 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         has_create_perm = self.get_create_node_perm(request, project_id, cluster_id)
         return {'code': ErrorCode.NoError, 'data': pagination_data, 'permissions': {'create': has_create_perm}}
 
+    @check_cluster_iam_perm_deco("can_view")
     def post_node_list(self, request, project_id, cluster_id):
         """post request for node list"""
         data = self.get_post_data(request)
@@ -304,10 +309,13 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         node_list_with_perm = self.data_handler_for_nodes(request, project_id, cluster_id, data)
         return response.Response(node_list_with_perm)
 
+    @check_cluster_iam_perm_deco("can_manage")
     def create(self, request, project_id, cluster_id):
+        """创建节点"""
         node_client = node.CreateNode(request, project_id, cluster_id)
         return node_client.create()
 
+    @check_cluster_iam_perm_deco("can_view")
     def list_nodes_ip(self, request, project_id, cluster_id):
         """获取集群下节点的IP"""
         nodes = get_cluster_nodes(request.user.token.access_token, project_id, cluster_id, raise_exception=False)
@@ -355,8 +363,9 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         node_container_data = driver.get_host_container_count([inner_ip])
         return node_container_data.get(inner_ip) or 0
 
+    @check_cluster_iam_perm_deco("can_manage")
     def update(self, request, project_id, cluster_id, node_id):
-        self.can_edit_cluster(request, project_id, cluster_id)
+        """允许调度/停止调度节点"""
         # get params
         params = self.get_request_params(request)
         node_info = self.get_node_by_id(request, project_id, cluster_id, node_id)
@@ -389,6 +398,7 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         node = data[0] if data else {}
         return response.Response(node)
 
+    @check_cluster_iam_perm_deco("can_manage")
     def delete(self, request, project_id, cluster_id, node_id):
         """删除节点
         1. 调用bcs接口，下发任务
@@ -837,15 +847,6 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             }
         return label_operation_map
 
-    def check_perm(self, request, project_id, all_node_id_ip_map, node_id_list):
-        # 校验权限
-        cluster_id_list = [
-            info["cluster_id"] for node_id, info in all_node_id_ip_map.items() if node_id in node_id_list
-        ]
-        for cluster_id in set(cluster_id_list):
-            perm_client = bcs_perm.Cluster(request, project_id, cluster_id)
-            perm_client.can_view(raise_exception=True)
-
     def create_node_label_via_k8s(self, request, project_id, label_operation_map):
         """K8S打Label"""
         for node_id, info in label_operation_map.items():
@@ -925,6 +926,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 node_label_info.labels = json.dumps(existed_labels)
                 node_label_info.save()
 
+    @check_cluster_iam_perm_deco("cluster_manage")
     def create_node_labels(self, request, project_id):
         """添加节点标签"""
         project_kind = request.project["kind"]
@@ -947,8 +949,6 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         diff_node_id_list = set(node_id_list) - set(all_node_id_list)
         if diff_node_id_list:
             raise error_codes.CheckFailed(_("节点ID [{}] 不属于当前项目，请确认").format(",".join(diff_node_id_list)))
-        # 校验权限
-        self.check_perm(request, project_id, all_node_id_ip_map, node_id_list)
         # 匹配数据
         pre_node_labels = self.get_labels_by_node(request, project_id, node_id_list)
         label_operation_map = self.get_label_operation(
@@ -1062,6 +1062,7 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
         driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
         driver.reschedule_host_pods(node_info['inner_ip'], raise_exception=False)
 
+    @check_cluster_iam_perm_deco("can_manage")
     def put(self, request, project_id, cluster_id, node_id):
         """重新调度节点上的POD or Taskgroup
         主要目的是由于主机裁撤或者机器故障，需要替换机器
@@ -1095,7 +1096,9 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
 class NodeForceDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
+    @check_cluster_iam_perm_deco("can_manage")
     def delete(self, request, project_id, cluster_id, node_id):
+        """强制删除节点"""
         self.delete_node_label(request, node_id)
         node_client = node.DeleteNode(request, project_id, cluster_id, node_id)
         return node_client.force_delete()
@@ -1167,8 +1170,9 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or []
 
+    @check_cluster_iam_perm_deco("can_manage")
     def batch_update_nodes(self, request, project_id, cluster_id):
-        self.can_edit_cluster(request, project_id, cluster_id)
+        """批量操作节点，允许调度/停止调度"""
         params = self.get_request_params(request)
         # check node for operation
         node_list = self.get_node_list(request, project_id, cluster_id)
@@ -1255,8 +1259,9 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             node_client.delete_nodes()
         return
 
+    @check_cluster_iam_perm_deco("can_manage")
     def batch_delete_nodes(self, request, project_id, cluster_id):
-        self.can_edit_cluster(request, project_id, cluster_id)
+        """批量操作节点 删除"""
         data = self.get_delete_params(request)
         # get node list
         node_list_info = self.get_node_list(request, project_id, cluster_id)

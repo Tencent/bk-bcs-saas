@@ -29,6 +29,7 @@ from backend.utils.renderers import BKAPIRenderer
 from .. import models
 from ..auditor import TemplatesetAuditor
 from ..mixins import TemplatePermission
+from ..utils import check_template_iam_perm_deco
 from .serializers import (
     GetShowVersionSLZ,
     ListShowVersionISLZ,
@@ -107,6 +108,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = ResourceConfigSLZ(validated_data)
         return Response(serializer.data)
 
+    @check_template_iam_perm_deco("can_view")
     def list_show_versions(self, request, project_id, template_id):
         template = models.get_template_by_project_and_id(project_id, template_id)
         self.can_view_template(request, template)
@@ -132,6 +134,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = ListShowVersionISLZ(show_versions, many=True)
         return Response({"results": serializer.data})
 
+    @check_template_iam_perm_deco("can_create")
     def save_with_ventity(self, request, project_id, template_id):
         """保存用户可见的版本信息"""
         data = request.data
