@@ -39,9 +39,7 @@ class TestUserPermsViewSet:
         """资源实例相关"""
         data = {
             'action_ids': ['cluster_view', 'namespace_create'],
-            'resource_type': 'cluster',
-            'resource_id': cluster_id,
-            'perm_ctx': {'project_id': project_id},
+            'perm_ctx': {'resource_type': 'cluster', 'project_id': project_id, 'cluster_id': cluster_id},
         }
         response = api_client.post(f'/api/iam/user_perms/', data)
         perms = response.json()['data']['perms']

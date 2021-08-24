@@ -30,11 +30,13 @@ class ResourceActionSLZ(serializers.Serializer):
 
 class ResourceMultiActionsSLZ(serializers.Serializer):
     action_ids = serializers.ListField(child=serializers.CharField(), min_length=1)
-    resource_type = serializers.ChoiceField(choices=ResourceType.get_choices(), required=False)
-    resource_id = serializers.CharField(required=False)
     perm_ctx = serializers.JSONField(default=dict)
 
-    def validate(self, data):
-        if 'resource_type' in data and 'resource_id' not in data:
-            raise ValidationError('missing param resource_id')
-        return data
+    def validate_perm_ctx(self, perm_ctx):
+        if not perm_ctx:
+            return perm_ctx
+
+        resource_type = perm_ctx.get('resource_type')
+        if resource_type not in ResourceType.get_values():
+            raise ValidationError(f"invalid resource_type {resource_type}")
+        return perm_ctx

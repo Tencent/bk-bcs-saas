@@ -42,10 +42,9 @@ class TemplatesetPermCtx(PermCtx):
         if not self.project_id:
             raise AttrValidationError(f'invalid project_id:({self.project_id})')
 
-    def validate_resource_id(self):
-        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
-        if not self.template_id:
-            raise AttrValidationError(f'missing valid template_id')
+    @property
+    def resource_id(self) -> str:
+        return self.template_id
 
 
 class TemplatesetRequest(ResourceRequest):
@@ -53,12 +52,11 @@ class TemplatesetRequest(ResourceRequest):
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
-        self.attr['_bk_iam_path_'] = self.attr['_bk_iam_path_'].format(project_id=self.attr_kwargs['project_id'])
-        return self.attr
+        return {'_bk_iam_path_': self.attr['_bk_iam_path_'].format(project_id=self.attr_kwargs['project_id'])}
 
     def _validate_attr_kwargs(self):
-        if 'project_id' not in self.attr_kwargs:
-            raise AttrValidationError('missing project_id')
+        if not self.attr_kwargs.get('project_id'):
+            raise AttrValidationError('missing project_id or project_id is invalid')
 
 
 class related_templateset_perm(decorators.RelatedPermission):

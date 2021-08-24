@@ -72,10 +72,9 @@ class NamespacePermCtx(PermCtx):
         if not self.cluster_id:
             raise AttrValidationError(f'invalid cluster_id:({self.cluster_id})')
 
-    def validate_resource_id(self):
-        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
-        if not self.iam_ns_id:
-            raise AttrValidationError(f'missing valid namespace name')
+    @property
+    def resource_id(self) -> str:
+        return self.iam_ns_id
 
 
 class NamespaceRequest(ResourceRequest):
@@ -83,17 +82,18 @@ class NamespaceRequest(ResourceRequest):
     attr = {'_bk_iam_path_': f'/project,{{project_id}}/cluster,{{cluster_id}}/'}
 
     def _make_attribute(self, res_id: str) -> Dict:
-        self.attr['_bk_iam_path_'] = self.attr['_bk_iam_path_'].format(
-            project_id=self.attr_kwargs['project_id'], cluster_id=self.attr_kwargs['cluster_id']
-        )
-        return self.attr
+        return {
+            '_bk_iam_path_': self.attr['_bk_iam_path_'].format(
+                project_id=self.attr_kwargs['project_id'], cluster_id=self.attr_kwargs['cluster_id']
+            )
+        }
 
     def _validate_attr_kwargs(self):
-        if 'project_id' not in self.attr_kwargs:
-            raise AttrValidationError('missing project_id')
+        if not self.attr_kwargs.get('project_id'):
+            raise AttrValidationError('missing project_id or project_id is invalid')
 
-        if 'cluster_id' not in self.attr_kwargs:
-            raise AttrValidationError('missing cluster_id')
+        if not self.attr_kwargs.get('cluster_id'):
+            raise AttrValidationError('missing cluster_id or cluster_id is invalid')
 
 
 class related_namespace_perm(decorators.RelatedPermission):

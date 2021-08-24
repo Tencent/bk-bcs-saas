@@ -37,10 +37,9 @@ class ProjectRequest(ResourceRequest):
 class ProjectPermCtx(PermCtx):
     project_id: Optional[str] = None
 
-    def validate_resource_id(self):
-        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
-        if not self.project_id:
-            raise AttrValidationError(f'missing valid project_id')
+    @property
+    def resource_id(self) -> str:
+        return self.project_id
 
 
 class ProjectPermission(Permission):

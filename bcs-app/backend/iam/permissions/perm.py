@@ -39,6 +39,12 @@ class PermCtx:
 
     def validate_resource_id(self):
         """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+        if not self.resource_id:
+            raise AttrValidationError(f'missing valid resource_id')
+
+    @property
+    def resource_id(self) -> str:
+        return ''
 
 
 class Permission(ABC, IAMClient):
@@ -104,10 +110,8 @@ class Permission(ABC, IAMClient):
 
     def _raise_permission_denied_error(self, perm_ctx: PermCtx, action_id: str):
         res_id = self.get_resource_id(perm_ctx)
-
         resources = None
         resource_type = self.resource_type
-
         parent_chain = None
 
         if res_id:

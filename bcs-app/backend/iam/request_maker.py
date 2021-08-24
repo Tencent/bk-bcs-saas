@@ -13,12 +13,13 @@ specific language governing permissions and limitations under the License.
 import importlib
 import logging
 
+from .perm_maker import make_perm_ctx
 from .permissions.request import ResourceRequest
 
 logger = logging.getLogger(__name__)
 
 
-def make_res_request(res_type: str, res_id: str, **attr_kwargs) -> ResourceRequest:
+def make_res_request(res_type: str, **ctx_kwargs) -> ResourceRequest:
     p_module_name = __name__[: __name__.rfind(".")]
     try:
         res_request_cls = getattr(
@@ -28,4 +29,5 @@ def make_res_request(res_type: str, res_id: str, **attr_kwargs) -> ResourceReque
         logger.error('make_res_request error: %s', e)
         raise
 
-    return res_request_cls(res_id, **attr_kwargs)
+    perm_ctx = make_perm_ctx(res_type, **ctx_kwargs)
+    return res_request_cls(perm_ctx.resource_id, **ctx_kwargs)
