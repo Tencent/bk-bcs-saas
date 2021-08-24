@@ -27,7 +27,6 @@ from backend.accounts import bcs_perm
 from backend.apps import constants
 from backend.apps.constants import ClusterType, ProjectKind
 from backend.apps.utils import get_cluster_env_name
-from backend.apps.whitelist import enabled_sync_namespace
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
@@ -36,7 +35,13 @@ from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.iam.permissions.decorators import response_perms
-from backend.iam.permissions.resources.namespace import NamespaceAction, NamespaceRequest, calc_iam_ns_id
+from backend.iam.permissions.resources.namespace import (
+    NamespaceAction,
+    NamespacePermCtx,
+    NamespacePermission,
+    NamespaceRequest,
+    calc_iam_ns_id,
+)
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
@@ -49,7 +54,7 @@ from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.response import BKAPIResponse, PermsResponse
+from backend.utils.response import PermsResponse
 
 from ..constants import MesosResourceName
 from . import serializers as slz
@@ -178,6 +183,7 @@ class NamespaceBase:
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = NamespacePermission()
 
     def get_ns(self, request, project_id, namespace_id):
         """获取单个命名空间的信息"""
@@ -305,15 +311,13 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             namespace['iam_ns_id'] = calc_iam_ns_id(namespace['cluster_id'], namespace['name'])
             namespace_list.append(namespace)
 
-        permissions = {'sync_namespace': enabled_sync_namespace(project_id)}
-
-        return PermsResponse(namespace_list, iam_path_attrs={'cluster_id': cluster_id}, permissions=permissions)
+        return PermsResponse(namespace_list, iam_path_attrs={'cluster_id': cluster_id})
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
         client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
 
-    def create_flow(self, request, project_id, data, perm):
+    def create_flow(self, request, project_id, data):
         access_token = request.user.token.access_token
         project_kind = request.project.kind
         project_code = request.project.english_name
@@ -347,8 +351,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 message = result.get('message', '')
             return response.Response({'code': result['code'], 'data': None, 'message': message})
         else:
-            # 注册资源到权限中心
-            perm.register(result['data']['id'], f'{ns_name}({cluster_id})')
+            # 创建成功后，授权其他操作权限
+            self.permission.grant_resource_creator_actions(
+                request.user.username, calc_iam_ns_id(cluster_id, ns_name), ns_name
+            )
 
         # 创建成功后需要保存变量信息
         result_data = result.get('data')
@@ -374,13 +380,14 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # 判断权限
         cluster_id = data['cluster_id']
-        perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
-        perm.can_create(raise_exception=is_validate_perm)
+        self.permission.can_create(
+            perm_ctx=NamespacePermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        )
 
         request.audit_ctx.update_fields(
             resource=data['name'], description=_('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
         )
-        result = self.create_flow(request, project_id, data, perm)
+        result = self.create_flow(request, project_id, data)
 
         return response.Response(result)
 

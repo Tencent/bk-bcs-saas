@@ -68,6 +68,8 @@ class UserPermsViewSet(viewsets.SystemViewSet):
             getattr(permission, f"can_{validated_data['action']}")(perm_ctx)
         except AttributeError:
             raise ValidationError(f'action_id({action_id}) not supported')
+        except AttrValidationError as e:
+            raise ValidationError(e)
         except PermissionDeniedError as e:
             return Response({'perms': {action_id: False, 'apply_url': e.data['apply_url']}})
 

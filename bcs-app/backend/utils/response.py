@@ -101,17 +101,29 @@ class BKAPIResponse(Response):
         return super(BKAPIResponse, self).rendered_content
 
 
-class PermsResponse(BKAPIResponse):
+class PermsResponse(Response):
     def __init__(
         self,
         data: Union[list, dict],
         message: str = '',
         iam_path_attrs: Optional[Dict[str, str]] = None,
-        permissions: Union[None, dict] = None,
         web_annotations: Union[None, dict] = None,
     ):
-        super().__init__(data, message, permissions, web_annotations)
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
+        self.message = message
         self.iam_path_attrs = iam_path_attrs or {}
+        self.web_annotations = web_annotations
+        super().__init__(data)
+
+    @property
+    def rendered_content(self):
+        context = getattr(self, 'renderer_context', None)
+        assert context is not None, ".renderer_context not set on Response"
+
+        # 自定义context
+        context['message'] = self.message
+        context['web_annotations'] = self.web_annotations
+        return super().rendered_content
 
 
 @dataclass
