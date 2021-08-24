@@ -24,15 +24,12 @@ class ResourceRequest:
     resource_type: str = ''
     attr: Optional[Dict] = None
 
-    def __init__(self, res: Union[List[str], str], attr: Optional[Dict] = None, **attr_kwargs):
+    def __init__(self, res: Union[List[str], str], **attr_kwargs):
         """
         :param res: 单个资源 ID 或资源 ID 列表
-        :param attr: 属性字典。如 {'_bk_iam_path_': f'/project,{{project_id}}/'}
         :param attr_kwargs: 用于替换 attr 中可能需要 format 的值
         """
         self.res = res
-        if attr:
-            self.attr = attr
         self.attr_kwargs = dict(**attr_kwargs)
         self._validate_attr_kwargs()
 

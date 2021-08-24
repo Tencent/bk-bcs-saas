@@ -36,15 +36,16 @@ class UserPermsViewSet(viewsets.SystemViewSet):
 
         client = IAMClient()
 
-        resource_id = validated_data.get('resource_id')
+        perm_ctx = validated_data['perm_ctx']
         # 资源实例无关
-        if not resource_id:
+        if not perm_ctx:
             perms = client.resource_type_multi_actions_allowed(request.user.username, validated_data['action_ids'])
             return Response({'perms': perms})
 
         # 资源实例相关
+        resource_type = perm_ctx.pop('resource_type')
         try:
-            res_request = make_res_request(validated_data['resource_type'], resource_id, **validated_data['perm_ctx'])
+            res_request = make_res_request(resource_type, **perm_ctx)
         except AttrValidationError as e:
             raise ValidationError(e)
 
@@ -59,7 +60,7 @@ class UserPermsViewSet(viewsets.SystemViewSet):
 
         resource_type = validated_data['resource_type']
         try:
-            perm_ctx = make_perm_ctx(request.user.username, resource_type, **validated_data['perm_ctx'])
+            perm_ctx = make_perm_ctx(resource_type, request.user.username, **validated_data['perm_ctx'])
         except AttrValidationError as e:
             raise ValidationError(e)
 

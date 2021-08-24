@@ -19,7 +19,7 @@ from .permissions.perm import PermCtx, Permission
 logger = logging.getLogger(__name__)
 
 
-def make_perm_ctx(username: str, res_type: str, **ctx_kwargs) -> PermCtx:
+def make_perm_ctx(res_type: str, username: str = 'anonymous', **ctx_kwargs) -> PermCtx:
     """根据资源类型，生成对应的perm ctx"""
     p_module_name = __name__[: __name__.rfind(".")]
     try:

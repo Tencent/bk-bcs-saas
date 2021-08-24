@@ -14,15 +14,16 @@
 import importlib
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import List, Type
+from typing import Dict, List, Type
 
 import wrapt
+from rest_framework.exceptions import ValidationError
 
 from backend.utils.basic import str2bool
 from backend.utils.response import PermsResponse
 
 from .client import IAMClient
-from .exceptions import PermissionDeniedError
+from .exceptions import AttrValidationError, PermissionDeniedError
 from .perm import PermCtx
 from .perm import Permission as PermPermission
 from .request import ResourceRequest
@@ -172,28 +173,10 @@ class response_perms:
         request = args[0]
         if not self.auto_add:
             with_perms = str2bool(request.query_params.get('with_perms') or True)
-
         if not with_perms:
             return resp
 
-        client = IAMClient()
-        if isinstance(resp.resource_data, list):
-            res = [item.get(self.resource_id_key) for item in resp.resource_data]
-        else:
-            res = resp.resource_data.get(self.resource_id_key)
-
-        iam_path_attrs = {}
-        try:
-            iam_path_attrs = {'project_id': request.project.project_id}
-        except Exception:
-            pass
-
-        iam_path_attrs.update(resp.iam_path_attrs)
-        perms = client.batch_resource_multi_actions_allowed(
-            request.user.username,
-            self.action_id_list,
-            self.res_request_cls(res, **iam_path_attrs),
-        )
+        perms = self._calc_perms(request, resp)
 
         if hasattr(resp, "web_annotations"):
             resp.web_annotations = resp.web_annotations or {}
@@ -201,3 +184,25 @@ class response_perms:
         else:
             resp.web_annotations = {"perms": perms}
         return resp
+
+    def _calc_perms(self, request, resp: PermsResponse) -> Dict[str, Dict[str, bool]]:
+        if isinstance(resp.resource_data, list):
+            res = [item.get(self.resource_id_key) for item in resp.resource_data]
+        else:
+            res = resp.resource_data.get(self.resource_id_key)
+
+        try:
+            iam_path_attrs = {'project_id': request.project.project_id}
+        except Exception:
+            iam_path_attrs = {}
+
+        iam_path_attrs.update(resp.iam_path_attrs)
+        try:
+            client = IAMClient()
+            return client.batch_resource_multi_actions_allowed(
+                request.user.username,
+                self.action_id_list,
+                self.res_request_cls(res, **iam_path_attrs),
+            )
+        except AttrValidationError as e:
+            raise ValidationError(e)
