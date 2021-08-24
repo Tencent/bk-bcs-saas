@@ -72,6 +72,11 @@ class NamespacePermCtx(PermCtx):
         if not self.cluster_id:
             raise AttrValidationError(f'invalid cluster_id:({self.cluster_id})')
 
+    def validate_resource_id(self):
+        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+        if not self.iam_ns_id:
+            raise AttrValidationError(f'missing valid namespace name')
+
 
 class NamespaceRequest(ResourceRequest):
     resource_type: str = ResourceType.Namespace
@@ -127,18 +132,22 @@ class NamespacePermission(Permission):
 
     @related_cluster_perm(method_name='can_view')
     def can_view(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception, use_cache=True)
 
     @related_namespace_perm(method_name='can_view')
     def can_update(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, NamespaceAction.UPDATE, raise_exception)
 
     @related_namespace_perm(method_name='can_view')
     def can_delete(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, NamespaceAction.DELETE, raise_exception)
 
     @related_namespace_perm(method_name='can_view')
     def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception)
 
     def make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
@@ -150,8 +159,5 @@ class NamespacePermission(Permission):
             IAMResource(ResourceType.Cluster, perm_ctx.cluster_id),
         ]
 
-    def _get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
+    def get_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
         return perm_ctx.iam_ns_id
-
-    def _get_parent_resource_id(self, perm_ctx: NamespacePermCtx) -> Optional[str]:
-        return perm_ctx.cluster_id

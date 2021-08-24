@@ -42,6 +42,11 @@ class TemplatesetPermCtx(PermCtx):
         if not self.project_id:
             raise AttrValidationError(f'invalid project_id:({self.project_id})')
 
+    def validate_resource_id(self):
+        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+        if not self.template_id:
+            raise AttrValidationError(f'missing valid template_id')
+
 
 class TemplatesetRequest(ResourceRequest):
     resource_type: str = ResourceType.Templateset
@@ -88,18 +93,22 @@ class TemplatesetPermission(Permission):
 
     @related_project_perm(method_name="can_view")
     def can_view(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, TemplatesetAction.VIEW, raise_exception, use_cache=True)
 
     @related_templateset_perm(method_name="can_view")
     def can_update(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, TemplatesetAction.UPDATE, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
     def can_delete(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, TemplatesetAction.DELETE, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
     def can_instantiate(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, TemplatesetAction.INSTANTIATE, raise_exception)
 
     def make_res_request(self, res_id: str, perm_ctx: TemplatesetPermCtx) -> ResourceRequest:
@@ -108,8 +117,5 @@ class TemplatesetPermission(Permission):
     def get_parent_chain(self, perm_ctx: TemplatesetPermCtx) -> List[IAMResource]:
         return [IAMResource(ResourceType.Project, perm_ctx.project_id)]
 
-    def _get_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
+    def get_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
         return perm_ctx.template_id
-
-    def _get_parent_resource_id(self, perm_ctx: TemplatesetPermCtx) -> Optional[str]:
-        return perm_ctx.project_id

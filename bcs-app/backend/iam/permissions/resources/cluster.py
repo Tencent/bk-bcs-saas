@@ -41,6 +41,11 @@ class ClusterPermCtx(PermCtx):
         if not self.project_id:
             raise AttrValidationError(f'invalid project_id:({self.project_id})')
 
+    def validate_resource_id(self):
+        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+        if not self.cluster_id:
+            raise AttrValidationError(f'missing valid cluster_id')
+
 
 class ClusterRequest(ResourceRequest):
     resource_type: str = ResourceType.Cluster
@@ -88,14 +93,17 @@ class ClusterPermission(Permission):
 
     @related_project_perm(method_name='can_view')
     def can_view(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, ClusterAction.VIEW, raise_exception, use_cache=True)
 
     @related_cluster_perm(method_name='can_view')
     def can_manage(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, ClusterAction.MANAGE, raise_exception)
 
     @related_cluster_perm(method_name='can_view')
     def can_delete(self, perm_ctx: ClusterPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, ClusterAction.DELETE, raise_exception)
 
     def make_res_request(self, res_id: str, perm_ctx: ClusterPermCtx) -> ResourceRequest:
@@ -104,8 +112,5 @@ class ClusterPermission(Permission):
     def get_parent_chain(self, perm_ctx: ClusterPermCtx) -> List[IAMResource]:
         return [IAMResource(ResourceType.Project, perm_ctx.project_id)]
 
-    def _get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
+    def get_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
         return perm_ctx.cluster_id
-
-    def _get_parent_resource_id(self, perm_ctx: ClusterPermCtx) -> Optional[str]:
-        return perm_ctx.project_id

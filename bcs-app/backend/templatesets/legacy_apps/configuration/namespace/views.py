@@ -35,6 +35,8 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
+from backend.iam.permissions.decorators import response_perms
+from backend.iam.permissions.resources.namespace import NamespaceAction, NamespaceRequest, calc_iam_ns_id
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
@@ -47,7 +49,7 @@ from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.response import APIResult
+from backend.utils.response import BKAPIResponse
 
 from ..constants import MesosResourceName
 from . import serializers as slz
@@ -206,6 +208,11 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         """针对k8s集群，过滤掉系统和平台命名空间"""
         return [ns for ns in ns_list if ns["name"] not in K8S_PLAT_NAMESPACE]
 
+    @response_perms(
+        action_id_list=[NamespaceAction.VIEW, NamespaceAction.UPDATE, NamespaceAction.DELETE],
+        res_request_cls=NamespaceRequest,
+        resource_id_key='iam_ns_id',
+    )
     def list(self, request, project_id):
         """命名空间列表
         权限控制: 必须有对应集群的使用权限
@@ -217,13 +224,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         cluster_id = request.GET.get('cluster_id')
         with_lb = request.GET.get('with_lb', 0)
 
-        # 过滤有使用权限的命名空间
-        perm_can_use = request.GET.get('perm_can_use')
-        if perm_can_use == '1':
-            perm_can_use = True
-        else:
-            perm_can_use = False
-
         # 获取全部namespace，前台分页
         result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=constants.ALL_LIMIT)
         if result.get('code') != 0:
@@ -233,10 +233,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         # 针对k8s集群过滤掉平台命名空间
         if request.project.kind == ProjectKind.K8S.value:
             results = self._ignore_ns_for_k8s(results)
-
-        # 是否有创建权限
-        perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
-        can_create = perm.can_create(raise_exception=False)
 
         # 补充cluster_name字段
         cluster_list = get_clusters(access_token, project_id)
@@ -274,9 +270,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 i['cluster_name'] = i['cluster_id']
                 i['environment'] = None
 
-        # 添加permissions到数据中
-        results = perm.hook_perms(results, perm_can_use)
-
         if cluster_id:
             results = filter(lambda x: x['cluster_id'] == cluster_id, results)
 
@@ -307,9 +300,14 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
-        permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
+        namespace_list = []
+        for namespace in results:
+            namespace['iam_ns_id'] = calc_iam_ns_id(namespace['cluster_id'], namespace['name'])
+            namespace_list.append(namespace)
 
-        return APIResult(results, 'success', permissions=permissions)
+        permissions = {'sync_namespace': enabled_sync_namespace(project_id)}
+
+        return BKAPIResponse(namespace_list, permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
