@@ -54,17 +54,12 @@ class BcsLazyDiscoverer(LazyDiscoverer):
     """
 
     def get_resources_for_api_version(self, prefix, group, version, preferred):
+        """ 忽略 NotFoundError，直接返回默认值，避免缓存中存在的，不存在于集群中的 group，请求 resources 导致报错 """
         resources = defaultdict(list)
         try:
             resources = super().get_resources_for_api_version(prefix, group, version, preferred)
         except NotFoundError:
-            logger.warning(
-                'Ignore get_resources_for_api_version failed, prefix: %s, group: %s, version: %s, preferred: %s',
-                prefix,
-                group,
-                version,
-                preferred,
-            )
+            logger.warning('Ignore get_resources_for_api_version failed, group: %s, version: %s', group, version)
         return resources
 
     def _Discoverer__init_cache(self, refresh=False):
