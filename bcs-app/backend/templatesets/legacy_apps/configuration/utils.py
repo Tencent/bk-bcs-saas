@@ -250,7 +250,7 @@ def check_template_iam_perm_deco(action_id):
             # args不定长 长度可能为2、3、4
             params = {"username": args[0].user.username, "project_id": args[1]}
             if len(args) > 2:
-                params.update({"templateset_id": args[2]})
+                params.update({"template_id": args[2]})
             templateset_perm = TemplatesetPermission()
             perm_ctx = TemplatesetPermCtx(**params)
             getattr(templateset_perm, action_id)(perm_ctx)
