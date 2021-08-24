@@ -20,7 +20,7 @@ from rest_framework import permissions
 from backend.bcs_web import viewsets
 from backend.iam.permissions.decorators import response_perms
 from backend.iam.permissions.resources.cluster import ClusterRequest
-from backend.utils.response import BKAPIResponse
+from backend.utils.response import PermsResponse
 
 from ..fake_iam import FakeIAMClient
 
@@ -42,8 +42,7 @@ class ClusterViewset(viewsets.SystemViewSet):
         action_id_list=['cluster_view', 'cluster_manage'], res_request_cls=ClusterRequest, resource_id_key='cluster_id'
     )
     def get_clusters(self, request):
-        request.iam_path_attrs = {'project_id': 'test1234567'}
-        return BKAPIResponse(cluster_data)
+        return PermsResponse(cluster_data, iam_path_attrs={'project_id': 'test1234567'})
 
 
 urlpatterns = [

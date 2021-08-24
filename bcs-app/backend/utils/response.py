@@ -13,7 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from dataclasses import dataclass
-from typing import Union
+from typing import Dict, Optional, Union
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
@@ -86,6 +86,35 @@ class BKAPIResponse(Response):
         self.message = message
         self.permissions = permissions
         self.web_annotations = web_annotations
+
+        super(BKAPIResponse, self).__init__(data)
+
+    @property
+    def rendered_content(self):
+        context = getattr(self, 'renderer_context', None)
+        assert context is not None, ".renderer_context not set on Response"
+
+        # 自定义context
+        context['message'] = self.message
+        context['permissions'] = self.permissions
+        context['web_annotations'] = self.web_annotations
+        return super(BKAPIResponse, self).rendered_content
+
+
+class PermsResponse(BKAPIResponse):
+    def __init__(
+        self,
+        data: Union[list, dict],
+        iam_path_attrs: Optional[Dict[str, str]] = None,
+        message: str = '',
+        permissions: Union[None, dict] = None,
+        web_annotations: Union[None, dict] = None,
+    ):
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
+        self.message = message
+        self.permissions = permissions
+        self.web_annotations = web_annotations
+        self.iam_path_attrs = iam_path_attrs or {}
 
         super(BKAPIResponse, self).__init__(data)
 
