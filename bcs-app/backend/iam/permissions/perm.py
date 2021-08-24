@@ -37,6 +37,19 @@ class PermCtx:
         if not self.username:
             raise AttrValidationError(f'invalid username:({self.username})')
 
+    def validate_resource_id(self):
+        """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
+
+    @property
+    def resource_id(self) -> str:
+        """获取用于注册到权限中心的资源 ID"""
+        return ''
+
+    @property
+    def parent_resource_id(self) -> str:
+        """获取当前资源对应父类资源的 ID"""
+        return ''
+
 
 class Permission(ABC, IAMClient):
     """
@@ -83,7 +96,7 @@ class Permission(ABC, IAMClient):
         """从 ctx 中获取 parent_chain"""
 
     def _can_action(self, perm_ctx: PermCtx, action_id: str, use_cache: bool = False) -> bool:
-        res_id = self._get_resource_id(perm_ctx)
+        res_id = perm_ctx.resource_id
 
         if res_id:  # 与当前资源实例相关
             res_request = self.make_res_request(res_id, perm_ctx)
@@ -95,11 +108,11 @@ class Permission(ABC, IAMClient):
 
         # 有关联上级资源
         request_method = getattr(self.parent_res_perm, 'make_res_request')
-        res_request = request_method(res_id=self._get_parent_resource_id(perm_ctx), perm_ctx=perm_ctx)
+        res_request = request_method(res_id=perm_ctx.parent_resource_id, perm_ctx=perm_ctx)
         return self.resource_inst_allowed(perm_ctx.username, action_id, res_request, use_cache)
 
     def _raise_permission_denied_error(self, perm_ctx: PermCtx, action_id: str):
-        res_id = self._get_resource_id(perm_ctx)
+        res_id = perm_ctx.resource_id
 
         resources = None
         resource_type = self.resource_type
@@ -111,7 +124,7 @@ class Permission(ABC, IAMClient):
             parent_chain = self.get_parent_chain(perm_ctx)
         elif self.has_parent_resource():
             resource_type = self.parent_res_perm.resource_type
-            resources = [self._get_parent_resource_id(perm_ctx)]
+            resources = [perm_ctx.parent_resource_id]
             parent_chain = self.parent_res_perm.get_parent_chain(perm_ctx)
 
         raise PermissionDeniedError(
@@ -126,11 +139,3 @@ class Permission(ABC, IAMClient):
                 )
             ],
         )
-
-    @abstractmethod
-    def _get_resource_id(self, perm_ctx: PermCtx) -> Optional[str]:
-        """从 ctx 中获取当前资源对应的 id"""
-
-    @abstractmethod
-    def _get_parent_resource_id(self, perm_ctx: PermCtx) -> Optional[str]:
-        """从 ctx 中获取当前资源关联的父级资源的 id"""
