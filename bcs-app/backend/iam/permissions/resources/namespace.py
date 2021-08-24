@@ -133,7 +133,7 @@ class NamespacePermission(Permission):
     @related_cluster_perm(method_name='can_view')
     def can_view(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception, use_cache=True)
+        return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception)
 
     @related_namespace_perm(method_name='can_view')
     def can_update(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:

@@ -94,7 +94,7 @@ class TemplatesetPermission(Permission):
     @related_project_perm(method_name="can_view")
     def can_view(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, TemplatesetAction.VIEW, raise_exception, use_cache=True)
+        return self.can_action(perm_ctx, TemplatesetAction.VIEW, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
     def can_update(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
