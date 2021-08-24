@@ -148,7 +148,11 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get("results") or []
         self.register_function_controller(cluster_data)
-        return PermsResponse(cluster_data, iam_path_attrs={'project_id': project_id})
+        return PermsResponse(
+            data={"count": len(cluster_data), "results": cluster_data},
+            iam_path_attrs={'project_id': project_id},
+            resource_data=cluster_data,
+        )
 
     def list_clusters(self, request, project_id):
         cluster_info = self.get_cluster_list(request, project_id)

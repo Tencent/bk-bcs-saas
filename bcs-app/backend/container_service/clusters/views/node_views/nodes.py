@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.clusters.base.utils import get_cluster
 from backend.container_service.clusters.tools import node, resp
+from backend.container_service.clusters.utils import check_cluster_iam_perm_deco
 from backend.resources.node.client import Node
 
 from . import serializers as slz
@@ -37,6 +38,7 @@ class NodeViewSets(SystemViewSet):
         client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id, cluster.get("name", ""))
         return Response(client.nodes())
 
+    @check_cluster_iam_perm_deco("cluster_manage")
     def set_labels(self, request, project_id, cluster_id):
         """设置节点标签"""
         params = self.params_validate(slz.NodeLabelListSLZ)

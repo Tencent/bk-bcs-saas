@@ -74,7 +74,7 @@ class TemplatesView(APIView):
             TemplatesetAction.INSTANTIATE,
         ],
         res_request_cls=TemplatesetRequest,
-        resource_id_key='templateset_id',
+        resource_id_key='id',
     )
     def get(self, request, project_id):
         serializer = serializers_new.SearchTemplateSLZ(data=request.query_params)
@@ -82,6 +82,7 @@ class TemplatesView(APIView):
         data = serializer.validated_data
 
         templates = self.filter_queryset_with_params(project_id, data["search"])
+        num_of_templates = templates.count()
 
         # 获取项目类型 backend.utils.permissions做了处理
         kind = request.project.kind
@@ -91,7 +92,16 @@ class TemplatesView(APIView):
 
         serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={"kind": kind})
         template_list = serializer.data
-        return PermsResponse(template_list, iam_path_attrs={'project_id': project_id})
+        return PermsResponse(
+            data={
+                "count": num_of_templates,
+                "has_previous": True if offset != 0 else False,
+                "has_next": True if (offset + limit) < num_of_templates else False,
+                "results": template_list,
+            },
+            resource_data=template_list,
+            iam_path_attrs={'project_id': project_id},
+        )
 
 
 class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
