@@ -19,6 +19,7 @@ from typing import List, Type
 import wrapt
 
 from backend.utils.basic import str2bool
+from backend.utils.response import PermsResponse
 
 from .client import IAMClient
 from .exceptions import PermissionDeniedError
@@ -161,7 +162,10 @@ class response_perms:
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
         resp = wrapped(*args, **kwargs)
-        if not resp.data:
+        if not isinstance(resp, PermsResponse):
+            raise ValueError('response_perms decorator only support PermsResponse')
+
+        if not resp.resource_data:
             return resp
 
         with_perms = self.auto_add
@@ -173,10 +177,10 @@ class response_perms:
             return resp
 
         client = IAMClient()
-        if isinstance(resp.data, list):
-            res = [item.get(self.resource_id_key) for item in resp.data]
+        if isinstance(resp.resource_data, list):
+            res = [item.get(self.resource_id_key) for item in resp.resource_data]
         else:
-            res = resp.data.get(self.resource_id_key)
+            res = resp.resource_data.get(self.resource_id_key)
 
         iam_path_attrs = {}
         try:

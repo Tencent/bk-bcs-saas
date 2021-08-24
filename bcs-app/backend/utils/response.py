@@ -106,13 +106,21 @@ class PermsResponse(Response):
         self,
         data: Union[list, dict],
         message: str = '',
+        resource_data: Optional[Union[list, dict]] = None,
         iam_path_attrs: Optional[Dict[str, str]] = None,
         web_annotations: Union[None, dict] = None,
     ):
+        """
+        :param data: 给前端返回的data字段
+        :param message: 自定义的message
+        :param resource_data: 待权限处理的资源数据，如果为 None, 则默认值为 data
+        :param iam_path_attrs: iam request path 属性字段
+        """
         assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
         self.message = message
         self.iam_path_attrs = iam_path_attrs or {}
         self.web_annotations = web_annotations
+        self.resource_data = resource_data or data
         super().__init__(data)
 
     @property
