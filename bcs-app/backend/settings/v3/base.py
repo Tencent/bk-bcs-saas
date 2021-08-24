@@ -56,10 +56,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 # ******************************** 容器服务 配置 ********************************
 
-# 统一登录页面
-LOGIN_FULL = os.environ.get('LOGIN_FULL', '')
-LOGIN_SIMPLE = os.environ.get('LOGIN_SIMPLE', '')
-
 # 设置存储在 session 中的 token 一天后过期，默认为 5 分钟
 BKAUTH_SESSION_TIMEOUT = 86400
 
@@ -155,99 +151,6 @@ INSTALLED_APPS += [
     'backend.celery_app.CeleryConfig',
 ]
 
-# ******************************** 数据库 & 缓存 ********************************
-
-DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': os.environ.get('MYSQL_NAME', 'bcs-app'),
-    'USER': os.environ.get('MYSQL_USER', 'root'),
-    'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
-    'HOST': os.environ.get('MYSQL_HOST', '127.0.0.1'),
-    'PORT': os.environ.get('MYSQL_PORT', '3306'),
-    'OPTIONS': {
-        'init_command': 'SET default_storage_engine=INNODB',
-    },
-}
-
-REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
-REDIS_DB = os.environ.get('REDIS_DB', 0)
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
-REDIS_URL = os.environ.get('REDIS_URL', f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
-
-# bkpaas_auth 模块会通过用户的 AccessToken 获取用户基本信息，因为这个 API 调用比较昂贵。
-# 所以最好设置 Django 缓存来避免不必要的请求以提高效率。
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    }
-}
-
-# ******************************** 定时任务 & 消息队列 配置 ********************************
-# CELERY 配置
-IS_USE_CELERY = True
-
-# BROKER_URL 统一使用 V3 提供的增强服务（RabbitMQ）
-RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST')
-RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
-RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
-RABBITMQ_USER = os.getenv('RABBITMQ_USER')
-RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
-
-# 设置为 celery 后端消息队列
-BROKER_URL = 'amqp://{user}:{password}@{host}:{port}/{vhost}'.format(
-    user=RABBITMQ_USER,
-    password=RABBITMQ_PASSWORD,
-    host=RABBITMQ_HOST,
-    port=RABBITMQ_PORT,
-    vhost=RABBITMQ_VHOST,
-)
-# 较高版本（>=4.0）的 celery 使用 CELERY_BROKER_URL
-# ref: https://docs.celeryproject.org/en/latest/history/whatsnew-4.0.html#lowercase-setting-names
-CELERY_BROKER_URL = BROKER_URL
-
-if IS_USE_CELERY:
-    try:
-        import django_celery_beat
-
-        INSTALLED_APPS += ('django_celery_beat',)  # django_celery_beat
-
-        CELERY_ENABLE_UTC = False
-        CELERYBEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-        if 'celery' in sys.argv:
-            DEBUG = False
-        if RUN_MODE == 'DEVELOP':
-            from celery.signals import worker_process_init
-
-            @worker_process_init.connect
-            def configure_workers(*args, **kwargs):
-                import django
-
-                django.setup()
-
-        from celery.schedules import crontab
-
-        CELERY_BEAT_SCHEDULE = {
-            # 为防止出现资源注册权限中心失败的情况，每天定时同步一次
-            'bcs_perm_tasks': {
-                'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
-                'schedule': crontab(minute=0, hour=2),
-            },
-            # 每天三点进行一次强制同步
-            'helm_force_sync_repo_tasks': {
-                'task': 'backend.helm.helm.tasks.force_sync_all_repo',
-                'schedule': crontab(minute=0, hour=3),
-            },
-        }
-    except Exception as error:
-        print('use celery error: %s' % error)
-
-CELERY_IMPORTS = ("backend.celery_app",)
-
 # ******************************** BCS 或 依赖服务 URL / ADDR ********************************
 # 容器服务地址
 DEVOPS_HOST = os.environ.get('BKAPP_DEVOPS_URL')
@@ -256,6 +159,10 @@ DEVOPS_BCS_HOST = os.environ.get('BKAPP_DEVOPS_BCS_URL')
 # 容器服务 API 地址
 DEVOPS_BCS_API_URL = os.environ.get('BKAPP_DEVOPS_BCS_API_URL')
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
+
+# 统一登录页面
+LOGIN_SIMPLE = os.environ.get('BK_LOGIN_URL', '')
+LOGIN_FULL = f'{LOGIN_SIMPLE}?c_url={DEVOPS_BCS_HOST}'
 
 BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
 
@@ -354,3 +261,96 @@ DEFAULT_METRIC_SOURCE = "prometheus"
 
 # 普罗米修斯项目白名单
 DEFAULT_METRIC_SOURCE_PROM_WLIST = []
+
+# ******************************** 数据库 & 缓存 ********************************
+
+DATABASES['default'] = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': os.environ.get('MYSQL_NAME', 'bcs-app'),
+    'USER': os.environ.get('MYSQL_USER', 'root'),
+    'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+    'HOST': os.environ.get('MYSQL_HOST', '127.0.0.1'),
+    'PORT': os.environ.get('MYSQL_PORT', '3306'),
+    'OPTIONS': {
+        'init_command': 'SET default_storage_engine=INNODB',
+    },
+}
+
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
+REDIS_DB = os.environ.get('REDIS_DB', 0)
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
+REDIS_URL = os.environ.get('REDIS_URL', f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
+
+# bkpaas_auth 模块会通过用户的 AccessToken 获取用户基本信息，因为这个 API 调用比较昂贵。
+# 所以最好设置 Django 缓存来避免不必要的请求以提高效率。
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
+
+# ******************************** 定时任务 & 消息队列 配置 ********************************
+# CELERY 配置
+IS_USE_CELERY = True
+
+# BROKER_URL 统一使用 V3 提供的增强服务（RabbitMQ）
+RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST')
+RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_USER = os.getenv('RABBITMQ_USER')
+RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
+
+# 设置为 celery 后端消息队列
+BROKER_URL = 'amqp://{user}:{password}@{host}:{port}/{vhost}'.format(
+    user=RABBITMQ_USER,
+    password=RABBITMQ_PASSWORD,
+    host=RABBITMQ_HOST,
+    port=RABBITMQ_PORT,
+    vhost=RABBITMQ_VHOST,
+)
+# 较高版本（>=4.0）的 celery 使用 CELERY_BROKER_URL
+# ref: https://docs.celeryproject.org/en/latest/history/whatsnew-4.0.html#lowercase-setting-names
+CELERY_BROKER_URL = BROKER_URL
+
+if IS_USE_CELERY:
+    try:
+        import django_celery_beat
+
+        INSTALLED_APPS += ('django_celery_beat',)  # django_celery_beat
+
+        CELERY_ENABLE_UTC = False
+        CELERYBEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+        if 'celery' in sys.argv:
+            DEBUG = False
+        if RUN_MODE == 'DEVELOP':
+            from celery.signals import worker_process_init
+
+            @worker_process_init.connect
+            def configure_workers(*args, **kwargs):
+                import django
+
+                django.setup()
+
+        from celery.schedules import crontab
+
+        CELERY_BEAT_SCHEDULE = {
+            # 为防止出现资源注册权限中心失败的情况，每天定时同步一次
+            'bcs_perm_tasks': {
+                'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
+                'schedule': crontab(minute=0, hour=2),
+            },
+            # 每天三点进行一次强制同步
+            'helm_force_sync_repo_tasks': {
+                'task': 'backend.helm.helm.tasks.force_sync_all_repo',
+                'schedule': crontab(minute=0, hour=3),
+            },
+        }
+    except Exception as error:
+        print('use celery error: %s' % error)
+
+CELERY_IMPORTS = ("backend.celery_app",)
