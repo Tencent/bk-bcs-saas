@@ -518,7 +518,6 @@
                 this.curSelectedClusterName = cluster.name
                 this.curSelectedClusterId = clusterId
                 this.pageConf.current = 1
-                this.showLoading = true
                 await this.fetchData(true)
             },
 
@@ -561,7 +560,10 @@
                 if (!isPolling) {
                     await this.getClusters()
                 }
-                if (!this.clusterList.length) return
+                if (!this.clusterList.length) {
+                    this.pageLoading = false
+                    return
+                }
                 this.showLoading = true
                 try {
                     const api = this.isMesosProject ? 'cluster/getMesosNodeList' : 'cluster/getK8sNodes'
