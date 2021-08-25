@@ -1956,7 +1956,23 @@ export default {
     '申请监控中心': ['Application monitor'],
     '检索关键字': ['Search key'],
     '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or'],
-    '系统内置变量，不能删除': ['System variables, can not delete']
+    '系统内置变量，不能删除': ['System variables, can not delete'],
+    '需要申请的权限': ['Permission to apply for'],
+    '系统': ['System'],
+    '关联的资源实例': ['The associated resource instance'],
+    '该操作需要以下权限': ['The following permissions are required for this operation'],
+    '容器管理平台': ['BCS'],
+    '集群创建': ['Create Cluster'],
+    '集群查看': ['View Cluster'],
+    '集群操作': ['Operate Cluster'],
+    '模板集创建': ['Create Tempalte'],
+    '模板集查看': ['View Template'],
+    '模板集删除': ['Delete Template'],
+    '命名空间删除': ['Delete Namespace'],
+    '命名空间更新': ['Update Namespace'],
+    '命名空间查看': ['View Namespace'],
+    '命名空间创建': ['Create Namespace'],
+    '模板集实例化': ['Template Instantiate']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

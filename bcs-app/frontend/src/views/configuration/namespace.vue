@@ -19,7 +19,7 @@
                             <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新建')}}</span>
                         </bk-button>
-                        <bcs-popover v-if="showSyncBtn" :content="$t('同步非本页面创建的命名空间数据')" placement="top">
+                        <bcs-popover :content="$t('同步非本页面创建的命名空间数据')" placement="top" v-if="!$INTERNAL">
                             <bk-button class="bk-button" @click.stop.prevent="syncNamespace">
                                 <span>{{$t('同步命名空间')}}</span>
                             </bk-button>
@@ -33,7 +33,7 @@
                             :scope-list="searchScopeList"
                             :search-scope.sync="searchScope"
                             :cluster-fixed="!!curClusterId"
-                            @search="handleSearch"
+                            @search="fetchNamespaceList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -95,8 +95,19 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" prop="permissions" width="310" class-name="biz-table-action-column">
                                 <template slot-scope="{ row }">
-                                    <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
-                                    <a class="bk-text-button ml10" v-if="!row.permissions.use" @click="applyUsePermission(row)">{{$t('申请使用权限')}}</a>
+                                    <a href="javascript:void(0)" class="bk-text-button"
+                                        v-authority="{
+                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
+                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update,
+                                            actionId: 'namespace_update',
+                                            resourceName: row.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: row.cluster_id,
+                                                name: row.name
+                                            }
+                                        }" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
                                     <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
                                         <a href="javascript:void(0);" class="bk-text-button">
                                             {{$t('配额管理')}}
@@ -106,7 +117,19 @@
                                             <li class="dot-menu-item f13" @click="showDelQuota(row, index)">{{$t('删除')}}</li>
                                         </ul>
                                     </bcs-popover>
-                                    <a href="javascript:void(0)" class="bk-text-button" @click="showDelNamespace(row, index)">
+                                    <a href="javascript:void(0)" class="bk-text-button"
+                                        v-authority="{
+                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
+                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_delete,
+                                            actionId: 'namespace_delete',
+                                            resourceName: row.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: row.cluster_id,
+                                                name: row.name
+                                            }
+                                        }" @click="showDelNamespace(row, index)">
                                         {{$t('删除')}}
                                     </a>
                                 </template>
@@ -242,7 +265,17 @@
                             </div>
                         </template>
                         <div class="action-inner">
-                            <bk-button type="primary" :loading="addNamespaceConf.loading" @click="confirmAddNamespace">
+                            <bk-button type="primary" :loading="addNamespaceConf.loading"
+                                v-authority="{
+                                    clickable: true,
+                                    actionId: 'namespace_create',
+                                    autoUpdatePerms: true,
+                                    permCtx: {
+                                        resource_type: 'cluster',
+                                        project_id: projectId,
+                                        cluster_id: clusterId
+                                    }
+                                }" @click="confirmAddNamespace">
                                 {{$t('保存')}}
                             </bk-button>
                             <bk-button @click="hideAddNamespace" :disabled="addNamespaceConf.loading">
@@ -620,7 +653,7 @@
                     ns: {},
                     loading: false
                 },
-                permissions: {},
+                web_annotations: { perms: {} },
                 exceptionCode: null,
                 bkMessageInstance: null,
                 delNamespaceDialogConf: {
@@ -630,7 +663,6 @@
                     closeIcon: false,
                     ns: {}
                 },
-                showSyncBtn: false,
                 delMesosNamespaceDialogConf: {
                     isShow: false,
                     width: 650,
@@ -685,12 +717,8 @@
             },
             searchScopeList () {
                 const clusterList = this.$store.state.cluster.clusterList
-                let results = []
+                const results = []
                 if (clusterList.length) {
-                    results = [{
-                        id: '',
-                        name: this.$t('全部集群')
-                    }]
                     clusterList.forEach(item => {
                         results.push({
                             id: item.cluster_id,
@@ -728,7 +756,7 @@
                             if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
                                 this.searchScope = sessionStorage['bcs-cluster']
                             } else {
-                                this.searchScope = this.searchScopeList[1].id
+                                this.searchScope = this.searchScopeList[0].id
                             }
                         }
                     }
@@ -852,12 +880,11 @@
              */
             async fetchNamespaceList () {
                 try {
-                    const res = await this.$store.dispatch('configuration/getNamespaceList', {
-                        projectId: this.projectId
+                    const res = await this.$store.dispatch('configuration/getNamespaceListByClusterId', {
+                        projectId: this.projectId,
+                        clusterId: this.searchScope
                     })
-                    this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
-
-                    this.showSyncBtn = this.permissions.sync_namespace
+                    this.web_annotations = res.web_annotations || { perms: {} }
 
                     const list = []
                     res.data.forEach(item => {
@@ -970,13 +997,6 @@
              * 显示添加命名空间的 sideslider
              */
             async showAddNamespace () {
-                if (!this.permissions.create) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'create',
-                        resource_type: 'namespace'
-                    })
-                }
                 this.showQuota = false
                 this.addNamespaceConf.isShow = true
                 this.clusterId = this.curClusterId ? this.curClusterId : ''
@@ -1149,15 +1169,6 @@
              * @param {number} index 当前 namespace 对象的索引
              */
             async showEditNamespace (ns, index) {
-                if (!ns.permissions.edit) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'edit',
-                        resource_code: ns.id,
-                        resource_name: ns.name,
-                        resource_type: 'namespace'
-                    })
-                }
                 this.editNamespaceConf.isShow = true
                 // this.editNamespaceConf.loading = true
                 this.editNamespaceConf.namespaceName = ns.name

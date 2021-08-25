@@ -60,7 +60,14 @@
                                 @show="dropdownShow"
                                 @hide="dropdownHide"
                                 :key="projectKind"
-                                ref="dropdown">
+                                ref="dropdown"
+                                v-authority="{
+                                    actionId: 'templateset_create',
+                                    permCtx: {
+                                        resource_type: 'project',
+                                        project_id: projectId
+                                    }
+                                }">
                                 <bk-button type="primary" slot="dropdown-trigger">
                                     <i class="bcs-icon bcs-icon-plus f14" style="top: -1px;"></i>
                                     <span class="f14">{{$t('添加模板集')}}</span>
@@ -121,7 +128,15 @@
                                                 <tr>
                                                     <td class="data">
                                                         <div class="data-wrapper">
-                                                            <a href="javascript:void(0);" class="title" style="font-weight: normal;" @click.stop.prevent="goTemplateIndex(template)">
+                                                            <a href="javascript:void(0);" class="title" style="font-weight: normal;"
+                                                                v-authority="{
+                                                                    clickable: getAuthority('templateset_view', template.id),
+                                                                    actionId: 'templateset_view',
+                                                                    permCtx: {
+                                                                        project_id: projectId,
+                                                                        template_id: template.id
+                                                                    }
+                                                                }" @click.stop.prevent="goTemplateIndex(template)">
                                                                 {{template.name}}
                                                             </a>
 
@@ -161,24 +176,25 @@
                                                     </td> -->
                                                     <td class="operate">
                                                         <div class="operate-wrapper">
-                                                            <template v-if="!template.permissions.use">
-                                                                <bk-button @click="goApplyPermission(template)">
-                                                                    {{$t('申请使用权限')}}
-                                                                </bk-button>
-                                                            </template>
-                                                            <template v-else>
-                                                                <template v-if="template.latest_show_version_id === -1">
-                                                                    <bcs-popover :content="$t('模板集为草稿状态，不能实例化')" placement="top">
-                                                                        <bk-button disabled="disabled" style="width: 124px;">
-                                                                            {{$t('实例化')}}
-                                                                        </bk-button>
-                                                                    </bcs-popover>
-                                                                </template>
-                                                                <template v-else>
-                                                                    <bk-button @click="goCreateInstance(template)" style="width: 124px;">
+                                                            <template v-if="template.latest_show_version_id === -1">
+                                                                <bcs-popover :content="$t('模板集为草稿状态，不能实例化')" placement="top">
+                                                                    <bk-button disabled="disabled" style="width: 124px;">
                                                                         {{$t('实例化')}}
                                                                     </bk-button>
-                                                                </template>
+                                                                </bcs-popover>
+                                                            </template>
+                                                            <template v-else>
+                                                                <bk-button
+                                                                    v-authority="{
+                                                                        clickable: getAuthority('templateset_instantiate', template.id),
+                                                                        actionId: 'templateset_instantiate',
+                                                                        permCtx: {
+                                                                            project_id: projectId,
+                                                                            template_id: template.id
+                                                                        }
+                                                                    }" @click="goCreateInstance(template)" style="width: 124px;">
+                                                                    {{$t('实例化')}}
+                                                                </bk-button>
                                                             </template>
 
                                                             <bk-dropdown-menu class="dropdown-menu" :align="'right'" ref="dropdown">
@@ -188,10 +204,26 @@
                                                                 </bk-button>
                                                                 <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                     <li v-if="template.edit_mode !== 'yaml'">
-                                                                        <a href="javascript:void(0)" @click="showCopy(template)">{{$t('复制模板集')}}</a>
+                                                                        <a href="javascript:void(0)"
+                                                                            v-authority="{
+                                                                                clickable: getAuthority('templateset_create', template.id),
+                                                                                actionId: 'templateset_create',
+                                                                                permCtx: {
+                                                                                    project_id: projectId,
+                                                                                    template_id: template.id
+                                                                                }
+                                                                            }" @click="showCopy(template)">{{$t('复制模板集')}}</a>
                                                                     </li>
                                                                     <li>
-                                                                        <a href="javascript:void(0)" @click="removeTemplate(template)">{{$t('删除模板集')}}</a>
+                                                                        <a href="javascript:void(0)"
+                                                                            v-authority="{
+                                                                                clickable: getAuthority('templateset_delete', template.id),
+                                                                                actionId: 'templateset_delete',
+                                                                                permCtx: {
+                                                                                    project_id: projectId,
+                                                                                    template_id: template.id
+                                                                                }
+                                                                            }" @click="removeTemplate(template)">{{$t('删除模板集')}}</a>
                                                                     </li>
                                                                     <li v-if="template.edit_mode !== 'yaml'">
                                                                         <a href="javascript:void(0)" @click="showChooseDialog(template)">{{$t('删除实例')}}</a>
@@ -434,7 +466,7 @@
                 PROJECT_MESOS: window.PROJECT_MESOS,
                 fileImportIndex: 0,
                 zipTooltipText: this.$t('只允许导入从已有模板集导出的zip包'),
-                permissions: {},
+                web_annotations: {},
                 isLoading: true,
                 isImportLoading: false,
                 searchKeyword: '',
@@ -562,6 +594,9 @@
             window.onscroll = null
         },
         methods: {
+            getAuthority (actionId, templateId) {
+                return !!this.web_annotations?.perms?.[templateId]?.[actionId]
+            },
             /**
              * 加载下一页数据
              */
@@ -599,17 +634,6 @@
              * @param {Object} template 当前模板集对象
              */
             async removeTemplate (template) {
-                if (!template.permissions.delete) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'delete',
-                        resource_code: template.id,
-                        resource_name: template.name,
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 try {
                     // 先检测当前模板集是否存在实例
                     const res = await this.$store.dispatch('templateset/getExistVersion', {
@@ -672,17 +696,6 @@
              * @param  {object} template 当前模板集对象
              */
             async goCreateInstance (template) {
-                if (!template.permissions.use) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: template.id,
-                        resource_name: template.name,
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 this.$router.push({
                     name: 'instantiation',
                     params: {
@@ -721,17 +734,6 @@
              * @param {Object} template 当前 template
              */
             async showCopy (template) {
-                if (!template.permissions.edit) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'edit',
-                        resource_code: template.id,
-                        resource_name: template.name,
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 this.curCopyTemplate = Object.assign({}, template)
                 this.copyDialogConf.isShow = true
                 this.copyDialogConf.title = template.name
@@ -822,17 +824,6 @@
              * @param {Object} template 当前 template
              */
             async showChooseDialog (template) {
-                if (!template.permissions.use) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: template.id,
-                        resource_name: template.name,
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 // 清除弹层中的选中状态，不需要清除已选择的 ns 的状态
                 this.clearCandidateNamespaceStatus()
 
@@ -897,17 +888,6 @@
              * @param  {object} template 当前模板集对象
              */
             async goTemplateIndex (template) {
-                if (!template.permissions.view) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'view',
-                        resource_code: template.id,
-                        resource_name: template.name,
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 if (this.projectKind === PROJECT_K8S || this.projectKind === PROJECT_TKE) {
                     if (template.edit_mode === 'yaml') {
                         this.$router.push({
@@ -1328,7 +1308,7 @@
                         this.templateList.push(item)
                     })
 
-                    this.permissions = res.permissions || {}
+                    this.web_annotations = res.web_annotations || { perms: {} }
                     this.pageConf.hasNext = data.has_next
                     this.pageConf.total = data.count
 
@@ -1381,15 +1361,6 @@
              * 创建表单模板集
              */
             async addTemplate (type) {
-                if (!this.permissions.create) {
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'create',
-                        resource_type: 'templates'
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 this.$router.push({
                     name: type,
                     params: {

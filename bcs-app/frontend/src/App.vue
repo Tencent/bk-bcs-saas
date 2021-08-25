@@ -110,8 +110,8 @@
 
             const self = this
             bus.$on('show-apply-perm-modal', data => {
-                const projectCode = self.$route.params.projectCode
-                self.$refs.bkApplyPerm && self.$refs.bkApplyPerm.show(projectCode, data)
+                // const projectCode = self.$route.params.projectCode
+                self.$refs.bkApplyPerm && self.$refs.bkApplyPerm.show(data)
             })
             bus.$on('show-error-message', data => {
                 self.$bkMessage({

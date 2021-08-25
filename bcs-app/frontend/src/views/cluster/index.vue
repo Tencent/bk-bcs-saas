@@ -20,7 +20,14 @@
             </app-exception>
             <template v-if="!exceptionCode && clusterList.length && !showLoading">
                 <div class="cluster-btns" v-if="isK8SProject">
-                    <bk-button theme="primary" icon="plus" @click="gotCreateCluster">{{$t('新建集群')}}</bk-button>
+                    <bk-button theme="primary" icon="plus" v-authority="{
+                        actionId: 'cluster_create',
+                        resourceName: curProjectName,
+                        permCtx: {
+                            project_id: projectId,
+                            resource_type: 'project'
+                        }
+                    }" @click="gotCreateCluster">{{$t('新建集群')}}</bk-button>
                     <apply-host class="ml10" v-if="$INTERNAL" />
                 </div>
                 <div class="biz-cluster-list" :style="{ paddingTop: isK8SProject ? 0 : '30px' }">
@@ -55,6 +62,16 @@
                                             && cluster.status !== 'removing'
                                             && cluster.status !== 'remove_failed'
                                         "
+                                        v-authority="{
+                                            clickable: getAuthority('cluster_view', cluster.cluster_id),
+                                            actionId: 'cluster_view',
+                                            resourceName: cluster.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: cluster.cluster_id
+                                            }
+                                        }"
                                         @click="goOverviewOrNode('clusterOverview', cluster)">
                                         {{cluster.name}}
                                     </a>
@@ -93,17 +110,44 @@
                                 </bk-button>
                                 <ul class="bk-dropdown-list" slot="dropdown-content" style="max-height: 210px; overflow: visible;">
                                     <li>
-                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterOverview', cluster)">{{$t('总览')}}</a>
+                                        <a href="javascript:void(0)" v-authority="{
+                                            clickable: getAuthority('cluster_view', cluster.cluster_id),
+                                            actionId: 'cluster_view',
+                                            resourceName: cluster.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: cluster.cluster_id
+                                            }
+                                        }" @click="goOverviewOrNode('clusterOverview', cluster)">{{$t('总览')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
+                                        <a href="javascript:void(0)" v-authority="{
+                                            clickable: getAuthority('cluster_view', cluster.cluster_id),
+                                            actionId: 'cluster_view',
+                                            resourceName: cluster.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: cluster.cluster_id
+                                            }
+                                        }" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
                                     </li>
                                     <li v-if="cluster.type === 'k8s' && cluster.status === 'normal' && $INTERNAL">
                                         <a href="javascript:void(0)" @click="showUpdateCluster(cluster)">{{$t('集群升级')}}</a>
                                     </li>
                                     <template v-if="cluster.allow">
                                         <li>
-                                            <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
+                                            <a href="javascript:void(0)" v-authority="{
+                                                clickable: getAuthority('cluster_delete', cluster.cluster_id),
+                                                actionId: 'cluster_delete',
+                                                resourceName: cluster.name,
+                                                disablePerms: true,
+                                                permCtx: {
+                                                    project_id: projectId,
+                                                    cluster_id: cluster.cluster_id
+                                                }
+                                            }" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
                                         </li>
                                     </template>
                                     <template v-else>
@@ -120,13 +164,6 @@
                                             </a>
                                         </li>
                                     </template>
-                                    <li v-if="!cluster.permissions.use">
-                                        <a :href="createApplyPermUrl({
-                                            policy: 'use',
-                                            projectCode: projectCode,
-                                            idx: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}:${cluster.cluster_id}`
-                                        })" target="_blank">{{$t('申请使用权限')}}</a>
-                                    </li>
                                 </ul>
                             </bk-dropdown-menu>
                             <bk-dropdown-menu
@@ -269,13 +306,28 @@
                                 :cur-cluster="cluster">
                             </status-progress>
                             <div class="add-node-btn-wrapper">
-                                <bk-button class="add-node-btn" @click="goOverviewOrNode('clusterNode', cluster)">
+                                <bk-button class="add-node-btn" v-authority="{
+                                    actionId: 'cluster_manage',
+                                    resourceName: cluster.name,
+                                    disablePerms: true,
+                                    permCtx: {
+                                        project_id: projectId,
+                                        cluster_id: cluster.cluster_id
+                                    }
+                                }" @click="goOverviewOrNode('clusterNode', cluster)">
                                     <span>{{$t('添加节点')}}</span>
                                 </bk-button>
                             </div>
                         </template>
                     </div>
-                    <div class="biz-cluster biz-cluster-add" @click="gotCreateCluster">
+                    <div class="biz-cluster biz-cluster-add" v-authority="{
+                        actionId: 'cluster_create',
+                        resourceName: curProjectName,
+                        permCtx: {
+                            project_id: projectId,
+                            resource_type: 'project'
+                        }
+                    }" @click="gotCreateCluster">
                         <div class="add-btn">
                             <i class="bcs-icon bcs-icon-plus"></i>
                             <strong>{{$t('点击新建集群')}}</strong>
@@ -291,7 +343,13 @@
                         <a :href="PROJECT_CONFIG.doc.quickStart" class="guide-link" target="_blank">{{$t('请点击了解更多')}}<i class="bcs-icon bcs-icon-angle-double-right ml5"></i></a>
                     </p>
                     <div class="guide-btn-group">
-                        <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" @click="gotCreateCluster">
+                        <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" v-authority="{
+                            actionId: 'cluster_create',
+                            resourceName: curProjectName,
+                            permCtx: {
+                                project_id: projectId
+                            }
+                        }" @click="gotCreateCluster">
                             <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                         </a>
 
@@ -599,7 +657,7 @@
                 exceptionCode: null,
                 curCluster: null,
                 curClusterIndex: 0,
-                permissions: {},
+                web_annotations: { perms: {} },
                 cancelLoop: false,
                 ccAppName: '',
                 arrangeType: '',
@@ -657,6 +715,9 @@
             curProject () {
                 return this.$store.state.curProject
             },
+            curProjectName () {
+                return this.curProject?.name
+            },
             isK8SProject () {
                 return this.curProject.kind === PROJECT_K8S
             },
@@ -681,6 +742,9 @@
             this.release()
         },
         methods: {
+            getAuthority (actionId, clusterId) {
+                return !!this.web_annotations?.perms[clusterId]?.[actionId]
+            },
             /**
              * 获取关联 CC 的数据
              */
@@ -702,23 +766,6 @@
              * 创建集群
              */
             async gotCreateCluster () {
-                if (!this.permissions.create) {
-                    await this.$store.dispatch('getMultiResourcePermissions', {
-                        project_id: this.projectId,
-                        operator: 'or',
-                        resource_list: [
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_test'
-                            },
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_prod'
-                            }
-                        ]
-                    })
-                }
-
                 this.$router.push({
                     name: 'clusterCreate',
                     params: {
@@ -913,7 +960,7 @@
                         projectId: this.projectId,
                         cache: false
                     })
-                    this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
+                    this.web_annotations = res.web_annotations || { perms: {} }
 
                     const list = res.data.results || []
 
@@ -1062,16 +1109,6 @@
              * @param {Object} cluster 当前集群对象
              */
             async goOverviewOrNode (target, cluster) {
-                if (!cluster.permissions.view) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'view',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    })
-                }
-
                 this.$router.push({
                     name: target,
                     params: {
@@ -1105,18 +1142,6 @@
              * @param {Object} cluster 当前集群对象
              */
             async goClusterInfo (cluster) {
-                if (!cluster.permissions.view) {
-                    const type = `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'view',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: type
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 this.$router.push({
                     name: 'clusterInfo',
                     params: {
@@ -1131,15 +1156,6 @@
                 this.curClusterHelm = null
                 this.helmEnableMessage = ''
                 this.helmErrorCode = 0
-                if (!cluster.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    })
-                }
 
                 try {
                     await this.$store.dispatch('cluster/enableClusterHelm', {
@@ -1157,15 +1173,6 @@
             },
 
             async confirmDeleteCluster (cluster, index) {
-                if (!cluster.permissions.delete) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'delete',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    })
-                }
                 this.curCluster = cluster
                 this.curClusterIndex = index
                 this.$refs.clusterNoticeDialog.show()
