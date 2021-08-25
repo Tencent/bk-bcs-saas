@@ -97,7 +97,7 @@
                                 <template slot-scope="{ row }">
                                     <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
                                     <a class="bk-text-button ml10" v-if="!row.permissions.use" @click="applyUsePermission(row)">{{$t('申请使用权限')}}</a>
-                                    <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2 && $INTERNAL">
+                                    <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
                                         <a href="javascript:void(0);" class="bk-text-button">
                                             {{$t('配额管理')}}
                                         </a>
@@ -1652,12 +1652,12 @@
                 }
 
                 const results = list.filter(ns => {
+                    // const envType = String(ns.env_type || '').toLowerCase()
+                    // || envType.indexOf(search) > -1
                     const name = String(ns.name || '').toLowerCase()
-                    const envType = String(ns.env_type || '').toLowerCase()
                     const clusterName = String(ns.cluster_name || '').toLowerCase()
 
                     return name.indexOf(search) > -1
-                        || envType.indexOf(search) > -1
                         || clusterName.indexOf(search) > -1
                 })
                 // const beforeLen = this.namespaceListTmp.length

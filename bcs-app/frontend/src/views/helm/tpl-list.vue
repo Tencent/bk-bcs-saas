@@ -772,12 +772,23 @@
 
             async getTplVersions () {
                 const projectId = this.projectId
-                const tplId = this.delInstanceDialogConf.template.id
 
                 try {
-                    const res = await this.$store.dispatch('helm/getTplVersions', { projectId, tplId })
-                    this.delInstanceDialogConf.versions = res.data.results
-                    this.delInstanceDialogConf.releases = []
+                    if (this.$INTERNAL) {
+                        const tplId = this.delInstanceDialogConf.template.name
+                        const res = await this.$store.dispatch('helm/getTplVersionList', {
+                            projectId,
+                            tplId,
+                            isPublic: this.tabActiveName === 'publicRepo'
+                        })
+                        this.delInstanceDialogConf.versions = res.data
+                        this.delInstanceDialogConf.releases = []
+                    } else {
+                        const tplId = this.delInstanceDialogConf.template.id
+                        const res = await this.$store.dispatch('helm/getTplVersions', { projectId, tplId })
+                        this.delInstanceDialogConf.versions = res.data.results
+                        this.delInstanceDialogConf.releases = []
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
@@ -854,15 +865,25 @@
                 return url
             },
 
-            async getTplVersionList (tplId) {
+            async getTplVersionList (template) {
                 this.isTplVersionLoading = true
                 try {
-                    const res = await this.$store.dispatch('helm/getTplVersionList', {
-                        projectId: this.projectId,
-                        isPublic: this.tabActiveName === 'publicRepo',
-                        tplId
-                    })
-                    this.downloadDialog.versions = res.data || []
+                    if (this.$INTERNAL) {
+                        // 内部版本
+                        const res = await this.$store.dispatch('helm/getTplVersionList', {
+                            projectId: this.projectId,
+                            isPublic: this.tabActiveName === 'publicRepo',
+                            tplId: template.name
+                        })
+                        this.downloadDialog.versions = res.data || []
+                    } else {
+                        // 外部版本
+                        const res = await this.$store.dispatch('helm/getTplVersions', {
+                            projectId: this.projectId,
+                            tplId: template.id
+                        })
+                        this.downloadDialog.versions = res.data.results || []
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -875,7 +896,7 @@
                 this.downloadDialog.versions = []
                 this.downloadDialog.chartName = template.name
                 this.downloadDialog.isShow = true
-                await this.getTplVersionList(template.name)
+                await this.getTplVersionList(template)
             },
 
             async handleComfirmDownload () {
