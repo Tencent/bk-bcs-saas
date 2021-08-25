@@ -29,7 +29,7 @@ class ResourceRequest:
         :param res: 单个资源 ID 或资源 ID 列表
         :param attr_kwargs: 用于替换 attr 中可能需要 format 的值
         """
-        self.res = res
+        self.res = [str(res_id) for res_id in res] if isinstance(res, list) else str(res)
         self.attr_kwargs = dict(**attr_kwargs)
         self._validate_attr_kwargs()
 
