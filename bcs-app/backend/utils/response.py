@@ -120,7 +120,7 @@ class PermsResponse(Response):
         self.message = message
         self.iam_path_attrs = iam_path_attrs or {}
         self.web_annotations = web_annotations
-        self.resource_data = resource_data or data
+        self.resource_data = resource_data if resource_data is not None else data
         super().__init__(data)
 
     @property
