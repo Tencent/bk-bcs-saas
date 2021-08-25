@@ -37,10 +37,6 @@ class TestNamespace:
         ):
             yield
 
-    @patch(
-        "backend.bcs_web.permissions.PaaSCCClient.get_project",
-        new=paas_cc.StubPaaSCCClient().get_project,
-    )
     def test_create_k8s_namespace(self, api_client):
         """创建k8s命名空间
         NOTE: 针对k8s会返回namespace_id字段
@@ -55,7 +51,7 @@ class TestNamespace:
         assert data["name"] == fake_data["name"]
 
     @patch(
-        "backend.bcs_web.permissions.PaaSCCClient.get_project",
+        "backend.tests.testing_utils.mocks.paas_cc.StubPaaSCCClient.get_project",
         new=paas_cc.StubPaaSCCClient().get_mesos_project,
     )
     def test_create_mesos_namespace(self, api_client):

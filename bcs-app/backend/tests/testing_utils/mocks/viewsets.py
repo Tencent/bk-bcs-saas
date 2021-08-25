@@ -28,22 +28,15 @@ class FakeProjectEnableBCS(BasePermission):
 
     def has_permission(self, request, view):
         project_id = view.kwargs.get('project_id', '')
-        try:
-            # 若需要使用该属性，需要 mock PaaSCCClient.get_project 方法
-            # 可参考 backend/tests/container_service/clusters/open_apis/test_namespace.py:40 test_create_k8s_namespace
-            request.project = self._get_enabled_project('fake_access_token', project_id)
-        except Exception:
-            pass
+        request.project = self._get_enabled_project('fake_access_token', project_id)
         self._set_ctx_project_cluster(request, project_id, view.kwargs.get('cluster_id', ''))
         return True
 
     def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
         from backend.apps.constants import ClusterType
-        from backend.components.base import ComponentAuth
-        from backend.components.paas_cc import PaaSCCClient
+        from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
-        paas_cc = PaaSCCClient(auth=ComponentAuth(access_token))
-        project_data = paas_cc.get_project(project_id_or_code)
+        project_data = StubPaaSCCClient().get_project(project_id_or_code)
         project = FancyDict(**project_data)
 
         self._refine_project(project)
