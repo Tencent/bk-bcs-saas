@@ -29,13 +29,13 @@ class ResourceRequest:
         :param res: 单个资源 ID 或资源 ID 列表
         :param attr_kwargs: 用于替换 attr 中可能需要 format 的值
         """
-        self.res = res
+        self.res = str(res) if isinstance(self.res, int) else res
         self.attr_kwargs = dict(**attr_kwargs)
         self._validate_attr_kwargs()
 
     def make_resources(self) -> List[Resource]:
-        if isinstance(self.res, (str, int)):
-            return [Resource(settings.APP_ID, self.resource_type, str(self.res), self._make_attribute(self.res))]
+        if isinstance(self.res, str):
+            return [Resource(settings.APP_ID, self.resource_type, self.res, self._make_attribute(self.res))]
 
         return [
             Resource(settings.APP_ID, self.resource_type, res_id, self._make_attribute(res_id)) for res_id in self.res
