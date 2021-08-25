@@ -37,13 +37,13 @@ class TemplatesetPermCtx(PermCtx):
     project_id: str = ''
     template_id: Optional[str] = None
 
+    def __post_init__(self):
+        self.template_id = str(self.template_id)
+
     def validate(self):
         super().validate()
         if not self.project_id:
             raise AttrValidationError(f'invalid project_id:({self.project_id})')
-
-    def __post_init__(self):
-        self.template_id = str(self.template_id)
 
     @property
     def resource_id(self) -> str:
