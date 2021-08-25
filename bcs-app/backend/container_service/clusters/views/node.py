@@ -926,7 +926,6 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 node_label_info.labels = json.dumps(existed_labels)
                 node_label_info.save()
 
-    @check_cluster_iam_perm_deco("cluster_manage")
     def create_node_labels(self, request, project_id):
         """添加节点标签"""
         project_kind = request.project["kind"]
