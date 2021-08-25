@@ -15,17 +15,19 @@ import focus from '@/directives/focus/index'
 import App from '@/App'
 import router from '@/router'
 import store from '@open/store'
-import Authority from '@/directives/authority'
+import authority from '@/directives/authority'
+import authorityMixin from '@/mixins/authority'
 import '@icon-cool/bk-icon-bk-bcs'
 
 Vue.config.devtools = NODE_ENV === 'development'
 
 Vue.use(VueCompositionAPI)
 
-Vue.use(Authority)
+Vue.use(authority)
 Vue.use(focus)
 Vue.use(bkmagic2)
 Vue.use(VeeValidate)
+Vue.mixin(authorityMixin)
 
 /**
  * 加载 devops-utils.js 的回调函数

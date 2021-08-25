@@ -15,7 +15,16 @@
             <template v-if="!exceptionCode && !pageLoading">
                 <div class="biz-panel-header biz-node-query">
                     <div class="left">
-                        <bcs-button :disabled="!checkedNodeList.length" @click="showSetLabel">
+                        <bcs-button :disabled="!checkedNodeList.length"
+                            v-authority="{
+                                actionId: 'cluster_manage',
+                                resourceName: curSelectedClusterName,
+                                permCtx: {
+                                    resource_type: 'cluster',
+                                    project_id: projectId,
+                                    cluster_id: curSelectedClusterId
+                                }
+                            }" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
                         </bcs-button>
                         <bk-button @click="exportNode">
@@ -200,11 +209,38 @@
                             <template slot-scope="{ row }">
                                 <bk-button text
                                     :disabled="row.status !== 'normal'"
+                                    v-authority="{
+                                        actionId: 'cluster_manage',
+                                        resourceName: curSelectedClusterName,
+                                        permCtx: {
+                                            resource_type: 'cluster',
+                                            project_id: projectId,
+                                            cluster_id: curSelectedClusterId
+                                        }
+                                    }"
                                     @click.stop="showSetLabelInRow(row)">
                                     {{$t('设置标签')}}
                                 </bk-button>
-                                <bk-button v-if="!isMesosProject" text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
-                                <bk-button text @click.stop="goClusterNode(row)">{{$t('更多操作')}}</bk-button>
+                                <bk-button v-if="!isMesosProject" text
+                                    v-authority="{
+                                        actionId: 'cluster_manage',
+                                        resourceName: curSelectedClusterName,
+                                        permCtx: {
+                                            resource_type: 'cluster',
+                                            project_id: projectId,
+                                            cluster_id: curSelectedClusterId
+                                        }
+                                    }" @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
+                                <bk-button text
+                                    v-authority="{
+                                        actionId: 'cluster_view',
+                                        resourceName: curSelectedClusterName,
+                                        permCtx: {
+                                            resource_type: 'cluster',
+                                            project_id: projectId,
+                                            cluster_id: curSelectedClusterId
+                                        }
+                                    }" @click.stop="goClusterNode(row)">{{$t('更多操作')}}</bk-button>
                             </template>
                         </bk-table-column>
                     </bk-table>

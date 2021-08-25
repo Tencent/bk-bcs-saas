@@ -43,6 +43,14 @@ export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$proje
 export const getNodeTaints = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 
+// project
+export const createProject = request('post', '/api/nav/projects/')
+export const editProject = request('put', '/api/nav/projects/$projectId')
+
+// auth
+export const userPerms = request('post', '/api/iam/user_perms/')
+export const userPermsByAction = request('post', '/api/iam/user_perms/actions/$actionId/')
+
 export default {
     stdLogs,
     stdLogsDownload,
@@ -73,5 +81,8 @@ export default {
     retrieveCustomResourceDetail,
     customResourceCreate,
     customResourceUpdate,
-    customResourceDelete
+    customResourceDelete,
+    editProject,
+    userPerms,
+    userPermsByAction
 }
