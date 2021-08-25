@@ -28,6 +28,8 @@ class FakeProjectEnableBCS(BasePermission):
 
     def has_permission(self, request, view):
         project_id = view.kwargs.get('project_id', '')
+        # project 内容为 StubPaaSCCClient 所 mock，如需要自定义 project，可以参考
+        # backend/tests/container_service/clusters/open_apis/test_namespace.py:53
         request.project = self._get_enabled_project('fake_access_token', project_id)
         self._set_ctx_project_cluster(request, project_id, view.kwargs.get('cluster_id', ''))
         return True
