@@ -41,6 +41,8 @@ class TemplatesetPermCtx(PermCtx):
         super().validate()
         if not self.project_id:
             raise AttrValidationError(f'invalid project_id:({self.project_id})')
+        if not isinstance(self.template_id, str):
+            self.template_id = str(self.template_id)
 
     @property
     def resource_id(self) -> str:

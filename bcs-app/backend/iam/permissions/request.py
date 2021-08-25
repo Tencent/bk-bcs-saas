@@ -34,8 +34,8 @@ class ResourceRequest:
         self._validate_attr_kwargs()
 
     def make_resources(self) -> List[Resource]:
-        if isinstance(self.res, str):
-            return [Resource(settings.APP_ID, self.resource_type, self.res, self._make_attribute(self.res))]
+        if isinstance(self.res, (str, int)):
+            return [Resource(settings.APP_ID, self.resource_type, str(self.res), self._make_attribute(self.res))]
 
         return [
             Resource(settings.APP_ID, self.resource_type, res_id, self._make_attribute(res_id)) for res_id in self.res
