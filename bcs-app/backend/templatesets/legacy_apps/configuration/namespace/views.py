@@ -378,11 +378,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         data = serializer.data
 
-        # 判断权限
         cluster_id = data['cluster_id']
-        self.permission.can_create(
-            perm_ctx=NamespacePermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
-        )
+        # 判断权限
+        perm_ctx = NamespacePermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_create(perm_ctx)
 
         request.audit_ctx.update_fields(
             resource=data['name'], description=_('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
