@@ -36,7 +36,6 @@ from backend.container_service.clusters.constants import ClusterNetworkType, Clu
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
 from backend.container_service.clusters.module_apis import get_cluster_mod
 from backend.container_service.clusters.utils import (
-    check_cluster_iam_perm_deco,
     cluster_env_transfer,
     get_cmdb_hosts,
     get_ops_platform,
@@ -44,7 +43,7 @@ from backend.container_service.clusters.utils import (
 )
 from backend.iam.permissions.decorators import response_perms
 from backend.iam.permissions.resources import ClusterRequest
-from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermission
+from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermCtx, ClusterPermission
 from backend.resources.utils.kube_client import get_dynamic_client
 from backend.uniapps.application import constants as app_constants
 from backend.utils.basic import normalize_datetime, normalize_metric
@@ -95,6 +94,7 @@ class ClusterPermBase:
 
 class ClusterCreateListViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = ClusterPermission()
 
     def cluster_has_node(self, request, project_id):
         """cluster has node
@@ -159,14 +159,16 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         cluster_data = cluster_info.get("results") or []
         return response.Response({"clusters": cluster_data})
 
-    @check_cluster_iam_perm_deco("can_create")
     def create(self, request, project_id):
         """create cluster"""
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id)
+        self.permission.can_create(perm_ctx)
+
         cluster_client = cluster.CreateCluster(request, project_id)
         cluster_info = cluster_client.create()
 
-        cluster_perm = ClusterPermission()
-        cluster_perm.grant_resource_creator_actions(
+        self.permission.grant_resource_creator_actions(
             request.user.username, cluster_info["cluster_id"], cluster_info["name"]
         )
         return Response()
@@ -174,6 +176,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
 
 class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = ClusterPermission()
 
     def check_cluster(self, request, project_id, cluster_id):
         """检查集群是否允许删除
@@ -184,9 +187,12 @@ class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
         allow = False if len(cluster_node_list) else True
         return response.Response({"allow": allow})
 
-    @check_cluster_iam_perm_deco("can_delete")
     def delete(self, request, project_id, cluster_id):
         """删除项目下集群"""
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_delete(perm_ctx)
+
         cluster_client = cluster.DeleteCluster(request, project_id, cluster_id)
         return cluster_client.delete()
 
@@ -206,6 +212,7 @@ class ClusterFilterViewSet(viewsets.ViewSet):
 
 class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = ClusterPermission()
 
     def register_function_controller(self, cluster_info):
         """注册功能白名单"""
@@ -247,8 +254,11 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
             data["related_projects"] = [project_id]
         return data
 
-    @check_cluster_iam_perm_deco("can_manage")
     def update(self, request, project_id, cluster_id):
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_manage(perm_ctx)
+
         data = self.get_params(request)
         data = self.update_data(data, project_id)
         # update cluster info

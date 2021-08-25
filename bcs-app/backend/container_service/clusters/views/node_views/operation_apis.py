@@ -22,9 +22,10 @@ from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters.base import utils as node_utils
 from backend.container_service.clusters.models import CommonStatus, NodeStatus
 from backend.container_service.clusters.module_apis import get_cluster_node_mod
-from backend.container_service.clusters.utils import check_cluster_iam_perm_deco, cluster_env_transfer
+from backend.container_service.clusters.utils import cluster_env_transfer
 from backend.container_service.clusters.views.node_views import serializers as node_slz
 from backend.container_service.projects.base.constants import ProjectKind
+from backend.iam.permissions.resources import ClusterPermCtx, ClusterPermission
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
@@ -49,20 +50,22 @@ class DeleteNodeRecordViewSet(Nodes, viewsets.ViewSet):
 
 class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = ClusterPermission()
 
     def get_cluster_nodes(self, request, project_id, cluster_id):
         node_list = self.get_node_list(request, project_id, cluster_id)
         return {info['id']: info for info in node_list}
 
-    @check_cluster_iam_perm_deco("can_manage")
     def reinstall_nodes(self, request, project_id, cluster_id):
         """当初始化失败时，允许用户批量重装
         1. 检测节点必须为当前项目下的同一集群
         2. 检测节点状态必须为初始化失败状态
         3. 下发配置，并更改节点状态
         """
-        # 校验集群的编辑权限
-        self.can_edit_cluster(request, project_id, cluster_id)
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_manage(perm_ctx)
+
         # 获取集群下的节点
         cluster_nodes = self.get_cluster_nodes(request, project_id, cluster_id)
         # 获取请求参数

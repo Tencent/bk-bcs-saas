@@ -37,6 +37,7 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType
+from backend.iam.permissions.resources import TemplatesetPermCtx, TemplatesetPermission
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.templatesets.legacy_apps.instance.serializers import (
@@ -60,7 +61,6 @@ from ..auditor import TemplatesetAuditor
 from ..constants import K8sResourceName, MesosResourceName
 from ..models import CATE_SHOW_NAME, MODULE_DICT
 from ..tasks import check_instance_status
-from ..utils import check_template_iam_perm_deco
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +250,6 @@ class VersionInstanceView(viewsets.ViewSet):
                 all_tmpl_name_dict = {category: list(tmpl_name)}
         return all_tmpl_name_dict
 
-    @check_template_iam_perm_deco("can_instantiate")
     def post(self, request, project_id):
         """实例化模板"""
         # 参数验证
@@ -264,6 +263,13 @@ class VersionInstanceView(viewsets.ViewSet):
 
         self.template_id = version_entity.template_id
         tem_instance_entity = version_entity.get_version_instance_resource_ids
+
+        # 权限校验
+        permission = TemplatesetPermission()
+        perm_ctx = TemplatesetPermCtx(
+            username=request.user.username, project_id=project_id, template_id=self.template_id
+        )
+        permission.can_instantiate(perm_ctx)
 
         project_kind = request.project.kind
         self.slz = VersionInstanceCreateOrUpdateSLZ(data=request.data, context={'project_kind': project_kind})
