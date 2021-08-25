@@ -1122,19 +1122,22 @@
                     return false
                 }
                 const projectId = this.projectId
-                const appId = this.curApp.name
+                const appName = this.curApp.name
+                const appId = this.curApp.id
                 const clusterId = this.curApp.cluster_id
                 const namespace = this.curApp.namespace
                 const version = data.version
+                const versionId = data.id
 
                 // this.curVersionYaml = ''
                 try {
-                    const res = await this.$store.dispatch('helm/getUpdateChartVersionDetail', {
+                    const fnPath = this.$INTERNAL ? 'helm/getUpdateChartVersionDetail' : 'helm/getUpdateChartByVersion'
+                    const res = await this.$store.dispatch(fnPath, {
                         projectId,
-                        appId,
-                        clusterId,
-                        version,
-                        namespace
+                        appId: this.$INTERNAL ? appName : appId,
+                        version: this.$INTERNAL ? version : versionId,
+                        clusterId: this.$INTERNAL ? clusterId : undefined,
+                        namespace: this.$INTERNAL ? namespace : undefined
                     })
 
                     const files = res.data.data.files
@@ -1286,11 +1289,16 @@
                 this.curAppVersions = []
                 try {
                     const projectId = this.projectId
-                    const appId = this.curApp.name
+                    const appId = this.$INTERNAL ? this.curApp.name : this.curApp.id
                     const clusterId = this.curApp.cluster_id
                     const namespace = this.curApp.namespace
-                    const res = await this.$store.dispatch('helm/getUpdateVersionList', { projectId, clusterId, appId, namespace })
-                    this.curAppVersions = res.data
+                    if (this.$INTERNAL) {
+                        const res = await this.$store.dispatch('helm/getUpdateVersionList', { projectId, clusterId, appId, namespace })
+                        this.curAppVersions = res.data
+                    } else {
+                        const res = await this.$store.dispatch('helm/getUpdateVersions', { projectId, appId })
+                        this.curAppVersions = res.data.results
+                    }
                     if (this.curAppVersions.length) {
                         this.originReleaseVersion = this.curAppVersions[0].version
                         this.tplVersionId = this.curAppVersions[0].version
