@@ -15,9 +15,6 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.clusters.open_apis.namespace import NamespaceViewSet
-from backend.resources.namespace import Namespace
 from backend.tests.resources.conftest import FakeBcsKubeConfigurationService
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks import bcs_perm, paas_cc
