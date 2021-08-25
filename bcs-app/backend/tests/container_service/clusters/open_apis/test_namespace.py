@@ -37,14 +37,9 @@ class TestNamespace:
         ):
             yield
 
-    @pytest.fixture(autouse=True)
-    def patch_user_viewset(self):
-        # 需要通过指定接口获取不同项目类型，覆盖conftest中的patch_user_viewset
-        pass
-
     @patch(
-        "backend.bcs_web.permissions.PaaSCCClient",
-        new=paas_cc.StubPaaSCCClient,
+        "backend.bcs_web.permissions.PaaSCCClient.get_project",
+        new=paas_cc.StubPaaSCCClient().get_project,
     )
     def test_create_k8s_namespace(self, api_client):
         """创建k8s命名空间

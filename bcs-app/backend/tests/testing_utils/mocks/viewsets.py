@@ -19,6 +19,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.renderers import BrowsableAPIRenderer
 
+from backend.utils import FancyDict
 from backend.utils.renderers import BKAPIRenderer
 
 
@@ -26,8 +27,44 @@ class FakeProjectEnableBCS(BasePermission):
     """ 假的权限控制类，单元测试用 """
 
     def has_permission(self, request, view):
-        self._set_ctx_project_cluster(request, view.kwargs.get('project_id', ''), view.kwargs.get('cluster_id', ''))
+        project_id = view.kwargs.get('project_id', '')
+        try:
+            # 若需要使用该属性，需要 mock PaaSCCClient.get_project 方法
+            # 可参考 backend/tests/container_service/clusters/open_apis/test_namespace.py:40 test_create_k8s_namespace
+            request.project = self._get_enabled_project('fake_access_token', project_id)
+        except Exception:
+            pass
+        self._set_ctx_project_cluster(request, project_id, view.kwargs.get('cluster_id', ''))
         return True
+
+    def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
+        from backend.apps.constants import ClusterType
+        from backend.components.base import ComponentAuth
+        from backend.components.paas_cc import PaaSCCClient
+
+        paas_cc = PaaSCCClient(auth=ComponentAuth(access_token))
+        project_data = paas_cc.get_project(project_id_or_code)
+        project = FancyDict(**project_data)
+
+        self._refine_project(project)
+
+        # 用户绑定了项目, 并且选择了编排类型
+        if project.cc_app_id != 0 and project.kind in ClusterType:
+            return project
+
+        return None
+
+    def _refine_project(self, project: FancyDict):
+        project.coes = project.kind
+        project.project_code = project.english_name
+
+        try:
+            from backend.container_service.projects.utils import get_project_kind
+
+            # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
+            project.kind = get_project_kind(project.kind)
+        except ImportError:
+            pass
 
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         from backend.container_service.clusters.base.models import CtxCluster
