@@ -23,7 +23,6 @@ from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks import bcs_perm, paas_cc
 
 fake_data = {"id": 1, "name": generate_random_string(8)}
-fake_project_id = generate_random_string(32)
 pytestmark = pytest.mark.django_db
 
 
@@ -45,10 +44,13 @@ class TestNamespace:
         "backend.bcs_web.permissions.PaaSCCClient",
         new=paas_cc.StubPaaSCCClient,
     )
-    def test_create_k8s_namespace(self, cluster_id, project_id, api_client):
+    def test_create_k8s_namespace(self, api_client):
         """创建k8s命名空间
         NOTE: 针对k8s会返回namespace_id字段
         """
+        # project_id 与 cluster_id随机，防止项目的缓存，导致获取项目类型错误
+        project_id = generate_random_string(32)
+        cluster_id = generate_random_string(8)
         url = f"/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/"
         resp = api_client.post(url, data=fake_data)
         assert resp.json()["code"] == 0
@@ -61,10 +63,13 @@ class TestNamespace:
         "backend.bcs_web.permissions.PaaSCCClient.get_project",
         new=paas_cc.StubPaaSCCClient().get_mesos_project,
     )
-    def test_create_mesos_namespace(self, cluster_id, project_id, api_client):
+    def test_create_mesos_namespace(self, api_client):
         """创建k8s命名空间
         NOTE: 针对mesos不会返回namespace_id字段
         """
+        # project_id 与 cluster_id随机，防止项目的缓存，导致获取项目类型错误
+        project_id = generate_random_string(32)
+        cluster_id = generate_random_string(8)
         url = f"/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/"
         resp = api_client.post(url, data=fake_data)
         assert resp.json()["code"] == 0
