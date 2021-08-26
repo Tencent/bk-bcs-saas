@@ -16,6 +16,7 @@ from django.conf.urls import url
 
 from . import views
 
+# TODO 考虑后续统一为 api/metrics/projects/:project_id/...
 urlpatterns = [
     url(
         r'^api/metric/(?P<project_id>\w{32})/$',

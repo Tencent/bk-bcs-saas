@@ -76,12 +76,8 @@ urlpatterns = [
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.container_service.observability.metric.urls"),
     ),
-    # TODO 旧 metric 相关 URL，仅 Mesos 使用，计划后续废弃
-    url(r"^", include("backend.container_service.observability.metric.urls")),
-    url(
-        r"^api/projects/(?P<project_id>\w{32})/",
-        include("backend.container_service.observability.metric.urls_old"),
-    ),
+    # Metric(Model) 相关 URL
+    url(r"^", include("backend.container_service.observability.metric.urls_old")),
     # 标准日志输出
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
