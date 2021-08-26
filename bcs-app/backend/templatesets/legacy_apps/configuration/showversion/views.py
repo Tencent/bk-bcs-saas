@@ -23,13 +23,13 @@ from rest_framework.response import Response
 
 from backend.bcs_web.audit_log.audit.decorators import log_audit
 from backend.bcs_web.audit_log.constants import ActivityType
+from backend.iam.permissions.resources import TemplatesetPermCtx, TemplatesetPermission
 from backend.templatesets.legacy_apps.instance.utils import has_instance_of_show_version
 from backend.utils.renderers import BKAPIRenderer
 
 from .. import models
 from ..auditor import TemplatesetAuditor
 from ..mixins import TemplatePermission
-from ..utils import check_template_iam_perm_deco
 from .serializers import (
     GetShowVersionSLZ,
     ListShowVersionISLZ,
@@ -52,6 +52,7 @@ def get_draft_show_version(template):
 
 class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    permission = TemplatesetPermission()
 
     @log_audit(TemplatesetAuditor, activity_type=ActivityType.Modify)
     def _create_or_update_with_ventity(self, create_data):
@@ -108,10 +109,12 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = ResourceConfigSLZ(validated_data)
         return Response(serializer.data)
 
-    @check_template_iam_perm_deco("can_view")
     def list_show_versions(self, request, project_id, template_id):
+        # 权限校验
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=template_id)
+        self.permission.can_view(perm_ctx)
+
         template = models.get_template_by_project_and_id(project_id, template_id)
-        self.can_view_template(request, template)
 
         show_versions = models.ShowVersion.objects.filter(template_id=template.id)
         serializer = ListShowVersionSLZ(show_versions, many=True)
@@ -134,7 +137,6 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = ListShowVersionISLZ(show_versions, many=True)
         return Response({"results": serializer.data})
 
-    @check_template_iam_perm_deco("can_create")
     def save_with_ventity(self, request, project_id, template_id):
         """保存用户可见的版本信息"""
         data = request.data
@@ -142,9 +144,11 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         serializer = ShowVersionWithEntitySLZ(data=data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-
         template = validated_data["template"]
-        self.can_edit_template(request, template)
+
+        # 权限校验
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=template_id)
+        self.permission.can_create(perm_ctx)
 
         create_data = validated_data
         create_data["username"] = request.user.username

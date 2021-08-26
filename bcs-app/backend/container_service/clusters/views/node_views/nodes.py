@@ -19,13 +19,15 @@ from rest_framework.response import Response
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.clusters.base.utils import get_cluster
 from backend.container_service.clusters.tools import node, resp
-from backend.container_service.clusters.utils import check_cluster_iam_perm_deco
+from backend.iam.permissions.resources import ClusterPermCtx, ClusterPermission
 from backend.resources.node.client import Node
 
 from . import serializers as slz
 
 
 class NodeViewSets(SystemViewSet):
+    permission = ClusterPermission()
+
     def list_nodes(self, request, project_id, cluster_id):
         """查询集群下nodes
         NOTE: 限制查询一个集群下的节点
@@ -38,10 +40,14 @@ class NodeViewSets(SystemViewSet):
         client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id, cluster.get("name", ""))
         return Response(client.nodes())
 
-    @check_cluster_iam_perm_deco("cluster_manage")
     def set_labels(self, request, project_id, cluster_id):
         """设置节点标签"""
         params = self.params_validate(slz.NodeLabelListSLZ)
+
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_manage(perm_ctx)
+
         node_client = Node(request.ctx_cluster)
         node_client.set_labels_for_multi_nodes(params["node_label_list"])
         return Response()
@@ -49,6 +55,11 @@ class NodeViewSets(SystemViewSet):
     def set_taints(self, request, project_id, cluster_id):
         """设置污点"""
         params = self.params_validate(slz.NodeTaintListSLZ)
+
+        # 权限校验
+        perm_ctx = ClusterPermCtx(username=request.user.username, project_id=project_id, cluster_id=cluster_id)
+        self.permission.can_manage(perm_ctx)
+
         node_client = Node(request.ctx_cluster)
         node_client.set_taints_for_multi_nodes(params["node_taint_list"])
         return Response()
