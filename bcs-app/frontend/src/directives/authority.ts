@@ -98,8 +98,9 @@ function init (el: IElement, binding: DirectiveBinding) {
 }
 
 function destroy (el: IElement) {
-    delete el.dataset.clickable
     const cloneEl = el.cloneEl
+    if (!cloneEl) return
+
     // 还原原始节点
     const parent = cloneEl.parentNode
     parent?.replaceChild(el, el.cloneEl)
