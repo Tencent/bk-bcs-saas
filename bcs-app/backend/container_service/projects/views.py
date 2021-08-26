@@ -37,7 +37,6 @@ from backend.utils.basic import normalize_datetime
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.utils.func_controller import get_func_controller
 from backend.utils.renderers import BKAPIRenderer
 
 from . import serializers
