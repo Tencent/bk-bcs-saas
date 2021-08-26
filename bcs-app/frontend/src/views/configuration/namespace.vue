@@ -1304,15 +1304,6 @@
              * @param {number} index 当前 namespace 对象的索引
              */
             async showEditQuota (ns, index) {
-                if (!ns.permissions.edit) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'edit',
-                        resource_code: ns.id,
-                        resource_name: ns.name,
-                        resource_type: 'namespace'
-                    })
-                }
                 this.editQuotaConf.isShow = true
                 this.editQuotaConf.loading = true
                 this.editQuotaConf.initLoading = true
