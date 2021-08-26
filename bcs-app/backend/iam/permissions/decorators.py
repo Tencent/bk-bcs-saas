@@ -153,7 +153,7 @@ class response_perms:
         action_id_list: List[str],
         res_request_cls: Type[ResourceRequest],
         resource_id_key: str = 'id',
-        auto_add: bool = True,
+        auto_add: bool = False,
     ):
         self.action_id_list = action_id_list
         self.res_request_cls = res_request_cls
@@ -169,10 +169,12 @@ class response_perms:
         if not resp.resource_data:
             return resp
 
-        with_perms = self.auto_add
         request = args[0]
         if not self.auto_add:
-            with_perms = str2bool(request.query_params.get('with_perms') or True)
+            with_perms = str2bool(request.query_params.get('with_perms', True))
+        else:
+            with_perms = True
+
         if not with_perms:
             return resp
 

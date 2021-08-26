@@ -190,8 +190,9 @@ class VersionInstanceView(viewsets.ViewSet):
             project_id, version_id, is_return_all=True, show_version_id=show_version_id
         )
         # 验证用户是否有使用权限
-        perm = bcs_perm.Templates(request, project_id, template.id, template.name)
-        perm.can_use(raise_exception=True)
+        permission = TemplatesetPermission()
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=template.id)
+        permission.can_instantiate(perm_ctx)
 
         template_id = version_entity.template_id
         version = version_entity.version

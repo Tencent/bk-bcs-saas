@@ -152,30 +152,6 @@
                 "related_actions": ["project_view", "cluster_view", "namespace_view"],
                 "version": 1
             }
-        },
-        {
-            "operation": "upsert_resource_creator_actions",
-            "data": {
-                "config":[
-                    {
-                        "id":"namespace",
-                        "actions":[
-                            {
-                                "id": "namespace_use",
-                                "required": false
-                            },
-                            {
-                                "id":"namespace_update",
-                                "required":false
-                            },
-                            {
-                                "id":"namespace_view",
-                                "required":true
-                            }
-                        ]
-                    }
-                ]
-            }
         }
     ]
 }
