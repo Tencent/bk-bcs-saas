@@ -20,11 +20,13 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ALL_LIMIT, ProjectKind
+from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
-from backend.container_service.observability.metric_mesos import serializers, tasks
-from backend.container_service.observability.metric_mesos.models import Metric as MetricModel
-from backend.container_service.observability.metric_mesos.utils import get_metric_instances
+from backend.container_service.observability.metric import tasks
+from backend.container_service.observability.metric.constants import PAUSE_FLAG
+from backend.container_service.observability.metric.models import Metric as MetricModel
+from backend.container_service.observability.metric.serializers import CreateMetricSLZ, UpdateMetricSLZ
+from backend.container_service.observability.metric.utils import get_metric_instances
 from backend.templatesets.legacy_apps.configuration.models import POD_RES_LIST
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
@@ -46,10 +48,9 @@ except ImportError:
     )
 
 logger = logging.getLogger(__name__)
-PAUSE = 'pause'
 
 
-class Metric(viewsets.ViewSet):
+class MetricViewSet(viewsets.ViewSet):
     """metric列表"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -79,9 +80,7 @@ class Metric(viewsets.ViewSet):
         if not cc_app_id:
             raise error_codes.APIError(_('必须绑定业务'))
 
-        serializer = serializers.CreateMetricSLZ(
-            data=request.data, context={'request': request, 'project_id': project_id}
-        )
+        serializer = CreateMetricSLZ(data=request.data, context={'request': request, 'project_id': project_id})
         serializer.is_valid(raise_exception=True)
 
         # 校验权限
@@ -119,7 +118,7 @@ class Metric(viewsets.ViewSet):
         return BKAPIResponse({'metric_id': ref.pk}, message=_('创建metric成功'))
 
 
-class MetricDetail(viewsets.ViewSet):
+class MetricDetailViewSet(viewsets.ViewSet):
     """单个metric操作"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -138,9 +137,7 @@ class MetricDetail(viewsets.ViewSet):
 
     def put(self, request, project_id, metric_id):
         """更新put"""
-        serializer = serializers.UpdateMetricSLZ(
-            data=request.data, context={'request': request, 'project_id': project_id}
-        )
+        serializer = UpdateMetricSLZ(data=request.data, context={'request': request, 'project_id': project_id})
         serializer.is_valid(raise_exception=True)
 
         queryset = MetricModel.objects.filter(project_id=project_id, pk=metric_id)
@@ -196,8 +193,8 @@ class MetricDetail(viewsets.ViewSet):
             ns_id_list=ns_id_list,
         )
         # 针对暂停操作，添加 op_type 参数
-        if op_type == PAUSE:
-            ref.update_status(PAUSE)
+        if op_type == PAUSE_FLAG:
+            ref.update_status(PAUSE_FLAG)
         else:
             ref.soft_delete()
             perm.delete()
@@ -215,7 +212,7 @@ class MetricDetail(viewsets.ViewSet):
         perm = bcs_perm.Metric(request, project_id, bcs_perm.NO_RES)
         perm.can_create(raise_exception=True)
         # 状态校验
-        if ref.status != PAUSE:
+        if ref.status != PAUSE_FLAG:
             raise error_codes.APIError(_('metric不为暂停状态，不允许操作!'))
         else:
             ref.update_status('normal')
@@ -234,7 +231,7 @@ class MetricDetail(viewsets.ViewSet):
         return BKAPIResponse({'metric_id': ref.pk}, message=_('创建metric成功'))
 
 
-class MetricIns(viewsets.ViewSet):
+class MetricInsViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_instance(self, request, project_id, metric_id):
@@ -266,13 +263,7 @@ class MetricIns(viewsets.ViewSet):
         for _n in ns_list:
             ns_dict[_n['name']] = _n['id']
 
-        if request.project.kind == ProjectKind.MESOS.value:
-            # mesos
-            category_list = ['application', 'deployment']
-        else:
-            category_list = POD_RES_LIST
-
-        instance_info = InstanceConfig.objects.filter(is_deleted=False, category__in=category_list).exclude(
+        instance_info = InstanceConfig.objects.filter(is_deleted=False, category__in=POD_RES_LIST).exclude(
             ins_state=InsState.NO_INS.value
         )
 

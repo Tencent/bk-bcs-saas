@@ -12,9 +12,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.bcs_web.apis.views import ProjectBaseAPIViewSet
-from backend.container_service.observability.metric_mesos.views import servicemonitor
+from django.contrib import admin
+
+from backend.container_service.observability.metric.models import Metric
 
 
-class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
-    """继承servicemonitor"""
+class MetricAdmin(admin.ModelAdmin):
+    list_display = ('project_id', 'name', 'port', 'uri', 'frequency', 'version', 'data_id', 'metric_type', 'timeout')
+    search_fields = ('project_id', 'name', 'port', 'uri', 'frequency', 'version', 'data_id', 'metric_type', 'timeout')
+
+
+admin.site.register(Metric, MetricAdmin)

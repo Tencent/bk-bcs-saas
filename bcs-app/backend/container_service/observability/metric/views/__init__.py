@@ -13,9 +13,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from .cluster import ClusterMetricViewSet  # noqa
+from .collector import MetricDetailViewSet, MetricInsViewSet, MetricViewSet  # noqa
 from .container import ContainerMetricViewSet  # noqa
 from .node import NodeMetricViewSet  # noqa
 from .pod import PodMetricViewSet  # noqa
+from .prometheus import PrometheusUpdateViewSet  # noqa
 from .service import ServiceViewSet  # noqa
 from .service_monitor import ServiceMonitorDetailViewSet, ServiceMonitorViewSet  # noqa
 from .target import TargetsViewSet  # noqa

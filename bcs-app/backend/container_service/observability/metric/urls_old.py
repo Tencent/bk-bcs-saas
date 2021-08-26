@@ -12,6 +12,23 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from . import collector  # noqa
-from . import performance  # noqa
-from . import servicemonitor  # noqa
+from django.conf.urls import url
+
+from . import views
+
+urlpatterns = [
+    url(
+        r'^api/metric/(?P<project_id>\w{32})/$',
+        views.collector.MetricViewSet.as_view({'get': 'list', 'post': 'create'}),
+    ),
+    url(
+        r'^api/metric/(?P<project_id>\w{32})/(?P<metric_id>\d+)/$',
+        views.collector.MetricDetailViewSet.as_view(
+            {'get': 'get', 'put': 'put', 'post': 'recreate', 'delete': 'delete'}
+        ),
+    ),
+    url(
+        r'^api/metric/(?P<project_id>\w{32})/instances/(?P<metric_id>\d+)/$',
+        views.collector.MetricInsViewSet.as_view({'get': 'get_instance'}),
+    ),
+]

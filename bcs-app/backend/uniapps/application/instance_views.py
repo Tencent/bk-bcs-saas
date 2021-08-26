@@ -26,7 +26,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.audit_log import client
 from backend.components import data, paas_cc
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.observability.metric.models import Metric
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity

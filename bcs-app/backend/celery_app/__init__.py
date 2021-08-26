@@ -57,7 +57,7 @@ class CeleryConfig(AppConfig):
         from backend.container_service.clusters import node_tasks  # noqa
         from backend.container_service.clusters import tasks as cluster_tasks  # noqa
         from backend.container_service.infras.hosts.terraform import tasks as host_tasks  # noqa
-        from backend.container_service.observability.metric_mesos import tasks as metric_tasks  # noqa
+        from backend.container_service.observability.metric import tasks as metric_tasks  # noqa
         from backend.helm.app import tasks as helm_app_tasks  # noqa
         from backend.helm.helm import tasks as helm_chart_tasks  # noqa
         from backend.packages.blue_krill.async_utils import poll_task  # noqa

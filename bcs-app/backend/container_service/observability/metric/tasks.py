@@ -20,7 +20,7 @@ from celery import shared_task
 
 from backend.apps.constants import MetricProjectKind
 from backend.components.bcs.mesos import MesosClient
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.observability.metric.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import MetricConfig
 

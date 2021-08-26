@@ -31,6 +31,13 @@ METRICS_DEFAULT_NAMESPACE = '.*'
 # 默认查询 POD 下所有的容器
 METRICS_DEFAULT_CONTAINER_LIST = ['.*']
 
+# Metric Pause Flag
+PAUSE_FLAG = 'pause'
+
+# Metric(Model) 名称规则
+METRIC_NAME_PATTERN = re.compile(r"^[a-z][-a-z0-9]*$")
+METRIC_NAME_PATTERN_MSG = _("名称由小写英文字母、中划线或数字组成，且不可以数字开头")
+
 
 class MetricDimension(str, StructuredEnum):
     """ 指标维度 """
