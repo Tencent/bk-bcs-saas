@@ -16,7 +16,12 @@ const childRoutes = [
     {
         path: ':projectCode/node',
         name: 'nodeMain',
-        component: Node
+        component: Node,
+        meta: {
+            authority: {
+                actionIds: ['cluster_manage', 'cluster_view']
+            }
+        }
     }
 ]
 
