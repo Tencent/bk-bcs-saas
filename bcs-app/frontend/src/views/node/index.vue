@@ -17,6 +17,8 @@
                     <div class="left">
                         <bcs-button :disabled="!checkedNodeList.length"
                             v-authority="{
+                                clickable: $BcsAuthMap && $BcsAuthMap.cluster_manage,
+                                disablePerms: true,
                                 actionId: 'cluster_manage',
                                 resourceName: curSelectedClusterName,
                                 permCtx: {
@@ -210,6 +212,8 @@
                                 <bk-button text
                                     :disabled="row.status !== 'normal'"
                                     v-authority="{
+                                        clickable: $BcsAuthMap && $BcsAuthMap.cluster_manage,
+                                        disablePerms: true,
                                         actionId: 'cluster_manage',
                                         resourceName: curSelectedClusterName,
                                         permCtx: {
@@ -223,6 +227,8 @@
                                 </bk-button>
                                 <bk-button v-if="!isMesosProject" text
                                     v-authority="{
+                                        clickable: $BcsAuthMap && $BcsAuthMap.cluster_manage,
+                                        disablePerms: true,
                                         actionId: 'cluster_manage',
                                         resourceName: curSelectedClusterName,
                                         permCtx: {
@@ -233,6 +239,8 @@
                                     }" @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
                                 <bk-button text
                                     v-authority="{
+                                        clickable: $BcsAuthMap && $BcsAuthMap.cluster_view,
+                                        disablePerms: true,
                                         actionId: 'cluster_view',
                                         resourceName: curSelectedClusterName,
                                         permCtx: {
@@ -443,6 +451,16 @@
             }
         },
         computed: {
+            $BcsAuthParams () {
+                if (!this.projectId || !this.curSelectedClusterId) return null
+                return {
+                    "perm_ctx": {
+                        resource_type: 'cluster',
+                        project_id: this.projectId,
+                        cluster_id: this.curSelectedClusterId
+                    }
+                }
+            },
             projectId () {
                 return this.$route.params.projectId
             },
