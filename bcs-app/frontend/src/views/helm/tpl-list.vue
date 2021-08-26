@@ -183,7 +183,7 @@
                                                                     </router-link>
                                                                 </span>
                                                                 <bk-button v-if="tabActiveName === 'publicRepo'" theme="default" @click="handleDownloadChart(template)">{{$t('下载版本')}}</bk-button>
-                                                                <bk-dropdown-menu class="dropdown-menu" :align="'right'" ref="dropdown" v-if="tabActiveName === 'privateRepo'">
+                                                                <bk-dropdown-menu class="dropdown-menu" :align="'right'" ref="dropdown" v-if="tabActiveName === 'privateRepo' && $INTERNAL">
                                                                     <bk-button class="bk-button bk-default btn" slot="dropdown-trigger" style="width: 82px; position: relative;">
                                                                         <span class="f14">{{$t('更多')}}</span>
                                                                         <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
@@ -335,7 +335,8 @@
                 <bcs-form-item :label="$t('选择要下载的版本')">
                     <bcs-select v-model="downloadDialog.downloadVersion"
                         :loading="isTplVersionLoading"
-                        :clearable="false">
+                        :clearable="false"
+                        @change="handleSelectVersion">
                         <bcs-option v-for="item in downloadDialog.versions"
                             :key="item.version"
                             :id="item.version"
@@ -766,7 +767,6 @@
                 this.delInstanceDialogConf.versions = []
                 this.delInstanceDialogConf.releases = []
                 this.delInstanceDialogConf.versionIds = []
-
                 this.getTplVersions()
             },
 
@@ -774,7 +774,7 @@
                 const projectId = this.projectId
 
                 try {
-                    if (this.$INTERNAL) {
+                    if (!this.$INTERNAL) {
                         const tplId = this.delInstanceDialogConf.template.name
                         const res = await this.$store.dispatch('helm/getTplVersionList', {
                             projectId,
@@ -844,15 +844,18 @@
                 })
             },
 
-            async getChartVersionDetail (chartId, version) {
+            async getChartVersionDetail (payload) {
+                const { chartId, chartName, downloadVersion, downloadVersionId } = payload
                 this.isVersionDetailLoading = true
                 let url = ''
                 try {
-                    const res = await this.$store.dispatch('helm/getChartVersionDetail', {
+                    const fnPath = this.$INTERNAL ? 'helm/getChartVersionDetail' : 'helm/getChartByVersion'
+                    const isPublic = this.$INTERNAL ? this.tabActiveName === 'publicRepo' : undefined
+                    const res = await this.$store.dispatch(fnPath, {
                         projectId: this.projectId,
-                        isPublic: this.tabActiveName === 'publicRepo',
-                        chartId,
-                        version
+                        chartId: this.$INTERNAL ? chartName : chartId,
+                        version: this.$INTERNAL ? downloadVersion : downloadVersionId,
+                        isPublic
                     })
                     const data = res.data || {}
                     const urls = (data.data || {}).urls || []
@@ -895,12 +898,18 @@
                 this.downloadDialog.downloadVersion = ''
                 this.downloadDialog.versions = []
                 this.downloadDialog.chartName = template.name
+                this.downloadDialog.chartId = template.id
                 this.downloadDialog.isShow = true
                 await this.getTplVersionList(template)
             },
 
+            handleSelectVersion (version) {
+                const curVersionData = this.downloadDialog.versions.find(item => item.version === version)
+                this.downloadDialog.downloadVersionId = curVersionData.id
+            },
+
             async handleComfirmDownload () {
-                const url = await this.getChartVersionDetail(this.downloadDialog.chartName, this.downloadDialog.downloadVersion)
+                const url = await this.getChartVersionDetail(this.downloadDialog)
                 const a = document.createElement('a')
                 a.href = url
                 a.click()

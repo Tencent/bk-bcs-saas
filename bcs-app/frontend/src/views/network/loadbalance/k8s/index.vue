@@ -554,7 +554,8 @@
                         })
                         const files = res.data.files || {}
                         Object.keys(files).forEach(filesKey => {
-                            if (filesKey.endsWith('values.yaml')) {
+                            const keys = filesKey.split('/')
+                            if (keys[keys.length - 1] === 'values.yaml') {
                                 this.curLoadBalance.values = files[filesKey]
                             }
                         })
