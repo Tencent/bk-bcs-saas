@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Type
 
 from backend.iam.permissions import decorators
-from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
+from backend.iam.permissions.perm import PermCtx, Permission, ResCreatorActionCtx, ResourceRequest
 from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
@@ -30,6 +30,11 @@ class ProjectAction(str, StructuredEnum):
 
 
 class ProjectRequest(ResourceRequest):
+    resource_type: str = ResourceType.Project
+
+
+@dataclass
+class ProjectCreatorActionCtx(ResCreatorActionCtx):
     resource_type: str = ResourceType.Project
 
 

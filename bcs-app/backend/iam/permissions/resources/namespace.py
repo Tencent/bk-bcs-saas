@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.exceptions import AttrValidationError
-from backend.iam.permissions.perm import PermCtx, Permission
+from backend.iam.permissions.perm import PermCtx, Permission, ResCreatorActionCtx
 from backend.iam.permissions.request import IAMResource, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import md5
@@ -52,6 +52,21 @@ class NamespaceAction(str, StructuredEnum):
     UPDATE = EnumField('namespace_update', label='namespace_update')
     DELETE = EnumField('namespace_delete', label='namespace_delete')
     USE = EnumField('namespace_use', label='namespace_use')
+
+
+@dataclass
+class NamespaceCreatorActionCtx(ResCreatorActionCtx):
+    project_id: str = ""
+    cluster_id: str = ""
+    resource_type: str = ResourceType.Namespace
+
+    def __post_init__(self):
+        super().__post_init__()
+        ancestors = [
+            {"system": self.system, "type": ResourceType.Project, "id": self.project_id},
+            {"system": self.system, "type": ResourceType.Cluster, "id": self.cluster_id},
+        ]
+        self.data.update({"ancestors": ancestors})
 
 
 @dataclass

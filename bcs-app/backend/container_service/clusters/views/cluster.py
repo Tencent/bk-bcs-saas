@@ -43,7 +43,12 @@ from backend.container_service.clusters.utils import (
 )
 from backend.iam.permissions.decorators import response_perms
 from backend.iam.permissions.resources import ClusterRequest
-from backend.iam.permissions.resources.cluster import ClusterAction, ClusterPermCtx, ClusterPermission
+from backend.iam.permissions.resources.cluster import (
+    ClusterAction,
+    ClusterCreatorActionCtx,
+    ClusterPermCtx,
+    ClusterPermission,
+)
 from backend.resources.utils.kube_client import get_dynamic_client
 from backend.uniapps.application import constants as app_constants
 from backend.utils.basic import normalize_datetime, normalize_metric
@@ -169,7 +174,13 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         cluster_info = cluster_client.create()
 
         self.permission.grant_resource_creator_actions(
-            request.user.username, cluster_info["cluster_id"], cluster_info["name"]
+            request.user.username,
+            ClusterCreatorActionCtx(
+                resource_id=cluster_info["cluster_id"],
+                resource_name=cluster_info["name"],
+                username=request.user.username,
+                project_id=project_id,
+            ),
         )
         return Response()
 

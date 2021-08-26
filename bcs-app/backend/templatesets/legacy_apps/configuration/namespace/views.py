@@ -37,6 +37,7 @@ from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfro
 from backend.iam.permissions.decorators import response_perms
 from backend.iam.permissions.resources.namespace import (
     NamespaceAction,
+    NamespaceCreatorActionCtx,
     NamespacePermCtx,
     NamespacePermission,
     NamespaceRequest,
@@ -353,7 +354,14 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         else:
             # 创建成功后，授权其他操作权限
             self.permission.grant_resource_creator_actions(
-                request.user.username, calc_iam_ns_id(cluster_id, ns_name), ns_name
+                request.user.username,
+                NamespaceCreatorActionCtx(
+                    resource_id=calc_iam_ns_id(cluster_id, ns_name),
+                    resource_name=ns_name,
+                    username=request.user.username,
+                    project_id=project_id,
+                    cluster_id=cluster_id,
+                ),
             )
 
         # 创建成功后需要保存变量信息
