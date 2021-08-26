@@ -151,30 +151,6 @@
                 "related_actions": ["project_view", "templateset_view"],
                 "version": 1
             }
-        },
-        {
-            "operation": "upsert_resource_creator_actions",
-            "data": {
-                "config":[
-                    {
-                        "id":"templateset",
-                        "actions":[
-                            {
-                                "id": "templateset_instantiate",
-                                "required": false
-                            },
-                            {
-                                "id":"templateset_update",
-                                "required":false
-                            },
-                            {
-                                "id":"templateset_view",
-                                "required":true
-                            }
-                        ]
-                    }
-                ]
-            }
         }
     ]
 }

@@ -125,26 +125,6 @@
                 "related_actions": ["project_view", "cluster_view"],
                 "version": 1
             }
-        },
-        {
-            "operation": "upsert_resource_creator_actions",
-            "data": {
-                "config":[
-                    {
-                        "id":"cluster",
-                        "actions":[
-                            {
-                                "id":"cluster_manage",
-                                "required":false
-                            },
-                            {
-                                "id":"cluster_view",
-                                "required":true
-                            }
-                        ]
-                    }
-                ]
-            }
         }
     ]
 }
