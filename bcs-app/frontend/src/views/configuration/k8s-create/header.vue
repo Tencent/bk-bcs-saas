@@ -127,8 +127,29 @@
                         <bk-button type="primary" style="width: 70px;" disabled>{{$t('保存')}}</bk-button>
                     </template>
                     <template v-else>
-                        <bk-button @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</bk-button>
-                        <bk-button type="primary" :loading="isDataSaveing" :disabled="!isTemplateCanSave" style="width: 70px;" @click.stop.prevent="saveTemplateData">{{$t('保存')}}</bk-button>
+                        <bk-button
+                            v-authority="{
+                                actionId: 'templateset_create',
+                                resourceName: curTemplate.name,
+                                permCtx: {
+                                    resource_type: 'templateset',
+                                    project_id: projectId,
+                                    template_id: curTemplateId
+                                }
+                            }" @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</bk-button>
+                        <bk-button
+                            v-authority="{
+                                actionId: 'templateset_update',
+                                resourceName: curTemplate.name,
+                                permCtx: {
+                                    resource_type: 'templateset',
+                                    project_id: projectId,
+                                    template_id: curTemplateId
+                                }
+                            }"
+                            type="primary" :loading="isDataSaveing"
+                            :disabled="!isTemplateCanSave" style="width: 70px;"
+                            @click.stop.prevent="saveTemplateData">{{$t('保存')}}</bk-button>
                     </template>
                 </template>
                 <template v-else>
@@ -159,7 +180,16 @@
                 </template>
 
                 <template v-if="curTemplate.permissions.use">
-                    <bk-button :disabled="!canCreateInstance" @click.stop.prevent="createInstance">
+                    <bk-button :disabled="!canCreateInstance"
+                        v-authority="{
+                            actionId: 'templateset_instantiate',
+                            resourceName: curTemplate.name,
+                            permCtx: {
+                                resource_type: 'templateset',
+                                project_id: projectId,
+                                template_id: curTemplateId
+                            }
+                        }" @click.stop.prevent="createInstance">
                         {{$t('实例化')}}
                     </bk-button>
                 </template>
@@ -373,11 +403,11 @@
                                 <!-- 有编辑权限 -->
                                 <template v-if="curTemplate.permissions.edit">
                                     <!-- 已经加锁，且是当前加锁人 -->
-                                    <template v-if="templateLockStatus.isLocked && templateLockStatus.isCurLocker">
+                                    <!-- <template v-if="templateLockStatus.isLocked && templateLockStatus.isCurLocker">
                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(props.row)">{{$t('删除')}}</a>
-                                    </template>
+                                    </template> -->
                                     <!-- 已经加锁，但不是当前加锁人 -->
-                                    <template v-else-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
+                                    <template v-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
                                         <bcs-popover :delay="300" placement="right">
                                             <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
                                             <template slot="content">
@@ -389,7 +419,16 @@
                                     </template>
                                     <!-- 没有加锁 -->
                                     <template v-else>
-                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(props.row)">{{$t('删除')}}</a>
+                                        <a href="javascript:void(0);"
+                                            v-authority="{
+                                                actionId: 'templateset_delete',
+                                                resourceName: curTemplate.name,
+                                                permCtx: {
+                                                    resource_type: 'templateset',
+                                                    project_id: projectId,
+                                                    template_id: curTemplateId
+                                                }
+                                            }" class="bk-text-button" @click.stop.prevent="removeVersion(props.row)">{{$t('删除')}}</a>
                                     </template>
                                 </template>
                                 <!-- 没有编辑权限 -->

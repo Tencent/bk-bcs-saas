@@ -108,8 +108,21 @@
                                                 name: row.name
                                             }
                                         }" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
-                                    <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
-                                        <a href="javascript:void(0);" class="bk-text-button">
+                                    <bcs-popover :disabled="!(web_annotations.perms[`${row.cluster_id}:${row.name}`]
+                                                     && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update)"
+                                        :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
+                                        <a href="javascript:void(0);" v-authority="{
+                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
+                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update,
+                                            actionId: 'namespace_update',
+                                            resourceName: row.name,
+                                            disablePerms: true,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: row.cluster_id,
+                                                name: row.name
+                                            }
+                                        }" class="bk-text-button">
                                             {{$t('配额管理')}}
                                         </a>
                                         <ul class="dot-menu-list" slot="content">
