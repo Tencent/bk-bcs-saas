@@ -77,6 +77,7 @@ class TemplatesView(APIView):
             TemplatesetAction.UPDATE,
             TemplatesetAction.DELETE,
             TemplatesetAction.INSTANTIATE,
+            TemplatesetAction.COPY,
         ],
         res_request_cls=TemplatesetRequest,
         resource_id_key='id',

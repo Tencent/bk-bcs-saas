@@ -64,6 +64,10 @@ class TestTemplatesetPermission:
         perm_ctx = TemplatesetPermCtx(username=roles.ANONYMOUS_USER, project_id=project_id, template_id=template_id)
         assert not templateset_permission_obj.can_view(perm_ctx, raise_exception=False)
 
+    def test_can_copy(self, templateset_permission_obj, project_id, template_id):
+        perm_ctx = TemplatesetPermCtx(username=roles.ADMIN_USER, project_id=project_id, template_id=template_id)
+        assert templateset_permission_obj.can_copy(perm_ctx)
+
     def test_can_not_view_templateset(self, templateset_permission_obj, project_id, template_id):
         """测试场景：有项目权限但无模板集权限"""
         self._test_can_not_view(

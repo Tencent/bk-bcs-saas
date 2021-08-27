@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Union
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.exceptions import AttrValidationError
@@ -30,6 +30,7 @@ class TemplatesetAction(str, StructuredEnum):
     UPDATE = EnumField("templateset_update", label="templateset_update")
     DELETE = EnumField("templateset_delete", label="templateset_delete")
     INSTANTIATE = EnumField("templateset_instantiate", label="templateset_instantiate")
+    COPY = EnumField("templateset_copy", label="templateset_copy")
 
 
 @dataclass
@@ -48,10 +49,11 @@ class TemplatesetCreatorActionCtx(ResCreatorActionCtx):
 @dataclass
 class TemplatesetPermCtx(PermCtx):
     project_id: str = ''
-    template_id: Optional[str] = None
+    template_id: Union[str, int, None] = None
 
     def __post_init__(self):
-        self.template_id = str(self.template_id)
+        if self.template_id is not None:
+            self.template_id = str(self.template_id)
 
     def validate(self):
         super().validate()
@@ -109,6 +111,11 @@ class TemplatesetPermission(Permission):
     def can_view(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, TemplatesetAction.VIEW, raise_exception)
+
+    @related_templateset_perm(method_name="can_view")
+    def can_copy(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
+        perm_ctx.validate_resource_id()
+        return self.can_action(perm_ctx, TemplatesetAction.COPY, raise_exception)
 
     @related_templateset_perm(method_name="can_view")
     def can_update(self, perm_ctx: TemplatesetPermCtx, raise_exception: bool = True) -> bool:
