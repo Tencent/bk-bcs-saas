@@ -120,13 +120,13 @@
                                             </a>
                                         </li>
                                     </template>
-                                    <!-- <li v-if="!cluster.permissions.use">
+                                    <li v-if="!cluster.permissions.use">
                                         <a :href="createApplyPermUrl({
                                             policy: 'use',
                                             projectCode: projectCode,
                                             idx: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}:${cluster.cluster_id}`
                                         })" target="_blank">{{$t('申请使用权限')}}</a>
-                                    </li> -->
+                                    </li>
                                 </ul>
                             </bk-dropdown-menu>
                             <bk-dropdown-menu
@@ -288,16 +288,16 @@
                     <p class="title">{{$t('欢迎使用容器服务')}}</p>
                     <p class="desc">{{$t('使用容器服务，蓝鲸将为您快速搭建、运维和管理容器集群，您可以轻松对容器进行启动、停止等操作，也可以查看集群、容器及服务的状态，以及使用各种组件服务。')}}</p>
                     <p class="desc">
-                        <!-- <a :href="PROJECT_CONFIG.doc.quickStart" class="guide-link" target="_blank">{{$t('请点击了解更多')}}<i class="bcs-icon bcs-icon-angle-double-right ml5"></i></a> -->
+                        <a :href="PROJECT_CONFIG.doc.quickStart" class="guide-link" target="_blank">{{$t('请点击了解更多')}}<i class="bcs-icon bcs-icon-angle-double-right ml5"></i></a>
                     </p>
                     <div class="guide-btn-group">
                         <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" @click="gotCreateCluster">
                             <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                         </a>
 
-                        <!-- <a class="bk-button bk-default bk-button-large" :href="PROJECT_CONFIG.doc.quickStart" target="_blank">
+                        <a class="bk-button bk-default bk-button-large" :href="PROJECT_CONFIG.doc.quickStart" target="_blank">
                             <span style="margin-left: 0;">{{$t('快速入门指引')}}</span>
-                        </a> -->
+                        </a>
                         <apply-host class="apply-host ml5" />
                     </div>
                 </div>
@@ -354,7 +354,7 @@
                                     </template>
                                     <template v-else>
                                         <i18n path="请联系“{user}”解决">
-                                            <!-- <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a> -->
+                                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
                                         </i18n>
                                     </template>
                                 </div>
@@ -409,7 +409,7 @@
                                     </template>
                                     <template v-else>
                                         <i18n path="请联系“{user}”解决">
-                                            <!-- <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a> -->
+                                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
                                         </i18n>
                                     </template>
                                 </div>
@@ -452,7 +452,7 @@
                                 <router-link place="method" class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>
                             </i18n>
                             <p class="url mb25">
-                                <!-- <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">{{$t('点击了解更多')}}</a> -->
+                                <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">{{$t('点击了解更多')}}</a>
                             </p>
                         </div>
                     </div>
@@ -463,7 +463,7 @@
                         <h3>{{$t('集群下没有节点，您需要：')}}</h3>
                         <p>{{$t('1、在集群下，添加节点')}}</p>
                         <i18n path="2、或者联系【{user}】" tag="p">
-                            <!-- <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a> -->
+                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
                         </i18n>
                     </template>
                 </div>

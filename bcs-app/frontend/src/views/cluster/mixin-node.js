@@ -1970,7 +1970,6 @@ export default {
          * @param {string} idx 操作标识
          */
         batchOperate (idx) {
-            console.log(idx, 222)
             const len = Object.keys(this.checkedNodes).length
             let str = ''
             if (idx === '1') {

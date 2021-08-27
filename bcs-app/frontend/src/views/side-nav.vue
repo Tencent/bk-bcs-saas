@@ -449,7 +449,6 @@
              * 更新项目信息
              */
             async updateProject () {
-                console.log(111)
                 if (this.isLoading) return
 
                 if (!this.ccKey) {
