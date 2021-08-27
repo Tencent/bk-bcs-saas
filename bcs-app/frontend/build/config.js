@@ -36,12 +36,12 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/api': {
-                target: 'https://paas-teach.bktencent.com/o/bk_bcs_app', // 接口域名
+                target: '', // 接口域名
                 changeOrigin: true, // 是否跨域
                 secure: false,
                 toProxy: true,
                 headers: {
-                    referer: 'https://paas-teach.bktencent.com'
+                    referer: ''
                 }
             },
         },
