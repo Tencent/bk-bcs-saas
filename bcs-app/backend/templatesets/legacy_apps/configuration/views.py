@@ -30,7 +30,12 @@ from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.iam.permissions.decorators import response_perms
 from backend.iam.permissions.resources import TemplatesetRequest
-from backend.iam.permissions.resources.templateset import TemplatesetAction, TemplatesetPermCtx, TemplatesetPermission
+from backend.iam.permissions.resources.templateset import (
+    TemplatesetAction,
+    TemplatesetCreatorActionCtx,
+    TemplatesetPermCtx,
+    TemplatesetPermission,
+)
 from backend.templatesets.legacy_apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse, PermsResponse
@@ -132,8 +137,15 @@ class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
             resource=template.name, resource_id=template.id, extra=validated_data, description=_("保存草稿")
         )
 
-        templateset_perm = TemplatesetPermission()
-        templateset_perm.grant_resource_creator_actions(request.user.username, template.id, template.name)
+        TemplatesetPermission().grant_resource_creator_actions(
+            request.user.username,
+            TemplatesetCreatorActionCtx(
+                resource_id=template.id,
+                resource_name=template.name,
+                username=request.user.username,
+                project_id=project_id,
+            ),
+        )
 
         return Response(
             {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"]}
@@ -452,8 +464,15 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         username = request.user.username
         template_id, version_id, show_version_id = old_tem.copy_tempalte(project_id, new_template_name, username)
 
-        templateset_perm = TemplatesetPermission()
-        templateset_perm.grant_resource_creator_actions(request.user.username, template_id, new_template_name)
+        TemplatesetPermission().grant_resource_creator_actions(
+            request.user.username,
+            TemplatesetCreatorActionCtx(
+                resource_id=template_id,
+                resource_name=new_template_name,
+                username=request.user.username,
+                project_id=project_id,
+            ),
+        )
 
         # 注册资源到权限中心
         # perm.register(template_id, new_template_name)

@@ -16,11 +16,35 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Optional, Type
 
+from django.conf import settings
+
 from .client import IAMClient
 from .exceptions import AttrValidationError, PermissionDeniedError
 from .request import ActionResourcesRequest, IAMResource, ResourceRequest
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ResCreatorActionCtx:
+    """
+    创建关联操作权限所需属性
+    """
+
+    username: str
+    resource_id: str
+    resource_name: str
+    resource_type: str
+    system: str = settings.APP_ID
+
+    def __post_init__(self):
+        self.data = {
+            "type": self.resource_type,
+            "id": self.resource_id,
+            "name": self.resource_name,
+            "system": self.system,
+            "creator": self.username,
+        }
 
 
 @dataclass
@@ -73,12 +97,12 @@ class Permission(ABC, IAMClient):
 
         return is_allowed
 
-    def grant_resource_creator_actions(self, username: str, resource_id: str, resource_name: str):
+    def grant_resource_creator_actions(self, username: str, res_create_action_ctx: ResCreatorActionCtx):
         """
         用于创建资源时，注册用户对该资源的关联操作权限.
         note: 具体的关联操作见权限模型的 resource_creator_actions 字段
         """
-        return self._grant_resource_creator_actions(username, self.resource_type, resource_id, resource_name)
+        return self._grant_resource_creator_actions(username, res_create_action_ctx.data)
 
     def make_res_request(self, res_id: str, perm_ctx: PermCtx) -> ResourceRequest:
         """创建当前资源 request"""

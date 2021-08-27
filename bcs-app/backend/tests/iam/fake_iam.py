@@ -149,3 +149,6 @@ class FakeIAMClient:
             perms[r_id] = p
 
         return perms
+
+    def grant_resource_creator_actions(self, username: str, data: Dict):
+        return True, data

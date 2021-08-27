@@ -26,3 +26,9 @@ def namespace_name():
 def template_id():
     """生成一个随机模板集 ID"""
     return generate_random_string(32)
+
+
+@pytest.fixture
+def template_name():
+    """生成一个随机模板集 name"""
+    return generate_random_string(16)

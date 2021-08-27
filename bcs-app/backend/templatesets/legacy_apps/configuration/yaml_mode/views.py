@@ -21,6 +21,7 @@ from rest_framework.response import Response
 
 from backend.components import paas_cc
 from backend.iam.permissions.resources import TemplatesetPermCtx, TemplatesetPermission
+from backend.iam.permissions.resources.templateset import TemplatesetCreatorActionCtx
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
@@ -75,7 +76,15 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         template = serializer.save()
 
         templateset_perm = TemplatesetPermission()
-        templateset_perm.grant_resource_creator_actions(request.user.username, template.id, template.name)
+        templateset_perm.grant_resource_creator_actions(
+            request.user.username,
+            TemplatesetCreatorActionCtx(
+                resource_id=template.id,
+                resource_name=template.name,
+                username=request.user.username,
+                project_id=project_id,
+            ),
+        )
 
         return Response({"template_id": template.id})
 

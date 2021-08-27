@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Type
 
 from backend.iam.permissions import decorators
 from backend.iam.permissions.exceptions import AttrValidationError
-from backend.iam.permissions.perm import PermCtx, Permission, ResourceRequest
+from backend.iam.permissions.perm import PermCtx, Permission, ResCreatorActionCtx, ResourceRequest
 from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
@@ -29,6 +29,17 @@ class ClusterAction(str, StructuredEnum):
     VIEW = EnumField('cluster_view', label='cluster_view')
     MANAGE = EnumField('cluster_manage', label='cluster_manage')
     DELETE = EnumField('cluster_delete', label='cluster_delete')
+
+
+@dataclass
+class ClusterCreatorActionCtx(ResCreatorActionCtx):
+    project_id: str = ""
+    resource_type: str = ResourceType.Cluster
+
+    def __post_init__(self):
+        super().__post_init__()
+        ancestors = [{"system": self.system, "type": ResourceType.Project, "id": self.project_id}]
+        self.data.update({"ancestors": ancestors})
 
 
 @dataclass
