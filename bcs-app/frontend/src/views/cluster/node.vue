@@ -1212,8 +1212,8 @@
             :quick-close="false"
             @cancel="stopDialogConf.isShow = false">
             <template slot="content">
-                <div style="font-size: 16px;" v-if="curClusterInPage.type === 'mesos'">{{stopDialogConf.content}}</div>
-                <div style="color: #ff5656;" v-else>{{stopDialogConf.content}}</div>
+                <div class="stopDialog-title" v-if="curClusterInPage.type === 'mesos'">{{stopDialogConf.content}}</div>
+                <div :class="{ 'stopDialog-content': true, 'font-content': curClusterInPage.type !== 'mesos' && !this.$INTERNAL }" v-else>{{stopDialogConf.content}}</div>
             </template>
             <div slot="footer">
                 <div class="bk-dialog-outer">
@@ -1437,6 +1437,15 @@
         li {
             list-style: circle;
         }
+    }
+    .stopDialog-title {
+        font-size: 16px;
+    }
+    .stopDialog-content {
+        color: #ff5656;
+    }
+    .font-content {
+        color: #63656e !important;
     }
     /* .bk-dialog-footer .bk-dialog-outer button {
         margin-top: 30px;
