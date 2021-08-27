@@ -1128,6 +1128,7 @@
                                 }
                             })
                         })
+                        this.curPageData = this.getDataByPage(this.pagination.current)
 
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
