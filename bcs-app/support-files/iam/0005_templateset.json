@@ -77,6 +77,32 @@
         {
             "operation": "upsert_action",
             "data": {
+                "id": "templateset_copy",
+                "name": "模板集复制",
+                "name_en": "copy templateset",
+                "description": "用户复制模板集",
+                "description_en": "user copy templateset",
+                "type": "use",
+                "related_resource_types": [{
+                    "system_id": "bk_bcs_app",
+                    "id": "templateset",
+                    "name_alias":  "",
+                    "name_alias_en": "",
+                    "selection_mode": "instance",
+                    "related_instance_selections": [
+                        {
+                            "system_id": "bk_bcs_app",
+                            "id": "templateset_list"
+                        }
+                    ]
+                }],
+                "related_actions": ["project_view", "templateset_view"],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
                 "id": "templateset_update",
                 "name": "模板集更新",
                 "name_en": "update templateset",

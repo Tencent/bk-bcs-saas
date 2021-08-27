@@ -140,6 +140,12 @@ def custom_exception_handler(exc: Exception, context):
         set_rollback()
         return Response(data, status=200)
 
+    # iam 权限校验
+    elif isinstance(exc, PermissionDeniedError):
+        data = {"code": exc.code, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
+        set_rollback()
+        return Response(data, status=200)
+
     elif isinstance(exc, APIError):
         # 更改返回的状态为为自定义错误类型的状态码
         data = {"code": exc.code_num, "message": exc.message, "data": None, "request_id": local.request_id}
@@ -153,7 +159,7 @@ def custom_exception_handler(exc: Exception, context):
         data = {"code": 404, "message": _("资源未找到"), "data": None}
         set_rollback()
         return Response(data, status=200)
-    elif isinstance(exc, (backend_exceptions.APIError, PermissionDeniedError)):
+    elif isinstance(exc, backend_exceptions.APIError):
         data = {"code": exc.code, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
         set_rollback()
         return Response(data, status=exc.status_code)
