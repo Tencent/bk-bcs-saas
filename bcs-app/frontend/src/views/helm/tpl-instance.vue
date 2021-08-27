@@ -204,7 +204,7 @@
                                         <template v-else>
                                             <div class="biz-guard-box" v-if="!isQuestionsLoading">
                                                 <span>{{$t('您可以参考')}}
-                                                    <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
+                                                    <!-- <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a> -->
                                                     {{$t('通过表单模式配置您的Helm Release 参数')}}，
                                                 </span>
                                                 <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml"></a>{{$t('直接修改Helm Release参数')}}</span>
@@ -341,7 +341,7 @@
                 <div class="biz-message" v-if="errorDialogConf.errorCode === 40031">
                     <h3>{{$t('您需要')}}：</h3>
                     <p>1、{{$t('在集群页面，启用Helm')}}</p>
-                    <p>2、{{$t('或者联系')}}【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>】</p>
+                    <!-- <p>2、{{$t('或者联系')}}【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>】</p> -->
                 </div>
                 <div class="biz-message" v-else-if="errorDialogConf.actionType === 'previewApp'">
                     <h3>{{$t('您可以')}}：</h3>

@@ -109,21 +109,21 @@
                     id: 'binding',
                     iconColor: '#4540DC',
                     desc: this.$t('开启容器服务时，请首先在”蓝鲸配置平台“查看业务'),
-                    link: this.PROJECT_CONFIG.doc.cc,
+                    // link: this.PROJECT_CONFIG.doc.cc,
                     linkText: this.$t('前往绑定业务')
                 },
                 {
                     id: 'auth',
                     iconColor: '#FFB200',
                     desc: this.$t('开启容器服务时，若没有查看业务权限，去“权限中心”申请权限'),
-                    link: this.PROJECT_CONFIG.doc.iam,
+                    // link: this.PROJECT_CONFIG.doc.iam,
                     linkText: this.$t('申请权限')
                 },
                 {
                     id: 'wiki',
                     iconColor: '#66EFE3',
                     desc: this.$t('如果遇到更多问题，需要了解详细信息，请前往iwiki查看'),
-                    link: this.PROJECT_CONFIG.doc.quickStart,
+                    // link: this.PROJECT_CONFIG.doc.quickStart,
                     linkText: this.$t('前往iwiki查看')
                 }
             ]
