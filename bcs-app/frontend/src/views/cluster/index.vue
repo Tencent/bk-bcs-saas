@@ -307,6 +307,7 @@
                             </status-progress>
                             <div class="add-node-btn-wrapper">
                                 <bk-button class="add-node-btn" v-authority="{
+                                    clickable: getAuthority('cluster_manage', cluster.cluster_id),
                                     actionId: 'cluster_manage',
                                     resourceName: cluster.name,
                                     disablePerms: true,
@@ -347,7 +348,8 @@
                             actionId: 'cluster_create',
                             resourceName: curProjectName,
                             permCtx: {
-                                project_id: projectId
+                                project_id: projectId,
+                                resource_type: 'project'
                             }
                         }" @click="gotCreateCluster">
                             <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>

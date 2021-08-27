@@ -47,7 +47,16 @@
                                 <div class="right">
                                     <template v-if="!isClusterNameEdit">
                                         {{curClusterName}}
-                                        <a href="javascript:void(0);" class="bk-text-button ml10" @click="editClusterName">
+                                        <a href="javascript:void(0);" class="bk-text-button ml10"
+                                            v-authority="{
+                                                actionId: 'cluster_manage',
+                                                resourceName: curClusterName,
+                                                permCtx: {
+                                                    project_id: projectId,
+                                                    cluster_id: clusterId,
+                                                    resource_type: 'cluster'
+                                                }
+                                            }" @click="editClusterName">
                                             <span class="bcs-icon bcs-icon-edit"></span>
                                         </a>
                                     </template>
@@ -167,7 +176,16 @@
                                 <div class="right">
                                     <template v-if="!isClusterDescEdit">
                                         {{description}}
-                                        <a href="javascript:void(0);" class="bk-text-button ml10" @click="editClusterDesc">
+                                        <a href="javascript:void(0);" class="bk-text-button ml10"
+                                            v-authority="{
+                                                actionId: 'cluster_manage',
+                                                resourceName: curClusterName,
+                                                permCtx: {
+                                                    project_id: projectId,
+                                                    cluster_id: clusterId,
+                                                    resource_type: 'cluster'
+                                                }
+                                            }" @click="editClusterDesc">
                                             <span class="bcs-icon bcs-icon-edit"></span>
                                         </a>
                                     </template>
@@ -195,7 +213,16 @@
                                     <p>{{$t('集群变量')}}</p>
                                 </div>
                                 <div class="right">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="showSetVariable" v-if="variableCount !== '--'">
+                                    <a href="javascript:void(0);" class="bk-text-button"
+                                        v-authority="{
+                                            actionId: 'cluster_manage',
+                                            resourceName: curClusterName,
+                                            permCtx: {
+                                                project_id: projectId,
+                                                cluster_id: clusterId,
+                                                resource_type: 'cluster'
+                                            }
+                                        }" @click="showSetVariable" v-if="variableCount !== '--'">
                                         {{variableCount}}
                                     </a>
                                     <span v-else>{{variableCount}}</span>

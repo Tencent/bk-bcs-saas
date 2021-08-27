@@ -662,7 +662,16 @@
                                                 </template>
 
                                                 <td style="text-align: left;">
-                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="stopNode(node, index)">{{$t('停止调度')}}</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button"
+                                                        v-authority="{
+                                                            actionId: 'cluster_manage',
+                                                            resourceName: curCluster.name,
+                                                            permCtx: {
+                                                                project_id: projectId,
+                                                                cluster_id: clusterId,
+                                                                resource_type: 'cluster'
+                                                            }
+                                                        }" @click.stop="stopNode(node, index)">{{$t('停止调度')}}</a>
                                                 </td>
                                             </template>
                                         </tr>

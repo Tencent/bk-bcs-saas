@@ -24,7 +24,14 @@
                     </div>
                     <ul class="bk-dropdown-list" v-if="searchList.length">
                         <li>
-                            <a href="javascript:;" v-for="(cluster, index) in searchList" :key="index" @click="goWebConsole(cluster)" style="padding: 0 10px;" :title="cluster.name">{{cluster.name}}</a>
+                            <a href="javascript:;"
+                                v-for="(cluster, index) in searchList"
+                                :key="index"
+                                style="padding: 0 10px;"
+                                :title="cluster.name"
+                                @click="goWebConsole(cluster)">
+                                {{cluster.name}}
+                            </a>
                         </li>
                     </ul>
                     <div v-else class="no-result">
@@ -126,18 +133,6 @@
                 }
             },
             async goWebConsole (cluster) {
-                if (!cluster.permissions.use) {
-                    const type = `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    const params = {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: type
-                    }
-                    await this.$store.dispatch('getResourcePermissions', params)
-                }
-
                 const clusterId = cluster.cluster_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
 
