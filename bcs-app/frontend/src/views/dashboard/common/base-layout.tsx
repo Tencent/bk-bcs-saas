@@ -14,6 +14,9 @@ import * as ace from '@/components/ace-editor'
 import './base-layout.css'
 import fullScreen from '@open/directives/full-screen'
 
+const CUR_SELECT_NAMESPACE = 'CUR_SELECT_NAMESPACE'
+const CUR_SELECT_CRD = 'CUR_SELECT_CRD'
+
 export default defineComponent({
     name: 'BaseLayout',
     components: {
@@ -82,7 +85,7 @@ export default defineComponent({
         const { type, category, kind, showNameSpace, showCrd, defaultActiveDetailType, defaultCrd } = toRefs(props)
 
         // crd
-        const currentCrd = ref(defaultCrd.value)
+        const currentCrd = ref(defaultCrd.value || sessionStorage.getItem(CUR_SELECT_CRD))
         const crdLoading = ref(false)
         // crd 数据
         const crdData = ref<ISubscribeData|null>(null)
@@ -112,9 +115,10 @@ export default defineComponent({
             crdData.value = res.data
             crdLoading.value = false
         }
-        const handleCrdChange = async () => {
-            namespaceValue.value = ''
-
+        const handleCrdChange = async (value) => {
+            sessionStorage.setItem(CUR_SELECT_CRD, value)
+            const namespace = (sessionStorage.getItem(CUR_SELECT_NAMESPACE) && JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)).namespace) || ''
+            namespaceValue.value = namespace
             handleGetTableData()
         }
         const renderCrdHeader = (h, { column }) => {
@@ -146,7 +150,15 @@ export default defineComponent({
         // useCluster(ctx)
 
         // 命名空间
-        const namespaceValue = ref('')
+        let cacheNamespace = ''
+        if (ctx.root.$route.name === 'dashboardCustomObjects') {
+            const { isCrd } = JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)) || {}
+            if (!isCrd) sessionStorage.removeItem(CUR_SELECT_NAMESPACE)
+        }
+        if (sessionStorage.getItem(CUR_SELECT_NAMESPACE)) {
+            cacheNamespace = JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)).namespace
+        }
+        const namespaceValue = ref(cacheNamespace)
         const namespaceDisabled = computed(() => {
             const { scope } = currentCrdExt.value
             return type.value === 'crd' && scope && scope !== 'Namespaced'
@@ -220,6 +232,14 @@ export default defineComponent({
 
             return tableDataMatchSearch.value.filter(item => item.metadata.namespace === namespaceValue.value)
         })
+
+        const handleNamespaceChange = (value) => {
+            const namespaceData = {
+                namespace: value,
+                isCrd : ctx.root.$route.name === 'dashboardCustomObjects'
+            }
+            sessionStorage.setItem(CUR_SELECT_NAMESPACE, JSON.stringify(namespaceData))
+        }
 
         // 分页
         const { pagination, curPageData, pageConf, pageChange, pageSizeChange } = usePage(searchData)
@@ -425,7 +445,8 @@ export default defineComponent({
             handleUpdateResource,
             handleDeleteResource,
             handleCreateResource,
-            handleCrdChange
+            handleCrdChange,
+            handleNamespaceChange
         }
     },
     render () {
@@ -486,6 +507,7 @@ export default defineComponent({
                                             loading={this.namespaceLoading}
                                             class="dashboard-select"
                                             v-model={this.namespaceValue}
+                                            onChange={this.handleNamespaceChange}
                                             searchable
                                             disabled={this.namespaceDisabled}
                                             placeholder={this.$t('请选择命名空间')}>
