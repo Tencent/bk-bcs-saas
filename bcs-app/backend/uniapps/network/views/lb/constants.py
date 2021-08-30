@@ -24,7 +24,6 @@ if LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD:
         {"name": "LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD", "value": LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD},
     ]
 
-
 # mesos lb service manifest
 MESOS_LB_SERVICE = {
     "apiVersion": "v4",
@@ -74,6 +73,7 @@ MESOS_LB_DEPLOYMENT = {
         },
     },
 }
+
 
 # mesos lb的状态
 class MESOS_LB_STATUS(ChoicesEnum):

@@ -19,7 +19,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -46,7 +45,7 @@ class Migration(migrations.Migration):
                 ('vpc_id', models.CharField(max_length=32)),
                 ('status', models.CharField(default='not_created', max_length=32)),
             ],
-            options={'db_table': 'cloud_load_blancer',},
+            options={'db_table': 'cloud_load_blancer', },
         ),
         migrations.AlterUniqueTogether(
             name='cloudloadblancer', unique_together=set([('clb_name', 'cluster_id', 'namespace')]),

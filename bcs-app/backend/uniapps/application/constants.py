@@ -113,7 +113,6 @@ RESOURCE_REPLICAS_KEYS = {
     },
 }
 
-
 MESOS_FUNC_MAP = {"application": "get_mesos_app_instances", "deployment": "get_deployment"}
 
 ALL_CATEGORY_LIST = ["application", "deployment", "K8sDeployment", "K8sDaemonSet", "K8sJob", "K8sStatefulSet"]
@@ -136,6 +135,7 @@ NOT_TMPL_SOURCE_TYPE = _("非模板集")
 
 # instance not from template
 NOT_TMPL_IDENTIFICATION = "0"
+
 
 # source type
 class SourceType(ChoicesEnum):

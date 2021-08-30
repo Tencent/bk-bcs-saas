@@ -140,7 +140,6 @@ DEVOPS_BCS_HOST = f"{BK_PAAS_HOST}/o/{APP_ID}"
 DEVOPS_BCS_API_URL = f"{BK_PAAS_HOST}/o/{APP_ID}"
 DEVOPS_ARTIFACTORY_HOST = os.environ.get("BKAPP_ARTIFACTORY_HOST")
 
-##################### TODO 确认变量 ###########################
 # 企业版/社区版 helm没有平台k8s集群时，无法为项目分配chart repo服务
 # 为解决该问题，容器服务会绑定一个chart repo服务使用，所有项目公用这个chart repo
 HELM_MERELY_REPO_URL = os.environ.get("BKAPP_HARBOR_CHARTS_DOMAIN")
