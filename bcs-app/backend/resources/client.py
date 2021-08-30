@@ -62,7 +62,7 @@ class BcsAPIEnvironmentQuerier:
 
 class BcsKubeConfigurationService:
     """生成用于连接 Kubernetes 集群的配置对象 Configuration
-    通过查询 BCS 服务，获取集群 apiserver 地址与 token 等信息
+    根据规则组装 集群访问 URL，由 环境变量 获取 集群管理 TOKEN
 
     :param cluster: 集群对象
     """
@@ -78,20 +78,11 @@ class BcsKubeConfigurationService:
 
         config = client.Configuration()
         config.verify_ssl = False
-        # Get credentials
-        credentials = self.get_client_credentials()
-        config.host = '{}{}'.format(self._get_apiservers_host(env_name), credentials['server_address_path']).rstrip(
-            "/"
+        config.host = '{host}/tunnels/clusters/{cluster_id}'.format(
+            host=self._get_apiservers_host(env_name), cluster_id=self.cluster.id
         )
-        config.api_key = {"authorization": f"Bearer {credentials['user_token']}"}
+        config.api_key = {"authorization": f"Bearer {settings.BCS_CLUSTER_ADMIN_TOKEN}"}
         return config
-
-    def get_client_credentials(self) -> Dict[str, Any]:
-        """获取访问集群 apiserver 所需的鉴权信息，比如证书、user_token、server_address_path 等"""
-        env_name = self.env_querier.do()
-
-        bcs_cluster_id = self.bcs_api.query_cluster_id(env_name, self.cluster.project_id, self.cluster.id)
-        return self.bcs_api.get_cluster_credentials(env_name, bcs_cluster_id)
 
     @staticmethod
     def _get_apiservers_host(api_env_name: str) -> str:
