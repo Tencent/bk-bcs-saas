@@ -59,8 +59,8 @@ class K8SClient(BCSClientBase):
     def k8s_raw_client(self):
         configure = client.Configuration()
         configure.verify_ssl = False
-        configure.host = f"{self._bcs_server_host}{self.context['server_address_path']}".rstrip("/")
-        configure.api_key = {"authorization": f"Bearer {self.context['user_token']}"}
+        configure.host = f"{self._bcs_server_host}/tunnels/clusters/{self.cluster_id}"
+        configure.api_key = {"authorization": f"Bearer {settings.BCS_CLUSTER_ADMIN_TOKEN}"}
         api_client = client.ApiClient(configure)
         return api_client
 
@@ -331,34 +331,16 @@ class K8SClient(BCSClientBase):
 
     def query_cluster(self):
         """获取bke_cluster_id, identifier"""
-        url = f"{self.rest_host}/bcs/query_by_id/"
-        params = {"access_token": self.access_token, "project_id": self.project_id, "cluster_id": self.cluster_id}
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
-
-    def register_cluster(self, data=None):
-        url = f"{self.rest_host}/bcs/"
-
-        req_data = {"id": self.cluster_id, "project_id": self.project_id, "access_token": self.access_token}
-        if data:
-            req_data.update(data)
-
-        params = {"access_token": self.access_token}
-        # 已经创建的会返回400, code_name: CLUSTER_ALREADY_EXISTS
-        result = http_post(
-            url, json=req_data, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api
-        )
-
-        return result
+        # NOTE 这里不调用接口，直接根据规则生成
+        return {'id': self.cluster_id, 'identifier': self.cluster_id}
 
     def get_client_credentials(self, bke_cluster_id: str) -> dict:
         """获取证书, user_token, server_address_path"""
-        url = f"{self.rest_host}/{bke_cluster_id}/client_credentials"
-
-        params = {"access_token": self.access_token}
-
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
+        # NOTE 这里不调用接口，直接根据规则生成
+        return {
+            'server_address_path': f'/v4/clusters/{self.cluster_id}/',
+            'user_token': settings.BCS_CLUSTER_ADMIN_TOKEN,
+        }
 
     def get_register_tokens(self, bke_cluster_id: str) -> dict:
         url = f"{self.rest_host}/{bke_cluster_id}/register_tokens"

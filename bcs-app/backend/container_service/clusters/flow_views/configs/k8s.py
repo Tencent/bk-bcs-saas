@@ -103,7 +103,7 @@ class ClusterConfig(object):
             project_id=params["project_id"],
             cluster_id=cluster_id,
         )
-        bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+        bcs_cluster_info = bcs_client.get_bcs_cluster_info()
         if not bcs_cluster_info.get("result"):
             err_msg = bcs_cluster_info.get("message", "request bcs agent api error")
             raise error_codes.APIError(err_msg)
@@ -177,7 +177,7 @@ class NodeConfig(object):
             bcs_client = BCSClusterClient(
                 host=BCS_SERVER_HOST, access_token=access_token, project_id=project_id, cluster_id=cluster_id
             )
-            bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+            bcs_cluster_info = bcs_client.get_bcs_cluster_info()
             if not bcs_cluster_info.get('result'):
                 err_msg = bcs_cluster_info.get('message', 'request bcs agent api error')
                 raise error_codes.APIError(err_msg)

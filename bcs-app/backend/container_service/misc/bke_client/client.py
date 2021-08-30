@@ -89,28 +89,8 @@ class BCSClusterClient:
         bcs_cluster_data.update(**register_token_data)
         return bcs_cluster_data
 
-    def register_cluster(self):
-        bcs_api_client = bcs.k8s.K8SClient(self.access_token, self.project_id, self.cluster_id, None)
-        # get bcs cluster data
-        bcs_cluster_data = bcs_api_client.register_cluster()
-        if bcs_cluster_data.get('code_name') == constants.CLUSTER_EXIST_CODE_NAME:
-            bcs_cluster_data = self.get_bcs_cluster(bcs_api_client)
-        if bcs_cluster_data.get('code_name') == constants.CLUSTER_NOT_FOUND_CODE_NAME:
-            return APIException(_("集群注册失败, bcs server 数据不一致，{}").format(json.dumps(bcs_cluster_data)))
-
-        # 防止被后面被register token返回值覆盖
-        bcs_cluster_data['bcs_cluster_id'] = bcs_cluster_data['id']
-        # get register token info
-        register_token_data = bcs_api_client.create_register_tokens(bcs_cluster_data['id'])
-        register_token_data = register_token_data[0]
-
-        bcs_cluster_data.update(**register_token_data)
-        return bcs_cluster_data
-
-    def get_or_register_bcs_cluster(self):
+    def get_bcs_cluster_info(self):
         bcs_cluster_data = self.get_cluster()
-        if bcs_cluster_data is None:
-            bcs_cluster_data = self.register_cluster()
         # TODO: 如果更改为raise，会导致前端也需要变动，先不调整
         return {'result': True, 'message': 'success', 'data': bcs_cluster_data}
 

@@ -469,7 +469,7 @@ class ClusterImporterView(AccessTokenMixin, viewsets.ReadOnlyModelViewSet):
         bcs_client = bcs_utils_client.get_bcs_client(
             project_id=project_id, cluster_id=cluster_id, access_token=self.access_token
         )
-        bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+        bcs_cluster_info = bcs_client.get_bcs_cluster_info()
         if not bcs_cluster_info["result"]:
             return Response(data=bcs_cluster_info)
 
@@ -618,7 +618,7 @@ def helm_init(access_token, project_id, cluster_id, bcs_agent_namespace):
     bcs_client = bcs_utils_client.get_bcs_client(
         project_id=project_id, cluster_id=cluster_id, access_token=access_token
     )
-    bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+    bcs_cluster_info = bcs_client.get_bcs_cluster_info()
     if not bcs_cluster_info.get("result"):
         data = {"code": 10601, "message": "failed to regist to bcs.", "data": bcs_cluster_info}
         return Response(data=data)
