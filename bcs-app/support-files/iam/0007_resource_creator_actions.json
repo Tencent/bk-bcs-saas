@@ -62,6 +62,10 @@
                             {
                                 "id":"templateset_view",
                                 "required":true
+                            },
+                            {
+                                "id":"templateset_copy",
+                                "required":true
                             }
                         ]
                     }
