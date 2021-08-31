@@ -16,7 +16,6 @@ from django.conf.urls import url
 
 from ..configuration.instance.urls import urlpatterns as inst_patterns
 from ..configuration.k8s.urls import urlpatterns as k8s_patterns
-from ..configuration.mesos.urls import urlpatterns as mesos_patterns
 from ..configuration.namespace.urls import urlpatterns as ns_patterns
 from ..configuration.showversion.urls import urlpatterns as sversion_patterns
 from ..configuration.yaml_mode.urls import urlpatterns as yaml_patterns
@@ -59,8 +58,6 @@ urlpatterns = [
 ]
 
 urlpatterns += sversion_patterns
-
-urlpatterns += mesos_patterns
 
 urlpatterns += ns_patterns
 

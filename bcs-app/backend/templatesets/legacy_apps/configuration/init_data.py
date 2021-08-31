@@ -23,11 +23,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ClusterType
-from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
 from backend.utils.basic import RequestClass
 
 from .fixture.template_k8s import K8S_TEMPLATE
-from .fixture.template_mesos import MESOS_TEMPLATE
 from .models import MODULE_DICT, ShowVersion, Template, VersionedEntity, get_default_version
 
 logger = logging.getLogger(__name__)
@@ -64,11 +62,7 @@ def init_template(project_id, project_code, project_kind, access_token, username
     if exit_templates.exists():
         _delete_old_init_templates(exit_templates, project_id, project_code, access_token, username)
 
-    template_data = {}
-    if project_kind == K8S_KIND:
-        template_data = K8S_TEMPLATE.get('data', {})
-    elif project_kind == MESOS_KIND:
-        template_data = MESOS_TEMPLATE.get('data', {})
+    template_data = K8S_TEMPLATE.get('data', {})
 
     logger.info(f'init_template [begin] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
     # 新建模板集
@@ -121,4 +115,3 @@ def init_template(project_id, project_code, project_kind, access_token, username
     perm.register(str(init_template.id), str(init_template.name))
 
     logger.info(f'init_template [end] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
-    return

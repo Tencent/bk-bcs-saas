@@ -25,7 +25,6 @@ from backend.utils.exceptions import ResNotFoundError
 from . import models
 from .constants import RESOURCE_NAMES, MesosResourceName, TemplateEditMode
 from .k8s import serializers as kserializers
-from .mesos import serializers as mserializers
 
 SLZ_CLASS = [
     kserializers.K8sDeploymentSLZ,
@@ -37,13 +36,6 @@ SLZ_CLASS = [
     kserializers.K8sSecretSLZ,
     kserializers.K8sIngressSLZ,
     kserializers.K8sHPASLZ,
-    mserializers.ApplicationSLZ,
-    mserializers.DeploymentSLZ,
-    mserializers.ServiceSLZ,
-    mserializers.ConfigMapSLZ,
-    mserializers.SecretSLZ,
-    mserializers.HPASLZ,
-    mserializers.IngressSLZ,
 ]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
