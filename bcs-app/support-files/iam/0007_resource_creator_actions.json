@@ -65,7 +65,7 @@
                             },
                             {
                                 "id":"templateset_copy",
-                                "required":true
+                                "required":false
                             }
                         ]
                     }
