@@ -14,19 +14,16 @@ specific language governing permissions and limitations under the License.
 """
 from typing import Dict
 
-from rest_framework.request import Request
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
 from backend.bcs_web.viewsets import UserViewSet
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.resources.namespace import Namespace
 from backend.resources.namespace import utils as ns_utils
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
-from backend.utils.error_codes import error_codes
 
 
 class NamespaceViewSet(UserViewSet):
@@ -44,12 +41,8 @@ class NamespaceViewSet(UserViewSet):
 
         access_token = request.user.token.access_token
         username = request.user.username
-        project_id = request.project.project_id
 
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        namespace = getattr(self, f"_create_{project_kind_name.lower()}_namespace")(
-            access_token, username, project_id, cluster_id, data["name"]
-        )
+        namespace = self._create_kubernetes_namespace(access_token, username, project_id, cluster_id, data["name"])
         # 创建命名空间下的变量值
         ns_id = namespace.get("namespace_id") or namespace.get("id")
         namespace["id"] = ns_id
@@ -106,19 +99,6 @@ class NamespaceViewSet(UserViewSet):
             perm = bcs_perm.Namespace(request, project_id, ns_id)
             perm.delete()
             ns_utils.delete_cc_namespace(request.user.token.access_token, project_id, cluster_id, ns_id)
-
-    def _create_mesos_namespace(
-        self,
-        access_token: str,
-        username: str,
-        project_id: str,
-        cluster_id: str,
-        ns_name: str,
-    ) -> Dict:
-        """创建mesos命名空间
-        注意: mesos中namespace只是一个概念，不是一个资源；因此，不需要在mesos集群创建
-        """
-        return ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
 
     def _create_kubernetes_namespace(
         self,
