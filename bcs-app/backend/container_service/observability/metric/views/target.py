@@ -55,8 +55,6 @@ class TargetsViewSet(SystemViewSet):
         按 Job 名称格式过滤符合条件的 Targets
 
         :param raw_targets: 原始 Target 信息
-        :param namespace: 命名空间
-        :param name: 名称
         :param show_discovered: 是否展示 Discovered
         :return: 符合条件的 Targets
         """

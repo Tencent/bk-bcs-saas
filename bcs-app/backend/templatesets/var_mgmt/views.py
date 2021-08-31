@@ -31,7 +31,7 @@ from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.observability.metric.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
 from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR
