@@ -52,7 +52,8 @@ class TemplatesetPermCtx(PermCtx):
     template_id: Union[str, int, None] = None
 
     def __post_init__(self):
-        if self.template_id is not None:
+        # template_id为"", 0, None时都无意义，不需处理
+        if self.template_id:
             self.template_id = str(self.template_id)
 
     def validate(self):
