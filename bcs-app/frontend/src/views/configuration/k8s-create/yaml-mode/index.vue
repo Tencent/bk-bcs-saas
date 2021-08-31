@@ -121,10 +121,28 @@
                     <bk-button type="primary" disabled>{{$t('保存')}}</bk-button>
                 </template>
                 <template v-else>
-                    <bk-button type="primary" @click="handleSaveTemplate">{{$t('保存')}}</bk-button>
+                    <bk-button type="primary"
+                        v-authority="{
+                            actionId: 'templateset_update',
+                            resourceName: curTemplate.name,
+                            permCtx: {
+                                resource_type: 'templateset',
+                                project_id: projectId,
+                                template_id: templateId
+                            }
+                        }" @click="handleSaveTemplate">{{$t('保存')}}</bk-button>
                 </template>
 
-                <bk-button :disabled="templateId === 0" @click="createInstance">
+                <bk-button :disabled="templateId === 0"
+                    v-authority="{
+                        actionId: 'templateset_instantiate',
+                        resourceName: curTemplate.name,
+                        permCtx: {
+                            resource_type: 'templateset',
+                            project_id: projectId,
+                            template_id: templateId
+                        }
+                    }" @click="createInstance">
                     {{$t('实例化')}}
                 </bk-button>
 
