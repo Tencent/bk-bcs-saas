@@ -1,2 +1,4 @@
 #!/bin/bash
 python manage.py migrate
+
+chmod a+x /app/bin/*
