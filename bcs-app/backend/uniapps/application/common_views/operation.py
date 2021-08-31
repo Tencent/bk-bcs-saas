@@ -23,7 +23,6 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client
-from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

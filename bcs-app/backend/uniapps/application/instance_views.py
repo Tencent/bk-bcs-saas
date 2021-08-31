@@ -26,13 +26,9 @@ from rest_framework.response import Response
 
 from backend.bcs_web.audit_log import client
 from backend.components import data, paas_cc
-from backend.container_service.observability.metric.models import Metric
-from backend.container_service.projects.base.constants import ProjectKind
-from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
-from backend.templatesets.legacy_apps.instance.constants import ANNOTATIONS_WEB_CACHE
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
 from backend.templatesets.var_mgmt.models import Variable
 from backend.utils.basic import getitems
@@ -53,8 +49,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-APPLICATION_CATEGORY = "application"
-DEPLOYMENT_CATEGORY = "deployment"
 K8SDEPLOYMENT_CATEGORY = "K8sDeployment"
 K8SJOB_CATEGORY = "K8sJob"
 K8SDAEMONSET_CATEGORY = "k8sDaemonSet"
@@ -84,23 +78,12 @@ class BaseTaskgroupCls(InstanceAPI):
         self.bcs_single_app_perm_handler(
             request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
         )
-        # 针对deployment获取rcname
-        if curr_inst.category == DEPLOYMENT_CATEGORY:
-            rc_names = self.get_rc_name_by_deployment_base(
-                request, project_id, cluster_id, name, project_kind=project_kind, namespace=namespace
-            )
-            rc_names = list(set(rc_names)) or ["None"]
-        else:
-            rc_names = [name]
-        return cluster_id, namespace, rc_names, curr_inst.category
+        return cluster_id, namespace, [name], curr_inst.category
 
     def common_handler_for_client(self, request, project_id):
         """针对非平台创建的应用的公共处理"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
-        if request.project.kind != ProjectKind.MESOS.value or category != MesosResourceName.deployment.value:
-            return cluster_id, namespace, [name], category
-        name_list = self._get_mesos_app_names_by_deployment(request, cluster_id, name, namespace, category)
-        return cluster_id, namespace, name_list, category
+        return cluster_id, namespace, [name], category
 
     def common_handler(self, request, project_id, instance_id, project_kind, field=None):
         if not self._from_template(instance_id):
@@ -183,18 +166,14 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
         # 获取kind
         project_kind = request.project.kind
         cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
-        # 获取taskagroup或者group
-        if project_kind == 2:
-            field = ("data.metadata.name,data.status,data.hostIP,data.podIP,data.startTime,data.message",)  # noqa
-        else:
-            field = [
-                "resourceName,createTime",
-                "data.status.podIP",
-                "data.status.hostIP",
-                "data.status.phase",
-                "data.status.containerStatuses",
-                "data.status.conditions",
-            ]
+        field = [
+            "resourceName,createTime",
+            "data.status.podIP",
+            "data.status.hostIP",
+            "data.status.phase",
+            "data.status.containerStatuses",
+            "data.status.conditions",
+        ]
         if not rc_names:
             return APIResponse({"data": []})
         flag, resp = self.get_pod_or_taskgroup(
@@ -209,10 +188,7 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
         )
         if not flag:
             return resp
-        if project_kind == 2:
-            ret_data = self.get_taskgroup_info(resp)
-        else:
-            ret_data = self.get_pod_info(resp)
+        ret_data = self.get_pod_info(resp)
         return APIResponse({"data": ret_data})
 
 
@@ -266,11 +242,7 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
         if not flag:
             return project_kind
         cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
-        # 获取taskagroup或者pod
-        if project_kind == 2:
-            field = ("data.containerStatuses",)  # noqa
-        else:
-            field = ["data.status.containerStatuses", "data.status.phase"]
+        field = ["data.status.containerStatuses", "data.status.phase"]
 
         flag, resp = self.get_pod_or_taskgroup(
             request,
@@ -285,65 +257,12 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
         )
         if not flag:
             return resp
-        if project_kind == 2:
-            ret_data = self.get_container_info(resp)
-        else:
-            ret_data = self.get_k8s_container_info(resp)
+        ret_data = self.get_k8s_container_info(resp)
 
         return APIResponse({"data": ret_data})
 
 
 class QueryTaskgroupInfo(BaseTaskgroupCls):
-    def get_app_and_update_strategy(self, request, cluster_id, ns, instance_name, project_id, kind):
-        """通过deployment获取单个application信息"""
-        flag, resp = self.get_application_deploy_info(
-            request,
-            project_id,
-            cluster_id,
-            instance_name,
-            category=DEPLOYMENT_CATEGORY,
-            project_kind=kind,
-            namespace=ns,
-            field="data.application,data.application_ext,data.metadata.name,data.strategy",  # noqa
-        )
-        if not flag:
-            raise error_codes.APIError.f(resp.data.get("message"))
-        data = resp.get("data") or []
-        if not data:
-            return {}, {}
-        data = data[0].get("data") or {}
-        application = data.get("application") or {}
-        application_ext = data.get("application_ext") or {}
-        strategy = (data.get("strategy") or {}).get("rollingupdate") or {}
-        strategy["type"] = (data.get("strategy") or {}).get("type")
-        ret_data = []
-        if application:
-            ret_data.append(application.get("name"))
-        if application_ext:
-            ret_data.append(application_ext.get("name"))
-        return ret_data, strategy
-
-    def get_taskgroup_info(self, data, namespace):
-        """获取当前taskgroup的信息"""
-        ret_data = {}
-        if not data:
-            return ret_data
-        data = data[0].get("data") or {}
-        ret_data["base_info"] = {
-            "last_status": data.get("lastStatus"),
-            "last_update_time": data.get("lastUpdateTime"),
-            "message": data.get("message"),
-            "pod_ip": data.get("podIP"),
-            "rc_name": data.get("rcname"),
-            "start_time": data.get("startTime"),
-            "status": "Running" if data.get("status") == "Running" else "Unready",
-            "current_time": datetime.now(),
-            "namespace": namespace,
-        }
-        ret_data["kill_policy"] = data.get("killPolicy") or {}
-        ret_data["restart_policy"] = data.get("restartPolicy") or {}
-        return ret_data
-
     def get_category_rollupdate_info(self, request, cluster_id, ns, inst_name, project_id, kind, category):
         """通过名称查询滚动升级信息"""
         field = ["data.spec.strategy"]
@@ -403,25 +322,17 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
             # 获取instnace info
             inst_info = self.get_instance_info(instance_id)
             curr_inst = inst_info[0]
-            if curr_inst.category == DEPLOYMENT_CATEGORY:
-                rc_names, rolling_strategy = self.get_app_and_update_strategy(
-                    request, cluster_id, namespace, rc_names[0], project_id, project_kind
-                )
             category = curr_inst.category
-        # 获取taskagroup或者group
-        if project_kind == 2:
-            field = ("data",)  # noqa
-        else:
-            field = [
-                "updateTime",
-                "createTime",
-                "namespace",
-                "resourceName",
-                "data.status.phase",
-                "data.status.podIP",
-                "data.spec.terminationGracePeriodSeconds",
-                "data.spec.restartPolicy",
-            ]
+        field = [
+            "updateTime",
+            "createTime",
+            "namespace",
+            "resourceName",
+            "data.status.phase",
+            "data.status.podIP",
+            "data.spec.terminationGracePeriodSeconds",
+            "data.spec.restartPolicy",
+        ]
 
         flag, resp = self.get_pod_or_taskgroup(
             request,
@@ -436,13 +347,11 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         )
         if not flag:
             return resp
-        if project_kind == 2:
-            ret_data = self.get_taskgroup_info(resp, namespace)
-        else:
-            ret_data = self.get_pod_info(resp)
-            rolling_strategy = self.get_category_rollupdate_info(
-                request, cluster_id, namespace, rc_names[0], project_id, project_kind, category
-            )
+
+        ret_data = self.get_pod_info(resp)
+        rolling_strategy = self.get_category_rollupdate_info(
+            request, cluster_id, namespace, rc_names[0], project_id, project_kind, category
+        )
         ret_data["update_strategy"] = rolling_strategy
 
         return APIResponse({"data": ret_data})
@@ -480,16 +389,9 @@ class QueryApplicationContainers(BaseTaskgroupCls):
 
     def get(self, request, project_id, instance_id):
         """查询应用下所有的容器信息"""
-        # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
         cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
-        # 获取taskagroup或者gro
-        if project_kind == 2:
-            field = ("data.containerStatuses.containerID,data.containerStatuses.name",)  # noqa
-        else:
-            field = ["data.status.containerStatuses.containerID", "data.status.containerStatuses.name"]
+        field = ["data.status.containerStatuses.containerID", "data.status.containerStatuses.name"]
 
         flag, resp = self.get_pod_or_taskgroup(
             request,
@@ -503,10 +405,7 @@ class QueryApplicationContainers(BaseTaskgroupCls):
         )
         if not flag:
             return resp
-        if project_kind == 2:
-            ret_data = self.get_container_info(resp)
-        else:
-            ret_data = self.get_k8s_container_info(resp)
+        ret_data = self.get_k8s_container_info(resp)
 
         return APIResponse({"data": ret_data})
 
@@ -528,9 +427,7 @@ class GetInstanceLabels(InstanceAPI):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
             # 请求storage获取时间
-            field = "data.metadata.labels"
-            if project_kind == 1:
-                field = ["data.metadata.labels"]
+            field = ["data.metadata.labels"]
             ok, resp = self.get_application_deploy_info(
                 request,
                 project_id,
@@ -581,8 +478,6 @@ class GetInstanceAnnotations(InstanceAPI):
             project_kind = request.project.kind
             # 请求storage获取时间
             field = ["data.metadata.annotations"]
-            if project_kind == 2:
-                field = ",".join(field)
             ok, resp = self.get_application_deploy_info(
                 request,
                 project_id,
@@ -697,10 +592,7 @@ class GetInstanceInfo(InstanceAPI):
             # 获取kind
             project_kind = self.project_kind(request)
             # 请求storage获取时间
-            if project_kind == 1:
-                field = ["updateTime", "createTime"]
-            else:
-                field = "updateTime,createTime"
+            field = ["updateTime", "createTime"]
             ok, resp = self.get_application_deploy_info(
                 request,
                 project_id,
@@ -843,8 +735,6 @@ class TaskgroupEvents(InstanceAPI):
         all_events = InstanceEvent.objects.filter(
             instance_config_id=instance_id,
             category__in=[
-                APPLICATION_CATEGORY,
-                DEPLOYMENT_CATEGORY,
                 K8SJOB_CATEGORY,
                 K8SDAEMONSET_CATEGORY,
                 K8SSTATEFULSET_CATEGORY,
@@ -899,43 +789,24 @@ class TaskgroupEvents(InstanceAPI):
             category = curr_inst.category
         # 获取kind
         project_kind = request.project.kind
-        # 获取application
-        # NOTE: 针对mesos和k8s的deployment资源，前端传递的资源类型都是deployment，因此，需要添加容器服务编排类型进行区分
-        if category == DEPLOYMENT_CATEGORY and project_kind == ProjectKind.MESOS.value:
-            application_info = self.get_rc_name_by_deployment(
-                request, project_id, cluster_id, inst_name, project_kind=project_kind, namespace=inst_namespace
-            )
-        else:
-            application_info = [inst_name]
+        application_info = [inst_name]
 
         params = {"offset": offset, "length": limit, "clusterId": cluster_id}
-        if project_kind == 2:
-            params.update(
-                {
-                    "env": "mesos",
-                    "kind": "task",
-                    "extraInfo.name": ",".join(application_info),
-                    "extraInfo.namespace": inst_namespace,
-                }
-            )
-        else:
-            field = ["resourceName"]
-            flag, pod_resp = self.get_pod_or_taskgroup(
-                request,
-                project_id,
-                cluster_id,
-                kind=project_kind,
-                category=category,
-                ns_name=inst_namespace,
-                app_name=application_info,
-                field=field,
-            )
-            if not flag:
-                return pod_resp
-            pod_name = ",".join([info["resourceName"] for info in pod_resp if info.get("resourceName")])
-            params.update(
-                {"env": "k8s", "kind": "Pod", "extraInfo.name": pod_name, "extraInfo.namespace": inst_namespace}
-            )
+        field = ["resourceName"]
+        flag, pod_resp = self.get_pod_or_taskgroup(
+            request,
+            project_id,
+            cluster_id,
+            kind=project_kind,
+            category=category,
+            ns_name=inst_namespace,
+            app_name=application_info,
+            field=field,
+        )
+        if not flag:
+            return pod_resp
+        pod_name = ",".join([info["resourceName"] for info in pod_resp if info.get("resourceName")])
+        params.update({"env": "k8s", "kind": "Pod", "extraInfo.name": pod_name, "extraInfo.namespace": inst_namespace})
         # 添加创建失败的instance消息后，查询返回
         return self.query_events(request, project_id, cluster_id, params)
 
@@ -1035,12 +906,6 @@ class ContainerInfo(InstanceAPI):
             # name = metadata.get("name")
             namespace = metadata.get("namespace")
             category = inst_info[0].category
-        # 获取container信息
-        if category == DEPLOYMENT_CATEGORY:
-            app_info = self.get_rc_name_by_deployment(
-                request, project_id, cluster_id, instance_name, project_kind=project_kind, namespace=namespace
-            )
-            instance_name = ",".join(app_info)
         flag, taskgroup = self.get_pod_or_taskgroup(
             request,
             project_id,
@@ -1224,11 +1089,6 @@ class InstanceConfigInfo(InstanceAPI):
             )
         except Exception as error:
             return APIResponse({"code": 400, "data": {}, "message": "%s" % error.message})
-        # 针对不同的类型返回不同的格式
-        # mesos: json
-        # k8s: yaml
-        # if project_kind == 1:
-        #     conf = self.json2yaml(conf)
         return APIResponse({"data": conf})
 
 
@@ -1293,52 +1153,6 @@ class GetVersionList(BaseAPI):
         # 根据模板集ID及版本过滤相应分类的信息
         version_data = self.get_version_info(muster_id, tmpl_id_list, category)
         return APIResponse({"data": version_data})
-
-
-class GetMetricInfo(BaseAPI):
-    def get_metric_info(self, metric_id_list):
-        metric_info = (
-            Metric.objects.filter(id__in=metric_id_list)
-            .order_by("-created")
-            .values("name", "port", "uri", "frequency")
-        )
-
-        return metric_info
-
-    def get(self, request, project_id, instance_id):
-        """查询Metric配置"""
-        if str(instance_id) == "0":
-            return APIResponse({"data": []})
-        instance_info = self.get_instance_info(instance_id)
-        curr_inst = instance_info[0]
-
-        config = self.get_common_instance_conf(curr_inst)
-        metadata = config.get("metadata") or {}
-        annotations = metadata.get("annotations") or {}
-        labels = metadata.get("labels") or {}
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
-        )
-        metrc_info = annotations.get(ANNOTATIONS_WEB_CACHE)
-        # 针对先前没有配置Metric的记录，直接返回为空
-        if not metrc_info:
-            return APIResponse({"data": [], "message": _("没有查询到Metric配置!")})
-        # 解析metric ID
-        try:
-            metrc_info = json.loads(metrc_info)
-        except Exception as error:
-            logger.error(u"解析metric出现异常，详情: %s" % (error))
-            raise error_codes.JSONParseError(_("解析metric信息出现异常!"))
-        use_metric = metrc_info.get("isMetric")
-        ret_data = []
-        if not use_metric:
-            return APIResponse({"code": ErrorCode.NoError, "data": ret_data})
-        metric_id_list = metrc_info.get("metricIdList") or []
-        if not metric_id_list:
-            return APIResponse({"code": ErrorCode.NoError, "data": ret_data, "message": _("应用无Metric信息")})
-        # 通过metric ID获取metric信息
-        return APIResponse({"data": self.get_metric_info(metric_id_list)})
 
 
 class QueryContainerInfo(BaseAPI):
@@ -1431,18 +1245,12 @@ class QueryContainerInfo(BaseAPI):
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        field = "data"
-        if project_kind == 1:
-            field = ["data"]
+        field = ["data"]
         # 通过集群查询下面所有的container信息
         flag, resp = self.get_pod_or_taskgroup(request, project_id, cluster_id, field=field, kind=project_kind)
         if not flag:
             return resp
-        # 处理数据
-        if project_kind == 2:
-            data = self.data_process(resp, container_id)
-        else:
-            data = self.k8s_data_process(resp, container_id)
+        data = self.k8s_data_process(resp, container_id)
         return APIResponse({"data": data})
 
     def post(self, request, project_id, cluster_id):
@@ -1455,18 +1263,12 @@ class QueryContainerInfo(BaseAPI):
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        field = "data"
-        if project_kind == 1:
-            field = ["data"]
+        field = ["data"]
         # 通过集群查询下面所有的container信息
         flag, resp = self.get_pod_or_taskgroup(request, project_id, cluster_id, field=field, kind=project_kind)
         if not flag:
             return resp
-        # 处理数据
-        if project_kind == 2:
-            data = self.data_process(resp, container_id)
-        else:
-            data = self.k8s_data_process(resp, container_id)
+        data = self.k8s_data_process(resp, container_id)
         return APIResponse({"data": data})
 
 
@@ -1618,8 +1420,6 @@ class BatchInstances(BaseAPI):
             if info.is_deleted or info.oper_type == app_constants.DELETE_INSTANCE:
                 continue
             if info.category in [
-                APPLICATION_CATEGORY,
-                DEPLOYMENT_CATEGORY,
                 K8SDAEMONSET_CATEGORY,
                 K8SJOB_CATEGORY,
                 K8SDEPLOYMENT_CATEGORY,
@@ -1771,17 +1571,10 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         if show_version_id:
             real_version_id = self.get_show_version_info(show_version_id).real_version_id
             category_id_list = self.get_version_info(category, real_version_id)
-            if project_kind == 2:
-                real_app_version_id = self.get_show_version_info(show_version_id).real_version_id
-                app_category_id_list = self.get_version_info("application", real_app_version_id)
         else:
             instance_entity = json.loads(inst_version_info[0].instance_entity)
             # 获取模板
             category_id_list = instance_entity.get(category) or []
-            if project_kind == 2:
-                app_show_version_id = inst_version_info[0].show_version_id
-                real_app_version_id = self.get_show_version_info(app_show_version_id).real_version_id
-                app_category_id_list = self.get_version_info("application", real_app_version_id)
 
         all_info = self.get_tmpl_info(category, category_id_list, inst_info.name)
 
@@ -1790,16 +1583,6 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         # 通过展示版本获取真正版本
         curr_info = all_info[0]
         version_conf = curr_info.config
-        # 针对mesos，需要application关联deployment
-        if not app_category_id_list and project_kind == 2:
-            raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
-        if project_kind == 2 and category == DEPLOYMENT_CATEGORY:
-            app_info = MODULE_DICT["application"].objects.filter(app_id=curr_info.app_id, id__in=app_category_id_list)
-            if not app_info:
-                raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
-            app_config = json.loads(app_info[0].config)
-            app_config["spec"]["strategy"] = json.loads(version_conf)["strategy"]
-            version_conf = json.dumps(app_config)
         instance_num_var_flag = False
         pre_spec_info = inst_conf.get("spec") or {}
         pre_instance_num = pre_spec_info.get("replicas") or pre_spec_info.get("instance") or DEFAULT_INSTANCE_NUM

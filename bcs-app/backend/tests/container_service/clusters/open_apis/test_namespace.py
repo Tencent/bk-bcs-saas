@@ -40,6 +40,11 @@ class TestNamespace:
         ):
             yield
 
+    @pytest.fixture(autouse=True)
+    def patch_user_viewset(self):
+        # 需要通过指定接口获取不同项目类型，覆盖conftest中的patch_user_viewset
+        pass
+
     @patch(
         "backend.bcs_web.permissions.PaaSCCClient",
         new=paas_cc.StubPaaSCCClient,
@@ -54,22 +59,5 @@ class TestNamespace:
         assert resp.json()["code"] == 0
         data = resp.json()["data"]
         assert "namespace_id" in data
-        assert isinstance(data, dict)
-        assert data["name"] == fake_data["name"]
-
-    @patch(
-        "backend.bcs_web.permissions.PaaSCCClient.get_project",
-        new=paas_cc.StubPaaSCCClient().get_mesos_project,
-    )
-    def test_create_mesos_namespace(self, api_client):
-        """创建k8s命名空间
-        NOTE: 针对mesos不会返回namespace_id字段
-        """
-        # project_id 与 cluster_id随机，防止项目的缓存，导致获取项目类型错误
-        url = f"/apis/resources/projects/{generate_random_string(32)}/clusters/{generate_random_string(8)}/namespaces/"
-        resp = api_client.post(url, data=fake_data)
-        assert resp.json()["code"] == 0
-        data = resp.json()["data"]
-        assert "namespace_id" not in data
         assert isinstance(data, dict)
         assert data["name"] == fake_data["name"]

@@ -12,14 +12,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.utils.basic import ChoicesEnum
+import re
 
+# 用于匹配创建时间的正则表达式
+CREATE_TIME_REGEX = re.compile(r'[^T.]+')
 
-# 项目类型
-# TODO 替换backend.apps.constants_bk中的ProjectKind
-class ProjectKind(ChoicesEnum):
-    K8S = 1
-    MESOS = 2
-    TKE = 3
-
-    _choices_labels = ((K8S, "Kubernetes"), (MESOS, "Mesos"), (TKE, "TKE"))
+# 默认获取的资源字段
+DEFAULT_SEARCH_FIELDS = [
+    "data.metadata.labels",
+    "data.metadata.annotations",
+    "createTime",
+    "namespace",
+    "resourceName",
+]
