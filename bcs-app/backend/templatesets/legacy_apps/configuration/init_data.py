@@ -22,12 +22,9 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ClusterType
-from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
 from backend.utils.basic import RequestClass
 
 from .fixture.template_k8s import K8S_TEMPLATE
-from .fixture.template_mesos import MESOS_TEMPLATE
 from .models import MODULE_DICT, ShowVersion, Template, VersionedEntity, get_default_version
 
 logger = logging.getLogger(__name__)
@@ -117,4 +114,3 @@ def init_template(project_id, project_code, access_token, username):
     perm.register(str(init_template.id), str(init_template.name))
 
     logger.info(f'init_template [end] project_id: {project_id}')
-    return
