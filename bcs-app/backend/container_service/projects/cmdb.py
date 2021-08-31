@@ -25,6 +25,4 @@ def list_biz_maintainers(biz_id: int) -> List[str]:
 def is_biz_maintainer(biz_id: int, username: str) -> bool:
     """判断用户是否为业务的运维角色"""
     maintainers = list_biz_maintainers(biz_id)
-    if username in maintainers:
-        return True
-    return False
+    return username in maintainers

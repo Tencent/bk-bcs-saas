@@ -31,7 +31,6 @@ from kubernetes import client
 from rest_framework.test import APIClient
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet, FakeUserViewSet
@@ -91,7 +90,6 @@ def bk_user():
     user.token.access_token = generate_random_string(12)
     user.token.expires_soon = lambda: False
 
-    user.project_kind = ProjectKind.K8S.value
     return user
 
 

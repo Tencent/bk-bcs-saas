@@ -44,11 +44,6 @@ urlpatterns = [
         name="api.application.update_new",
     ),
     url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_update/$",  # noqa
-        views.UpdateApplication.as_view(),
-        name="api.application.application_update",
-    ),
-    url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/scale/$",  # noqa
         views.ScaleInstance.as_view(),
         name="api.application.scale",
@@ -130,10 +125,6 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/versions/$",  # noqa
         instance_views.GetVersionList.as_view(),
         name="api.application.version_list",
-    ),
-    url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>\d+)/metric/",
-        instance_views.GetMetricInfo.as_view(),
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/batch/",
@@ -249,12 +240,5 @@ urlpatterns = [
     url(
         r'^api/projects/(?P<project_id>\w{32})/pods/reschedule/$',
         operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'}),
-    ),
-]
-
-urlpatterns += [
-    url(
-        r"^api/app/mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.uniapps.application.mesos.urls"),
     ),
 ]

@@ -12,3 +12,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import re
+
+# 用于匹配创建时间的正则表达式
+CREATE_TIME_REGEX = re.compile(r'[^T.]+')
+
+# 默认获取的资源字段
+DEFAULT_SEARCH_FIELDS = [
+    "data.metadata.labels",
+    "data.metadata.annotations",
+    "createTime",
+    "namespace",
+    "resourceName",
+]

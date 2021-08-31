@@ -12,7 +12,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.observability.metric.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
 
 

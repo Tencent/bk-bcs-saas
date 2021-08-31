@@ -12,6 +12,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from . import collector  # noqa
-from . import performance  # noqa
-from . import servicemonitor  # noqa
+from .base import *  # noqa
+from .configmap import *  # noqa
+from .endpoint import *  # noqa
+from .ingress import *  # noqa
+from .secret import *  # noqa

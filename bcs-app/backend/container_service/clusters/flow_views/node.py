@@ -24,7 +24,6 @@ from backend.accounts.bcs_perm import Cluster
 from backend.bcs_web.audit_log import client
 from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
-from backend.components.bcs import mesos as bcs_mesos
 from backend.container_service.clusters import constants, serializers
 from backend.container_service.clusters.base import get_cluster
 from backend.container_service.clusters.constants import ClusterState
@@ -36,7 +35,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
 
-from .configs import k8s, mesos
+from .configs import k8s
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +75,7 @@ class BaseNode(object):
         return node_info.get('data') or {}
 
     def get_request_config(self, op_type=constants.OpType.ADD_NODE.value):
-        kind_type_map = {'k8s': k8s.NodeConfig, 'mesos': mesos.NodeConfig}
+        kind_type_map = {'k8s': k8s.NodeConfig}
         snapshot_info = self.get_cluster_snapshot()
         snapshot_config = json.loads(snapshot_info.get('configure', '{}'))
         if snapshot_config.get('common'):
@@ -439,18 +438,6 @@ class DeleteNode(DeleteNodeBase):
             if namespace in constants.K8S_SKIP_NS_LIST:
                 continue
             count += len(i.get('data', {}).get('status', {}).get('containerStatuses', []))
-        return count
-
-    def mesos_container_num(self):
-        client = bcs_mesos.MesosClient(self.access_token, self.project_id, self.cluster_id, None)
-        host_pod_info = client.get_taskgroup(
-            [self.node_ip], fields=','.join(['data.containerStatuses.containerID', 'data.hostIP'])
-        )
-        if host_pod_info.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(host_pod_info.get('message'))
-        count = 0
-        for i in host_pod_info.get('data', []):
-            count += len(i.get('data', {}).get('containerStatuses', []))
         return count
 
     def check_host_exist_container(self):

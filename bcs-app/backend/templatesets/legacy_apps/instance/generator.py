@@ -38,7 +38,7 @@ from backend.apps.constants import ClusterType
 from backend.apps.ticket.models import TlsCert
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.observability.metric.models import Metric
 from backend.resources.constants import K8sServiceTypes
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.utils.basic import getitems

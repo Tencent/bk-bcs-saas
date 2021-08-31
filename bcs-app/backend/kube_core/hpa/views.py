@@ -123,6 +123,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 success_list.append({'name': name, 'desc': "{}[命名空间:{}]".format(name, ns_name)})
 
         # 添加操作审计
+        message = '--'
         if success_list:
             name_list = [_s.get('name') for _s in success_list]
             desc_list = [_s.get('desc') for _s in success_list]

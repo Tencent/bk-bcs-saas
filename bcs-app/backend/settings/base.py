@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     "backend.templatesets.legacy_apps.instance.apps.TemplatesetsInstanceConfig",
     "backend.uniapps.resource",
     "backend.uniapps.network",
-    # "backend.container_service.observability.metric",
     "backend.apps.ticket",
     "backend.helm.app",
     "backend.helm.helm",
@@ -75,7 +74,6 @@ INSTALLED_APPS = [
     "backend.container_service.infras.hosts.terraform",
     # 模板集功能模块
     "backend.templatesets.var_mgmt.apps.VarMgmtConfig",
-    "backend.container_service.observability.metric_mesos",
 ]
 
 MIDDLEWARE = [

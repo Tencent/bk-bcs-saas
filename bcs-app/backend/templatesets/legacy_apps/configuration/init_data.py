@@ -22,7 +22,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ClusterType
 from backend.utils.basic import RequestClass
 
 from .fixture.template_k8s import K8S_TEMPLATE
@@ -53,7 +52,7 @@ def _delete_old_init_templates(template_qsets, project_id, project_code, access_
 
 @shared_task
 @transaction.atomic
-def init_template(project_id, project_code, project_kind, access_token, username):
+def init_template(project_id, project_code, access_token, username):
     """创建项目时，初始化示例模板集
     request.project.english_name
     """
@@ -64,7 +63,7 @@ def init_template(project_id, project_code, project_kind, access_token, username
 
     template_data = K8S_TEMPLATE.get('data', {})
 
-    logger.info(f'init_template [begin] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
+    logger.info(f'init_template [begin] project_id: {project_id}')
     # 新建模板集
     init_template = Template.objects.create(
         project_id=project_id,
@@ -114,4 +113,4 @@ def init_template(project_id, project_code, project_kind, access_token, username
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
     perm.register(str(init_template.id), str(init_template.name))
 
-    logger.info(f'init_template [end] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
+    logger.info(f'init_template [end] project_id: {project_id}')
