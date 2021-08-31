@@ -33,7 +33,7 @@ modules:
         value: "false"
         description: "是否支持 Mesos 集群"
       - key: HELM_BASE_DIR
-        value: /apps/
+        value: /app/
         description: "Helm 相关配置存放目录"
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings.v3.prod
@@ -79,7 +79,7 @@ modules:
         value: "false"
         description: "是否支持 Mesos 集群"
       - key: HELM_BASE_DIR
-        value: /apps/
+        value: /app/
         description: "Helm 相关配置存放目录"
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings.v3.prod
@@ -112,7 +112,7 @@ modules:
         value: "false"
         description: "是否支持 Mesos 集群"
       - key: HELM_BASE_DIR
-        value: /apps/
+        value: /app/
         description: "Helm 相关配置存放目录"
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings.v3.prod
