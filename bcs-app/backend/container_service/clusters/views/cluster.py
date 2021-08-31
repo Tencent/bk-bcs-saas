@@ -26,7 +26,6 @@ from backend.accounts.bcs_perm import Cluster
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
 from backend.bcs_web.audit_log import client
 from backend.components import bcs, ops, paas_cc
-from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters import serializers as cluster_serializers
 from backend.container_service.clusters.base import utils as cluster_utils
@@ -46,7 +45,6 @@ from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.func_controller import get_func_controller
-from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
 
 # 导入cluster模块
@@ -64,7 +62,7 @@ class ClusterBase:
         """get cluster info"""
         cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if cluster_resp.get("code") != ErrorCode.NoError:
-            raise error_codes.APIErrorf(cluster_resp.get("message"))
+            raise error_codes.APIError(cluster_resp.get("message"))
         cluster_data = cluster_resp.get("data") or {}
         return cluster_data
 
@@ -463,16 +461,6 @@ class ClusterVersionViewSet(viewsets.ViewSet):
         version_list = cluster_utils.get_cluster_versions(request.user.token.access_token, kind=coes)
 
         return response.Response(version_list)
-
-
-class MesosIPPoolViewSet(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def get(self, request, project_id, cluster_id):
-        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-        data = client.get_cluster_ippool()
-
-        return response.Response(data.get("data") or {})
 
 
 class UpgradeClusterViewSet(viewsets.ViewSet):

@@ -37,19 +37,18 @@ from backend.templatesets.legacy_apps.instance.models import (
     MetricConfig,
     VersionInstance,
 )
-from backend.uniapps.network.models import K8SLoadBlance, MesosLoadBlance
+from backend.uniapps.network.models import K8SLoadBlance
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
 
-from .configs import k8s, mesos
+from .configs import k8s
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
 DEFAULT_K8S_VERSION = getattr(settings, 'K8S_VERSION', 'v1.12.3') or 'v1.12.3'
-DEFAULT_MESOS_VERSION = getattr(settings, 'MESOS_VERSION', 'v1') or 'v1'
 NO_RES = "**"
 CLUSTER_ENVIRONMENT = 'prod'
 
@@ -70,10 +69,7 @@ class BaseCluster:
             logger.error('Request paas cc api error, resp: %s' % json.dumps(resp))
 
     def get_request_config(self, cluster_id, version, environment):
-        kind_type_map = {
-            'k8s': k8s.ClusterConfig,
-            'mesos': mesos.ClusterConfig,
-        }
+        kind_type_map = {'k8s': k8s.ClusterConfig}
         self.get_cluster_base_config(cluster_id, version=version, environment=environment)
 
         client = kind_type_map[self.kind_name](self.config, self.area_info, cluster_name=self.cluster_name)
@@ -114,10 +110,7 @@ class BaseCluster:
     ):  # noqa
         """调用bcs接口创建集群"""
         self.cluster_id = cluster_id
-        kind_version_map = {
-            'k8s': DEFAULT_K8S_VERSION,
-            'mesos': DEFAULT_MESOS_VERSION,
-        }
+        kind_version_map = {'k8s': DEFAULT_K8S_VERSION}
         if not config:
             config = self.get_request_config(cluster_id, kind_version_map[self.kind_name], environment)
         # 下发配置时，去除version
@@ -455,8 +448,7 @@ class DeleteCluster(BaseCluster):
         )
 
     def clean_lb(self):
-        model = K8SLoadBlance if self.request.project['kind'] == 1 else MesosLoadBlance
-        model.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).update(
+        K8SLoadBlance.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).update(
             is_deleted=True, deleted_time=datetime.now()
         )
 
