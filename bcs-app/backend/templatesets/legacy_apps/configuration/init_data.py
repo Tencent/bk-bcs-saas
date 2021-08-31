@@ -55,7 +55,7 @@ def _delete_old_init_templates(template_qsets, project_id, project_code, access_
 
 @shared_task
 @transaction.atomic
-def init_template(project_id, project_code, project_kind, access_token, username):
+def init_template(project_id, project_code, access_token, username):
     """创建项目时，初始化示例模板集
     request.project.english_name
     """
@@ -64,13 +64,9 @@ def init_template(project_id, project_code, project_kind, access_token, username
     if exit_templates.exists():
         _delete_old_init_templates(exit_templates, project_id, project_code, access_token, username)
 
-    template_data = {}
-    if project_kind == K8S_KIND:
-        template_data = K8S_TEMPLATE.get('data', {})
-    elif project_kind == MESOS_KIND:
-        template_data = MESOS_TEMPLATE.get('data', {})
+    template_data = K8S_TEMPLATE.get('data', {})
 
-    logger.info(f'init_template [begin] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
+    logger.info(f'init_template [begin] project_id: {project_id}')
     # 新建模板集
     init_template = Template.objects.create(
         project_id=project_id,
@@ -120,5 +116,5 @@ def init_template(project_id, project_code, project_kind, access_token, username
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
     perm.register(str(init_template.id), str(init_template.name))
 
-    logger.info(f'init_template [end] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
+    logger.info(f'init_template [end] project_id: {project_id}')
     return
