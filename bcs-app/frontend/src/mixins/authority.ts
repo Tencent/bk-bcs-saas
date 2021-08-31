@@ -7,15 +7,17 @@ export default {
         }
     },
     beforeRouteEnter (to: Route, from: Route, next) {
-        next(async vm => {
+        next(vm => {
             const actionIds = to.meta?.authority?.actionIds || []
             if (actionIds.length) {
-                const params = vm.$BcsAuthParams || {}
-                const data = await userPerms({
-                    action_ids: actionIds,
-                    ...params
-                })
-                vm.$BcsAuthMap = data?.perms || {}
+                setTimeout(async () => {
+                    const params = vm.$BcsAuthParams || {}
+                    const data = await userPerms({
+                        action_ids: actionIds,
+                        ...params
+                    })
+                    vm.$BcsAuthMap = data?.perms || {}
+                }, 0)
             }
         })
     }

@@ -108,6 +108,17 @@
                                 <a v-if="failStatus.includes(row.status) || row.status === 'to_removed' || row.status === 'removable' || row.status === 'not_ready' || row.status === 'unnormal' || row.status === 'normal'"
                                     href="javascript:void(0)"
                                     class="bk-text-button"
+                                    v-authority="{
+                                        clickable: $BcsAuthMap && $BcsAuthMap.cluster_view,
+                                        disablePerms: true,
+                                        actionId: 'cluster_view',
+                                        resourceName: curSelectedClusterName,
+                                        permCtx: {
+                                            resource_type: 'cluster',
+                                            project_id: projectId,
+                                            cluster_id: curSelectedClusterId
+                                        }
+                                    }"
                                     @click="goNodeOverview(row)">
                                     {{row.inner_ip}}
                                 </a>

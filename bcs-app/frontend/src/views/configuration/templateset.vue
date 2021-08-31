@@ -206,7 +206,7 @@
                                                                     <li v-if="template.edit_mode !== 'yaml'">
                                                                         <a href="javascript:void(0)"
                                                                             v-authority="{
-                                                                                clickable: getAuthority('templateset_create', template.id),
+                                                                                clickable: getAuthority('templateset_copy', template.id),
                                                                                 actionId: 'templateset_create',
                                                                                 permCtx: {
                                                                                     project_id: projectId,
