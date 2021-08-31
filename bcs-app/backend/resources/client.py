@@ -78,7 +78,7 @@ class BcsKubeConfigurationService:
 
         config = client.Configuration()
         config.verify_ssl = False
-        config.host = '{host}/tunnels/clusters/{cluster_id}'.format(
+        config.host = '{host}/v4/clusters/{cluster_id}'.format(
             host=self._get_apiservers_host(env_name), cluster_id=self.cluster.id
         )
         config.api_key = {"authorization": f"Bearer {settings.BCS_CLUSTER_ADMIN_TOKEN}"}
