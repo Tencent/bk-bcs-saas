@@ -43,10 +43,6 @@ urlpatterns = [
         views.BatchUpdateInstance.as_view({"put": "api_put"}),
     ),
     url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/batch_application_update/$",
-        views.BatchUpdateApplicationInstance.as_view({"put": "api_put"}),
-    ),
-    url(
         r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/scale/$",
         views.ScaleInstance.as_view({"post": "api_post"}),
     ),
@@ -105,21 +101,5 @@ urlpatterns = [
     url(
         r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/namespaces/$",  # noqa
         views.ProjectNamespace.as_view({"post": "post"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/applications/batch_signal/$",  # noqa
-        instance.SendApplicationSignal.as_view({"post": "send_signal"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/deployments/batch_signal/$",  # noqa
-        instance.SendDeploymentSignal.as_view({"post": "send_signal"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/command/$",  # noqa
-        instance.SendCommand.as_view({"post": "send_cmd"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/command/status/$",  # noqa
-        instance.GetCommandStatus.as_view({"get": "status", "delete": "delete_command"}),
     ),
 ]

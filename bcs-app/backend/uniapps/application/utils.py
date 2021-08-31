@@ -22,7 +22,6 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.components import paas_cc
-from backend.components.bcs.mesos import MesosClient
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
@@ -139,7 +138,6 @@ def retry_requests(func, params=None, data=None, max_retries=2):
     """
     for i in range(1, max_retries + 1):
         try:
-            # 兼容k8s和mesos
             resp = func(params) if params else func(**data)
             if i == max_retries:
                 return resp
