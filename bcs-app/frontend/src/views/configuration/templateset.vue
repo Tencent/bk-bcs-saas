@@ -131,6 +131,7 @@
                                                             <a href="javascript:void(0);" class="title" style="font-weight: normal;"
                                                                 v-authority="{
                                                                     clickable: getAuthority('templateset_view', template.id),
+                                                                    resourceName: template.name,
                                                                     actionId: 'templateset_view',
                                                                     permCtx: {
                                                                         project_id: projectId,
@@ -188,6 +189,7 @@
                                                                     v-authority="{
                                                                         clickable: getAuthority('templateset_instantiate', template.id),
                                                                         actionId: 'templateset_instantiate',
+                                                                        resourceName: template.name,
                                                                         permCtx: {
                                                                             project_id: projectId,
                                                                             template_id: template.id
@@ -207,7 +209,8 @@
                                                                         <a href="javascript:void(0)"
                                                                             v-authority="{
                                                                                 clickable: getAuthority('templateset_copy', template.id),
-                                                                                actionId: 'templateset_create',
+                                                                                actionId: 'templateset_copy',
+                                                                                resourceName: template.name,
                                                                                 permCtx: {
                                                                                     project_id: projectId,
                                                                                     template_id: template.id
@@ -219,6 +222,7 @@
                                                                             v-authority="{
                                                                                 clickable: getAuthority('templateset_delete', template.id),
                                                                                 actionId: 'templateset_delete',
+                                                                                resourceName: template.name,
                                                                                 permCtx: {
                                                                                     project_id: projectId,
                                                                                     template_id: template.id

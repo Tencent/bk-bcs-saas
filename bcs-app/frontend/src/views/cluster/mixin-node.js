@@ -1067,7 +1067,12 @@ export default {
                     this.isCheckCurPageAll = false
                     this.dialogConf.isShow = false
                 } catch (e) {
-                    catchErrorHandler(e, this)
+                    if (e?.code === 4003) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: e.message || e.code
+                        })
+                    }
                 } finally {
                     this.isCreating = false
                 }
