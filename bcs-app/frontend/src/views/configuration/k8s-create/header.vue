@@ -133,8 +133,7 @@
                                 resourceName: curTemplate.name,
                                 permCtx: {
                                     resource_type: 'templateset',
-                                    project_id: projectId,
-                                    template_id: !!Number(curTemplateId) ? curTemplateId : ''
+                                    project_id: projectId
                                 }
                             }" @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</bk-button>
                         <bk-button
