@@ -147,7 +147,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         template = validated_data["template"]
 
         # 权限校验
-        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=template_id)
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id)
         self.permission.can_create(perm_ctx)
 
         create_data = validated_data

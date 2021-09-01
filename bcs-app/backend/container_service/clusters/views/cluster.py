@@ -176,8 +176,8 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         self.permission.grant_resource_creator_actions(
             request.user.username,
             ClusterCreatorActionCtx(
-                resource_id=cluster_info["cluster_id"],
-                resource_name=cluster_info["name"],
+                resource_id=cluster_info.data["cluster_id"],
+                resource_name=cluster_info.data["name"],
                 username=request.user.username,
                 project_id=project_id,
             ),
