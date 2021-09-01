@@ -1972,7 +1972,9 @@ export default {
     '命名空间更新': ['Update Namespace'],
     '命名空间查看': ['View Namespace'],
     '命名空间创建': ['Create Namespace'],
-    '模板集实例化': ['Template Instantiate']
+    '模板集实例化': ['Template Instantiate'],
+    '模板集更新': ['Template Update'],
+    '模板集复制': ['Template Copy']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

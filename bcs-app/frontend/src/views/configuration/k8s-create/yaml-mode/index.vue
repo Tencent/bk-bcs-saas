@@ -123,12 +123,12 @@
                 <template v-else>
                     <bk-button type="primary"
                         v-authority="{
-                            actionId: 'templateset_update',
+                            actionId: !!templateId ? 'templateset_update' : 'templateset_create',
                             resourceName: curTemplate.name,
                             permCtx: {
-                                resource_type: 'templateset',
+                                resource_type: !!templateId ? 'templateset' : 'project',
                                 project_id: projectId,
-                                template_id: templateId
+                                template_id: !!templateId ? templateId : undefined
                             }
                         }" @click="handleSaveTemplate">{{$t('保存')}}</bk-button>
                 </template>

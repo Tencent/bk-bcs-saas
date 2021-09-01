@@ -129,22 +129,22 @@
                     <template v-else>
                         <bk-button
                             v-authority="{
-                                actionId: 'templateset_create',
+                                actionId: !!curTemplateId ? 'templateset_update' : 'templateset_create',
                                 resourceName: curTemplate.name,
                                 permCtx: {
-                                    resource_type: 'templateset',
+                                    resource_type: !!curTemplateId ? 'templateset' : 'project',
                                     project_id: projectId,
-                                    template_id: !!Number(curTemplateId) ? curTemplateId : ''
+                                    template_id: !!curTemplateId ? curTemplateId : undefined
                                 }
                             }" @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</bk-button>
                         <bk-button
                             v-authority="{
-                                actionId: 'templateset_update',
+                                actionId: !!curTemplateId ? 'templateset_update' : 'templateset_create',
                                 resourceName: curTemplate.name,
                                 permCtx: {
-                                    resource_type: 'templateset',
+                                    resource_type: !!curTemplateId ? 'templateset' : 'project',
                                     project_id: projectId,
-                                    template_id: curTemplateId
+                                    template_id: !!curTemplateId ? curTemplateId : undefined
                                 }
                             }"
                             type="primary" :loading="isDataSaveing"
@@ -1111,12 +1111,6 @@
                         }
                     }, res => {
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: res.message,
-                            hasCloseIcon: true,
-                            delay: '3000'
-                        })
                     })
                 }
             },
