@@ -52,10 +52,8 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
     quota = serializers.DictField(default={})
 
     def validate_name(self, name):
-        project_kind = self.context['request'].project.kind
-        if project_kind != ProjectKind.MESOS.value:
-            if name in K8S_PLAT_NAMESPACE:
-                raise ValidationError(f'namespace: {",".join(K8S_PLAT_NAMESPACE)} can not be used')
+        if name in K8S_PLAT_NAMESPACE:
+            raise ValidationError(f'namespace: {",".join(K8S_PLAT_NAMESPACE)} can not be used')
 
         # namespace name is unique in same cluster
         access_token = self.context['request'].user.token.access_token

@@ -12,7 +12,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.container_service.observability.metric.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
 
 
@@ -85,12 +84,4 @@ class PodMixin(ResourceMixin):
         if not is_metric or not metric_id_list:
             return configmaps, metrics
 
-        metric_qsets = Metric.objects.filter(id__in=metric_id_list, is_deleted=False)
-        for metric_obj in metric_qsets:
-            metrics.append(
-                {
-                    "id": f"{self.id}{APPLICATION_ID_SEPARATOR}{metric_obj.id}{APPLICATION_ID_SEPARATOR}{resource_name}",
-                    "name": metric_obj.name,
-                }
-            )
         return configmaps, metrics

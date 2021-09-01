@@ -18,7 +18,6 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.constants import DEFAULT_HPA_API_VERSION
@@ -214,23 +213,6 @@ class Scheduler(SchedulerBase):
         client = K8SClient(self.access_token, self.project_id, cluster_id, env=None)
         name = spec['metadata']['name']
         result = client.delete_ingress(ns, name)
-        if result.get('code') != 0:
-            raise ComponentError(result.get('message', ''))
-
-    # ########### metric  可以跟 k8s 共用
-    def handler_metric(self, ns, cluster_id, spec):
-        """绑定metric"""
-        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
-        result = client.set_metrics(data=spec, cluster_type='k8s')
-        if result.get('code') != 0:
-            logger.warning('set metric failed, %s, will try rollback.', result)
-            raise Rollback(result)
-
-    def rollback_metric(self, ns, cluster_id, spec):
-        """回滚metric"""
-        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
-        name = spec['name']
-        result = client.delete_metrics(namespace=ns, metric_name=name, cluster_type='k8s')
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 

@@ -83,26 +83,6 @@ class K8sResourceName(ChoicesEnum):
     )
 
 
-class MesosResourceName(ChoicesEnum):
-    application = 'application'
-    deployment = 'deployment'
-    service = 'service'
-    configmap = 'configmap'
-    secret = 'secret'
-    hpa = 'hpa'
-    ingress = 'ingress'
-
-    _choices_labels = (
-        (application, 'application'),
-        (deployment, 'deployment'),
-        (service, 'service'),
-        (configmap, 'configmap'),
-        (secret, 'secret'),
-        (hpa, 'hpa'),
-        (ingress, 'ingress'),
-    )
-
-
 class FileResourceName(ChoicesEnum):
     Deployment = 'Deployment'
     Service = 'Service'
@@ -146,8 +126,7 @@ class FileResourceName(ChoicesEnum):
 
 
 KRESOURCE_NAMES = K8sResourceName.choice_values()
-MRESOURCE_NAMES = MesosResourceName.choice_values()
-RESOURCE_NAMES = KRESOURCE_NAMES + MRESOURCE_NAMES
+RESOURCE_NAMES = KRESOURCE_NAMES
 RESOURCES_WITH_POD = [
     FileResourceName.Deployment.value,
     FileResourceName.StatefulSet.value,
