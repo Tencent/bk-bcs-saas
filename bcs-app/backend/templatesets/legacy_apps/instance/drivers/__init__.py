@@ -13,20 +13,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from backend.apps.constants import ProjectKind
-from backend.templatesets.legacy_apps.instance.drivers import k8s, mesos
+from backend.templatesets.legacy_apps.instance.drivers import k8s
 
 ClusterType = dict(ProjectKind._choices_labels.get_choices())
 
 
 def get_scheduler_driver(access_token, project_id, configuration, project_kind):
     cluster_type = ClusterType.get(project_kind)
-    # for test
-    # cluster_type = 'Mesos'
 
     if cluster_type == 'Kubernetes':
         schduler = k8s.Scheduler(access_token, project_id, configuration, kind="Kubernetes", is_rollback=True)
-    elif cluster_type == 'Mesos':
-        schduler = mesos.Scheduler(access_token, project_id, configuration, kind="Mesos", is_rollback=True)
     else:
-        raise NotImplementedError("only support k8s and mesos")
+        raise NotImplementedError("only support k8s")
     return schduler

@@ -24,7 +24,6 @@ DONE：
 
 TODO:
 - 实例化失败，再次实例化时，应该更新而不是创建数据
-- mesos/k8s 创建分开调用底层API
 """
 import logging
 
@@ -57,7 +56,7 @@ from backend.uniapps.application.base_views import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from ..auditor import TemplatesetAuditor
-from ..constants import K8sResourceName, MesosResourceName
+from ..constants import K8sResourceName
 from ..models import CATE_SHOW_NAME, MODULE_DICT
 from ..tasks import check_instance_status
 
@@ -423,7 +422,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
             ns_id = int(inst_config.namespace)
 
             # HPA只通过模板集管理，可以重试实例化(apply操作)
-            if inst_config.category in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
+            if inst_config.category == K8sResourceName.K8sHPA.value:
                 continue
 
             if ns_id not in ns_resources:

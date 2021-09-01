@@ -23,7 +23,7 @@ from rest_framework.exceptions import ValidationError
 from backend.utils.exceptions import ResNotFoundError
 
 from . import models
-from .constants import RESOURCE_NAMES, MesosResourceName, TemplateEditMode
+from .constants import RESOURCE_NAMES, TemplateEditMode
 from .k8s import serializers as kserializers
 
 SLZ_CLASS = [
@@ -57,19 +57,6 @@ def can_delete_resource(ventity, resource_name, resource_id):
                     pod_res_name=pod_res_name,
                     msg=_("被以下资源关联，不能删除"),
                     svc_names=','.join(related_svc_names),
-                )
-            )
-
-    # 删除 Application 时，需要先判断 Deployment 和 service 的依赖关系
-    if resource_name == MesosResourceName.application.value:
-        app_name, related_resource_names = models.get_application_related_resource(ventity, resource_id)
-        if related_resource_names:
-            raise ValidationError(
-                '{resource_name}[{app_name}]{msg}:{related_names}'.format(
-                    resource_name=resource_name,
-                    app_name=app_name,
-                    msg=_("被以下资源关联，不能删除"),
-                    related_names=','.join(related_resource_names),
                 )
             )
 

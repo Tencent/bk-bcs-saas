@@ -22,16 +22,15 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 
-from backend.container_service.observability.metric.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import (
     APPLICATION_ID_SEPARATOR,
     INGRESS_ID_SEPARATOR,
     LOG_CONFIG_MAP_SUFFIX,
 )
-from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
+from backend.uniapps.application.constants import K8S_KIND
 
 from .. import constants
-from . import k8s, mesos, resfile
+from . import k8s, resfile
 from .base import POD_RES_LIST, BaseModel, get_default_version, logger
 from .manager import ShowVersionManager, TemplateManager, VersionedEntityManager
 from .utils import MODULE_DICT, get_model_class_by_resource_name, get_secret_name_by_certid
@@ -39,7 +38,6 @@ from .utils import MODULE_DICT, get_model_class_by_resource_name, get_secret_nam
 TemplateCategory = constants.TemplateCategory
 TemplateEditMode = constants.TemplateEditMode
 K8sResourceName = constants.K8sResourceName
-MesosResourceName = constants.MesosResourceName
 
 
 def get_template_by_project_and_id(project_id, template_id):
@@ -420,22 +418,12 @@ class VersionedEntity(BaseModel):
         return self._get_resource_id_list(self.resource_entity, resource_name)
 
     def get_configmaps_by_kind(self, app_kind):
-        resource_map = {
-            K8S_KIND: [K8sResourceName.K8sConfigMap.value, k8s.K8sConfigMap],
-            MESOS_KIND: [MesosResourceName.configmap.value, mesos.ConfigMap],
-        }
-        configmap_id_list = self.get_resource_id_list(resource_map[app_kind][0])
-        model_class = resource_map[app_kind][1]
-        return model_class.get_resources_info(configmap_id_list)
+        configmap_id_list = self.get_resource_id_list(K8sResourceName.K8sConfigMap.value)
+        return k8s.K8sConfigMap.get_resources_info(configmap_id_list)
 
     def get_secrets_by_kind(self, app_kind):
-        resource_map = {
-            K8S_KIND: [K8sResourceName.K8sSecret.value, k8s.K8sSecret],
-            MESOS_KIND: [MesosResourceName.secret.value, mesos.Secret],
-        }
-        secret_id_list = self.get_resource_id_list(resource_map[app_kind][0])
-        model_class = resource_map[app_kind][1]
-        return model_class.get_resources_info(secret_id_list)
+        secret_id_list = self.get_resource_id_list(K8sResourceName.K8sSecret.value)
+        return k8s.K8sSecret.get_resources_info(secret_id_list)
 
     def get_k8s_services(self):
         svc_id_list = self.get_resource_id_list(K8sResourceName.K8sService.value)
@@ -445,16 +433,6 @@ class VersionedEntity(BaseModel):
         """获取模板集版本的 Deployment 列表"""
         deploy_id_list = self.get_resource_id_list(K8sResourceName.K8sDeployment.value)
         return k8s.K8sDeployment.get_resources_info(deploy_id_list)
-
-    def get_mesos_apps(self):
-        """获取模板集版本的 Application 列表"""
-        app_id_list = self.get_resource_id_list(MesosResourceName.application.value)
-        return mesos.Application.get_resources_info(app_id_list)
-
-    def get_mesos_deploys(self):
-        """获取mesos deploys 列表"""
-        deploy_id_list = self.get_resource_id_list(MesosResourceName.deployment.value)
-        return mesos.Deplpyment.get_resources_info(deploy_id_list)
 
     def get_k8s_svc_selector_labels(self):
         svc_id_list = self.get_resource_id_list(K8sResourceName.K8sService.value)
@@ -510,16 +488,6 @@ class VersionedEntity(BaseModel):
 
         return containers
 
-    def get_mesos_containers(self, **kwargs):
-        app_id_list = self.get_resource_id_list(MesosResourceName.application.value)
-        model_class = get_model_class_by_resource_name(MesosResourceName.application.value)
-        app_qsets = model_class.objects.filter(id__in=app_id_list)
-
-        containers = []
-        for app in app_qsets:
-            containers.extend(app.get_containers())
-        return containers
-
     def get_containers_from_yaml(self):
         entity = self.resource_entity
         if not entity:
@@ -538,11 +506,7 @@ class VersionedEntity(BaseModel):
         return container_list
 
     def get_containers(self, app_kind):
-        if app_kind == K8S_KIND:
-            containers = self.get_k8s_containers()
-        else:
-            containers = self.get_mesos_containers()
-
+        containers = self.get_k8s_containers()
         container_list = [{"name": con.get("name"), "image": con.get("image").split("/")[-1]} for con in containers]
         return container_list
 
@@ -610,28 +574,6 @@ class VersionedEntity(BaseModel):
         return new_version_entity
 
     # TODO refactor
-
-    @classmethod
-    def get_application_by_deployment_id(cls, versioned_entity_id, deployment_id):
-        try:
-            ver_entity = cls.objects.get(id=versioned_entity_id)
-        except Exception:
-            raise ValidationError(_("模板版本(version_id:{})不存在").format(versioned_entity_id))
-        try:
-            deployment = mesos.Deplpyment.objects.get(id=deployment_id)
-        except Exception:
-            raise ValidationError(_("Deplpyment(id:{})不存在").format(deployment_id))
-
-        entity = ver_entity.get_entity()
-        apps = entity.get("application") if entity else None
-        if not apps:
-            raise ValidationError(_("模板版本(version_id:{})下没有可以关联的Application").format(versioned_entity_id))
-        app_id_list = apps.split(",")
-        apps = mesos.Application.objects.filter(id__in=app_id_list, app_id=deployment.app_id)
-        if not apps:
-            raise ValidationError(_("Deplpyment(id:{})没有关联的Application").format(deployment_id))
-        return apps[0]
-
     @classmethod
     def get_k8s_service_by_statefulset_id(cls, ventity_id, sts_id):
         try:
@@ -652,57 +594,22 @@ class VersionedEntity(BaseModel):
 
         raise ValidationError(_("模板版本(ventity_id:{})使用了StatefulSet, 但未关联任何Service").format(ventity_id))
 
-    @classmethod
-    def get_related_apps_by_service(cls, versioned_entity_id, service_id):
-        """获取service关联的应用信息"""
-        try:
-            ver_entity = cls.objects.get(id=versioned_entity_id)
-        except Exception:
-            raise ValidationError(_("模板版本(version_id:{})不存在").format(versioned_entity_id))
-        entity = ver_entity.get_entity()
-        application_ids = entity.get("application") if entity else None
-        application_id_list = application_ids.split(",") if application_ids else []
-
-        try:
-            service = mesos.Service.objects.get(id=service_id)
-        except Exception:
-            raise ValidationError(_("Service(id:{})不存在").format(service_id))
-        app_id_list = service.get_app_id_list()
-
-        apps = mesos.Application.objects.filter(id__in=application_id_list, app_id__in=app_id_list)
-        return apps
-
     def get_template_name(self):
         template_id = self.template_id
         return Template.objects.get(id=template_id).name
 
     # TODO mark refactor
     def get_version_all_container(self, type, project_kind, **kwargs):
-        """
-        project_kind: 1 (k8s); 2(mesos)
-        """
         entity = self.resource_entity
         if not entity:
             return []
-        # 区分容器类型
-        if project_kind == 1:
-            app_list = []
-            for resource_name in POD_RES_LIST:
-                res_ids = entity.get(resource_name, "")
-                res_id_list = res_ids.split(",") if res_ids else []
-                res_list = list(MODULE_DICT.get(resource_name).objects.filter(id__in=res_id_list))
-                app_list.extend(res_list)
-        else:
-            # 应用列表
-            resource_name = "application"
-            application = entity.get(resource_name, "")
-            id_list = application.split(",") if application else []
 
-            app_list = MODULE_DICT.get(resource_name).objects.filter(id__in=id_list)
-
-            req_app_id_list = kwargs.get("req_app_id_list")
-            if req_app_id_list:
-                app_list = app_list.filter(app_id__in=req_app_id_list)
+        app_list = []
+        for resource_name in POD_RES_LIST:
+            res_ids = entity.get(resource_name, "")
+            res_id_list = res_ids.split(",") if res_ids else []
+            res_list = list(MODULE_DICT.get(resource_name).objects.filter(id__in=res_id_list))
+            app_list.extend(res_list)
 
         if not app_list:
             return []
@@ -775,16 +682,8 @@ class VersionedEntity(BaseModel):
             return {}
 
         version_config = {}
-        # 单独处理 application 和 deployment
-        deployment_ids = entity.get("deployment")
-        deployment_id_list = deployment_ids.split(",") if deployment_ids else []
-        deployment_app_id_list = mesos.Deplpyment.objects.filter(id__in=deployment_id_list).values_list(
-            "app_id", flat=True
-        )
 
-        app_config_map_list = []
         k8s_app_config_map_list = []
-        app_metric_list = []
         tls_secret_list = []
         for item in entity:
             item_ids = entity[item]
@@ -802,7 +701,7 @@ class VersionedEntity(BaseModel):
             if item in ["K8sIngress"]:
                 tls_secret_list = self.get_secret_info_by_k8s_ingress(item, item_objects)
             # 非标准日志采集
-            elif item in ["application", "K8sDeployment", "K8sDaemonSet", "K8sJob", "K8sStatefulSet"]:
+            elif item in ["K8sDeployment", "K8sDaemonSet", "K8sJob", "K8sStatefulSet"]:
                 # 模板中部分设置需要添加额外的配置文件
                 for item_app in item_objects:
                     _item_config = item_app.get_config()
@@ -821,28 +720,7 @@ class VersionedEntity(BaseModel):
                             }
                             if item in POD_RES_LIST:
                                 k8s_app_config_map_list.append(_confg_map)
-                            else:
-                                app_config_map_list.append(_confg_map)
                             logger.info("non-log k8s_app_config_map_list:%s" % k8s_app_config_map_list)
-                            logger.info("non-log app_config_map_list:%s" % app_config_map_list)
-
-                    web_cache = _item_config.get("webCache") or {}
-                    is_metric = web_cache.get("isMetric") or False
-                    metric_id_list = web_cache.get("metricIdList") or []
-                    if is_metric and metric_id_list:
-                        metric_list = Metric.objects.filter(id__in=metric_id_list, is_deleted=False)
-                        for _m in metric_list:
-                            app_metric_list.append(
-                                {
-                                    "id": "%s%s%s%s%s"
-                                    % (item_app.id, APPLICATION_ID_SEPARATOR, _m.id, APPLICATION_ID_SEPARATOR, item),
-                                    "name": _m.name,
-                                }
-                            )
-
-            # Application 若已经被 Deployment 关联则不能再实例化
-            if item == "application":
-                item_objects = item_objects.exclude(app_id__in=deployment_app_id_list)
 
             item_config = []
             for _i in item_objects:
@@ -850,18 +728,11 @@ class VersionedEntity(BaseModel):
             if item_config:
                 version_config[item] = item_config
 
-        if app_config_map_list:
-            if version_config.get("configmap"):
-                version_config["configmap"].extend(app_config_map_list)
-            else:
-                version_config["configmap"] = app_config_map_list
         if k8s_app_config_map_list:
             if version_config.get("K8sConfigMap"):
                 version_config["K8sConfigMap"].extend(k8s_app_config_map_list)
             else:
                 version_config["K8sConfigMap"] = k8s_app_config_map_list
-        if app_metric_list:
-            version_config["metric"] = app_metric_list
         if tls_secret_list:
             if version_config.get("K8sSecret"):
                 version_config["K8sSecret"].extend(tls_secret_list)
@@ -878,15 +749,6 @@ class VersionedEntity(BaseModel):
             _r_value = version_instance_resources[_r]
             instance_entity_dict[_r] = [_v["id"] for _v in _r_value]
         return instance_entity_dict
-
-    @property
-    def entity_kind(self):
-        if not self.resource_entity:
-            return None
-        res_name_list = list(self.resource_entity.keys())
-        if res_name_list[0] in constants.KRESOURCE_NAMES:
-            return K8S_KIND
-        return MESOS_KIND
 
     def get_k8s_inst_resources(self):
         inst_resources = {}
@@ -925,52 +787,12 @@ class VersionedEntity(BaseModel):
 
         return inst_resources
 
-    def get_mesos_inst_resources(self):
-        inst_resources = {}
-        res_name_list = list(self.resource_entity.keys())
-        app_res_name = MesosResourceName.application.value
-
-        extra_configmaps = None
-        if app_res_name in res_name_list:
-            deploy_id_list = self.get_resource_id_list(MesosResourceName.deployment.value)
-            related_app_id_list = mesos.Deplpyment.objects.filter(id__in=deploy_id_list).values_list(
-                "app_id", flat=True
-            )
-            app_id_list = self.get_resource_id_list(app_res_name)
-            app_qsets = mesos.Application.objects.filter(id__in=app_id_list).exclude(app_id__in=related_app_id_list)
-            inst_resources[app_res_name] = [app.get_res_config(is_simple=True) for app in app_qsets]
-
-            extra_configmaps, mts = _get_extra_configmaps_and_metrics(app_res_name, app_qsets)
-            if mts:
-                inst_resources["metric"] = mts
-            res_name_list.remove(app_res_name)
-
-        for res_name in res_name_list:
-            res_id_list = self.get_resource_id_list(res_name)
-            res_model_cls = get_model_class_by_resource_name(res_name)
-            res_qsets = res_model_cls.objects.filter(id__in=res_id_list)
-            inst_resources[res_name] = [res.get_res_config(is_simple=True) for res in res_qsets]
-
-        if extra_configmaps:
-            cm_res_name = MesosResourceName.configmap.value
-            if cm_res_name in inst_resources:
-                inst_resources[cm_res_name].extend(extra_configmaps)
-            else:
-                inst_resources[cm_res_name] = extra_configmaps
-
-        return inst_resources
-
     # TODO replace get_version_instance_resources
     def get_instance_resources(self):
         """
         all resources include configmap for logbeat, metrics and so on
         """
-        if self.entity_kind == K8S_KIND:
-            return self.get_k8s_inst_resources()
-        elif self.entity_kind == MESOS_KIND:
-            return self.get_mesos_inst_resources()
-        else:
-            return {}
+        return self.get_k8s_inst_resources()
 
     # TODO replace get_version_instance_resource_ids
     @property
@@ -998,39 +820,9 @@ class VersionedEntity(BaseModel):
             instance_entity_dict[_r] = [_v["id"] for _v in _r_value]
         return instance_entity_dict
 
-    def get_lb_services_by_ids(self, service_id_list):
-        service_objects = mesos.Service.objects.filter(id__in=service_id_list)
-
-        service_list = []
-        for _s in service_objects:
-            if _s.is_related_lb():
-                service_list.append({"id": _s.id, "name": _s.get_name})
-        return service_list
-
-    @property
-    def get_lb_services(self):
-        """版本中关联 lb 的service"""
-        entity = self.resource_entity
-        if not entity:
-            return []
-        service_ids = entity.get("service")
-        service_id_list = service_ids.split(",") if service_ids else []
-        service_list = self.get_lb_services_by_ids(service_id_list)
-        return service_list
-
-    def get_version_ports(self, app_id_list):
-        """mesos Service 页面上的可选择的关联的 Application 的 端口信息"""
-        return self.get_version_all_container(type="port", project_kind=2, **{"req_app_id_list": app_id_list})
-
-    def get_mesos_services(self):
-        svc_id_list = self.get_resource_id_list(MesosResourceName.service.value)
-        return mesos.Service.get_resources_info(svc_id_list)
-
 
 def get_app_resource(instance_entity, category, resources_name, is_related_res=False, version_id=""):
-    """获取单个使用实例化时，需要实例化的资源
-    TODO：依赖的 ConfigMap 和 Secret
-    """
+    """获取单个使用实例化时，需要实例化的资源"""
     category_id_list = instance_entity.get(category)
     if not category_id_list:
         return {}
@@ -1044,32 +836,5 @@ def get_app_resource(instance_entity, category, resources_name, is_related_res=F
             continue
         if _name == resources_name:
             new_entity[category] = [_c]
-            # is_related_res=True 时，还需要添加 依赖的 ConfigMap 和 Secret
-            if is_related_res:
-                # TODO : 处理 k8s 的pod的资源
-                related_app = None
-                if category == "application":
-                    related_app = _resource
-                elif category == "deployment":
-                    related_app = VersionedEntity.get_application_by_deployment_id(version_id, _c["id"])
-                if related_app:
-                    # 查看 Application 配置信息中依赖的 configMap 和 sercret
-                    configmap_name_list, secret_name_list = related_app.get_related_resource(instance_entity)
-                    # 处理依赖的 configmap
-                    if configmap_name_list:
-                        _related_configmap_list = []
-                        configmap_id_list = instance_entity.get("configmap")
-                        for _config_map in configmap_id_list:
-                            if _config_map["name"] in configmap_name_list:
-                                _related_configmap_list.append(_config_map)
-                        new_entity["configmap"] = _related_configmap_list
-                    # 处理依赖的 secret
-                    if secret_name_list:
-                        _related_secret_list = []
-                        secret_id_list = instance_entity.get("secret")
-                        for _secret in secret_id_list:
-                            if _secret["name"] in secret_name_list:
-                                _related_secret_list.append(_secret)
-                        new_entity["secret"] = _related_secret_list
             break
     return new_entity

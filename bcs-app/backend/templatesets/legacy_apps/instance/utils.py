@@ -25,12 +25,11 @@ from backend.apps.constants import ALL_LIMIT
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
 from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-from ..configuration.constants import K8sResourceName, MesosResourceName
+from ..configuration.constants import K8sResourceName
 from ..configuration.models import CATE_ABBR_NAME, ShowVersion, Template, VersionedEntity
 from .constants import InsState
 from .drivers import get_scheduler_driver
@@ -164,7 +163,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
         # HPA 编辑以模板集为准, 可以重复实例化
-        if cate in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
+        if cate == K8sResourceName.K8sHPA.value:
             continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
@@ -177,7 +176,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
     # hpa白名单控制
     cluster_id_list = list(set([i['cluster_id'] for i in namespace if str(i['id']) in new_ns_list]))
-    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
+    if K8sResourceName.K8sHPA.value in instance_entity:
         if not enabled_hpa_feature(cluster_id_list):
             raise error_codes.APIError(_("当前实例化包含HPA资源，{}").format(settings.GRAYSCALE_FEATURE_MSG))
 
@@ -269,6 +268,10 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
         item_id_list = instance_entity[item]
         item_config = []
         for item_id in item_id_list:
+            # TODO 忽略metric, 后续从db中清理
+            if item == 'metric':
+                continue
+
             generator = GENERATOR_DICT.get(item)(item_id, namespace_id, is_validate, **params)
             file_content = generator.get_config_profile()
             file_name = generator.resource_show_name
@@ -301,20 +304,14 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
                     "ins_state": InsState.NO_INS.value,
                 }
                 is_update_save_kwargs = False
-                if item == 'metric':
-                    # 获取 Metric ID
-                    metric_id = generator.metric_id
-                    save_kwargs['ref_id'] = metric_id
-                    obj_module = MetricConfig
-                else:
-                    save_kwargs.update(
-                        {
-                            "oper_type": "create",
-                            "status": "Running",
-                            "last_config": "",
-                        }
-                    )
-                    obj_module = InstanceConfig
+                save_kwargs.update(
+                    {
+                        "oper_type": "create",
+                        "status": "Running",
+                        "last_config": "",
+                    }
+                )
+                obj_module = InstanceConfig
                 # 判断db中是否已经有记录，有则做更新操作
                 _exist_ins_confg = obj_module.objects.filter(name=file_name, namespace=namespace_id, category=item)
                 if _exist_ins_confg.exists():
@@ -441,43 +438,12 @@ def get_k8s_app_status(access_token, project_id, cluster_id, instance_name, name
     return resp.get("data") or []
 
 
-def get_mesos_app_status(access_token, project_id, cluster_id, instance_name, namespace, category):
-    client = MesosClient(access_token, project_id, cluster_id, None)
-    field = [
-        "data.metadata.name",
-        "data.metadata.namespace",
-    ]
-    if category == "application":
-        resp = client.get_application_with_post(
-            name=instance_name,
-            field=",".join(field),
-            namespace=namespace,
-        )
-    else:
-        resp = client.get_deployment_with_post(
-            name=instance_name,
-            field=",".join(field),
-            namespace=namespace,
-        )
-    if resp.get("code") != ErrorCode.NoError:
-        return []
-    return resp.get("data") or []
-
-
 def get_app_status(access_token, project_id, project_kind, cluster_id, instance_name, namespace, category):
     ret_data_dict = {}
-    if project_kind == 1:
-        data = get_k8s_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
-        for info in data:
-            key = (info.get("resourceName"), info.get("namespace"), category)
-            ret_data_dict[key] = True
-    else:
-        data = get_mesos_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
-        for info in data:
-            item = info.get("data") or {}
-            metadata = item.get("metadata") or {}
-            key = (metadata.get("name"), metadata.get("namespace"), category)
-            ret_data_dict[key] = True
+    data = get_k8s_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
+    for info in data:
+        key = (info.get("resourceName"), info.get("namespace"), category)
+        ret_data_dict[key] = True
     return ret_data_dict
 
 

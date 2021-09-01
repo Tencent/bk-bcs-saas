@@ -12,27 +12,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
-import datetime
-import json
 import logging
 import re
 
-from django.utils.translation import ugettext_lazy as _
-from rest_framework.exceptions import ValidationError
-
 from backend.apps.constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
 from backend.components import paas_cc
-from backend.components.bcs import mesos
-from backend.templatesets.legacy_apps.instance import constants as inst_constants
-from backend.templatesets.legacy_apps.instance.funutils import render_mako_context
-from backend.templatesets.legacy_apps.instance.generator import handel_custom_network_mode, handle_intersection_item
-from backend.uniapps.application.constants import UNNORMAL_STATUS
 from backend.uniapps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES
-from backend.uniapps.network.models import MesosLoadBlance
 from backend.utils.basic import getitems
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
 
 try:
     from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
