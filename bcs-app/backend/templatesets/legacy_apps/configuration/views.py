@@ -123,7 +123,7 @@ class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
             template = get_template_by_project_and_id(project_id, template_id)
 
         # 权限校验
-        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=template_id)
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id)
         self.permission.can_create(perm_ctx)
 
         serializer = serializers_new.TemplateDraftSLZ(
@@ -427,8 +427,6 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         _del_prefix = f"[deleted_{int(time.time())}]"
         del_tem_name = f"{_del_prefix}{instance.name}"
         self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
-        # 直接调用delete删除权限中心的资源
-        # perm.delete()
 
         return Response({"code": 0, "message": "OK", "data": {"id": pk}})
 
@@ -437,10 +435,10 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, project_id, pk):
         """复制模板"""
         self.request = request
-        template = validate_template_id(project_id, pk, is_return_tempalte=True)
+        validate_template_id(project_id, pk, is_return_tempalte=True)
 
         # 权限校验
-        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id, template_id=pk)
+        perm_ctx = TemplatesetPermCtx(username=request.user.username, project_id=project_id)
         self.permission.can_create(perm_ctx)
 
         self.project_id = project_id
