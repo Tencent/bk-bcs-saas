@@ -72,6 +72,9 @@
                                     "id": "templateset_view"
                                 },
                                 {
+                                    "id": "templateset_copy"
+                                },
+                                {
                                     "id": "templateset_update"
                                 },
                                 {
