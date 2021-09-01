@@ -37,6 +37,8 @@ FUNCTION_PATH_MAP = {
     "get_application": "/v2/cc/search_business/",
     "search_host": "/v2/cc/search_host/",
     "list_biz_hosts": "/v2/cc/list_biz_hosts/",
+    # 查询业务的空闲机/故障机/待回收模块
+    "get_biz_internal_module": "/v2/cc/get_biz_internal_module/",
 }
 # 默认开发商账号
 DEFAULT_SUPPLIER_ACCOUNT = None
@@ -83,8 +85,9 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
     return biz_info[0].get("bk_biz_name") or ""
 
 
-def get_all_application(username, bk_supplier_account=None, condition={}, start=0, limit=200):
+def get_all_application(username, bk_supplier_account=None, condition=None, start=0, limit=200):
     """获取用户有权限的所有业务"""
+    condition = condition or {}
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError}
     while True:
         resp = get_application_with_pagination(
@@ -210,8 +213,12 @@ def get_host_base_info(username, bk_biz_id, inner_ip):
     return ret_data
 
 
-def get_application_with_pagination(username, bk_supplier_account=None, condition={}, fields=[], start=0, limit=200):
+def get_application_with_pagination(
+    username, bk_supplier_account=None, condition=None, fields=None, start=0, limit=200
+):
     """分页查询业务"""
+    condition = condition or {}
+    fields = fields or []
     data = {"condition": condition, "fields": fields, "page": {"start": start, "limit": limit}}
     return cmdb_base_request(
         FUNCTION_PATH_MAP["get_application"], username, data, bk_supplier_account=bk_supplier_account
@@ -260,7 +267,7 @@ def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None
 
 
 def list_biz_hosts(
-    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
+    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=500, bk_supplier_account=None
 ):
     """获取业务下所有主机信息"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
@@ -327,6 +334,11 @@ def list_hosts_by_pagination(
     return cmdb_base_request(
         FUNCTION_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account
     )
+
+
+def get_biz_internal_module(username, bk_biz_id):
+    """ 查询业务的空闲机/故障机/待回收模块 """
+    return cmdb_base_request(FUNCTION_PATH_MAP['get_biz_internal_module'], username, {'bk_biz_id': bk_biz_id})
 
 
 def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):

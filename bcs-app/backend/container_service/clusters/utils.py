@@ -17,7 +17,6 @@ from datetime import datetime
 from typing import List
 
 from django.conf import settings
-from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
@@ -31,28 +30,10 @@ from backend.utils.funutils import convert_mappings
 
 from .constants import CCHostKeyMappings
 
-DEFAULT_PAGE_LIMIT = 5
 RoleNodeTag = 'N'
 RoleMasterTag = 'M'
 # 1表示gse agent正常
 AGENT_NORMAL_STATUS = 1
-
-
-def custom_paginator(raw_data, offset, limit=None):
-    """使用django paginator进行分页处理"""
-    limit = limit or DEFAULT_PAGE_LIMIT
-    page_cls = Paginator(raw_data, limit)
-    curr_page = 1
-    if offset or offset == 0:
-        curr_page = (offset // limit) + 1
-    # 如果当前页大于总页数，返回为空
-    count = page_cls.count
-    if curr_page > page_cls.num_pages:
-        return {"count": count, "results": []}
-    # 获取当前页的数据
-    curr_page_info = page_cls.page(curr_page)
-    curr_page_list = curr_page_info.object_list
-    return {"count": count, "results": curr_page_list}
 
 
 def delete_node_labels_record(LabelModel, node_id_list, username):

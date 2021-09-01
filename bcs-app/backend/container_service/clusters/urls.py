@@ -100,7 +100,7 @@ urlpatterns = [
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cc_host_info/?$',
-        views.CCHostListViewSet.as_view({'post': 'post'}),
+        views.CCHostListViewSet.as_view({'post': 'create'}),
         name='api.projects.cc_host_info',
     ),
     # 监控信息

@@ -26,8 +26,6 @@ from backend.components import paas_cc
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters.models import ClusterInstallLog, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
-from backend.utils.exceptions import ResNotFoundError
 
 
 class NodeLabelSLZ(serializers.ModelSerializer):
@@ -283,3 +281,10 @@ class QueryLabelKeysSLZ(QueryLabelSLZ):
 
 class QueryLabelValuesSLZ(QueryLabelSLZ):
     key_name = serializers.CharField(required=True)
+
+
+class FetchCCHostSLZ(serializers.Serializer):
+    limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
+    offset = serializers.IntegerField(required=False, default=0)
+    ip_list = serializers.ListField(required=False)
+    idle_only = serializers.BooleanField(required=False, default=False)
