@@ -242,14 +242,11 @@
                 <bk-tab :type="'fill'" :active-name="tabActiveName" class="biz-tab-container" @tab-changed="tabChanged">
                     <bk-tab-panel name="taskgroup">
                         <template slot="label">
-                            <bcs-popover placement="top" :transfer="true">
-                                <span class="bcs-icon bcs-icon-exclamation-circle" style="position: relative; top: -1px;"></span>
-                                <template slot="content">
-                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">
-                                        {{PROJECT_CONFIG.str.taskgroupAndPodTips}}
-                                    </p>
-                                </template>
-                            </bcs-popover>
+                            <span class="bcs-icon bcs-icon-exclamation-circle"
+                            v-bk-tooltips="{
+                                disabled: !PROJECT_CONFIG.str.taskgroupAndPodTips,
+                                content: PROJECT_CONFIG.str.taskgroupAndPodTips
+                            }" style="position: relative; top: -1px;"></span>
                             <span class="panel-name">{{$t('Pod管理')}}</span>
                         </template>
                         <div v-bkloading="{isLoading: taskgroupLoading}">
