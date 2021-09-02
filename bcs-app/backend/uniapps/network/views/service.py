@@ -277,13 +277,13 @@ class Services(viewsets.ViewSet, BaseAPI):
                 if not source_type:
                     source_type = "template" if template_id else "other"
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
-
                 extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
                 _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
                 # 处理 k8s 的系统命名空间的数据
-                _s['can_update'] = _s['can_delete'] = False
-                _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
-                continue
+                if _s['namespace'] in skip_namespace_list:
+                    _s['can_update'] = _s['can_delete'] = False
+                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
+                    continue
 
                 # 非模板集创建，可以删除但是不可以更新
                 _s['can_update'] = False

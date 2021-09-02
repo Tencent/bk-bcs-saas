@@ -107,7 +107,7 @@ class ProjectEnableBCS(BasePermission):
 
         self._refine_project(project)
 
-        # 用户绑定了项目, 并且选择了编排类型
+        # 项目绑定了业务，即开启容器服务
         if project.cc_app_id != 0:
             region.set(cache_key, project)
             return project

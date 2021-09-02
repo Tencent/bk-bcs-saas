@@ -38,7 +38,6 @@ from backend.templatesets.legacy_apps.instance.serializers import (
 from backend.templatesets.legacy_apps.instance.utils import (
     handle_all_config,
     validate_instance_entity,
-    validate_lb_info_by_version_id,
     validate_ns_by_tempalte_id,
     validate_version_id,
 )
@@ -352,11 +351,6 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
 
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = self.instance_entity.get("service") or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, ns_id_list, slz_data.get("lb_info", {}), service_id_list
-        )
-        if not v_res:
-            return JsonResponse({"code": 400, "message": err_msg, "data": err_list})
 
         # 判断 template 下 前台传过来的 namespace 是否已经实例化过
         res, ns_name_list, namespace_dict = validate_ns_by_tempalte_id(

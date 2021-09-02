@@ -44,7 +44,7 @@ REAL_NUM_VAR_PATTERN = re.compile(r"^%s*$" % VARIABLE_PATTERN)
 
 
 def to_bcs_res_name(project_kind, origin_name):
-    if origin_name not in CATE_SHOW_NAME.values():
+    if origin_name in CATE_SHOW_NAME.values():
         return f'K8s{origin_name}'
     return origin_name.lower()
 

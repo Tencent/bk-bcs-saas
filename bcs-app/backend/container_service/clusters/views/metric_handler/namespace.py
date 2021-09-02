@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from backend.components import bcs, paas_cc
-from backend.container_service.projects.base.constants import ALL_LIMIT
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 
 def get_cluster_namespace(request, project_id, cluster_id):
     """获取集群下namespace的数量"""
-    resp = paas_cc.get_cluster_namespace_list(request.user.token.access_token, project_id, cluster_id, limit=ALL_LIMIT)
+    resp = paas_cc.get_cluster_namespace_list(
+        request.user.token.access_token, project_id, cluster_id, limit=LIMIT_FOR_ALL_DATA
+    )
     if resp.get("code") != ErrorCode.NoError:
         logger.error(u"获取命名空间数量异常，当前集群ID: %s, 详情: %s" % (cluster_id, resp.get("message")))
         return {}

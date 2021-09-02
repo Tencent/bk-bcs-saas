@@ -24,7 +24,7 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.container_service.projects.base.constants import ALL_LIMIT
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -111,14 +111,9 @@ def validate_version_id(
     return True
 
 
-def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_list, lb_info, service_id_list):
-    """检查预览/实例化 service 时，关联lb情况下，lb 是否都已经选中"""
-    return True, [], ''
-
-
 def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, instance_entity={}):
     """实例化，参数 ns_list 不能与 db 中已经实例化过的 ns 重复"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
@@ -164,7 +159,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
 def validate_update_ns_by_tempalte_id(template_id, ns_list, access_token, project_id):
     """更新，参数 ns_list 必须全部为 db 中已经实例化过的 ns"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 

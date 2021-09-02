@@ -24,7 +24,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
-from backend.container_service.projects.base.constants import ALL_LIMIT
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, Template
 from backend.templatesets.legacy_apps.configuration.utils import to_bcs_res_name
 from backend.templatesets.legacy_apps.instance.constants import InsState
@@ -76,7 +76,7 @@ class TemplateNamespace(BaseAPI):
 
     def get_ns_info(self, request, project_id, ns_id_list):
         """获取ns信息"""
-        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, limit=ALL_LIMIT)
+        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
         results = (resp.get("data") or {}).get("results") or []

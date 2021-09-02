@@ -31,7 +31,7 @@ from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
-from backend.container_service.projects.base.constants import ALL_LIMIT
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
@@ -176,7 +176,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             perm_can_use = False
 
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=LIMIT_FOR_ALL_DATA)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
