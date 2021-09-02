@@ -26,11 +26,10 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
-from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
 from backend.utils.error_codes import error_codes
@@ -162,7 +161,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
             var_objects = Variable.objects.filter(Q(project_id=project_id) | Q(project_id=0))
 
             access_token = request.user.token.access_token
-            namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+            namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
             namespace_data = namespace_res.get('data', {}).get('results') or []
             namespace_dict = {str(i['id']): i['cluster_id'] for i in namespace_data}
 
@@ -299,7 +298,7 @@ class NameSpaceVariableView(viewsets.ViewSet):
         """获取用户所有有使用权限的命名空间"""
         access_token = request.user.token.access_token
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=0, limit=constants.ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=0, limit=LIMIT_FOR_ALL_DATA)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 

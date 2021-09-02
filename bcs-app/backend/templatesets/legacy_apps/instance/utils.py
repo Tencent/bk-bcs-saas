@@ -21,10 +21,10 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.constants import ALL_LIMIT
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -111,42 +111,9 @@ def validate_version_id(
     return True
 
 
-def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_list, lb_info, service_id_list):
-    """检查预览/实例化 service 时，关联lb情况下，lb 是否都已经选中"""
-    # 1. 判断是否需要关联lb
-    lb_services = version_entity.get_lb_services_by_ids(service_id_list)
-    if not lb_services:
-        return True, [], ''
-
-    service_name_list = [i['name'] for i in lb_services]
-    err_list = []
-    # 2. 依次判断每个 ns 下每个 关联的 service 下是否都有 可用的lb
-    for ns_id in ns_list:
-        # 2.1 先判断该命名空间是否有lb信息
-        if ns_id not in lb_info.keys():
-            for _s in service_name_list:
-                err_list.append({'ns_id': ns_id, 'service': _s})
-            continue
-        # 判断每一个 service 是否都有值
-        lb_data = lb_info[ns_id]
-        lb_data_skey = lb_data.keys()
-        for _s in service_name_list:
-            if _s not in lb_data_skey:
-                err_list.append({'ns_id': ns_id, 'service': _s})
-    if not err_list:
-        return True, [], ''
-
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
-    namespace = namespace.get('data', {}).get('results') or []
-    namespace_dict = {str(i['id']): i['name'] for i in namespace}
-    err_list = ["namespace[%s]:%s" % (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
-    err_msg = _('请选择 service 关联的 LoadBalance: {}').format(' '.join(err_list))
-    return False, err_list, err_msg
-
-
 def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, instance_entity={}):
     """实例化，参数 ns_list 不能与 db 中已经实例化过的 ns 重复"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
@@ -192,7 +159,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
 def validate_update_ns_by_tempalte_id(template_id, ns_list, access_token, project_id):
     """更新，参数 ns_list 必须全部为 db 中已经实例化过的 ns"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 

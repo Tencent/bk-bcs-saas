@@ -21,7 +21,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
@@ -189,10 +188,6 @@ class ReschedulePodsViewSet(InstanceAPI, viewsets.ViewSet):
         NOTE: 这里需要注意，因为前端触发，用户需要在前端展示调用成功后，确定任务都已经下发了
         因此，这里采用同步操作
         """
-        # TODO: 先仅允许类型为k8s
-        if request.project.kind == ProjectKind.MESOS.value:
-            raise ValidationError(_("仅允许非mesos类型操作"))
-
         # 获取请求参数
         data_slz = ReschedulePodsSLZ(data=request.data)
         data_slz.is_valid(raise_exception=True)

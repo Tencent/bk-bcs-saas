@@ -24,9 +24,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
-from backend.apps.constants import ProjectKind
-from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
@@ -34,9 +31,12 @@ from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.templatesets.legacy_apps.configuration.constants import EnvType
+from backend.templatesets.legacy_apps.configuration.utils import get_cluster_env_name
 from backend.templatesets.legacy_apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
@@ -176,14 +176,13 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             perm_can_use = False
 
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=constants.ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=LIMIT_FOR_ALL_DATA)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
         results = result["data"]["results"] or []
         # 针对k8s集群过滤掉平台命名空间
-        if request.project.kind == ProjectKind.K8S.value:
-            results = self._ignore_ns_for_k8s(results)
+        results = self._ignore_ns_for_k8s(results)
 
         # 是否有创建权限
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
@@ -238,7 +237,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 for k, v in groupby(sorted(results, key=lambda x: x[group_by]), key=lambda x: x[group_by])
             ]
             if group_by == 'env_type':
-                ordering = [i.value for i in constants.EnvType]
+                ordering = [i.value for i in EnvType]
                 results = sorted(results, key=lambda x: ordering.index(x['name']))
             else:
                 results = sorted(results, key=lambda x: x['name'], reverse=True)

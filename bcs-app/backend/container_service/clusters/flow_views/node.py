@@ -29,6 +29,7 @@ from backend.container_service.clusters.base import get_cluster
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeOperType, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.utils import can_use_hosts
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -178,7 +179,7 @@ class CreateNode(BaseNode):
         self.username = request.user.username
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def check_data(self):
@@ -288,7 +289,7 @@ class ReinstallNode(BaseNode):
         self.node_id = node_id
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def get_node_ip(self):
@@ -422,7 +423,7 @@ class DeleteNode(DeleteNodeBase):
         self.username = request.user.username
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def k8s_container_num(self):
@@ -543,7 +544,7 @@ class BatchDeleteNode(DeleteNodeBase):
         self.project_id = project_id
         self.cluster_id = cluster_id
         self.node_list = node_list
-        self.kind_name = constants.ClusterType.get(request.project['kind'])
+        self.kind_name = ProjectKindName
         self.access_token = request.user.token.access_token
 
     def delete_nodes(self):
@@ -568,7 +569,7 @@ class BatchReinstallNodes(BaseNode):
         self.access_token = request.user.token.access_token
         self.username = request.user.username
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info.kind)
+        self.kind_name = ProjectKindName
         self.cc_app_id = self.project_info.cc_app_id
 
     def reinstall(self):

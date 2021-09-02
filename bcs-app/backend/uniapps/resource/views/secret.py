@@ -18,10 +18,10 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 
-from backend.apps import utils as app_utils
 from backend.components.bcs import k8s
 from backend.templatesets.legacy_apps.configuration.serializers import K8sSecretCreateOrUpdateSLZ
 from backend.templatesets.legacy_apps.instance.constants import K8S_SECRET_SYS_CONFIG
+from backend.uniapps import utils as app_utils
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.application.utils import APIResponse
 from backend.uniapps.resource.constants import DEFAULT_SEARCH_FIELDS
