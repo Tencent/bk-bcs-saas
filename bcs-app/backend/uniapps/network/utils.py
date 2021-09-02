@@ -15,10 +15,11 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 
-from backend.apps.constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
 from backend.components import paas_cc
 from backend.uniapps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES
 from backend.utils.basic import getitems
+
+from .constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
 
 try:
     from backend.container_service.observability.datalog.utils import get_data_id_by_project_id

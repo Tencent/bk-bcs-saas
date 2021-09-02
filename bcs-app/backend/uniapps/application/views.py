@@ -27,9 +27,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_web.audit_log import client
 from backend.celery_app.tasks.application import update_create_error_record
-from backend.components.bcs import mesos
-from backend.container_service.projects.base.constants import ProjectKind
-from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
 from backend.templatesets.legacy_apps.instance.constants import InsState
@@ -1679,50 +1676,6 @@ class CancelUpdateInstance(InstanceAPI):
             self.update_conf(curr_inst.id, curr_inst.category, curr_inst.instance_id)
 
         return resp
-
-
-class RollbackApplication(CancelUpdateInstance):
-    def put(self, request, project_id, instance_id):
-        # 获取instance info
-        inst_info = self.get_instance_info(instance_id)
-        # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
-        # 获取namespace
-        curr_inst = inst_info[0]
-
-        if curr_inst.category != APPLICATION_CATEGORY:
-            raise error_codes.CheckFailed(_("实例类型必须为application, 请确认!"))
-        conf = self.get_common_instance_conf(curr_inst)
-        metadata = conf.get("metadata", {})
-        labels = metadata.get("labels", {})
-        cluster_id = labels.get("io.tencent.bcs.clusterid")
-        namespace = metadata.get("namespace")
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
-        )
-        name = metadata.get("name")
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="instance",
-            resource=name,
-            resource_id=instance_id,
-            extra=json.dumps({"config": conf, "namespace": "namespace"}),
-            description=_("应用取消滚动升级"),
-        ).log_modify():
-            last_config = json.loads(curr_inst.last_config)
-            mesos_client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = mesos_client.rollback_mesos_app_instance(namespace, last_config["old_conf"])
-
-        if resp.get("code") == ErrorCode.NoError:
-            self.update_instance_record_status(curr_inst, oper_type=app_constants.CANCEL_INSTANCE, is_bcs_success=True)
-            # 更新信息
-            self.update_conf(curr_inst.id, curr_inst.category, curr_inst.instance_id)
-
-        return utils.APIResponse(resp)
 
 
 class PauseUpdateInstance(InstanceAPI):

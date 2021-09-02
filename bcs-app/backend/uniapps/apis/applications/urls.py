@@ -15,7 +15,6 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 
 from backend.uniapps.apis.applications import views
-from backend.uniapps.apis.applications.all_views import instance
 
 urlpatterns = [
     url(

@@ -191,10 +191,6 @@ urlpatterns += [
         views.ClusterVersionViewSet.as_view({'get': 'versions'}),
     ),
     url(r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$', views.ExportNodes.as_view({'post': 'export'})),
-    url(
-        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/labels/$",
-        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"}),
-    ),
 ]
 
 # operation api
