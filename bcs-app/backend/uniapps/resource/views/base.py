@@ -369,7 +369,7 @@ class ResourceOperate:
                 continue
 
             # 处理平台集群和命名空间下的数据
-            if _s['namespace'] in K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
+            if _s['namespace'] in K8S_PLAT_NAMESPACE:
                 _s['can_update'] = _s['can_delete'] = False
                 _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
                 continue

@@ -54,11 +54,6 @@ urlpatterns = [
         name="api.application.cancel",
     ),
     url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_cancel/$",  # noqa
-        views.RollbackApplication.as_view(),
-        name="api.application.application_cancel",
-    ),
-    url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/pause/$",  # noqa
         views.PauseUpdateInstance.as_view(),
         name="api.application.pause",

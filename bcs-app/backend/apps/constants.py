@@ -23,29 +23,6 @@ from backend.utils.basic import ChoicesEnum
 
 logger = logging.getLogger(__name__)
 
-# 不检查IP是否重复的业务
-SKIP_BIZ_INFO = {}
-
-# 白名单接入的业务
-BIND_BIZ_ID = []
-BIND_BIZ_ID_USER = {}
-
-# CC MODULE INFO
-CC_MODULE_INFO = {}
-
-# k8s 平台服务用的集群
-K8S_PLAT_CLUSTER_ID = []
-
-# master in binded biz
-BCS_APP_ID = ""
-
-# verify resource code for perm
-verify_resource_exist = False
-
-# nginx ingress controller path
-CONTROLLER_IMAGE_PATH = "public/bcs/k8s/nginx-ingress-controller"
-BACKEND_IMAGE_PATH = "public/bcs/k8s/defaultbackend"
-
 
 # 项目类型
 class ProjectKind(ChoicesEnum):

@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from backend.components.bcs import mesos
-from backend.container_service.projects.base.constants import ProjectKind
 
 
 class NodeLabelsQuerier:
@@ -52,14 +51,3 @@ class MesosNodeLabelsQuerier(NodeLabelsQuerier):
             labels.extend(data)
         # 提取labels中的key和value
         return self._refine_labels_key_val(labels)
-
-
-class K8sNodeLabelsQuerier(NodeLabelsQuerier):
-    def query_labels(self, cluster_id_list: List[str]) -> Dict:
-        raise NotImplementedError
-
-
-def get_label_querier(project_kind: int, access_token: str, project_id: str):
-    if project_kind == ProjectKind.MESOS.value:
-        return MesosNodeLabelsQuerier(access_token=access_token, project_id=project_id)
-    return K8sNodeLabelsQuerier(access_token=access_token, project_id=project_id)
