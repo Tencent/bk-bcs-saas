@@ -23,11 +23,13 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.audit.decorators import log_audit
 from backend.bcs_web.audit_log.constants import ActivityType
+from backend.components import paas_cc
 from backend.utils import cache
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import ResNotFoundError
 
 from .auditor import TemplatesetAuditor
@@ -43,8 +45,6 @@ REAL_NUM_VAR_PATTERN = re.compile(r"^%s*$" % VARIABLE_PATTERN)
 
 def to_bcs_res_name(project_kind, origin_name):
     if origin_name not in CATE_SHOW_NAME.values():
-        return origin_name
-    if project_kind == ProjectKind.K8S.value:
         return f'K8s{origin_name}'
     return origin_name.lower()
 
@@ -134,6 +134,9 @@ def get_all_template_config(project_id):
 
     resource_list = []
     for category in category_dict:
+        # NOTE: 忽略不在MODULE_DICT中的资源类型
+        if category not in MODULE_DICT:
+            continue
         category_id_list = category_dict[category]
         # 统计每个id出现的次数
         category_id_count_dict = Counter(category_id_list)
@@ -224,3 +227,16 @@ def update_template_with_perm_check(request, template, tmpl_args):
     if template.name != tmpl_args.get('name'):
         perm.update_name(template.name)
     return template
+
+
+def get_project_cluster_info(access_token, project_id):
+    """get all cluster from project"""
+    project_cluster = paas_cc.get_all_clusters(access_token, project_id, desire_all_data=1)
+    if project_cluster.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(project_cluster.get('message'))
+    return project_cluster.get('data') or {}
+
+
+def get_cluster_env_name(env):
+    """获取集群对应的环境名称"""
+    return _("正式") if env == "prod" else _("测试")

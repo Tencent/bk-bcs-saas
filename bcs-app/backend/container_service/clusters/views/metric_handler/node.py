@@ -12,9 +12,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.apps import constants
 from backend.components import paas_cc
 from backend.components.bcs import k8s
+from backend.container_service.clusters.models import NodeStatus
 from backend.utils.errcodes import ErrorCode
 from backend.utils.exceptions import APIError
 
@@ -38,9 +38,7 @@ def get_node_metric(request, access_token, project_id, cluster_id, cluster_type)
         raise APIError(node.get('message'))
     # 过滤掉状态为removed的机器
     node_data = [
-        info
-        for info in node.get("data", {}).get("results") or []
-        if info.get("status") not in [constants.NodeStatus.REMOVED.value]
+        info for info in node.get("data", {}).get("results") or [] if info.get("status") not in [NodeStatus.Removed]
     ]
     # 重新组装数据
     node = {

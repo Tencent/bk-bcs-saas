@@ -17,7 +17,6 @@ import json
 from celery import shared_task
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps import constants
 from backend.components import paas_cc
 from backend.components.bcs import k8s
 from backend.container_service.clusters import models

@@ -23,8 +23,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps import utils as app_utils
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client as activity_client
 from backend.components.bcs import k8s
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
@@ -61,6 +59,7 @@ from backend.templatesets.legacy_apps.instance.generator import (
 )
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.templatesets.legacy_apps.instance.utils_pub import get_cluster_version
+from backend.uniapps import utils as app_utils
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
 from backend.uniapps.application.utils import APIResponse
@@ -279,14 +278,12 @@ class Services(viewsets.ViewSet, BaseAPI):
                     source_type = "template" if template_id else "other"
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
 
-                if project_kind == ProjectKind.K8S.value:
-                    extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
-                    _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
+                extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
+                _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
                 # 处理 k8s 的系统命名空间的数据
-                if project_kind == ProjectKind.K8S.value and _s['namespace'] in skip_namespace_list:
-                    _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
-                    continue
+                _s['can_update'] = _s['can_delete'] = False
+                _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
+                continue
 
                 # 非模板集创建，可以删除但是不可以更新
                 _s['can_update'] = False
