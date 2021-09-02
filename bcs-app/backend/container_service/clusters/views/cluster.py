@@ -171,18 +171,18 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         self.permission.can_create(perm_ctx)
 
         cluster_client = cluster.CreateCluster(request, project_id)
-        cluster_info = cluster_client.create()
+        resp = cluster_client.create()
 
         self.permission.grant_resource_creator_actions(
             request.user.username,
             ClusterCreatorActionCtx(
-                resource_id=cluster_info.data["cluster_id"],
-                resource_name=cluster_info.data["name"],
+                resource_id=resp.data["cluster_id"],
+                resource_name=resp.data["name"],
                 username=request.user.username,
                 project_id=project_id,
             ),
         )
-        return Response()
+        return resp
 
 
 class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
