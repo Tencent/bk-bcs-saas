@@ -86,7 +86,6 @@ class Projects(viewsets.ViewSet):
             )
             info["project_code"] = info["english_name"]
             info["deploy_type"] = self.deploy_type_list(info.get("deploy_type"))
-            info["func_wlist"] = set()
 
         return Response(data)
 
@@ -119,9 +118,6 @@ class Projects(viewsets.ViewSet):
         # 添加业务名称
         data["cc_app_name"] = get_application_name(request)
         data["can_edit"] = self.can_edit(request, project_id)
-        # TODO: 待拆分后，可以去掉func_list
-        data["func_wlist"] = set()
-        self.register_function_controller([data])
         return Response(data)
 
     def validate_update_project_data(self, request):

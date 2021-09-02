@@ -23,7 +23,6 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
 from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient

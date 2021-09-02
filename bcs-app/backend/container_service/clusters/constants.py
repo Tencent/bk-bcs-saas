@@ -12,6 +12,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import re
+from collections import OrderedDict
+
 from django.utils.translation import ugettext as _
 
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
@@ -91,9 +94,6 @@ DEFAULT_SYSTEM_LABEL_KEYS = [
 
 class ProjectKindName(ChoicesEnum):
     _choices_labels = ((1, 'k8s'), (2, 'mesos'))
-
-
-ClusterType = dict(ProjectKindName._choices_labels.get_choices())
 
 
 # TODO: 第一版只创建两个module: master和node
@@ -198,3 +198,18 @@ class KubeProxy(str, StructuredEnum):
 # k8s cluster master role
 # 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
 K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"
+
+
+# docker状态排序
+# default will be 100
+DockerStatusDefaultOrder = 100
+DockerStatusOrdering = {"running": 0, "waiting": 1, "lost": 8, "terminated": 9}
+
+
+# 集群升级版本
+CLUSTER_UPGRADE_VERSION = OrderedDict(
+    {re.compile(r'^\S+[vV]?1\.8\.\S+$'): ["v1.12.6"], re.compile(r'^\S+[vV]?1\.12\.\S+$'): ["v1.14.3-tk8s-v1.1-1"]}
+)
+
+# TODO: 先放到前端传递，后续gcloud版本统一后，支持分支判断再去掉
+UPGRADE_TYPE = {"v1.12.6": "update8to12", "v1.14.3-tk8s-v1.1-1": "update12to14"}

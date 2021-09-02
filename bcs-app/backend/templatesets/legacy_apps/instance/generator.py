@@ -34,10 +34,10 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.constants import ClusterType
 from backend.apps.ticket.models import TlsCert
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.resources.constants import K8sServiceTypes
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.utils.basic import getitems
@@ -522,7 +522,7 @@ def get_bcs_context(access_token, project_id):
     project = project.get("data") or {}
     context["SYS_CC_APP_ID"] = project.get("cc_app_id")
     # TODO  以下变量未初始化到变量表中
-    context["SYS_PROJECT_KIND"] = ClusterType.get(project.get("kind"), "")
+    context["SYS_PROJECT_KIND"] = ProjectKindName
     context["SYS_PROJECT_CODE"] = project.get("english_name")
 
     # 获取标准日志采集的dataid

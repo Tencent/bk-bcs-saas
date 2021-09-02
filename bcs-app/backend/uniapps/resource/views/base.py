@@ -23,8 +23,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
-from backend.apps import utils as app_utils
 from backend.bcs_web.audit_log import client as activity_client
 from backend.components.bcs import k8s
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
@@ -41,6 +39,7 @@ from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driv
 from backend.templatesets.legacy_apps.instance.funutils import render_mako_context, update_nested_dict
 from backend.templatesets.legacy_apps.instance.generator import GENERATOR_DICT
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
+from backend.uniapps import utils as app_utils
 from backend.uniapps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.uniapps.resource.constants import CREATE_TIME_REGEX

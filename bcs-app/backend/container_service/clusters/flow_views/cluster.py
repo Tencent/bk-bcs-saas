@@ -30,6 +30,7 @@ from backend.container_service.clusters.base import utils as cluster_utils
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.container_service.clusters.utils import can_use_hosts
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.helm.app.models import App
 from backend.templatesets.legacy_apps.instance.models import (
     InstanceConfig,
@@ -207,7 +208,7 @@ class CreateCluster(BaseCluster):
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
         self.username = request.user.username
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
 
     def check_data(self):
         slz = serializers.CreateClusterSLZ(
@@ -396,7 +397,7 @@ class DeleteCluster(BaseCluster):
         self.access_token = request.user.token.access_token
         self.username = request.user.username
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def get_cluster_snapshot(self):
