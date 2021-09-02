@@ -13,6 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import re
+from enum import Enum
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -133,3 +134,10 @@ RESOURCES_WITH_POD = [
     FileResourceName.DaemonSet.value,
     FileResourceName.Job.value,
 ]
+
+
+# env 环境, 现在是给namespace使用
+class EnvType(Enum):
+    DEV = "dev"
+    TEST = "test"
+    PROD = "prod"

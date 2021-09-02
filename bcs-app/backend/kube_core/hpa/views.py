@@ -19,8 +19,8 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
+from backend.container_service.projects.base.constants import ALL_LIMIT
 from backend.kube_core.hpa import constants, utils
 from backend.resources.exceptions import DeleteResourceError
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
