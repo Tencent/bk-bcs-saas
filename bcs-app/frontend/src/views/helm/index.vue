@@ -100,7 +100,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('Chart')" prop="source" min-width="160">
+                        <bk-table-column label="Chart" prop="source" min-width="160">
                             <template slot-scope="{ row }">
                                 {{ `${row.chart_name}:${row.current_version}` }}
                             </template>
@@ -1129,6 +1129,7 @@
                             })
                         })
                         this.curPageData = this.getDataByPage(this.pagination.current)
+                        this.isPageLoading = false
 
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
