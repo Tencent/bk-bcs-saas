@@ -286,5 +286,6 @@ class QueryLabelValuesSLZ(QueryLabelSLZ):
 class FetchCCHostSLZ(serializers.Serializer):
     limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
     offset = serializers.IntegerField(required=False, default=0)
-    ip_list = serializers.ListField(required=False)
-    idle_only = serializers.BooleanField(required=False, default=False)
+    ip_list = serializers.ListField(required=False, default=list)
+    set_id = serializers.IntegerField(required=False, default=None)
+    module_id = serializers.IntegerField(required=False, default=False)

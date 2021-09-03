@@ -13,6 +13,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
+from django.urls import include
+from rest_framework import routers
 
 from . import views
 from .featureflag.views import ClusterFeatureFlagViewSet
@@ -98,11 +100,6 @@ urlpatterns = [
         ),
         name='api.projects.node',
     ),
-    url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cc_host_info/?$',
-        views.CCHostListViewSet.as_view({'post': 'create'}),
-        name='api.projects.cc_host_info',
-    ),
     # 监控信息
     url(
         r'^api/projects/(?P<project_id>\w+)/metrics/cluster/summary/$',
@@ -166,6 +163,15 @@ urlpatterns = [
         r"^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/version/$",
         UpgradeClusterViewSet.as_view({"put": "upgrade"}),
     ),
+]
+
+# 新版 CC Host 相关接口
+cc_router = routers.DefaultRouter(trailing_slash=True)
+
+cc_router.register('', views.CCViewSet, basename='cc')
+
+urlpatterns += [
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/cc/', include(cc_router.urls)),
 ]
 
 # batch operation
@@ -246,7 +252,6 @@ urlpatterns += [
         ClusterFeatureFlagViewSet.as_view({'get': 'get_cluster_feature_flags'}),
     )
 ]
-
 
 # 导入版本特定urls
 try:

@@ -37,8 +37,6 @@ FUNCTION_PATH_MAP = {
     "get_application": "/v2/cc/search_business/",
     "search_host": "/v2/cc/search_host/",
     "list_biz_hosts": "/v2/cc/list_biz_hosts/",
-    # 查询业务的空闲机/故障机/待回收模块
-    "get_biz_internal_module": "/v2/cc/get_biz_internal_module/",
 }
 # 默认开发商账号
 DEFAULT_SUPPLIER_ACCOUNT = None
@@ -336,9 +334,64 @@ def list_hosts_by_pagination(
     )
 
 
-def get_biz_internal_module(username, bk_biz_id):
-    """ 查询业务的空闲机/故障机/待回收模块 """
-    return cmdb_base_request(FUNCTION_PATH_MAP['get_biz_internal_module'], username, {'bk_biz_id': bk_biz_id})
+def search_biz_inst_topo(username, bk_biz_id) -> Dict:
+    """
+    查询业务拓扑
+
+    :param username: 查询者用户名
+    :param bk_biz_id: 业务 ID
+    :return: 业务，集群，模块拓扑信息
+    """
+    return cmdb_base_request('/v2/cc/search_biz_inst_topo/', username, {'bk_biz_id': bk_biz_id})
+
+
+def list_all_hosts_by_condition(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> Dict:
+    """
+    并发查询 CMDB，获取符合条件的全量主机信息，目前仅支持按 业务，集群，模块ID 过滤
+
+    :param username: 查询者用户名
+    :param bk_biz_id: 业务 ID
+    :param bk_set_ids: 集群 ID 列表
+    :parma bk_module_ids: 模块 ID 列表
+    :return: 主机详情信息
+    """
+    params = {
+        "bk_biz_id": bk_biz_id,
+        "page": {
+            # TODO 第一次查询总数量，按每次五百查询全量，async_run
+            "start": 0,
+            "limit": 500,
+        },
+        'bk_set_ids': bk_set_ids,
+        'bk_module_ids': bk_module_ids,
+        # TODO fields 抽常量
+        'fields': [
+            "bk_bak_operator",
+            "classify_level_name",
+            "svr_device_class",
+            "bk_svr_type_id",
+            "svr_type_name",
+            "hard_memo",
+            "bk_host_id",
+            "bk_host_name",
+            "idc_name",
+            "bk_idc_area",
+            "bk_idc_area_id",
+            "idc_id",
+            "idc_unit_name",
+            "idc_unit_id",
+            "bk_host_innerip",
+            "bk_comment",
+            "module_name",
+            "operator",
+            "bk_os_name",
+            "bk_os_version",
+            "bk_host_outerip",
+            "rack",
+            "bk_cloud_id",
+        ],
+    }
+    return cmdb_base_request('/v2/cc/list_biz_hosts/', username, params)
 
 
 def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
