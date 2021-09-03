@@ -1,43 +1,36 @@
 <template>
     <div>
-        <p class="biz-side-title" v-if="kind === 2">
-            <img src="@/images/bcs2.svg" class="all-icon">
-            <span style="font-size: 16px;">{{$t('容器服务')}}</span>
-            <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;" v-bk-tooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
-        </p>
-        <div v-else>
-            <div class="biz-side-title cluster-selector">
-                <!-- 全部集群 -->
-                <template v-if="!curClusterInfo.cluster_id">
-                    <img src="@/images/bcs2.svg" class="all-icon">
-                    <span class="cluster-name-all">{{$t('全部集群')}}</span>
-                </template>
-                <!-- 单集群 -->
-                <template v-else-if="curClusterInfo.cluster_id && curClusterInfo.name">
-                    <span class="icon">{{ curClusterInfo.name[0] }}</span>
-                    <span>
-                        <span class="cluster-name" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
-                        <br>
-                        <span class="cluster-id">{{ curClusterInfo.cluster_id }}</span>
-                    </span>
-                </template>
-                <!-- 异常情况 -->
-                <template v-else>
-                    <img src="@/images/bcs2.svg" class="all-icon">
-                    <span class="cluster-name-all">{{$t('容器服务')}}</span>
-                </template>
-                <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
-                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
-            </div>
-            <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
-                <span v-for="item in viewList"
-                    :key="item.id"
-                    :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
-                    @click="handleChangeView(item)">
-                    {{item.name}}
+        <div class="biz-side-title cluster-selector">
+            <!-- 全部集群 -->
+            <template v-if="!curClusterInfo.cluster_id">
+                <img src="@/images/bcs2.svg" class="all-icon">
+                <span class="cluster-name-all">{{$t('全部集群')}}</span>
+            </template>
+            <!-- 单集群 -->
+            <template v-else-if="curClusterInfo.cluster_id && curClusterInfo.name">
+                <span class="icon">{{ curClusterInfo.name[0] }}</span>
+                <span>
+                    <span class="cluster-name" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
+                    <br>
+                    <span class="cluster-id">{{ curClusterInfo.cluster_id }}</span>
                 </span>
-            </div>
+            </template>
+            <!-- 异常情况 -->
+            <template v-else>
+                <img src="@/images/bcs2.svg" class="all-icon">
+                <span class="cluster-name-all">{{$t('容器服务')}}</span>
+            </template>
+            <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
+            <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
+            <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
+        </div>
+        <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
+            <span v-for="item in viewList"
+                :key="item.id"
+                :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
+                @click="handleChangeView(item)">
+                {{item.name}}
+            </span>
         </div>
         <div class="side-nav">
             <bk-menu :list="menuList" :menu-change-handler="menuSelected"></bk-menu>

@@ -1,17 +1,9 @@
 <template>
     <div id="app" class="biz-app" :class="systemCls">
         <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
+        <!-- 这里的v-if不要去掉，为了解决项目初始化问题，todo：后续优化!!! -->
         <div style="height: 100%;" v-if="isLoading">
-            <div class="bk-loading" style="background-color: rgba(255, 255, 255, 1)">
-                <div class="bk-loading-wrapper">
-                    <div class="bk-dot-loading" style="height: 20px;">
-                        <div class="point point1"></div>
-                        <div class="point point2"></div>
-                        <div class="point point3"></div>
-                        <div class="point point4"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="bk-loading" v-bkloading="{ isLoading }"></div>
         </div>
         <template v-else>
             <div class="app-container" :style="{ minHeight: minHeight + 'px' }" v-if="isUserBKService">
