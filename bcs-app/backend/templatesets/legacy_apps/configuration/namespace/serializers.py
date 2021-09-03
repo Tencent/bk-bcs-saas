@@ -18,6 +18,7 @@ from rest_framework.exceptions import ValidationError
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.legacy_apps.configuration import utils as app_utils
 from backend.templatesets.legacy_apps.configuration.constants import EnvType
+from backend.uniapps.utils import get_cluster_namespaces
 
 
 class BaseNamespaceSLZ(serializers.Serializer):
@@ -59,7 +60,7 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
         access_token = self.context['request'].user.token.access_token
         project_id = self.context['project_id']
         cluster_id = self.initial_data['cluster_id']
-        cluster_namespaces = app_utils.get_cluster_namespaces(access_token, project_id, cluster_id)
+        cluster_namespaces = get_cluster_namespaces(access_token, project_id, cluster_id)
         ns_name_list = [ns['name'] for ns in cluster_namespaces]
         if name in ns_name_list:
             raise ValidationError(f'name: [{name}] is used in cluster: [{cluster_id}]')
