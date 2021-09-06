@@ -14,8 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import include, url
 
-from backend.resources.constants import KUBE_NAME_REGEX
-from backend.resources.namespace.constants import NAMESPACE_REGEX
+from backend.utils.url_slug import KUBE_NAME_REGEX, NAMESPACE_REGEX
 
 from .cluster import ClusterViewSet
 from .deployment import DeploymentViewSet
