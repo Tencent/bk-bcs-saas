@@ -80,9 +80,19 @@ def fake_list_all_hosts(*args, **kwargs):
                 "svr_device_class": "S1234",
             },
             # agent 异常的
-            {"bk_cloud_id": 0, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2,127.0.0.3", "svr_device_class": "S1234"},
+            {
+                "bk_cloud_id": 0,
+                "bk_host_id": 2,
+                "bk_host_innerip": "127.0.0.2,127.0.0.3",
+                "svr_device_class": "S1234ABC",
+            },
             # Docker 机，不可用
-            {"bk_cloud_id": 0, "bk_host_id": 3, "bk_host_innerip": "127.0.0.4,127.0.0.5", "svr_device_class": "D700"},
+            {
+                "bk_cloud_id": 0,
+                "bk_host_id": 3,
+                "bk_host_innerip": "127.0.0.4,127.0.0.5",
+                "svr_device_class": "D700249",
+            },
             # 可以使用的
             {
                 "bk_cloud_id": 0,

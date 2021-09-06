@@ -20,8 +20,8 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import cc, gse, paas_cc
-from backend.container_service.clusters import serializers as slzs
 from backend.container_service.clusters.models import CommonStatus
+from backend.container_service.clusters.serializers import FetchCCHostSLZ
 from backend.utils.basic import get_with_placeholder
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -46,7 +46,7 @@ class CCViewSet(SystemViewSet):
     @action(methods=['POST'], url_path='hosts', detail=False)
     def hosts(self, request, project_id):
         """ 查询指定业务拓扑下主机列表 """
-        params = self.params_validate(slzs.FetchCCHostSLZ)
+        params = self.params_validate(FetchCCHostSLZ)
 
         # 从 CMDB 获取可用主机信息，业务名称信息
         host_list = self._fetch_cc_app_hosts(params['set_id'], params['module_id'])
@@ -67,10 +67,10 @@ class CCViewSet(SystemViewSet):
 
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = self._fetch_project_cluster_info()
-        all_cluster_nodes = self._fetch_all_cluster_hosts()
+        all_cluster_nodes = self._fetch_all_cluster_nodes()
         host_list = self._update_host_use_status(host_list, all_cluster_nodes, project_cluster_info)
 
-        # 被使用 / agent 异常的机器均算作 不可使用
+        # 被使用 / agent 异常的机器均视为 不可使用
         response_data['unavailable_ip_count'] = len([h for h in host_list if h['is_used'] or not h['is_valid']])
 
         ret = custom_paginator(host_list, params['offset'], params['limit'])
@@ -83,7 +83,7 @@ class CCViewSet(SystemViewSet):
 
     def _fetch_cc_app_hosts(self, bk_module_id=None, bk_set_id=None) -> List[Dict]:
         """
-        拉取 业务 下机器列表（全量/空闲机模块）
+        拉取 业务 下机器列表（业务/集群/模块全量）
         TODO 当前场景只需要支持单模块/集群，后续有需要可扩展
 
         :return: CMDB 业务下机器列表
@@ -97,7 +97,7 @@ class CCViewSet(SystemViewSet):
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or []
 
-    def _fetch_all_cluster_hosts(self) -> Dict:
+    def _fetch_all_cluster_nodes(self) -> Dict:
         """
         获取所有集群中使用的主机信息
 
@@ -165,7 +165,7 @@ class CCViewSet(SystemViewSet):
 
     def _is_vaild_machine(self, host: Dict) -> bool:
         """ 判断是否为机器类型是否可用 """
-        # docker 机不允许使用，判断条件为 DeviceClass 以 D 开头
+        # docker 机不可用，判断条件为 svr_device_class 以 D 开头
         return not host.get('svr_device_class', '').startswith('D')
 
     def _update_gse_agent_status(self, host_list: List) -> List:
@@ -186,14 +186,11 @@ class CCViewSet(SystemViewSet):
         cc_host_map = {host['bk_host_innerip']: host for host in host_list}
         for ips in cc_host_map:
             # 同主机可能存在多个 IP，任一 IP Agent 正常即可
-            exist = -1
             for ip in ips.split(','):
-                if ip not in gse_host_status_map or exist > 0:
+                if ip not in gse_host_status_map:
                     continue
                 ip_status = gse_host_status_map[ip]
-                ip_exist = ip_status.get('exist') or ip_status.get('bk_agent_alive')
-                # 防止出现 None 情况
-                exist = exist if exist > 0 else (ip_exist or exist)
-            cc_host_map[ips]['agent'] = exist if exist else -1
+                cc_host_map[ips]['agent_alive'] = ip_status.get('bk_agent_alive')
+                break
 
         return list(cc_host_map.values())

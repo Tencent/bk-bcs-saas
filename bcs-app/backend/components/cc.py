@@ -32,12 +32,13 @@ from backend.utils.errcodes import ErrorCode
 CC_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
 BK_APP_SECRET = settings.APP_TOKEN
-PREFIX_PATH = "/api/c/compapi"
-# CC resource map
-FUNCTION_PATH_MAP = {
-    "get_application": "/v2/cc/search_business/",
-    "search_host": "/v2/cc/search_host/",
-    "list_biz_hosts": "/v2/cc/list_biz_hosts/",
+PREFIX_PATH = '/api/c/compapi'
+# 方法名称 -> 请求路径
+FUNC_PATH_MAP = {
+    'get_application': '/v2/cc/search_business/',
+    'search_host': '/v2/cc/search_host/',
+    'list_biz_hosts': '/v2/cc/list_biz_hosts/',
+    'search_biz_inst_topo': '/v2/cc/search_biz_inst_topo/',
 }
 # 默认开发商账号
 DEFAULT_SUPPLIER_ACCOUNT = None
@@ -73,7 +74,7 @@ CMDB_MAX_LIMIT = 500
 logger = logging.getLogger(__name__)
 
 
-def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
+def cmdb_base_request(suffix_path: str, username: str, data: Dict, bk_supplier_account: Optional[str] = None) -> Dict:
     """请求"""
     data.update({"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username})
     if bk_supplier_account:
@@ -256,9 +257,7 @@ def get_application_with_pagination(
     condition = condition or {}
     fields = fields or []
     data = {"condition": condition, "fields": fields, "page": {"start": start, "limit": limit}}
-    return cmdb_base_request(
-        FUNCTION_PATH_MAP["get_application"], username, data, bk_supplier_account=bk_supplier_account
-    )
+    return cmdb_base_request(FUNC_PATH_MAP["get_application"], username, data, bk_supplier_account=bk_supplier_account)
 
 
 def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None):
@@ -299,7 +298,7 @@ def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None
     if condition:
         data["condition"] = condition
 
-    return cmdb_base_request(FUNCTION_PATH_MAP["search_host"], username, data, bk_supplier_account=bk_supplier_account)
+    return cmdb_base_request(FUNC_PATH_MAP["search_host"], username, data, bk_supplier_account=bk_supplier_account)
 
 
 def list_biz_hosts(
@@ -343,12 +342,10 @@ def list_hosts_by_pagination(
     # 添加fields字段
     data["fields"] = deepcopy(DEFAULT_HOST_FIELDS)
 
-    return cmdb_base_request(
-        FUNCTION_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account
-    )
+    return cmdb_base_request(FUNC_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account)
 
 
-def search_biz_inst_topo(username, bk_biz_id) -> Dict:
+def search_biz_inst_topo(username: str, bk_biz_id: str) -> Dict:
     """
     查询业务拓扑
 
@@ -356,10 +353,12 @@ def search_biz_inst_topo(username, bk_biz_id) -> Dict:
     :param bk_biz_id: 业务 ID
     :return: 业务，集群，模块拓扑信息
     """
-    return cmdb_base_request('/v2/cc/search_biz_inst_topo/', username, {'bk_biz_id': bk_biz_id})
+    return cmdb_base_request(FUNC_PATH_MAP['search_biz_inst_topo'], username, {'bk_biz_id': bk_biz_id})
 
 
-def fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> int:
+def fetch_host_count_by_topo(
+    username: str, bk_biz_id: str, bk_set_ids: List = None, bk_module_ids: List = None
+) -> int:
     """ 查询指定条件下主机数量，用于后续并发查询用 """
     params = {
         'bk_biz_id': bk_biz_id,
@@ -371,11 +370,11 @@ def fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids
         'bk_module_ids': bk_module_ids,
         'fields': ['bk_host_innerip'],
     }
-    resp = cmdb_base_request('/v2/cc/list_biz_hosts/', username, params)
+    resp = cmdb_base_request(FUNC_PATH_MAP['list_biz_hosts'], username, params)
     return getitems(resp, 'data.count', 0)
 
 
-def list_all_hosts_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> Dict:
+def list_all_hosts_by_topo(username: str, bk_biz_id: str, bk_set_ids: List = None, bk_module_ids: List = None) -> Dict:
     """
     并发查询 CMDB，获取符合条件的全量主机信息，目前仅支持按 业务，集群，模块ID 过滤
 
@@ -398,7 +397,7 @@ def list_all_hosts_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids=N
         params = deepcopy(default_params)
         params['page'] = {'start': start, 'limit': CMDB_MAX_LIMIT}
         # 组装并行任务配置信息
-        tasks.append(functools.partial(cmdb_base_request, '/v2/cc/list_biz_hosts/', username, params))
+        tasks.append(functools.partial(cmdb_base_request, FUNC_PATH_MAP['list_biz_hosts'], username, params))
 
     try:
         results = async_run(tasks)

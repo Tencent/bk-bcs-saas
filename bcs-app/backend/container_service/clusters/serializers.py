@@ -290,5 +290,5 @@ class FetchCCHostSLZ(serializers.Serializer):
     offset = serializers.IntegerField(required=False, default=0)
     ip_list = serializers.ListField(required=False, default=list)
     set_id = serializers.IntegerField(required=False, default=None)
-    module_id = serializers.IntegerField(required=False, default=False)
+    module_id = serializers.IntegerField(required=False, default=None)
     fuzzy = serializers.BooleanField(required=False, default=False)
