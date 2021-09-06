@@ -5,28 +5,30 @@ Edition) available.
 Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://opensource.org/licenses/MIT
-
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+from typing import Dict
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import permissions, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
+from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.constants import bcs_project_cache_key
 from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components import paas_cc
+from backend.components import bcs_api, paas_cc
 from backend.container_service.projects import base as Project
 from backend.container_service.projects.utils import (
     get_app_by_user_role,
@@ -40,7 +42,8 @@ from backend.utils.error_codes import error_codes
 from backend.utils.func_controller import get_func_controller
 from backend.utils.renderers import BKAPIRenderer
 
-from . import serializers
+from . import cm, serializers
+from .auditor import ProjectAuditor
 from .cmdb import list_biz_maintainers
 
 logger = logging.getLogger(__name__)
@@ -153,6 +156,7 @@ class Projects(viewsets.ViewSet):
         # NOTE: 后续permission统一后，可以删除下面的缓存标识
         region.delete(f"BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}")
 
+    @log_audit_on_view(ProjectAuditor, activity_type=ActivityType.Modify)
     def update(self, request, project_id):
         """更新项目信息"""
         if not self.can_edit(request, project_id):
@@ -161,21 +165,8 @@ class Projects(viewsets.ViewSet):
         access_token = request.user.token.access_token
         data["updator"] = request.user.username
 
-        # 添加操作日志
-        ual_client = client.UserActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="project",
-            resource=request.project.project_name,
-            resource_id=project_id,
-            description="{}: {}".format(_("更新项目"), request.project.project_name),
-        )
-        resp = paas_cc.update_project_new(access_token, project_id, data)
-        if resp.get("code") != ErrorCode.NoError:
-            ual_client.log_modify(activity_status="failed")
-            raise error_codes.APIError(_("更新项目信息失败，错误详情: {}").format(resp.get("message")))
-        ual_client.log_modify(activity_status="succeed")
-        project_data = resp.get("data")
+        # 统一更新或创建项目部分，方便bcs cc模块移除后的处理
+        project_data = cm.update_or_create_project(access_token, project_id, data)
         if project_data:
             project_data["created_at"], project_data["updated_at"] = self.normalize_create_update_time(
                 project_data["created_at"], project_data["updated_at"]

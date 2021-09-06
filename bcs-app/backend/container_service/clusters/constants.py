@@ -5,9 +5,7 @@ Edition) available.
 Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://opensource.org/licenses/MIT
-
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
@@ -198,3 +196,21 @@ class KubeProxy(str, StructuredEnum):
 # k8s cluster master role
 # 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
 K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"
+
+
+class ContainerRuntime(str, StructuredEnum):
+    """容器运行时"""
+
+    Docker = "docker"
+    Containerd = "containerd"
+
+
+class ClusterStatus(str, StructuredEnum):
+    """集群状态"""
+
+    CREATING = EnumField("CREATING", label="创建中")
+    RUNNING = EnumField("RUNNING", label="运行中，标识集群正常")
+    DELETING = EnumField("DELETING", label="删除中")
+    FAILURE = EnumField("FAILURE", label="失败")
+    INITIALIZATION = EnumField("initializing", label="初始化中")
+    DELETED = EnumField("DELETED", label="已删除")

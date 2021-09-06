@@ -5,9 +5,7 @@ Edition) available.
 Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://opensource.org/licenses/MIT
-
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
@@ -521,6 +519,9 @@ class PaaSCCConfig:
         self.update_node_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
         self.get_cluster_namespace_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/namespaces/"
         self.get_node_list_url = f"{host}/projects/{{project_id}}/nodes/"
+        self.update_project_url = f"{host}/projects/{{project_id}}/"
+        self.add_cluster_url = f"{host}/projects/{{project_id}}/clusters/"
+        self.add_nodes_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
 
 
 @dataclass
@@ -531,7 +532,6 @@ class UpdateNodesData:
 
 class PaaSCCClient(BkApiClient):
     """访问 PaaSCC 服务的 Client 对象
-
     :param auth: 包含校验信息的对象
     """
 
@@ -553,7 +553,6 @@ class PaaSCCClient(BkApiClient):
     @response_handler()
     def update_cluster(self, project_id: str, cluster_id: str, data: Dict) -> Dict:
         """更新集群信息
-
         :param project_id: 项目32为长度 ID
         :param cluster_id: 集群ID
         :param data: 更新的集群属性，包含status，名称、描述等
@@ -564,7 +563,6 @@ class PaaSCCClient(BkApiClient):
     @response_handler()
     def delete_cluster(self, project_id: str, cluster_id: str):
         """删除集群
-
         :param project_id: 项目32为长度 ID
         :param cluster_id: 集群ID
         """
@@ -574,7 +572,6 @@ class PaaSCCClient(BkApiClient):
     @response_handler()
     def update_node_list(self, project_id: str, cluster_id: str, nodes: List[UpdateNodesData]) -> List:
         """更新节点信息
-
         :param project_id: 项目32为长度 ID
         :param cluster_id: 集群ID
         :param nodes: 更新的节点属性，包含IP和状态
@@ -594,7 +591,6 @@ class PaaSCCClient(BkApiClient):
         desire_all_data: Union[bool, int] = None,
     ) -> Dict[str, Union[int, List[Dict]]]:
         """获取集群下命名空间列表
-
         :param project_id: 项目ID
         :param cluster_id: 集群ID
         :param limit: 每页的数量
@@ -632,6 +628,37 @@ class PaaSCCClient(BkApiClient):
         # 默认拉取项目或集群下的所有节点，防止返回分页数据，导致数据不准确
         req_params.setdefault("desire_all_data", 1)
         return self._client.request_json("GET", url, params=req_params)
+
+    @response_handler()
+    def update_project(self, project_id: str, data: Dict) -> Dict:
+        """更新项目信息
+        :param project_id: 项目ID
+        :param data: 要更新的项目信息
+        :returns: 返回更新后的项目信息
+        """
+        url = self._config.update_project_url.format(project_id=project_id)
+        return self._client.request_json("PUT", url, json=data)
+
+    @response_handler()
+    def create_cluster(self, project_id: str, data: Dict) -> Dict:
+        """创建集群信息
+        :param project_id: 项目ID
+        :param data: 集群信息
+        :returns: 返回创建的集群信息
+        """
+        url = self._config.add_cluster_url.format(project_id=project_id)
+        return self._client.request_json("POST", url, json=data)
+
+    @response_handler()
+    def add_nodes(self, project_id: str, cluster_id: str, data: Dict) -> List:
+        """添加节点信息
+        :param project_id: 项目ID
+        :param cluster_id: 集群ID
+        :param data: 添加的节点信息
+        :returns: 返回节点数据
+        """
+        url = self._config.add_nodes_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json("PATCH", url, json=data)
 
 
 try:
