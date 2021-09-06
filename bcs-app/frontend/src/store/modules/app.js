@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable camelcase */
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
  * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
@@ -1057,7 +1059,7 @@ export default {
 
         /**
          * POD CPU使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/cpu_usage/?res_id_list={pod_name_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/cpu_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1071,7 +1073,7 @@ export default {
             delete params.clusterId
 
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/cpu_usage/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/cpu_usage/`,
                 params.data,
                 config
             )
@@ -1079,7 +1081,7 @@ export default {
 
         /**
          * POD 内存使用量
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/memory_usage/?res_id_list={pod_name_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/memory_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1093,7 +1095,7 @@ export default {
             delete params.clusterId
 
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/memory_usage/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/memory_usage/`,
                 params.data,
                 config
             )
@@ -1101,7 +1103,7 @@ export default {
 
         /**
          * POD网路接收
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/network_receive/?res_id_list={pod_name_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/network_receive/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1115,7 +1117,7 @@ export default {
             delete params.clusterId
 
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_receive/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/network_receive/`,
                 params.data,
                 config
             )
@@ -1123,7 +1125,7 @@ export default {
 
         /**
          * POD网路发送
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/network_transmit/?res_id_list={pod_name_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/network_transmit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1137,7 +1139,7 @@ export default {
             delete params.clusterId
 
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_transmit/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/network_transmit/`,
                 params.data,
                 config
             )
@@ -1158,9 +1160,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/cpu_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/cpu_usage/`,
+                params,
                 config
             )
         },
@@ -1176,13 +1178,14 @@ export default {
          * @return {Promise} promise 对象
          */
         podCpuUsageContainerView (context, params, config = {}) {
-            const { projectId, clusterId } = params
+            const { projectId, clusterId, pod_name } = params
             delete params.projectId
             delete params.clusterId
+            delete params.pod_name
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/cpu_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/${pod_name}/containers/cpu_usage/`,
+                params,
                 config
             )
         },
@@ -1198,13 +1201,14 @@ export default {
          * @return {Promise} promise 对象
          */
         podMemUsageContainerView (context, params, config = {}) {
-            const { projectId, clusterId } = params
+            const { projectId, clusterId, pod_name } = params
             delete params.projectId
             delete params.clusterId
+            delete params.pod_name
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/memory_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/${pod_name}/containers/memory_usage/`,
+                params,
                 config
             )
         },
@@ -1220,13 +1224,14 @@ export default {
          * @return {Promise} promise 对象
          */
         podDiskWriteContainerView (context, params, config = {}) {
-            const { projectId, clusterId } = params
+            const { projectId, clusterId, pod_name } = params
             delete params.projectId
             delete params.clusterId
+            delete params.pod_name
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_write/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/${pod_name}/containers/disk_write/`,
+                params,
                 config
             )
         },
@@ -1242,20 +1247,21 @@ export default {
          * @return {Promise} promise 对象
          */
         podDiskReadContainerView (context, params, config = {}) {
-            const { projectId, clusterId } = params
+            const { projectId, clusterId, pod_name } = params
             delete params.projectId
             delete params.clusterId
+            delete params.pod_name
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_read/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/${pod_name}/containers/disk_read/`,
+                params,
                 config
             )
         },
 
         /**
          * 容器CPU使用率限制
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/cpu_limit/?res_id_list={container_id_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/containers/cpu_limit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1268,9 +1274,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/cpu_limit/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/cpu_limit/`,
+                params,
                 config
             )
         },
@@ -1290,9 +1296,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/memory_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/memory_usage/`,
+                params,
                 config
             )
         },
@@ -1312,9 +1318,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/memory_limit/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/memory_limit/`,
+                params,
                 config
             )
         },
@@ -1378,9 +1384,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_write/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/disk_write/`,
+                params,
                 config
             )
         },
@@ -1400,9 +1406,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_read/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/pods/-/containers/disk_read/`,
+                params,
                 config
             )
         },

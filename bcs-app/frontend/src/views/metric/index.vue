@@ -18,29 +18,29 @@
         },
         data () {
             return {
-                componentName: ''
+                componentName: 'wlistMetric'
             }
         },
         computed: {
             curProject () {
                 return this.$store.state.curProject
             }
-        },
-        mounted () {
-            this.setComponent()
-        },
-        methods: {
-            /**
-             * 设置动态组件
-             */
-            setComponent () {
-                const funcWlist = this.curProject.func_wlist
-                if (funcWlist && funcWlist.length && funcWlist.indexOf('ServiceMonitor') > -1) {
-                    this.componentName = 'wlistMetric'
-                } else {
-                    this.componentName = 'metric'
-                }
-            }
         }
+        // mounted () {
+        //     this.setComponent()
+        // },
+        // methods: {
+        //     /**
+        //      * 设置动态组件
+        //      */
+        //     setComponent () {
+        //         const funcWlist = this.curProject.func_wlist
+        //         if (funcWlist && funcWlist.length && funcWlist.indexOf('ServiceMonitor') > -1) {
+        //             this.componentName = 'wlistMetric'
+        //         } else {
+        //             this.componentName = 'metric'
+        //         }
+        //     }
+        // }
     }
 </script>

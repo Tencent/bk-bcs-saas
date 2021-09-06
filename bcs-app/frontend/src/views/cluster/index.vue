@@ -952,15 +952,9 @@
                     for (let index = 0; index < list.length; index++) {
                         const item = list[index]
                         if (!notLoading) {
-                            const args = {}
-                            if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
-                                args.dimensions = 'mesos_memory_usage,mesos_cpu_usage'
-                            }
-
                             const d = await this.$store.dispatch('cluster/clusterOverview', {
                                 projectId: this.projectId,
-                                clusterId: item.cluster_id,
-                                data: args
+                                clusterId: item.cluster_id
                             })
                             item.cpu_usage = d.data.cpu_usage
                             item.mem_usage = d.data.mem_usage

@@ -124,7 +124,7 @@
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
                     + `<p class="f14">${self.$t('Sorry，您的权限不足，请去')}`
-                    + `<a class="bk-text-button" href="${data.data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
+                    + `<a class="bk-text-button" href="${data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
                     + '</p>'
                     + '</h2>'
                     + '</div>'

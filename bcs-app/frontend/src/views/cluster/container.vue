@@ -548,7 +548,7 @@
                 try {
                     const params = {
                         projectId: this.projectId,
-                        res_id_list: this.containerId,
+                        container_ids: this.containerId.split(','),
                         clusterId: this.clusterId
                     }
 

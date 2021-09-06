@@ -653,16 +653,16 @@ export default {
          */
         async getNodeSummary (cur, index) {
             try {
-                const args = {}
-                if (this.curClusterInPage.type === 'mesos' && this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
-                    args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
-                }
+                // const args = {}
+                // if (this.curClusterInPage.type === 'mesos' && this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
+                //     args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
+                // }
 
                 const res = await this.$store.dispatch('cluster/getNodeOverview', {
                     projectId: cur.project_id,
                     clusterId: cur.cluster_id,
-                    nodeIp: cur.inner_ip,
-                    data: args
+                    nodeIp: cur.inner_ip
+                    // data: args
                 })
 
                 cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
