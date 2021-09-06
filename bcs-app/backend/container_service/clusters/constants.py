@@ -92,10 +92,6 @@ DEFAULT_SYSTEM_LABEL_KEYS = [
 ]
 
 
-class ProjectKindName(ChoicesEnum):
-    _choices_labels = ((1, 'k8s'), (2, 'mesos'))
-
-
 # TODO: 第一版只创建两个module: master和node
 CC_MODULE_INFO = {
     "mesos": {
