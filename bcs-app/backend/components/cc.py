@@ -12,6 +12,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import functools
 import logging
 import re
 from copy import deepcopy
@@ -24,6 +25,8 @@ from requests.auth import AuthBase
 
 from backend.components.base import BaseHttpClient, BkApiClient, response_handler, update_request_body
 from backend.components.utils import http_post
+from backend.utils.async_run import async_run
+from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 
 CC_HOST = settings.BK_PAAS_INNER_HOST
@@ -64,8 +67,19 @@ DEFAULT_HOST_FIELDS = [
     "rack",
     "bk_cloud_id",
 ]
+# CMDB 单个请求最大 Limit 限制
+CMDB_MAX_LIMIT = 500
 
 logger = logging.getLogger(__name__)
+
+
+def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
+    """请求"""
+    data.update({"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username})
+    if bk_supplier_account:
+        data["bk_supplier_account"] = bk_supplier_account
+
+    return http_post(f"{CC_HOST}{PREFIX_PATH}{suffix_path}", json=data)
 
 
 def get_application(username, bk_supplier_account=None):
@@ -289,7 +303,7 @@ def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None
 
 
 def list_biz_hosts(
-    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=500, bk_supplier_account=None
+    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
 ):
     """获取业务下所有主机信息"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
@@ -345,7 +359,23 @@ def search_biz_inst_topo(username, bk_biz_id) -> Dict:
     return cmdb_base_request('/v2/cc/search_biz_inst_topo/', username, {'bk_biz_id': bk_biz_id})
 
 
-def list_all_hosts_by_condition(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> Dict:
+def fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> int:
+    """ 查询指定条件下主机数量，用于后续并发查询用 """
+    params = {
+        'bk_biz_id': bk_biz_id,
+        'page': {
+            'start': 0,
+            'limit': 1,
+        },
+        'bk_set_ids': bk_set_ids,
+        'bk_module_ids': bk_module_ids,
+        'fields': ['bk_host_innerip'],
+    }
+    resp = cmdb_base_request('/v2/cc/list_biz_hosts/', username, params)
+    return getitems(resp, 'data.count', 0)
+
+
+def list_all_hosts_by_topo(username, bk_biz_id, bk_set_ids=None, bk_module_ids=None) -> Dict:
     """
     并发查询 CMDB，获取符合条件的全量主机信息，目前仅支持按 业务，集群，模块ID 过滤
 
@@ -355,27 +385,37 @@ def list_all_hosts_by_condition(username, bk_biz_id, bk_set_ids=None, bk_module_
     :parma bk_module_ids: 模块 ID 列表
     :return: 主机详情信息
     """
-    params = {
-        "bk_biz_id": bk_biz_id,
-        "page": {
-            # TODO 第一次查询总数量，按每次五百查询全量，async_run
-            "start": 0,
-            "limit": 500,
-        },
+    total = fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids, bk_module_ids)
+    default_params = {
+        'bk_biz_id': bk_biz_id,
         'bk_set_ids': bk_set_ids,
         'bk_module_ids': bk_module_ids,
         'fields': deepcopy(DEFAULT_HOST_FIELDS),
     }
-    return cmdb_base_request('/v2/cc/list_biz_hosts/', username, params)
+    tasks = []
+    resp_data = {'data': [], 'message': '', 'code': ErrorCode.NoError, 'result': True}
+    for start in range(0, total, CMDB_MAX_LIMIT):
+        params = deepcopy(default_params)
+        params['page'] = {'start': start, 'limit': CMDB_MAX_LIMIT}
+        # 组装并行任务配置信息
+        tasks.append(functools.partial(cmdb_base_request, '/v2/cc/list_biz_hosts/', username, params))
 
+    try:
+        results = async_run(tasks)
+    except Exception as e:
+        resp_data.update({'code': ErrorCode.SysError, 'result': False, 'message': str(e)})
+        return resp_data
 
-def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
-    """请求"""
-    data.update({"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username})
-    if bk_supplier_account:
-        data["bk_supplier_account"] = bk_supplier_account
+    # 任何一次请求不成功，都是不成功
+    for r in results:
+        if r.ret['code'] != ErrorCode.NoError:
+            resp_data.update({'code': r.ret['code'], 'result': False, 'message': r.ret['message']})
+            return resp_data
 
-    return http_post(f"{CC_HOST}{PREFIX_PATH}{suffix_path}", json=data)
+    # 所有的请求结果合并，即为全量数据
+    for r in results:
+        resp_data['data'].extend(r.ret['data']['info'])
+    return resp_data
 
 
 class BkCCConfig:

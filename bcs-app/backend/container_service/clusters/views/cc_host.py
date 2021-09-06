@@ -90,7 +90,7 @@ class CCViewSet(SystemViewSet):
         """
         bk_module_ids = [bk_module_id] if bk_module_id else None
         bk_set_ids = [bk_set_id] if bk_set_id else None
-        resp = cc.list_all_hosts_by_condition(
+        resp = cc.list_all_hosts_by_topo(
             self.request.user.username, self.request.project.cc_app_id, bk_module_ids, bk_set_ids
         )
         if resp.get('code') != ErrorCode.NoError:

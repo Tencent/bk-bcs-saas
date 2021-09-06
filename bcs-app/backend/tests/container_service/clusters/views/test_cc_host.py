@@ -154,7 +154,7 @@ class TestCCAPI:
     def patch_list_hosts_api_call(self):
         """ mock cmdb, paas_cc, gse 接口 """
         with mock.patch(
-            'backend.container_service.clusters.views.cc_host.cc.list_all_hosts_by_condition', new=fake_list_all_hosts
+            'backend.container_service.clusters.views.cc_host.cc.list_all_hosts_by_topo', new=fake_list_all_hosts
         ), mock.patch(
             'backend.container_service.clusters.views.cc_host.paas_cc.get_project_cluster_resource',
             new=fake_get_project_cluster_resource,
