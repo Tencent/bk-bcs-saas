@@ -22,10 +22,10 @@ from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import cc, gse, paas_cc
 from backend.container_service.clusters import serializers as slzs
 from backend.container_service.clusters.models import CommonStatus
-from backend.container_service.clusters.views.node import NodeHandler
 from backend.utils.basic import get_with_placeholder
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.filter import filter_by_ips
 from backend.utils.paginator import custom_paginator
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class CCViewSet(SystemViewSet):
         cc_app_name = cc.get_application_name(request.user.username, request.project.cc_app_id)
 
         # 根据指定的 IP 过滤
-        host_list = NodeHandler().filter_node(host_list, params['ip_list'])
+        host_list = filter_by_ips(host_list, params['ip_list'], key='bk_host_innerip', fuzzy=params['fuzzy'])
 
         response_data = {
             'results': [],
@@ -131,10 +131,10 @@ class CCViewSet(SystemViewSet):
         new_host_list, used_host_list = [], []
         for host in host_list:
             is_used = False
-            if 'InnerIP' not in host or not host['InnerIP']:
+            if 'bk_host_innerip' not in host or not host['bk_host_innerip']:
                 continue
             project_name, cluster_name, cluster_id = '', '', ''
-            for ip in host['InnerIP'].split(','):
+            for ip in host['bk_host_innerip'].split(','):
                 node_info = all_cluster_nodes.get(ip)
                 if not node_info:
                     continue
@@ -183,7 +183,7 @@ class CCViewSet(SystemViewSet):
             info['ip']: info for info in gse.get_agent_status(self.request.user.username, gse_params)
         }
         # 根据 IP 匹配更新 Agent 信息
-        cc_host_map = {host['InnerIP']: host for host in host_list}
+        cc_host_map = {host['bk_host_innerip']: host for host in host_list}
         for ips in cc_host_map:
             # 同主机可能存在多个 IP，任一 IP Agent 正常即可
             exist = -1

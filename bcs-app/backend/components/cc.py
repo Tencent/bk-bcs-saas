@@ -14,19 +14,17 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 import re
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from typing import Dict, List, Optional
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from requests import PreparedRequest
 from requests.auth import AuthBase
-from rest_framework.exceptions import ValidationError
 
 from backend.components.base import BaseHttpClient, BkApiClient, response_handler, update_request_body
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
 
 CC_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
@@ -40,6 +38,32 @@ FUNCTION_PATH_MAP = {
 }
 # 默认开发商账号
 DEFAULT_SUPPLIER_ACCOUNT = None
+# 默认查询主机字段
+DEFAULT_HOST_FIELDS = [
+    "bk_bak_operator",
+    "classify_level_name",
+    "svr_device_class",
+    "bk_svr_type_id",
+    "svr_type_name",
+    "hard_memo",
+    "bk_host_id",
+    "bk_host_name",
+    "idc_name",
+    "bk_idc_area",
+    "bk_idc_area_id",
+    "idc_id",
+    "idc_unit_name",
+    "idc_unit_id",
+    "bk_host_innerip",
+    "bk_comment",
+    "module_name",
+    "operator",
+    "bk_os_name",
+    "bk_os_version",
+    "bk_host_outerip",
+    "rack",
+    "bk_cloud_id",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -303,31 +327,7 @@ def list_hosts_by_pagination(
     # bk_module_ids 模块ID列表
     data["bk_module_ids"] = bk_module_ids
     # 添加fields字段
-    data["fields"] = [
-        "bk_bak_operator",
-        "classify_level_name",
-        "svr_device_class",
-        "bk_svr_type_id",
-        "svr_type_name",
-        "hard_memo",
-        "bk_host_id",
-        "bk_host_name",
-        "idc_name",
-        "bk_idc_area",
-        "bk_idc_area_id",
-        "idc_id",
-        "idc_unit_name",
-        "idc_unit_id",
-        "bk_host_innerip",
-        "bk_comment",
-        "module_name",
-        "operator",
-        "bk_os_name",
-        "bk_os_version",
-        "bk_host_outerip",
-        "rack",
-        "bk_cloud_id",
-    ]
+    data["fields"] = deepcopy(DEFAULT_HOST_FIELDS)
 
     return cmdb_base_request(
         FUNCTION_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account
@@ -364,32 +364,7 @@ def list_all_hosts_by_condition(username, bk_biz_id, bk_set_ids=None, bk_module_
         },
         'bk_set_ids': bk_set_ids,
         'bk_module_ids': bk_module_ids,
-        # TODO fields 抽常量
-        'fields': [
-            "bk_bak_operator",
-            "classify_level_name",
-            "svr_device_class",
-            "bk_svr_type_id",
-            "svr_type_name",
-            "hard_memo",
-            "bk_host_id",
-            "bk_host_name",
-            "idc_name",
-            "bk_idc_area",
-            "bk_idc_area_id",
-            "idc_id",
-            "idc_unit_name",
-            "idc_unit_id",
-            "bk_host_innerip",
-            "bk_comment",
-            "module_name",
-            "operator",
-            "bk_os_name",
-            "bk_os_version",
-            "bk_host_outerip",
-            "rack",
-            "bk_cloud_id",
-        ],
+        'fields': deepcopy(DEFAULT_HOST_FIELDS),
     }
     return cmdb_base_request('/v2/cc/list_biz_hosts/', username, params)
 

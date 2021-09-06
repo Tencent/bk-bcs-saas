@@ -66,36 +66,36 @@ def fake_search_topo(*args, **kwargs):
 
 
 def fake_list_all_hosts(*args, **kwargs):
-    """ 返回测试用主机数据 """
+    """ 返回测试用主机数据（省略非必须字段） """
     return {
         "code": 0,
         "result": True,
         "message": "success",
         "data": [
+            # 被使用的
             {
-                "bk_bak_operator": "test_user",
                 "bk_cloud_id": 0,
-                "bk_comment": "",
-                "bk_host_id": 123456,
+                "bk_host_id": 1,
                 "bk_host_innerip": "127.0.0.1",
-                "bk_host_name": "",
-                "bk_host_outerip": "",
-                "bk_idc_area": "xxx",
-                "bk_idc_area_id": 1,
-                "bk_os_name": "Linux",
-                "bk_os_version": "1.0.0",
-                "bk_svr_type_id": 1,
-                "classify_level_name": "1",
-                "hard_memo": "",
-                "idc_id": 1,
-                "idc_name": "IDC_NAME",
-                "idc_unit_id": 1,
-                "idc_unit_name": "123",
-                "module_name": "A38000",
-                "operator": "test_user",
-                "rack": "3ABC-1",
                 "svr_device_class": "S1234",
-                "svr_type_name": "CVM_TEST",
+            },
+            # agent 异常的
+            {"bk_cloud_id": 0, "bk_host_id": 2, "bk_host_innerip": "127.0.0.2,127.0.0.3", "svr_device_class": "S1234"},
+            # Docker 机，不可用
+            {"bk_cloud_id": 0, "bk_host_id": 3, "bk_host_innerip": "127.0.0.4,127.0.0.5", "svr_device_class": "D700"},
+            # 可以使用的
+            {
+                "bk_cloud_id": 0,
+                "bk_host_id": 4,
+                "bk_host_innerip": "127.0.0.6",
+                "svr_device_class": "S1234",
+            },
+            # 超过 Limit 的
+            {
+                "bk_cloud_id": 0,
+                "bk_host_id": 5,
+                "bk_host_innerip": "127.0.0.16",
+                "svr_device_class": "S1234",
             },
         ],
     }
@@ -135,6 +135,9 @@ def fake_get_agent_status(*args, **kwargs):
     return [
         {"ip": "127.0.0.1", "bk_cloud_id": 0, "bk_agent_alive": 1},
         {"ip": "127.0.0.2", "bk_cloud_id": 0, "bk_agent_alive": 0},
+        {"ip": "127.0.0.4", "bk_cloud_id": 0, "bk_agent_alive": 1},
+        {"ip": "127.0.0.6", "bk_cloud_id": 0, "bk_agent_alive": 1},
+        {"ip": "127.0.0.16", "bk_cloud_id": 0, "bk_agent_alive": 1},
     ]
 
 
@@ -147,21 +150,47 @@ class TestCCAPI:
         response = api_client.get(f'{API_URL_PREFIX}/topology/')
         assert response.json()['code'] == 0
 
-    # mock cmdb, paas_cc, gse 接口
-    @mock.patch(
-        'backend.container_service.clusters.views.cc_host.cc.list_all_hosts_by_condition', new=fake_list_all_hosts
-    )
-    @mock.patch(
-        'backend.container_service.clusters.views.cc_host.paas_cc.get_project_cluster_resource',
-        new=fake_get_project_cluster_resource,
-    )
-    @mock.patch(
-        'backend.container_service.clusters.views.cc_host.paas_cc.get_all_cluster_hosts',
-        new=fake_get_all_cluster_hosts,
-    )
-    @mock.patch('backend.container_service.clusters.views.cc_host.gse.get_agent_status', new=fake_get_agent_status)
-    def test_list_hosts(self, api_client):
+    @pytest.fixture()
+    def patch_list_hosts_api_call(self):
+        """ mock cmdb, paas_cc, gse 接口 """
+        with mock.patch(
+            'backend.container_service.clusters.views.cc_host.cc.list_all_hosts_by_condition', new=fake_list_all_hosts
+        ), mock.patch(
+            'backend.container_service.clusters.views.cc_host.paas_cc.get_project_cluster_resource',
+            new=fake_get_project_cluster_resource,
+        ), mock.patch(
+            'backend.container_service.clusters.views.cc_host.paas_cc.get_all_cluster_hosts',
+            new=fake_get_all_cluster_hosts,
+        ), mock.patch(
+            'backend.container_service.clusters.views.cc_host.gse.get_agent_status', new=fake_get_agent_status
+        ):
+            yield
+
+    def test_list_hosts(self, api_client, patch_list_hosts_api_call):
         """ 测试获取资源列表接口 """
-        response = api_client.post(f'{API_URL_PREFIX}/hosts/', data={})
+        params = {'limit': 4, 'offset': 0, 'ip_list': [], 'set_id': 5001, 'module_id': 5003}
+        response = api_client.post(f'{API_URL_PREFIX}/hosts/', data=params)
         assert response.json()['code'] == 0
-        # TODO 补充检查数据等 assert
+        resp_data = response.json()['data']
+        assert resp_data['count'] == 5
+        assert len(resp_data['results']) == 4
+        assert resp_data['unavailable_ip_count'] == 2
+
+    def test_list_hosts_with_fuzzy_ip_match(self, api_client, patch_list_hosts_api_call):
+        """ 测试按 ip 过滤（模糊）"""
+        # 匹配 127.0.0.1， 127.0.0.16
+        params = {'limit': 10, 'offset': 0, 'ip_list': ['127.0.0.1'], 'fuzzy': True}
+        response = api_client.post(f'{API_URL_PREFIX}/hosts/', data=params)
+        assert response.json()['code'] == 0
+        resp_data = response.json()['data']
+        assert resp_data['count'] == 2
+        assert set([h['bk_host_innerip'] for h in resp_data['results']]) == {'127.0.0.1', '127.0.0.16'}
+
+    def test_list_hosts_with_ip_match(self, api_client, patch_list_hosts_api_call):
+        """ 测试按 ip 过滤（精确）"""
+        params = {'limit': 10, 'offset': 0, 'ip_list': ['127.0.0.1', '127.0.0.2']}
+        response = api_client.post(f'{API_URL_PREFIX}/hosts/', data=params)
+        assert response.json()['code'] == 0
+        resp_data = response.json()['data']
+        assert resp_data['count'] == 2
+        assert set([h['bk_host_innerip'] for h in resp_data['results']]) == {'127.0.0.1', '127.0.0.2,127.0.0.3'}
