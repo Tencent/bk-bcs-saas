@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 
 
-def patch_dynamic_resource():
+def patch_resource():
     """patch Resource and Subresource because of extra_args grow recursively"""
     from kubernetes.dynamic import discovery, resource  # noqa
 
