@@ -33,7 +33,7 @@ class TestDeployment:
     )
 
     @pytest.fixture(autouse=True)
-    def common_patch(self, patch_get_dynamic_client):
+    def common_patch(self):
         ctx_cluster = CtxCluster.create(TEST_CLUSTER_ID, TEST_PROJECT_ID, token='token')
         Deployment(ctx_cluster).update_or_create(
             namespace=TEST_NAMESPACE, name=self.deployment_name, body=gen_deployment_body(self.deployment_name)

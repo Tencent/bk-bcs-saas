@@ -22,7 +22,7 @@ def filter_by_ips(source: List[Dict], ips: List, key: str, fuzzy: bool = False) 
 
     :param source: 原始数据，单个包含 IP 信息
     :param ips: 指定的 IP 列表（NOTE 若 GET 请求使用 ',' 连接 IP 需在序列化器中处理，此处不做兼容）
-    :param key: 指定的 IP 字段
+    :param key: 指定的 IP 字段名称
     :param fuzzy: 是否进行模糊匹配
     :return: 过滤结果
     """

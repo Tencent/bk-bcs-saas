@@ -61,14 +61,14 @@ class CCViewSet(SystemViewSet):
             'cc_application_name': cc_app_name,
             'unavailable_ip_count': 0,
         }
-        # 如没有符合过滤条件的，直接返回默认值
-        if not host_list:
-            return Response(response_data)
-
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = self._fetch_project_cluster_info()
         all_cluster_nodes = self._fetch_all_cluster_nodes()
         host_list = self._update_host_info(host_list, all_cluster_nodes, project_cluster_info)
+
+        # 如没有符合过滤条件的，直接返回默认值
+        if not host_list:
+            return Response(response_data)
 
         # 被使用 / agent 异常的机器均视为 不可使用
         response_data['unavailable_ip_count'] = len([h for h in host_list if h['is_used'] or not h['is_valid']])
