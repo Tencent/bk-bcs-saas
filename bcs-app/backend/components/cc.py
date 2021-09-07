@@ -68,8 +68,14 @@ DEFAULT_HOST_FIELDS = [
     "rack",
     "bk_cloud_id",
 ]
-# CMDB 单个请求最大 Limit 限制
-CMDB_MAX_LIMIT = 500
+# 默认从 0 开始查询
+DEFAULT_START_AT = 0
+# 用于查询 count 的 Limit，最小为 1
+LIMIT_FOR_COUNT = 1
+# CMDB 通用的最大 Limit 限制
+CMDB_MAX_LIMIT = 200
+# CMDB 请求主机列表最大 Limit 限制
+CMDB_LIST_HOSTS_MAX_LIMIT = 500
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +128,9 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
     return biz_info[0].get("bk_biz_name") or ""
 
 
-def get_all_application(username, bk_supplier_account=None, condition=None, start=0, limit=200):
+def get_all_application(
+    username, bk_supplier_account=None, condition=None, start=DEFAULT_START_AT, limit=CMDB_MAX_LIMIT
+):
     """获取用户有权限的所有业务"""
     condition = condition or {}
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError}
@@ -251,7 +259,7 @@ def get_host_base_info(username, bk_biz_id, inner_ip):
 
 
 def get_application_with_pagination(
-    username, bk_supplier_account=None, condition=None, fields=None, start=0, limit=200
+    username, bk_supplier_account=None, condition=None, fields=None, start=DEFAULT_START_AT, limit=CMDB_MAX_LIMIT
 ):
     """分页查询业务"""
     condition = condition or {}
@@ -260,49 +268,14 @@ def get_application_with_pagination(
     return cmdb_base_request(FUNC_PATH_MAP["get_application"], username, data, bk_supplier_account=bk_supplier_account)
 
 
-def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None):
-    """查询所有主机"""
-    resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
-    # 设置初始值
-    start, limit = 0, 200
-    while True:
-        resp = search_host_with_page(
-            username,
-            bk_biz_id,
-            bk_supplier_account=bk_supplier_account,
-            condition=condition,
-            ip=ip,
-            start=start,
-            limit=limit,
-        )
-        start = start + limit
-        if resp.get("code") != ErrorCode.NoError:
-            resp_data["code"] = resp.get("code")
-            resp_data["message"] = resp.get("message")
-            resp_data["result"] = resp.get("result")
-            break
-        data = resp.get("data") or {}
-        biz_info = data.get("info") or []
-        resp_data["data"].extend(biz_info)
-        if len(resp_data["data"]) >= data.get("count", 0) or not biz_info:
-            break
-
-    return resp_data
-
-
-def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None, start=0, limit=200):
-    """获取业务下的主机"""
-    data = {"bk_biz_id": bk_biz_id}
-    if ip:
-        data["ip"] = ip
-    if condition:
-        data["condition"] = condition
-
-    return cmdb_base_request(FUNC_PATH_MAP["search_host"], username, data, bk_supplier_account=bk_supplier_account)
-
-
 def list_biz_hosts(
-    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
+    username,
+    bk_biz_id,
+    host_property_filter=None,
+    bk_module_ids=None,
+    start=DEFAULT_START_AT,
+    limit=CMDB_LIST_HOSTS_MAX_LIMIT,
+    bk_supplier_account=None,
 ):
     """获取业务下所有主机信息"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
@@ -331,7 +304,13 @@ def list_biz_hosts(
 
 
 def list_hosts_by_pagination(
-    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
+    username,
+    bk_biz_id,
+    host_property_filter=None,
+    bk_module_ids=None,
+    start=DEFAULT_START_AT,
+    limit=CMDB_LIST_HOSTS_MAX_LIMIT,
+    bk_supplier_account=None,
 ):
     """根据分页参数，获取业务下主机信息"""
     data = {"bk_biz_id": bk_biz_id, "page": {"start": start, "limit": limit}}
@@ -340,7 +319,7 @@ def list_hosts_by_pagination(
     # bk_module_ids 模块ID列表
     data["bk_module_ids"] = bk_module_ids
     # 添加fields字段
-    data["fields"] = deepcopy(DEFAULT_HOST_FIELDS)
+    data["fields"] = DEFAULT_HOST_FIELDS
 
     return cmdb_base_request(FUNC_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account)
 
@@ -363,8 +342,8 @@ def fetch_host_count_by_topo(
     params = {
         'bk_biz_id': bk_biz_id,
         'page': {
-            'start': 0,
-            'limit': 1,
+            'start': DEFAULT_START_AT,
+            'limit': LIMIT_FOR_COUNT,
         },
         'bk_set_ids': bk_set_ids,
         'bk_module_ids': bk_module_ids,
@@ -389,13 +368,13 @@ def list_all_hosts_by_topo(username: str, bk_biz_id: str, bk_set_ids: List = Non
         'bk_biz_id': bk_biz_id,
         'bk_set_ids': bk_set_ids,
         'bk_module_ids': bk_module_ids,
-        'fields': deepcopy(DEFAULT_HOST_FIELDS),
+        'fields': DEFAULT_HOST_FIELDS,
     }
     tasks = []
     resp_data = {'data': [], 'message': '', 'code': ErrorCode.NoError, 'result': True}
-    for start in range(0, total, CMDB_MAX_LIMIT):
+    for start in range(DEFAULT_START_AT, total, CMDB_LIST_HOSTS_MAX_LIMIT):
         params = deepcopy(default_params)
-        params['page'] = {'start': start, 'limit': CMDB_MAX_LIMIT}
+        params['page'] = {'start': start, 'limit': CMDB_LIST_HOSTS_MAX_LIMIT}
         # 组装并行任务配置信息
         tasks.append(functools.partial(cmdb_base_request, FUNC_PATH_MAP['list_biz_hosts'], username, params))
 
@@ -453,8 +432,8 @@ class BkCCAuth(AuthBase):
 
 @dataclass
 class PageData:
-    start: int = 0
-    limit: int = 200
+    start: int = DEFAULT_START_AT
+    limit: int = CMDB_MAX_LIMIT
     sort: str = ""  # 排序字段
 
 

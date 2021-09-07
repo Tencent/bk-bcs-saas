@@ -37,7 +37,7 @@ class CCViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='topology', detail=False)
     def biz_inst_topo(self, request, project_id):
         """ 查询业务实例拓扑 """
-        resp = cc.search_biz_inst_topo(self.request.user.username, self.request.project.cc_app_id)
+        resp = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
         if not resp.get('result'):
             raise error_codes.APIError(resp.get('message'))
         topo_info = resp.get('data') or []
@@ -68,7 +68,7 @@ class CCViewSet(SystemViewSet):
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = self._fetch_project_cluster_info()
         all_cluster_nodes = self._fetch_all_cluster_nodes()
-        host_list = self._update_host_use_status(host_list, all_cluster_nodes, project_cluster_info)
+        host_list = self._update_host_info(host_list, all_cluster_nodes, project_cluster_info)
 
         # 被使用 / agent 异常的机器均视为 不可使用
         response_data['unavailable_ip_count'] = len([h for h in host_list if h['is_used'] or not h['is_valid']])
@@ -126,8 +126,15 @@ class CCViewSet(SystemViewSet):
             if cluster
         }
 
-    def _update_host_use_status(self, host_list: List, all_cluster_nodes: Dict, project_cluster_info: Dict) -> List:
-        """ 更新节点使用状态 & 是否类型可用 """
+    def _update_host_info(self, host_list: List, all_cluster_nodes: Dict, project_cluster_info: Dict) -> List:
+        """
+        更新节点使用状态 & 是否类型可用，补充项目，集群等信息
+
+        :param host_list: 原始主机列表
+        :param all_cluster_nodes: 全集群节点信息
+        :param project_cluster_info: 项目 & 集群信息
+        :return: 包含使用信息的主机列表
+        """
         new_host_list, used_host_list = [], []
         for host in host_list:
             is_used = False
