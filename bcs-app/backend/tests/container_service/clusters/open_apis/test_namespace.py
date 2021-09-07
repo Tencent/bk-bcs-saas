@@ -15,9 +15,6 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.clusters.open_apis.namespace import NamespaceViewSet
-from backend.resources.namespace import Namespace
 from backend.tests.resources.conftest import FakeBcsKubeConfigurationService
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks import bcs_perm, paas_cc
@@ -40,15 +37,6 @@ class TestNamespace:
         ):
             yield
 
-    @pytest.fixture(autouse=True)
-    def patch_user_viewset(self):
-        # 需要通过指定接口获取不同项目类型，覆盖conftest中的patch_user_viewset
-        pass
-
-    @patch(
-        "backend.bcs_web.permissions.PaaSCCClient",
-        new=paas_cc.StubPaaSCCClient,
-    )
     def test_create_k8s_namespace(self, api_client):
         """创建k8s命名空间
         NOTE: 针对k8s会返回namespace_id字段
@@ -63,7 +51,7 @@ class TestNamespace:
         assert data["name"] == fake_data["name"]
 
     @patch(
-        "backend.bcs_web.permissions.PaaSCCClient.get_project",
+        "backend.tests.testing_utils.mocks.paas_cc.StubPaaSCCClient.get_project",
         new=paas_cc.StubPaaSCCClient().get_mesos_project,
     )
     def test_create_mesos_namespace(self, api_client):

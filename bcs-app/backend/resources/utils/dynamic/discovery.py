@@ -14,10 +14,12 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+from collections import defaultdict
 from functools import partial
 
 from kubernetes import __version__
 from kubernetes.dynamic.discovery import CacheDecoder, CacheEncoder, LazyDiscoverer
+from kubernetes.dynamic.exceptions import NotFoundError
 
 from backend.utils.cache import rd_client
 
@@ -44,6 +46,15 @@ class BcsLazyDiscoverer(LazyDiscoverer):
     - override Discoverer 中的 __init_cache 方法，修复 'CacheDecoder' object is not callable
     - 用redis替代文件缓存
     """
+
+    def get_resources_for_api_version(self, prefix, group, version, preferred):
+        """ 忽略 NotFoundError，直接返回默认值，避免使用 缓存中存在但不存在于集群中的 group 请求 resources 导致报错 """
+        resources = defaultdict(list)
+        try:
+            resources = super().get_resources_for_api_version(prefix, group, version, preferred)
+        except NotFoundError:
+            logger.warning('Ignore get_resources_for_api_version failed, group: %s, version: %s', group, version)
+        return resources
 
     def _Discoverer__init_cache(self, refresh=False):
         discoverer_cache = self._Discoverer__cache_file

@@ -14,10 +14,6 @@ specific language governing permissions and limitations under the License.
 """
 from unittest.mock import patch
 
-import pytest
-
-from backend.components.bcs.mesos import MesosClient
-from backend.components.paas_cc import get_cluster
 from backend.container_service.clusters.views.node_views.utils import MesosNodeLabelsQuerier
 
 fake_cc_get_cluster_result = {"code": 0, "data": {"environment": "stag"}}
