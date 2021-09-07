@@ -35,31 +35,15 @@ class FakeProjectEnableBCS(BasePermission):
         return True
 
     def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
-        from backend.apps.constants import ClusterType
         from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
         project_data = StubPaaSCCClient().get_project(project_id_or_code)
         project = FancyDict(**project_data)
 
-        self._refine_project(project)
-
-        # 用户绑定了项目, 并且选择了编排类型
-        if project.cc_app_id != 0 and project.kind in ClusterType:
+        if project.cc_app_id != 0:
             return project
 
         return None
-
-    def _refine_project(self, project: FancyDict):
-        project.coes = project.kind
-        project.project_code = project.english_name
-
-        try:
-            from backend.container_service.projects.utils import get_project_kind
-
-            # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
-            project.kind = get_project_kind(project.kind)
-        except ImportError:
-            pass
 
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         from backend.container_service.clusters.base.models import CtxCluster
