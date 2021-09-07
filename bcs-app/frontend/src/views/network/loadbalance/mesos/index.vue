@@ -78,7 +78,7 @@
                                     {{props.row.forward_mode || '--'}}
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('状态')" min-width="160">
+                            <bk-table-column :label="$t('状态')" min-width="160" :show-overflow-tooltip="false">
                                 <template slot-scope="props">
                                     <span class="vm mr10">{{statusMap[props.row.status] || $t('未部署')}}</span>
                                     <div class="vm f12" style="display: inline-block;">
@@ -93,14 +93,6 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" width="200">
                                 <template slot-scope="props">
-                                    <!--
-                                        NOT_DEPLOYED = "not_deployed" : 没部署，操作：启动、编辑、删除
-                                        DEPLOYING = "deploying" : 部署中，操作：无
-                                        DEPLOYED = "deployed" : 已部署，操作：停止
-                                        STOPPING = "stopping" : 停止中，操作：无
-                                        STOPPED = "stopped" : 已停止，操作：启动、编辑、删除
-                                    -->
-                                    <!-- <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(props.row)">{{$t('查看')}}</a> -->
                                     <template v-if="!props.row.status || props.row.status === 'not_deployed' || props.row.status === 'stopped'">
                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(props.row, index)">{{$t('启动')}}</a>
                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(props.row, index)">{{$t('编辑')}}</a>
@@ -147,9 +139,6 @@
                                         </td>
                                         <td>{{loadBalance.network_type || '--'}}</td>
                                         <td>{{loadBalance.forward_mode || '--'}}</td>
-                                        <!-- <td>
-                                            {{loadBalance.ip_list.length ? loadBalance.ip_list.join(', ') : '--'}}
-                                        </td> -->
                                         <td>
                                             <span class="vm mr10">{{statusMap[loadBalance.status] || $t('未部署')}}</span>
                                             <div class="vm f12" style="display: inline-block;">
@@ -162,14 +151,6 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <!--
-                                                NOT_DEPLOYED = "not_deployed" : 没部署，操作：启动、编辑、删除
-                                                DEPLOYING = "deploying" : 部署中，操作：无
-                                                DEPLOYED = "deployed" : 已部署，操作：停止
-                                                STOPPING = "stopping" : 停止中，操作：无
-                                                STOPPED = "stopped" : 已停止，操作：启动、编辑、删除
-                                            -->
-                                            <!-- <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{$t('查看')}}</a> -->
                                             <template v-if="!loadBalance.status || loadBalance.status === 'not_deployed' || loadBalance.status === 'stopped'">
                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(loadBalance, index)">{{$t('启动')}}</a>
                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('编辑')}}</a>
@@ -236,6 +217,7 @@
                                             :selected.sync="curLoadBalance.cluster_id"
                                             :list="clusterList"
                                             :disabled="curLoadBalance.id"
+                                            :init-prevent-trigger="true"
                                             @item-selected="handlerSelectCluster">
                                         </bk-selector>
                                     </div>
@@ -933,9 +915,9 @@
                                     this.searchScope = this.searchScopeList[1].id
                                 }
                             }
-                            
+
                             this.getLoadBalanceList()
-                            this.getConfigmapList()
+                            // this.getConfigmapList()
                         }, 1000)
                     }
                 }
@@ -986,7 +968,7 @@
             async getConfigmapList () {
                 const projectId = this.projectId
                 const params = {
-                    cluster_id: this.searchScope
+                    cluster_id: this.curLoadBalance.cluster_id
                 }
                 try {
                     const res = await this.$store.dispatch('resource/getConfigmapList', {
@@ -1038,16 +1020,6 @@
              * @param  {object} loadBalance loadBalance
              */
             async goLoadBalanceDetail (loadBalance) {
-                // if (!loadBalance.permissions.view) {
-                //     await this.$store.dispatch('getResourcePermissions', {
-                //         project_id: this.projectId,
-                //         policy_code: 'view',
-                //         resource_code: loadBalance.namespace,
-                //         resource_name: loadBalance.namespace_name,
-                //         resource_type: 'namespace'
-                //     })
-                // }
-                // ':instanceName/:instanceNamespace/:instanceCategory',
                 const projectName = this.curProject.project_code
                 const url = `${window.DEVOPS_HOST}/console/bcs/${projectName}/app/mesos/${loadBalance.name}/${loadBalance.namespace}/deployment?cluster_id=${loadBalance.cluster_id}`
                 window.open(url)
@@ -1162,15 +1134,6 @@
              * @param  {number} index 索引
              */
             async editLoadBalance (loadBalance, index) {
-                // if (!loadBalance.permissions.use) {
-                //     await this.$store.dispatch('getResourcePermissions', {
-                //         project_id: this.projectId,
-                //         policy_code: 'use',
-                //         resource_code: loadBalance.namespace,
-                //         resource_name: loadBalance.namespace_name,
-                //         resource_type: 'namespace'
-                //     })
-                // }
                 const loadBalanceParams = Object.assign({}, loadBalance)
                 this.nameSpaceSelectedList = []
                 loadBalanceParams.ips = loadBalanceParams.ip_list.join('\n')
@@ -1178,7 +1141,7 @@
                 this.nameSpaceList.forEach(namespace => {
                     namespace.isSelected = false
                 })
-                
+
                 loadBalanceParams.volumes = []
                 if (!loadBalanceParams.configmaps) {
                     loadBalanceParams.configmaps = []
@@ -1323,6 +1286,7 @@
                 this.nameSpaceList = []
                 if (projectId && clusterId) {
                     try {
+                        this.getConfigmapList()
                         const res = await this.$store.dispatch('network/getNameSpaceClusterList', { projectId, clusterId })
                         this.nameSpaceClusterList = res.data
                         this.nameSpaceList = res.data
@@ -1929,7 +1893,7 @@
                 // 资源限制
                 params.resources.limits.cpu = String(params.resources.limits.cpu)
                 params.resources.limits.memory = String(params.resources.limits.memory)
-                
+
                 // 网络
                 if (params.network_mode !== 'BRIDGE') {
                     delete params.host_port
