@@ -13,7 +13,6 @@
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
-import { sourceExpansion } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -218,31 +217,6 @@ export default {
             return http.put(
                 `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/instances/${instanceId}/${instanceName}/scale/`
                     + `?instance_num=${instanceNum}&${json2Query(params)}`,
-                params,
-                config
-            )
-        },
-
-        /**
-         * 重建
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        reBuildInstance (context, params, config = {}) {
-            const projectId = params.projectId
-            const instanceId = params.instanceId
-            const instanceName = params.name
-
-            delete params.projectId
-            delete params.instanceId
-
-            return http.post(
-                `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/instances/${instanceId}/${instanceName}/recreate/?`
-                    + `${json2Query(params)}`,
                 params,
                 config
             )
@@ -1591,23 +1565,6 @@ export default {
                 {},
                 config
             )
-        },
-
-        /**
-         * mesos 原地资源扩容
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        async sourceExpansion (context, params, config = {}) {
-            const data = await sourceExpansion(params, config = {}).catch(() => ({
-                manifest: {},
-                manifest_ext: {}
-            }))
-            return data
         }
     }
 }

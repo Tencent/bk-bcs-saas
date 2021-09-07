@@ -337,34 +337,23 @@
                     </div> -->
                 </div>
                 <div class="biz-cluster-create-form-tips">
-                    <template v-if="!isMesosProject">
-                        <div :class="['tips-item', { 'active': tipsActive === 'engine' }]">
-                            <h6 class="title">{{$t('调度引擎')}}</h6>
-                            <div class="item-content">
-                                <ul class="tips-list">
-                                    <li>TKE：{{$t('K8S容器编排引擎，集群为腾讯云构建，经BCS纳管，默认可以使用K8S Oteam版本或者腾讯云1.16版本。推荐自研上云使用。')}}</li>
-                                    <li>BCS-K8S：{{$t('K8S容器编排引擎，集群由BCS自建和管理，可使用原生k8s版本，也可使用公司开源协同的k8s版本。推荐非云环境、海外公有云环境使用。')}}</li>
-                                </ul>
-                            </div>
+                    <div :class="['tips-item', { 'active': tipsActive === 'engine' }]">
+                        <h6 class="title">{{$t('调度引擎')}}</h6>
+                        <div class="item-content">
+                            <ul class="tips-list">
+                                <li>TKE：{{$t('K8S容器编排引擎，集群为腾讯云构建，经BCS纳管，默认可以使用K8S Oteam版本或者腾讯云1.16版本。推荐自研上云使用。')}}</li>
+                                <li>BCS-K8S：{{$t('K8S容器编排引擎，集群由BCS自建和管理，可使用原生k8s版本，也可使用公司开源协同的k8s版本。推荐非云环境、海外公有云环境使用。')}}</li>
+                            </ul>
                         </div>
-                        <div :class="['tips-item', { 'active': tipsActive === 'version' }]">
-                            <h6 class="title">{{$t('版本')}}</h6>
-                            <div class="item-content">
-                                <template v-if="isTkeProject">{{$t('使用K8S Oteam版本或者腾讯云1.16版本。')}}</template>
-                                <template v-else>{{$t('使用原生k8s版本，也可使用公司开源协同的k8s版本。')}}</template>
-                            </div>
+                    </div>
+                    <div :class="['tips-item', { 'active': tipsActive === 'version' }]">
+                        <h6 class="title">{{$t('版本')}}</h6>
+                        <div class="item-content">
+                            <template v-if="isTkeProject">{{$t('使用K8S Oteam版本或者腾讯云1.16版本。')}}</template>
+                            <template v-else>{{$t('使用原生k8s版本，也可使用公司开源协同的k8s版本。')}}</template>
                         </div>
-                    </template>
+                    </div>
                     <template v-if="isTkeProject">
-                        <!-- <div :class="['tips-item', { 'active': tipsActive === 'server' }]">
-                            <h6 class="title">{{$t('服务器来源')}}</h6>
-                            <div class="item-content">
-                                <ul class="tips-list">
-                                    <li>{{$t('平台资源池')}}：{{$t('使用平台资源池的机器，进行集群的创建；注意集群创建后，Master机器会转移到项目绑定的业务下。')}}</li>
-                                    <li>{{$t('业务资源池')}}：{{$t('使用项目绑定的业务下的机器，进行集群创建。')}}</li>
-                                </ul>
-                            </div>
-                        </div> -->
                         <div :class="['tips-item', { 'active': tipsActive === 'networdType' }]">
                             <h6 class="title">{{$t('网络类型')}}</h6>
                             <div class="item-content">
@@ -578,8 +567,6 @@
             </div>
         </bk-dialog>
 
-        <cluster-guide ref="clusterGuide" @status-change="toggleGuide"></cluster-guide>
-
         <tip-dialog
             ref="clusterNoticeDialog"
             icon="bcs-icon bcs-icon-exclamation-triangle"
@@ -600,12 +587,10 @@
     import bkIPSearcher from '@open/components/ip-searcher'
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
-    import ClusterGuide from './guide'
     import ApplyHost from './apply-host.vue'
 
     export default {
         components: {
-            ClusterGuide,
             tipDialog,
             'bk-ip-searcher': bkIPSearcher,
             ApplyHost
@@ -702,7 +687,6 @@
                 curProject: {},
                 isK8sProject: false,
                 isTkeProject: false,
-                isMesosProject: false,
                 ccApplicationName: '',
                 serviceIpNumberKey: '',
                 serviceIpNumberList: [],
@@ -929,8 +913,6 @@
             } else {
                 this.coes = 'tke'
             }
-
-            this.isMesosProject = this.curProject.kind === PROJECT_MESOS
 
             // k8s
             this.isK8sProject = this.coes === 'k8s'

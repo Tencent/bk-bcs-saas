@@ -1582,7 +1582,6 @@ export default {
     '重命名': ['Rename'],
     '新增文件': ['Add File'],
     '新增目录': ['Add Catalog'],
-    '导入模板集': ['Import Templateset'],
     '新建CL5成功': ['Create CL5 Success'],
     '是否有sid': ['has sid'],
     '转换到YAML': ['Export To YAML'],
