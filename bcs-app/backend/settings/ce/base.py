@@ -13,6 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import sys
+from typing import List
 
 from ..base import *  # noqa
 from ..base import BASE_DIR, REST_FRAMEWORK
@@ -54,10 +55,6 @@ CACHES = {
         "LOCATION": "/tmp/paas-backend-django_cache",
     },
 }
-
-# cors settings
-CORS_ORIGIN_REGEX_WHITELIST = (r".*",)
-CORS_ALLOW_CREDENTIALS = True
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
@@ -280,3 +277,20 @@ BCS_APP_SECRET = SECRET_KEY
 HELM_REPO_DOMAIN = os.environ.get('HELM_REPO_DOMAIN')
 HELM_MERELY_REPO_URL = HELM_REPO_DOMAIN
 BK_REPO_URL_PREFIX = os.environ.get('BK_REPO_URL_PREFIX')
+
+# cors settings
+def get_cors_allowed_origins() -> List[str]:
+    """获取Access-Control-Allow-Origin"""
+    from urllib.parse import urlparse
+
+    origins = []
+    for url in [DEVOPS_HOST, BK_PAAS_HOST, DEVOPS_BCS_HOST, DEVOPS_BCS_API_URL]:
+        parsed_url = urlparse(url)
+        origin = f'{parsed_url.scheme}://{parsed_url.netloc}'
+        if origin not in origins:
+            origins.append(origin)
+    return origins
+
+
+CORS_ALLOWED_ORIGINS = get_cors_allowed_origins()
+CORS_ALLOW_CREDENTIALS = True
