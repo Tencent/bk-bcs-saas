@@ -38,7 +38,9 @@ class TargetsViewSet(SystemViewSet):
         targets = self._filter_targets(result, params['show_discovered'])
 
         targets_dict = {}
-        for instance_id, targets in itertools.groupby(sorted(targets, key=lambda x: x['instance_id'])):
+        for instance_id, targets in itertools.groupby(
+            sorted(targets, key=lambda x: x['instance_id']), key=lambda y: y['instance_id']
+        ):
             targets = list(targets)
             jobs = {t['job'] for t in targets}
             graph_url = self._gen_graph_url(project_id, cluster_id, jobs) if jobs else None
