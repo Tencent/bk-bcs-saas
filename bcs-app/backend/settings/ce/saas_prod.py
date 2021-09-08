@@ -19,6 +19,7 @@ import redis
 
 from .base import *  # noqa
 from .base import INSTALLED_APPS
+from .cors import get_cors_allowed_origins
 
 INSTALLED_APPS += [
     "backend.celery_app.CeleryConfig",
@@ -172,3 +173,7 @@ WEB_CONSOLE_MODE = "internal"
 # 初始化时渲染K8S/MESOS版本
 K8S_VERSION = os.environ.get("BKAPP_K8S_VERSION")
 MESOS_VERSION = os.environ.get("BKAPP_MESOS_VERSION")
+
+# cors settings
+CORS_ALLOWED_ORIGINS = get_cors_allowed_origins([DEVOPS_HOST, BK_PAAS_HOST, DEVOPS_BCS_HOST, DEVOPS_BCS_API_URL])
+CORS_ALLOW_CREDENTIALS = True
