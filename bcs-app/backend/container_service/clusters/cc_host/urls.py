@@ -12,6 +12,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.test import TestCase
+from rest_framework import routers
 
-# Create your tests here.
+from . import views
+
+cc_router = routers.DefaultRouter(trailing_slash=True)
+cc_router.register('', views.CCViewSet, basename='cc')

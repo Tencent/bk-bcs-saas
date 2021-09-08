@@ -14,9 +14,9 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
 from django.urls import include
-from rest_framework import routers
 
 from . import views
+from .cc_host.urls import cc_router
 from .featureflag.views import ClusterFeatureFlagViewSet
 from .views.cluster import UpgradeClusterViewSet
 from .views.node_views import nodes
@@ -166,10 +166,6 @@ urlpatterns = [
 ]
 
 # 新版 CC Host 相关接口
-cc_router = routers.DefaultRouter(trailing_slash=True)
-
-cc_router.register('', views.CCViewSet, basename='cc')
-
 urlpatterns += [
     url(r'^api/projects/(?P<project_id>[\w\-]+)/cc/', include(cc_router.urls)),
 ]

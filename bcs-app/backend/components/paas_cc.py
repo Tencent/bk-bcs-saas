@@ -472,11 +472,19 @@ def save_cluster_snapshot(access_token, data):
     return http_post(url, json=data, headers=headers)
 
 
-def get_project_cluster_resource(access_token):
+def _get_project_cluster_resource(access_token):
     """获取所有项目、集群信息"""
     url = f"{BCS_CC_API_PRE_URL}/v1/projects/resource/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
     return http_get(url, headers=headers)
+
+
+def get_project_cluster_resource(access_token):
+    """ 获取所有项目 & 集群信息，异常情况 raise_exception """
+    resp = _get_project_cluster_resource(access_token)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(resp.get('message'))
+    return resp.get('data') or []
 
 
 def update_master(access_token, project_id, cluster_id, data):

@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from .area import AreaInfoViewSet, AreaListViewSet  # noqa
-from .cc_host import CCViewSet  # noqa
 from .cluster import (  # noqa
     ClusterCheckDeleteViewSet,
     ClusterCreateGetUpdateViewSet,

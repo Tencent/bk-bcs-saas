@@ -286,9 +286,9 @@ class QueryLabelValuesSLZ(QueryLabelSLZ):
 class FetchCCHostSLZ(serializers.Serializer):
     """ 获取 CMDB 业务下可用主机列表 """
 
-    limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
-    offset = serializers.IntegerField(required=False, default=0)
-    ip_list = serializers.ListField(required=False, default=list)
-    set_id = serializers.IntegerField(required=False, default=None)
-    module_id = serializers.IntegerField(required=False, default=None)
-    fuzzy = serializers.BooleanField(required=False, default=False)
+    limit = serializers.IntegerField(default=cluster_constants.DEFAULT_NODE_LIMIT)
+    offset = serializers.IntegerField(default=0)
+    ip_list = serializers.ListField(default=list)
+    set_id = serializers.IntegerField(default=None)
+    module_id = serializers.IntegerField(default=None)
+    fuzzy = serializers.BooleanField(default=False)

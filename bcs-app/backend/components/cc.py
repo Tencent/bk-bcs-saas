@@ -17,6 +17,7 @@ import logging
 import re
 from copy import deepcopy
 from dataclasses import asdict, dataclass
+from itertools import chain
 from typing import Dict, List, Optional
 
 from django.conf import settings
@@ -28,6 +29,7 @@ from backend.components.utils import http_post
 from backend.utils.async_run import async_run
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 CC_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
@@ -324,7 +326,7 @@ def list_hosts_by_pagination(
     return cmdb_base_request(FUNC_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account)
 
 
-def search_biz_inst_topo(username: str, bk_biz_id: str) -> Dict:
+def search_biz_inst_topo(username: str, bk_biz_id: str) -> List:
     """
     查询业务拓扑
 
@@ -332,7 +334,10 @@ def search_biz_inst_topo(username: str, bk_biz_id: str) -> Dict:
     :param bk_biz_id: 业务 ID
     :return: 业务，集群，模块拓扑信息
     """
-    return cmdb_base_request(FUNC_PATH_MAP['search_biz_inst_topo'], username, {'bk_biz_id': bk_biz_id})
+    resp = cmdb_base_request(FUNC_PATH_MAP['search_biz_inst_topo'], username, {'bk_biz_id': bk_biz_id})
+    if not resp.get('result'):
+        raise error_codes.APIError(resp.get('message'))
+    return resp.get('data') or []
 
 
 def fetch_host_count_by_topo(
@@ -353,7 +358,9 @@ def fetch_host_count_by_topo(
     return getitems(resp, 'data.count', 0)
 
 
-def list_all_hosts_by_topo(username: str, bk_biz_id: str, bk_set_ids: List = None, bk_module_ids: List = None) -> Dict:
+def list_all_hosts_by_topo(
+    username: str, bk_biz_id: str, bk_set_ids: List = None, bk_module_ids: List = None
+) -> List[Dict]:
     """
     并发查询 CMDB，获取符合条件的全量主机信息，目前仅支持按 业务，集群，模块ID 过滤
 
@@ -361,7 +368,7 @@ def list_all_hosts_by_topo(username: str, bk_biz_id: str, bk_set_ids: List = Non
     :param bk_biz_id: 业务 ID
     :param bk_set_ids: 集群 ID 列表
     :parma bk_module_ids: 模块 ID 列表
-    :return: 主机详情信息
+    :return: 主机列表
     """
     total = fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids, bk_module_ids)
     default_params = {
@@ -371,29 +378,20 @@ def list_all_hosts_by_topo(username: str, bk_biz_id: str, bk_set_ids: List = Non
         'fields': DEFAULT_HOST_FIELDS,
     }
     tasks = []
-    resp_data = {'data': [], 'message': '', 'code': ErrorCode.NoError, 'result': True}
     for start in range(DEFAULT_START_AT, total, CMDB_LIST_HOSTS_MAX_LIMIT):
         params = deepcopy(default_params)
         params['page'] = {'start': start, 'limit': CMDB_LIST_HOSTS_MAX_LIMIT}
         # 组装并行任务配置信息
         tasks.append(functools.partial(cmdb_base_request, FUNC_PATH_MAP['list_biz_hosts'], username, params))
 
-    try:
-        results = async_run(tasks)
-    except Exception as e:
-        resp_data.update({'code': ErrorCode.SysError, 'result': False, 'message': str(e)})
-        return resp_data
-
+    results = async_run(tasks)
     # 任何一次请求不成功，都是不成功
     for r in results:
         if r.ret['code'] != ErrorCode.NoError:
-            resp_data.update({'code': r.ret['code'], 'result': False, 'message': r.ret['message']})
-            return resp_data
+            raise error_codes.APIError(r.ret['message'])
 
     # 所有的请求结果合并，即为全量数据
-    for r in results:
-        resp_data['data'].extend(r.ret['data']['info'])
-    return resp_data
+    return list(chain(r.ret['data']['info'] for r in results))
 
 
 class BkCCConfig:
