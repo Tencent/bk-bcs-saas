@@ -12,9 +12,9 @@
 package auth
 
 import (
-	"bcs_cc/config"
-	"bcs_cc/logging"
-	"bcs_cc/utils"
+	"bcs-cc/config"
+	"bcs-cc/logging"
+	"bcs-cc/utils"
 	"encoding/json"
 	"errors"
 	"fmt"

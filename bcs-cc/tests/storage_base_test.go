@@ -12,7 +12,7 @@
 package tests
 
 import (
-	"bcs_cc/storage/models"
+	"bcs-cc/storage/models"
 	"reflect"
 	"testing"
 )

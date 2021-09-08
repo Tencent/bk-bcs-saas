@@ -1,11 +1,5 @@
 <template>
     <div class="biz-actions" v-clickoutside="hide">
-        <!-- <bk-button style="vertical-align: baseline;" v-if="isShowDashboard" @click="goDashboard">
-            <span>{{$t('资源视图')}}</span>
-        </bk-button> -->
-        <!-- <div v-else v-bk-tooltips.bottom="$t('灰度测试中，暂未开放')" style="display: inline-block;vertical-align: baseline;">
-            <bk-button style="vertical-align: baseline;" :disabled="true"><span>{{$t('资源视图')}}</span></bk-button>
-        </div> -->
         <a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button" v-bk-tooltips.top="$t('蓝鲸容器助手')" v-if="$INTERNAL">{{$t('联系我们')}}</a>
         <a :href="PROJECT_CONFIG.doc.help" target="_blank" class="bk-text-button">{{$t('帮助')}}</a>
         <slot></slot>
@@ -82,8 +76,7 @@
             return {
                 curStep: 'step1',
                 visibility: isShow,
-                steps: ['step1', 'step2'],
-                isShowDashboard: false
+                steps: ['step1', 'step2']
             }
         },
         computed: {
@@ -93,10 +86,6 @@
             projectCode () {
                 return this.$route.params.projectCode
             }
-        },
-        mounted () {
-            const arr = ['b37778ec757544868a01e1f01f07037f', '3f4e1f7616fa49b7891fb809b19ab23f', '5805f1b824134fa39318fb0cf59f694b']
-            this.isShowDashboard = arr.indexOf(this.projectId) > -1
         },
         methods: {
             show () {

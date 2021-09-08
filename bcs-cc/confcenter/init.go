@@ -15,9 +15,9 @@ import (
 	"fmt"
 	"os"
 
-	"bcs_cc/confcenter/metrics"
-	"bcs_cc/config"
-	"bcs_cc/storage"
+	"bcs-cc/confcenter/metrics"
+	"bcs-cc/config"
+	"bcs-cc/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"

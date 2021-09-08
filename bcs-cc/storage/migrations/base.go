@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"bcs_cc/storage"
+	"bcs-cc/storage"
 
 	"github.com/jinzhu/gorm"
 	gormigrate "gopkg.in/gormigrate.v1"

@@ -213,6 +213,9 @@
                 &.cc-list {
                     background: #fff;
                 }
+                &.kind {
+                    justify-content: flex-start;
+                }
             }
             &-tips {
                 color: #63656e;

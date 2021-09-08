@@ -14,9 +14,9 @@ package models
 import (
 	"encoding/json"
 
-	"bcs_cc/logging"
-	"bcs_cc/storage"
-	"bcs_cc/utils"
+	"bcs-cc/logging"
+	"bcs-cc/storage"
+	"bcs-cc/utils"
 
 	"github.com/jinzhu/gorm"
 )

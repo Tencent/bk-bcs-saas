@@ -15,11 +15,11 @@ import (
 	"errors"
 	"strings"
 
-	"bcs_cc/confcenter/tasks"
-	"bcs_cc/config"
-	"bcs_cc/logging"
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/confcenter/tasks"
+	"bcs-cc/config"
+	"bcs-cc/logging"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"

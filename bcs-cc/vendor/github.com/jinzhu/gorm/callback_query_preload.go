@@ -4,11 +4,26 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
 // preloadCallback used to preload associations
 func preloadCallback(scope *Scope) {
+	if _, skip := scope.InstanceGet("gorm:skip_query_callback"); skip {
+		return
+	}
+
+	if ap, ok := scope.Get("gorm:auto_preload"); ok {
+		// If gorm:auto_preload IS NOT a bool then auto preload.
+		// Else if it IS a bool, use the value
+		if apb, ok := ap.(bool); !ok {
+			autoPreload(scope)
+		} else if apb {
+			autoPreload(scope)
+		}
+	}
+
 	if scope.Search.preload == nil || scope.HasError() {
 		return
 	}
@@ -27,6 +42,10 @@ func preloadCallback(scope *Scope) {
 
 		for idx, preloadField := range preloadFields {
 			var currentPreloadConditions []interface{}
+
+			if currentScope == nil {
+				continue
+			}
 
 			// if not preloaded
 			if preloadKey := strings.Join(preloadFields[:idx+1], "."); !preloadedMap[preloadKey] {
@@ -67,9 +86,30 @@ func preloadCallback(scope *Scope) {
 			// preload next level
 			if idx < len(preloadFields)-1 {
 				currentScope = currentScope.getColumnAsScope(preloadField)
-				currentFields = currentScope.Fields()
+				if currentScope != nil {
+					currentFields = currentScope.Fields()
+				}
 			}
 		}
+	}
+}
+
+func autoPreload(scope *Scope) {
+	for _, field := range scope.Fields() {
+		if field.Relationship == nil {
+			continue
+		}
+
+		if val, ok := field.TagSettingsGet("PRELOAD"); ok {
+			if preload, err := strconv.ParseBool(val); err != nil {
+				scope.Err(errors.New("invalid preload option"))
+				return
+			} else if !preload {
+				continue
+			}
+		}
+
+		scope.Search.Preload(field.Name)
 	}
 }
 
@@ -104,8 +144,15 @@ func (scope *Scope) handleHasOnePreload(field *Field, conditions []interface{}) 
 	preloadDB, preloadConditions := scope.generatePreloadDBWithConditions(conditions)
 
 	// find relations
+	query := fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relation.ForeignDBNames), toQueryMarks(primaryKeys))
+	values := toQueryValues(primaryKeys)
+	if relation.PolymorphicType != "" {
+		query += fmt.Sprintf(" AND %v = ?", scope.Quote(relation.PolymorphicDBName))
+		values = append(values, relation.PolymorphicValue)
+	}
+
 	results := makeSlice(field.Struct.Type)
-	scope.Err(preloadDB.Where(fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relation.ForeignDBNames), toQueryMarks(primaryKeys)), toQueryValues(primaryKeys)...).Find(results, preloadConditions...).Error)
+	scope.Err(preloadDB.Where(query, values...).Find(results, preloadConditions...).Error)
 
 	// assign find results
 	var (
@@ -113,17 +160,23 @@ func (scope *Scope) handleHasOnePreload(field *Field, conditions []interface{}) 
 		indirectScopeValue = scope.IndirectValue()
 	)
 
-	for i := 0; i < resultsValue.Len(); i++ {
-		result := resultsValue.Index(i)
-		if indirectScopeValue.Kind() == reflect.Slice {
-			foreignValues := getValueFromFields(result, relation.ForeignFieldNames)
-			for j := 0; j < indirectScopeValue.Len(); j++ {
-				if indirectValue := indirect(indirectScopeValue.Index(j)); equalAsString(getValueFromFields(indirectValue, relation.AssociationForeignFieldNames), foreignValues) {
-					indirectValue.FieldByName(field.Name).Set(result)
-					break
-				}
+	if indirectScopeValue.Kind() == reflect.Slice {
+		foreignValuesToResults := make(map[string]reflect.Value)
+		for i := 0; i < resultsValue.Len(); i++ {
+			result := resultsValue.Index(i)
+			foreignValues := toString(getValueFromFields(result, relation.ForeignFieldNames))
+			foreignValuesToResults[foreignValues] = result
+		}
+		for j := 0; j < indirectScopeValue.Len(); j++ {
+			indirectValue := indirect(indirectScopeValue.Index(j))
+			valueString := toString(getValueFromFields(indirectValue, relation.AssociationForeignFieldNames))
+			if result, found := foreignValuesToResults[valueString]; found {
+				indirectValue.FieldByName(field.Name).Set(result)
 			}
-		} else {
+		}
+	} else {
+		for i := 0; i < resultsValue.Len(); i++ {
+			result := resultsValue.Index(i)
 			scope.Err(field.Set(result))
 		}
 	}
@@ -143,8 +196,15 @@ func (scope *Scope) handleHasManyPreload(field *Field, conditions []interface{})
 	preloadDB, preloadConditions := scope.generatePreloadDBWithConditions(conditions)
 
 	// find relations
+	query := fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relation.ForeignDBNames), toQueryMarks(primaryKeys))
+	values := toQueryValues(primaryKeys)
+	if relation.PolymorphicType != "" {
+		query += fmt.Sprintf(" AND %v = ?", scope.Quote(relation.PolymorphicDBName))
+		values = append(values, relation.PolymorphicValue)
+	}
+
 	results := makeSlice(field.Struct.Type)
-	scope.Err(preloadDB.Where(fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relation.ForeignDBNames), toQueryMarks(primaryKeys)), toQueryValues(primaryKeys)...).Find(results, preloadConditions...).Error)
+	scope.Err(preloadDB.Where(query, values...).Find(results, preloadConditions...).Error)
 
 	// assign find results
 	var (
@@ -153,16 +213,21 @@ func (scope *Scope) handleHasManyPreload(field *Field, conditions []interface{})
 	)
 
 	if indirectScopeValue.Kind() == reflect.Slice {
+		preloadMap := make(map[string][]reflect.Value)
 		for i := 0; i < resultsValue.Len(); i++ {
 			result := resultsValue.Index(i)
 			foreignValues := getValueFromFields(result, relation.ForeignFieldNames)
-			for j := 0; j < indirectScopeValue.Len(); j++ {
-				object := indirect(indirectScopeValue.Index(j))
-				if equalAsString(getValueFromFields(object, relation.AssociationForeignFieldNames), foreignValues) {
-					objectField := object.FieldByName(field.Name)
-					objectField.Set(reflect.Append(objectField, result))
-					break
-				}
+			preloadMap[toString(foreignValues)] = append(preloadMap[toString(foreignValues)], result)
+		}
+
+		for j := 0; j < indirectScopeValue.Len(); j++ {
+			object := indirect(indirectScopeValue.Index(j))
+			objectRealValue := getValueFromFields(object, relation.AssociationForeignFieldNames)
+			f := object.FieldByName(field.Name)
+			if results, ok := preloadMap[toString(objectRealValue)]; ok {
+				f.Set(reflect.Append(f, results...))
+			} else {
+				f.Set(reflect.MakeSlice(f.Type(), 0, 0))
 			}
 		}
 	} else {
@@ -193,13 +258,21 @@ func (scope *Scope) handleBelongsToPreload(field *Field, conditions []interface{
 		indirectScopeValue = scope.IndirectValue()
 	)
 
+	foreignFieldToObjects := make(map[string][]*reflect.Value)
+	if indirectScopeValue.Kind() == reflect.Slice {
+		for j := 0; j < indirectScopeValue.Len(); j++ {
+			object := indirect(indirectScopeValue.Index(j))
+			valueString := toString(getValueFromFields(object, relation.ForeignFieldNames))
+			foreignFieldToObjects[valueString] = append(foreignFieldToObjects[valueString], &object)
+		}
+	}
+
 	for i := 0; i < resultsValue.Len(); i++ {
 		result := resultsValue.Index(i)
 		if indirectScopeValue.Kind() == reflect.Slice {
-			value := getValueFromFields(result, relation.AssociationForeignFieldNames)
-			for j := 0; j < indirectScopeValue.Len(); j++ {
-				object := indirect(indirectScopeValue.Index(j))
-				if equalAsString(getValueFromFields(object, relation.ForeignFieldNames), value) {
+			valueString := toString(getValueFromFields(result, relation.AssociationForeignFieldNames))
+			if objects, found := foreignFieldToObjects[valueString]; found {
+				for _, object := range objects {
 					object.FieldByName(field.Name).Set(result)
 				}
 			}
@@ -236,7 +309,12 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 
 	// generate query with join table
 	newScope := scope.New(reflect.New(fieldType).Interface())
-	preloadDB = preloadDB.Table(newScope.TableName()).Select("*")
+	preloadDB = preloadDB.Table(newScope.TableName()).Model(newScope.Value)
+
+	if len(preloadDB.search.selects) == 0 {
+		preloadDB = preloadDB.Select("*")
+	}
+
 	preloadDB = joinTableHandler.JoinWith(joinTableHandler, preloadDB, scope.Value)
 
 	// preload inline conditions
@@ -266,6 +344,10 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 
 		scope.scan(rows, columns, append(fields, joinTableFields...))
 
+		scope.New(elem.Addr().Interface()).
+			InstanceSet("gorm:skip_query_callback", true).
+			callCallbacks(scope.db.parent.callbacks.queries)
+
 		var foreignKeys = make([]interface{}, len(sourceKeys))
 		// generate hashed forkey keys in join table
 		for idx, joinTableField := range joinTableFields {
@@ -282,10 +364,14 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 		}
 	}
 
+	if err := rows.Err(); err != nil {
+		scope.Err(err)
+	}
+
 	// assign find results
 	var (
 		indirectScopeValue = scope.IndirectValue()
-		fieldsSourceMap    = map[string]reflect.Value{}
+		fieldsSourceMap    = map[string][]reflect.Value{}
 		foreignFieldNames  = []string{}
 	)
 
@@ -298,13 +384,27 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 	if indirectScopeValue.Kind() == reflect.Slice {
 		for j := 0; j < indirectScopeValue.Len(); j++ {
 			object := indirect(indirectScopeValue.Index(j))
-			fieldsSourceMap[toString(getValueFromFields(object, foreignFieldNames))] = object.FieldByName(field.Name)
+			key := toString(getValueFromFields(object, foreignFieldNames))
+			fieldsSourceMap[key] = append(fieldsSourceMap[key], object.FieldByName(field.Name))
 		}
 	} else if indirectScopeValue.IsValid() {
-		fieldsSourceMap[toString(getValueFromFields(indirectScopeValue, foreignFieldNames))] = indirectScopeValue.FieldByName(field.Name)
+		key := toString(getValueFromFields(indirectScopeValue, foreignFieldNames))
+		fieldsSourceMap[key] = append(fieldsSourceMap[key], indirectScopeValue.FieldByName(field.Name))
 	}
 
-	for source, link := range linkHash {
-		fieldsSourceMap[source].Set(reflect.Append(fieldsSourceMap[source], link...))
+	for source, fields := range fieldsSourceMap {
+		for _, f := range fields {
+			//If not 0 this means Value is a pointer and we already added preloaded models to it
+			if f.Len() != 0 {
+				continue
+			}
+
+			v := reflect.MakeSlice(f.Type(), 0, 0)
+			if len(linkHash[source]) > 0 {
+				v = reflect.Append(f, linkHash[source]...)
+			}
+
+			f.Set(v)
+		}
 	}
 }

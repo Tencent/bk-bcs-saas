@@ -1,19 +1,17 @@
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/go-gormigrate/gormigrate/blob/master/LICENSE)
+# Gormigrate
+
 [![GoDoc](https://godoc.org/gopkg.in/gormigrate.v1?status.svg)](https://godoc.org/gopkg.in/gormigrate.v1)
 [![Go Report Card](https://goreportcard.com/badge/gopkg.in/gormigrate.v1)](https://goreportcard.com/report/gopkg.in/gormigrate.v1)
 [![Build Status](https://travis-ci.org/go-gormigrate/gormigrate.svg?branch=master)](https://travis-ci.org/go-gormigrate/gormigrate)
+[![Build status](https://ci.appveyor.com/api/projects/status/89e414sklbwefyyp?svg=true)](https://ci.appveyor.com/project/andreynering/gormigrate)
 
-# Gormigrate
-
-[![Join the chat at https://gitter.im/go-gormigrate/gormigrate](https://badges.gitter.im/go-gormigrate/gormigrate.svg)](https://gitter.im/go-gormigrate/gormigrate?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-Gormigrate is a migration helper for [Gorm][gorm].
-Gorm already have useful [migrate functions][gormmigrate], just misses
-proper schema versioning and rollback cababilities.
+Gormigrate is a minimalistic migration helper for [Gorm][gorm].
+Gorm already has useful [migrate functions][gormmigrate], just misses
+proper schema versioning and migration rollback support.
 
 ## Supported databases
 
-It supports the databases [Gorm supports][gormdatabases]:
+It supports any of the [databases Gorm supports][gormdatabases]:
 
 - PostgreSQL
 - MySQL
@@ -42,9 +40,6 @@ import (
 func main() {
 	db, err := gorm.Open("sqlite3", "mydb.sqlite3")
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err = db.DB().Ping(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -135,7 +130,7 @@ m.InitSchema(func(tx *gorm.DB) error {
 		&Person{},
 		&Pet{},
 		// all other tables of you app
-	)
+	).Error
 	if err != nil {
 		return err
 	}
@@ -154,17 +149,52 @@ This is the options struct, in case you don't want the defaults:
 
 ```go
 type Options struct {
-	// Migrations table name. Default to "migrations".
+	// TableName is the migration table.
 	TableName string
-	// The of the column that stores the id of migrations. Defaults to "id".
+	// IDColumnName is the name of column where the migration id will be stored.
 	IDColumnName string
+	// IDColumnSize is the length of the migration id column
+	IDColumnSize int
 	// UseTransaction makes Gormigrate execute migrations inside a single transaction.
 	// Keep in mind that not all databases support DDL commands inside transactions.
-	// Defaults to false.
 	UseTransaction bool
+	// ValidateUnknownMigrations will cause migrate to fail if there's unknown migration
+	// IDs in the database
+	ValidateUnknownMigrations bool
 }
 ```
 
-[gorm]: http://jinzhu.me/gorm/
-[gormmigrate]: http://jinzhu.me/gorm/database.html#migration
-[gormdatabases]: http://jinzhu.me/gorm/database.html#connecting-to-a-database
+## Contributing
+
+To run tests, first copy `.sample.env` as `sample.env` and edit the connection
+string of the database you want to run tests against. Then, run tests like
+below:
+
+```bash
+# running tests for PostgreSQL
+go test -tags postgresql
+
+# running test for MySQL
+go test -tags mysql
+
+# running tests for SQLite
+go test -tags sqlite
+
+# running tests for SQL Server
+go test -tags sqlserver
+
+# running test for multiple databases at once
+go test -tags 'sqlite postgresql mysql'
+```
+
+Or altenatively, you could use Docker to easily run tests on all databases
+at once. To do that, make sure Docker is installed and running in your machine
+and then run:
+
+```bash
+task docker
+```
+
+[gorm]: http://gorm.io/
+[gormmigrate]: http://doc.gorm.io/database.html#migration
+[gormdatabases]: http://doc.gorm.io/database.html#connecting-to-a-database

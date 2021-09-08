@@ -12,7 +12,7 @@
 package models
 
 import (
-	"bcs_cc/storage"
+	"bcs-cc/storage"
 
 	"github.com/tuvistavie/structomap"
 )

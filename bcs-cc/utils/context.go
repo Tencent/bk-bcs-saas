@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"bcs_cc/logging"
+	"bcs-cc/logging"
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
