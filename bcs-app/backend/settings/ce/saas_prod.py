@@ -13,13 +13,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import os
-from typing import List
 from urllib import parse
 
 import redis
 
 from .base import *  # noqa
 from .base import INSTALLED_APPS
+from .cors import get_cors_allowed_origins
 
 INSTALLED_APPS += [
     "backend.celery_app.CeleryConfig",
@@ -174,26 +174,6 @@ WEB_CONSOLE_MODE = "internal"
 K8S_VERSION = os.environ.get("BKAPP_K8S_VERSION")
 MESOS_VERSION = os.environ.get("BKAPP_MESOS_VERSION")
 
-
 # cors settings
-def get_cors_allowed_origins() -> List[str]:
-    """获取允许的origin列表(精确过滤)"""
-
-    origins = []
-    for url in [DEVOPS_HOST, BK_PAAS_HOST, DEVOPS_BCS_HOST, DEVOPS_BCS_API_URL]:
-        parsed = parse.urlparse(url)
-        origin = f'{parsed.scheme}://{parsed.netloc}'
-        origins.append(origin)
-
-        if not parsed.port:
-            continue
-
-        # 如果 origin 带端口，将不带端口的也加入 origins 中(主要是处理80和443)
-        origins.append(origin[: origin.rfind(str(parsed.port)) - 1])
-
-    # 去重返回
-    return list(set(origins))
-
-
-CORS_ALLOWED_ORIGINS = get_cors_allowed_origins()
+CORS_ALLOWED_ORIGINS = get_cors_allowed_origins([DEVOPS_HOST, BK_PAAS_HOST, DEVOPS_BCS_HOST, DEVOPS_BCS_API_URL])
 CORS_ALLOW_CREDENTIALS = True
