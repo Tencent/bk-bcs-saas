@@ -12,13 +12,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
 import time
 from unittest import mock
 
 import pytest
-from kubernetes.dynamic.exceptions import ResourceNotFoundError
-from kubernetes.dynamic.resource import ResourceField
 
 from backend.resources.node.client import Node, NodeObj
 from backend.tests.testing_utils.base import generate_random_string
@@ -87,8 +84,8 @@ class TestNode:
             },
             name=fake_node_name,
         )
-        # 等待5s，是为了保证集群内可以查询到节点
-        time.sleep(5)
+        # 等待1s，是为了保证集群内可以查询到正确的节点
+        time.sleep(1)
         yield
         client.delete_wait_finished(fake_node_name)
 
