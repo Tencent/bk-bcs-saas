@@ -189,8 +189,7 @@ def get_cors_allowed_origins() -> List[str]:
             continue
 
         # 如果 origin 带端口，将不带端口的也加入 origins 中(主要是处理80和443)
-        origin_no_port = origin[: origin.rfind(str(parsed.port)) - 1]
-        origins.append(origin_no_port)
+        origins.append(origin[: origin.rfind(str(parsed.port)) - 1])
 
     # 去重返回
     return list(set(origins))
