@@ -15,9 +15,6 @@ specific language governing permissions and limitations under the License.
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
-# k8s 资源名称格式
-KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
-
 # cronjob 不在 preferred resource 中，需要指定 api_version
 DEFAULT_CRON_JOB_API_VERSION = 'batch/v1beta1'
 

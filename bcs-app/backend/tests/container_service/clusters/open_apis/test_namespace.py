@@ -37,10 +37,6 @@ class TestNamespace:
         ):
             yield
 
-    @patch(
-        "backend.bcs_web.permissions.PaaSCCClient",
-        new=paas_cc.StubPaaSCCClient,
-    )
     def test_create_k8s_namespace(self, api_client):
         """创建k8s命名空间
         NOTE: 针对k8s会返回namespace_id字段
