@@ -1143,7 +1143,7 @@ export default {
 
         /**
          * POD CPU使用率 容器视图
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/cpu_usage/?pod_name={pod_name}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers/cpu_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1166,7 +1166,7 @@ export default {
 
         /**
          * POD 内存使用量 容器视图
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/memory_usage/?pod_name={pod_name}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers/memory_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1189,7 +1189,7 @@ export default {
 
         /**
          * 容器磁盘写 容器视图
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/disk_write/?pod_name={pod_name}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers/disk_write/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1212,7 +1212,7 @@ export default {
 
         /**
          * 容器磁盘读 容器视图
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/disk_read/?pod_name={pod_name}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers/disk_read/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1235,7 +1235,7 @@ export default {
 
         /**
          * 容器CPU使用率限制
-         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/containers/cpu_limit/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/-/containers/cpu_limit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1257,7 +1257,7 @@ export default {
 
         /**
          * 容器内存使用量
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/memory_usage/?res_id_list={container_id_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/-/containers/memory_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1279,7 +1279,7 @@ export default {
 
         /**
          * 容器内存限制
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/memory_limit/?res_id_list={container_id_list}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/0/containers/memory_limit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数

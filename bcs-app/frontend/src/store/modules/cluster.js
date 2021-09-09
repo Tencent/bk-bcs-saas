@@ -1094,7 +1094,7 @@ export default {
 
         /**
          * node diskio 使用率
-         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/diskio_usage/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/diskio_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1131,7 +1131,7 @@ export default {
 
         /**
          * node net 入流量
-         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_receive/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_receive/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1168,7 +1168,7 @@ export default {
 
         /**
          * node net 出流量
-         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_transmit/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_transmit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1205,7 +1205,7 @@ export default {
 
         /**
          * 集群 节点详情 上方数据，prometheus 获取
-         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/info/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/info/
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
