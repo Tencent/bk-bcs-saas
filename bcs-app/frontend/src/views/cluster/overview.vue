@@ -308,7 +308,7 @@
                     this.cpuTotal = parseFloat(cpu.total).toFixed(2)
                     this.cpuUsagePercent = this.conversionPercentUsed(cpu.used, cpu.total)
 
-                    const mem = data.mem_usage || {}
+                    const mem = data.memory_usage || {}
                     this.memUsage = formatBytes(mem.used_bytes)
                     this.memTotal = formatBytes(mem.total_bytes)
                     this.memUsagePercent = this.conversionPercentUsed(mem.used_bytes, mem.total_bytes)
