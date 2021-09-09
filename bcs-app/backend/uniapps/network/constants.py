@@ -15,17 +15,10 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-LB_DEFAULT_STATUS = "notCreated"
-LB_STATUS_DICT = {
-    LB_DEFAULT_STATUS: _("未创建"),
-    "created": _("已创建"),
-    "deleted": _("已停止"),
-    "before_deleting": _("停止中"),
-}
-
 # K8S lb default name
 K8S_LB_CHART_NAME = "blueking-nginx-ingress"
-
+CONTROLLER_IMAGE_PATH = "public/bcs/k8s/nginx-ingress-controller"
+BACKEND_IMAGE_PATH = "public/bcs/k8s/defaultbackend"
 
 # k8s lb label
 K8S_LB_LABEL = {"nodetype": "lb"}
@@ -137,11 +130,14 @@ configMap:
   upstreamKeepaliveConnections: 64
 """
 
-# mesos lb namespace name
-MESOS_LB_NAMESPACE = 'mesos-lb'
-
 # K8S lb部署到的命名空间
 K8S_LB_NAMESPACE = settings.BCS_SYSTEM_NAMESPACE
 
 # release version prefix
 RELEASE_VERSION_PREFIX = "(current-unchanged)"
+
+
+try:
+    from .constants_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

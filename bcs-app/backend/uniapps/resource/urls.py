@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
 
-from . import views, views_ingress
+from . import views
 
 K8S_CLUSTER_ID_REGEX = "BCS-K8S-[0-9]{5,7}"
 
@@ -57,17 +57,17 @@ urlpatterns = [
         views.Secrets.as_view({'post': 'batch_delete_secrets'}),
     ),
     # Ingress 列表
-    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/$', views_ingress.IngressResource.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/$', views.ingress.IngressResource.as_view({'get': 'get'})),
     # 删除单个Ingress
     url(
         r'^api/resource/(?P<project_id>\w{32})/ingresses/clusters/(?P<cluster_id>[\w\-]+)/'
         'namespaces/(?P<namespace>[\w\-]+)/endpoints/(?P<name>[\w.\-]+)/$',
-        views_ingress.IngressResource.as_view({'delete': 'delete_ingress'}),
+        views.ingress.IngressResource.as_view({'delete': 'delete_ingress'}),
     ),
     # 批量删除
     url(
         r'^api/resource/(?P<project_id>\w{32})/ingresses/batch/$',
-        views_ingress.IngressResource.as_view({'post': 'batch_delete_ingress'}),
+        views.ingress.IngressResource.as_view({'post': 'batch_delete_ingress'}),
     ),
     # search exist configmap
     url(
@@ -77,6 +77,6 @@ urlpatterns = [
     url(
         r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>%s)/'
         r'namespaces/(?P<namespace>[\w\-]+)/ingresses/(?P<name>[\w.\-]+)/$' % K8S_CLUSTER_ID_REGEX,
-        views_ingress.IngressResource.as_view({"put": "update_ingress"}),
+        views.ingress.IngressResource.as_view({"put": "update_ingress"}),
     ),
 ]

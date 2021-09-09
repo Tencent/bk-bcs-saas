@@ -39,44 +39,7 @@
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content">
-                    <div class="biz-cluster-overview-chart" v-if="curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                        <div class="chart-box top">
-                            <div class="info">
-                                <div class="left">
-                                    {{$t('CPU数量(核)')}}
-                                </div>
-                                <div class="right" v-if="!cpuChartLoading">
-                                    <div><span>{{(lastMesosCpuResourceUsedData / lastMesosCpuResourceTotalData * 100).toFixed(2)}}</span><sup>%</sup></div>
-                                    <div class="cpu"><span>{{lastMesosCpuResourceUsedData}} of {{lastMesosCpuResourceTotalData}}（{{ $t('剩余') }}{{(lastMesosCpuResourceTotalData - lastMesosCpuResourceUsedData).toFixed(2)}}）</span></div>
-                                </div>
-                            </div>
-                            <cluster-overview-chart-mesos
-                                :show-loading="cpuChartLoading"
-                                :chart-type="'cpu'"
-                                :used-data="mesosCpuResourceUsedData"
-                                :total-data="mesosCpuResourceTotalData">
-                            </cluster-overview-chart-mesos>
-                        </div>
-
-                        <div class="chart-box top">
-                            <div class="info">
-                                <div class="left">
-                                    {{$t('内存数量(GB)')}}
-                                </div>
-                                <div class="right" v-if="!memChartLoading">
-                                    <div><span>{{(lastMesosMemoryResourceUsedData / lastMesosMemoryResourceTotalData * 100).toFixed(2)}}</span><sup>%</sup></div>
-                                    <div class="cpu"><span>{{lastMesosMemoryResourceUsedData}} of {{lastMesosMemoryResourceTotalData}}（{{ $t('剩余') }}{{(lastMesosMemoryResourceTotalData - lastMesosMemoryResourceUsedData).toFixed(2)}}）</span></div>
-                                </div>
-                            </div>
-                            <cluster-overview-chart-mesos
-                                :show-loading="memChartLoading"
-                                :chart-type="'mem'"
-                                :used-data="mesosMemoryResourceUsedData"
-                                :total-data="mesosMemoryResourceTotalData">
-                            </cluster-overview-chart-mesos>
-                        </div>
-                    </div>
-                    <div class="biz-cluster-overview-chart" v-else>
+                    <div class="biz-cluster-overview-chart">
                         <div class="chart-box top">
                             <div class="info">
                                 <div class="left">
@@ -220,13 +183,11 @@
     import { catchErrorHandler, formatBytes } from '@open/common/util'
 
     import ClusterOverviewChart from './cluster-overview-chart'
-    import ClusterOverviewChartMesos from './cluster-overview-chart-mesos'
 
     export default {
         components: {
             Ring,
-            ClusterOverviewChart,
-            ClusterOverviewChartMesos
+            ClusterOverviewChart
         },
         data () {
             return {
@@ -264,15 +225,7 @@
                 memChartResultType: 'matrix',
                 diskChartData: [],
                 diskChartLoading: true,
-                diskChartResultType: 'matrix',
-                mesosCpuResourceUsedData: [],
-                lastMesosCpuResourceUsedData: '-',
-                mesosCpuResourceTotalData: [],
-                lastMesosCpuResourceTotalData: '-',
-                mesosMemoryResourceUsedData: [],
-                lastMesosMemoryResourceUsedData: '-',
-                mesosMemoryResourceTotalData: [],
-                lastMesosMemoryResourceTotalData: '-'
+                diskChartResultType: 'matrix'
             }
         },
         computed: {
@@ -434,94 +387,39 @@
             async prepareChartData () {
                 if (!this.curCluster.project_id || !this.curCluster.cluster_id) return
                 try {
-                    if (this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
-                        this.cpuChartLoading = true
-                        this.memChartLoading = true
-                        const promises = [
-                            this.$store.dispatch('cluster/mesosCpuResourceUsed', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            }),
-                            this.$store.dispatch('cluster/mesosCpuResourceTotal', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            }),
-                            this.$store.dispatch('cluster/mesosMemoryResourceUsed', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            }),
-                            this.$store.dispatch('cluster/mesosMemoryResourceTotal', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            })
-                        ]
+                    this.cpuChartLoading = true
+                    this.memChartLoading = true
+                    this.diskChartLoading = true
+                    const promises = [
+                        this.$store.dispatch('cluster/clusterCpuUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        }),
+                        this.$store.dispatch('cluster/clusterMemUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        }),
+                        this.$store.dispatch('cluster/clusterDiskUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        })
+                    ]
 
-                        // eslint-disable-next-line no-unused-vars
-                        const res = await Promise.all(promises)
-                        this.mesosCpuResourceUsedData.splice(0, this.mesosCpuResourceUsedData.length, ...(res[0].data.result || []))
-                        // this.mesosCpuResourceUsedData.splice(0, this.mesosCpuResourceUsedData.length, ...[])
-                        const cpuRemainValues = (this.mesosCpuResourceUsedData[0] || {}).values || ['', '']
-                        this.lastMesosCpuResourceUsedData = parseFloat(cpuRemainValues[cpuRemainValues.length - 1][1] || '').toFixed(2)
-                        this.lastMesosCpuResourceUsedData = isNaN(this.lastMesosCpuResourceUsedData) ? '' : this.lastMesosCpuResourceUsedData
+                    const res = await Promise.all(promises)
+                    // Promise.all 返回的顺序与 promises 数组的顺序是一致的
+                    // 如果为空，那么在 res.data.result 这里就是空数组
+                    // 如果不是空数组，那么 res.data.result 里的任何都是有数据的，所以不判断里面的了
+                    this.cpuChartData.splice(0, this.cpuChartData.length, ...(res[0].data.result || []))
+                    this.cpuChartResultType = res[0].data.resultType
+                    this.cpuChartLoading = false
 
-                        this.mesosCpuResourceTotalData.splice(0, this.mesosCpuResourceTotalData.length, ...(res[1].data.result || []))
-                        // this.mesosCpuResourceTotalData.splice(0, this.mesosCpuResourceTotalData.length, ...[])
-                        const cpuTotalValues = (this.mesosCpuResourceTotalData[0] || {}).values || ['', '']
-                        this.lastMesosCpuResourceTotalData = parseFloat(cpuTotalValues[cpuTotalValues.length - 1][1] || '').toFixed(2)
-                        this.lastMesosCpuResourceTotalData = isNaN(this.lastMesosCpuResourceTotalData) ? '' : this.lastMesosCpuResourceTotalData
+                    this.memChartData.splice(0, this.memChartData.length, ...(res[1].data.result || []))
+                    this.memChartResultType = res[1].data.resultType
+                    this.memChartLoading = false
 
-                        this.cpuChartLoading = false
-
-                        this.mesosMemoryResourceUsedData.splice(0, this.mesosMemoryResourceUsedData.length, ...(res[2].data.result || []))
-                        // this.mesosMemoryResourceUsedData.splice(0, this.mesosMemoryResourceUsedData.length, ...[])
-                        const memoryRemainValues = (this.mesosMemoryResourceUsedData[0] || {}).values || ['', '']
-                        this.lastMesosMemoryResourceUsedData = parseFloat(memoryRemainValues[memoryRemainValues.length - 1][1] || '').toFixed(2)
-                        this.lastMesosMemoryResourceUsedData = isNaN(this.lastMesosMemoryResourceUsedData)
-                            ? '' : parseFloat(this.lastMesosMemoryResourceUsedData / 1024).toFixed(2)
-
-                        this.mesosMemoryResourceTotalData.splice(0, this.mesosMemoryResourceTotalData.length, ...(res[3].data.result || []))
-                        // this.mesosMemoryResourceTotalData.splice(0, this.mesosMemoryResourceTotalData.length, ...[])
-                        const memoryTotalValues = (this.mesosMemoryResourceTotalData[0] || {}).values || ['', '']
-                        this.lastMesosMemoryResourceTotalData = parseFloat(memoryTotalValues[memoryTotalValues.length - 1][1] || '').toFixed(2)
-                        this.lastMesosMemoryResourceTotalData = isNaN(this.lastMesosMemoryResourceTotalData)
-                            ? '' : parseFloat(this.lastMesosMemoryResourceTotalData / 1024).toFixed(2)
-
-                        this.memChartLoading = false
-                    } else {
-                        this.cpuChartLoading = true
-                        this.memChartLoading = true
-                        this.diskChartLoading = true
-                        const promises = [
-                            this.$store.dispatch('cluster/clusterCpuUsage', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            }),
-                            this.$store.dispatch('cluster/clusterMemUsage', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            }),
-                            this.$store.dispatch('cluster/clusterDiskUsage', {
-                                projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                                clusterId: this.curCluster.cluster_id
-                            })
-                        ]
-
-                        const res = await Promise.all(promises)
-                        // Promise.all 返回的顺序与 promises 数组的顺序是一致的
-                        // 如果为空，那么在 res.data.result 这里就是空数组
-                        // 如果不是空数组，那么 res.data.result 里的任何都是有数据的，所以不判断里面的了
-                        this.cpuChartData.splice(0, this.cpuChartData.length, ...(res[0].data.result || []))
-                        this.cpuChartResultType = res[0].data.resultType
-                        this.cpuChartLoading = false
-
-                        this.memChartData.splice(0, this.memChartData.length, ...(res[1].data.result || []))
-                        this.memChartResultType = res[1].data.resultType
-                        this.memChartLoading = false
-
-                        this.diskChartData.splice(0, this.diskChartData.length, ...(res[2].data.result || []))
-                        this.diskChartResultType = res[2].data.resultType
-                        this.diskChartLoading = false
-                    }
+                    this.diskChartData.splice(0, this.diskChartData.length, ...(res[2].data.result || []))
+                    this.diskChartResultType = res[2].data.resultType
+                    this.diskChartLoading = false
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }

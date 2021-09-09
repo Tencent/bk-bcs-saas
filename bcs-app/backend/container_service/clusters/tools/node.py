@@ -12,8 +12,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
-import logging
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -26,9 +24,6 @@ from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.models import NodeStatus
 from backend.resources.constants import NodeConditionStatus
 from backend.resources.node.client import Node
-from backend.utils.basic import getitems
-
-from .resp import filter_label_keys
 
 
 def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:

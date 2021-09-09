@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="right">{{extraClusterId}}</div>
                             </div>
-                            <div class="row" v-if="curClusterInPage.type !== 'mesos'">
+                            <div class="row">
                                 <div class="left">
                                     <p>{{$t('集群版本')}}</p>
                                 </div>
@@ -635,16 +635,14 @@
                     this.coes = data.type === 'k8s' ? 'BCS-K8S' : data.type.toUpperCase()
 
                     this.fetchClusterOverview()
-                    if (this.curClusterInPage.type !== 'mesos') {
-                        this.extraClusterId = data.extra_cluster_id || '--'
-                        this.version = data.version || '--'
-                        this.maxPodNum = data.max_pod_num || '--'
-                        this.clusterCidr = data.cluster_cidr || '--'
-                        this.maxServiceNum = data.max_service_num || '--'
-                        this.maxNodePodNum = data.max_node_pod_num || '--'
-                        this.vpcId = data.vpc_id || '--'
-                        this.kubeProxy = data.kube_proxy || '--'
-                    }
+                    this.extraClusterId = data.extra_cluster_id || '--'
+                    this.version = data.version || '--'
+                    this.maxPodNum = data.max_pod_num || '--'
+                    this.clusterCidr = data.cluster_cidr || '--'
+                    this.maxServiceNum = data.max_service_num || '--'
+                    this.maxNodePodNum = data.max_node_pod_num || '--'
+                    this.vpcId = data.vpc_id || '--'
+                    this.kubeProxy = data.kube_proxy || '--'
 
                     this.fetchVariableInfo()
                 } catch (e) {

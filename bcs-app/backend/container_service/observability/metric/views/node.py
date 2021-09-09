@@ -24,13 +24,14 @@ from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.observability.metric import constants
 from backend.container_service.observability.metric.serializers import BaseMetricSLZ, FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
+from backend.utils.url_slug import IPV4_REGEX
 
 
 class NodeMetricViewSet(SystemViewSet):
 
     lookup_field = 'node_ip'
     # 指定匹配 IPV4 地址
-    lookup_value_regex = constants.IPV4_REGEX_EXP
+    lookup_value_regex = IPV4_REGEX
 
     @action(methods=['POST'], url_path='overview', detail=True)
     def overview(self, request, project_id, cluster_id, node_ip):

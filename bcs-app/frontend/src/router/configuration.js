@@ -17,30 +17,6 @@ const Templateset = () => import(/* webpackChunkName: 'templateset' */'@open/vie
 // 模板实例化
 const Instantiation = () => import(/* webpackChunkName: 'templateset' */'@open/views/configuration/instantiation')
 
-// 创建 mesos 资源
-const MesosConfigurationCreate = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesosCreate')
-
-// 添加模板集 - application
-const MesosCreateApplication = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/application')
-
-// 添加模板集 - deployment
-const MesosCreateDeployment = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/deployment')
-
-// 添加模板集 - service
-const MesosCreateService = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/service')
-
-// 添加模板集 - secret
-const MesosCreateSecret = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/secret')
-
-// 添加模板集 - configmap
-const MesosCreateConfigmap = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/configmap')
-
-// 添加模板集 - ingress
-const MesosCreateIngress = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/mesos-create/ingress')
-
-// 添加模板集 - HPA
-const MesosCreateHPA = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/mesos-create/hpa')
-
 // 创建 k8s 资源
 const K8sConfigurationCreate = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/k8sCreate')
 
@@ -95,49 +71,6 @@ const childRoutes = [
                 path: 'templateset/:templateId/instantiation',
                 name: 'instantiation',
                 component: Instantiation
-            },
-            {
-                path: 'mesos',
-                name: 'mesosConfigurationCreate',
-                component: MesosConfigurationCreate,
-                children: [
-                    {
-                        path: 'templateset/application/:templateId',
-                        name: 'mesosTemplatesetApplication',
-                        component: MesosCreateApplication,
-                        alias: 'templateset/create'
-                    },
-                    {
-                        path: 'templateset/deployment/:templateId',
-                        name: 'mesosTemplatesetDeployment',
-                        component: MesosCreateDeployment
-                    },
-                    {
-                        path: 'templateset/service/:templateId',
-                        name: 'mesosTemplatesetService',
-                        component: MesosCreateService
-                    },
-                    {
-                        path: 'templateset/configmap/:templateId',
-                        name: 'mesosTemplatesetConfigmap',
-                        component: MesosCreateConfigmap
-                    },
-                    {
-                        path: 'templateset/secret/:templateId',
-                        name: 'mesosTemplatesetSecret',
-                        component: MesosCreateSecret
-                    },
-                    {
-                        path: 'templateset/ingress/:templateId',
-                        name: 'mesosTemplatesetIngress',
-                        component: MesosCreateIngress
-                    },
-                    {
-                        path: 'templateset/hpa/:templateId',
-                        name: 'mesosTemplatesetHPA',
-                        component: MesosCreateHPA
-                    }
-                ]
             },
             {
                 path: 'k8s',

@@ -304,8 +304,6 @@
             </template>
         </div>
 
-        <cluster-guide ref="clusterGuide" @status-change="toggleGuide"></cluster-guide>
-
         <bk-sideslider
             :is-show.sync="logSideDialogConf.isShow"
             :title="logSideDialogConf.title"
@@ -548,7 +546,6 @@
     import { catchErrorHandler } from '@open/common/util'
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
-    import ClusterGuide from './guide'
 
     import StatusProgress from './status-progress'
     import StatusMarkCorner from './status-mark-corner'
@@ -557,7 +554,6 @@
 
     export default {
         components: {
-            'cluster-guide': ClusterGuide,
             tipDialog,
             StatusProgress: statusHoc(StatusProgress),
             StatusMarkCorner: statusHoc(StatusMarkCorner),
@@ -659,9 +655,6 @@
             },
             isK8SProject () {
                 return this.curProject.kind === PROJECT_K8S
-            },
-            isMESOSProject () {
-                return this.curProject.kind === PROJECT_MESOS
             }
         },
         created () {
@@ -926,11 +919,6 @@
                         item.availableip = 0
                         item.reservedip = 0
                         item.allip = 0
-                        if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
-                            if (!notLoading) {
-                                this.getClusterIp(item, index)
-                            }
-                        }
                     })
 
                     if (this.clusterList.length) {
@@ -952,31 +940,14 @@
                     for (let index = 0; index < list.length; index++) {
                         const item = list[index]
                         if (!notLoading) {
-                            const args = {}
-                            if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
-                                args.dimensions = 'mesos_memory_usage,mesos_cpu_usage'
-                            }
-
                             const d = await this.$store.dispatch('cluster/clusterOverview', {
                                 projectId: this.projectId,
-                                clusterId: item.cluster_id,
-                                data: args
+                                clusterId: item.cluster_id
                             })
                             item.cpu_usage = d.data.cpu_usage
                             item.mem_usage = d.data.mem_usage
                             item.disk_usage = d.data.disk_usage
-
-                            // 如果是 mesos，返回是 mesos_memory_usage 和 mesos_cpu_usage
-                            if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
-                                item.cpu_usage = d.data.mesos_cpu_usage
-                                item.mem_usage = d.data.mesos_memory_usage
-                            }
                         }
-                        // if (item.status === 'initializing' || item.status === 'so_initializing') {
-                        //     this.setStorage(item)
-                        // } else {
-                        //     this.checkStorage(item, index, list, item.status)
-                        // }
                     }
                     this.$store.commit('cluster/forceUpdateClusterList', list)
 
@@ -1000,30 +971,6 @@
                     catchErrorHandler(e, this)
                 } finally {
                     this.showLoading = false
-                }
-            },
-
-            /**
-             * 获取 mesos 集群 ip 信息
-             *
-             * @param {Object} cluster 集群对象
-             * @param {number} index 集群对象索引
-             */
-            async getClusterIp (cluster, index) {
-                try {
-                    const res = await this.$store.dispatch('cluster/getIpPools', {
-                        projectId: this.projectId,
-                        clusterId: cluster.cluster_id
-                    })
-                    const data = res.data || {}
-
-                    cluster.activeip = data.activeip || 0
-                    cluster.availableip = data.availableip || 0
-                    cluster.reservedip = data.reservedip || 0
-                    cluster.allip = cluster.activeip + cluster.availableip
-                    this.$set(this.clusterList, index, cluster)
-                } catch (e) {
-                    catchErrorHandler(e, this)
                 }
             },
 
