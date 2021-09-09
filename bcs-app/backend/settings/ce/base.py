@@ -230,8 +230,6 @@ APIGW_HOST = BK_PAAS_INNER_HOST
 # 组件API地址
 COMPONENT_HOST = BK_PAAS_INNER_HOST
 
-# comment
-
 DEPOT_API = f"{APIGW_HOST}/api/apigw/harbor_api/"
 
 # env map bcs https server host
