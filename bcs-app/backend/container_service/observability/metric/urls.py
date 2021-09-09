@@ -32,4 +32,6 @@ router.register(r'', views.ClusterMetricViewSet, basename='cluster')
 
 urlpatterns = [
     url(r'', include(router.urls)),
+    # TODO 后续接入统一监控，不再需要该接口
+    url(r"^prometheus/update/$", views.prometheus.PrometheusUpdateViewSet.as_view({"get": "get", "put": "update"})),
 ]

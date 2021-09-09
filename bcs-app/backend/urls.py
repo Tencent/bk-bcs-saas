@@ -40,10 +40,6 @@ urlpatterns = [
     url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
     url(r"^", include("backend.uniapps.resource.urls")),
-    url(
-        r"^api/projects/(?P<project_id>\w{32})/",
-        include("backend.container_service.observability.metric_mesos.urls_new"),
-    ),
     # 配置管理(旧模板集)
     url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
@@ -80,12 +76,6 @@ urlpatterns = [
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.container_service.observability.metric.urls"),
     ),
-    # TODO 旧 metric 相关 URL，仅 Mesos 使用，计划后续废弃
-    url(r"^", include("backend.container_service.observability.metric_mesos.urls")),
-    url(
-        r"^api/projects/(?P<project_id>\w{32})/",
-        include("backend.container_service.observability.metric_mesos.urls_new"),
-    ),
     # 标准日志输出
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
@@ -107,7 +97,6 @@ except ImportError:
 urlpatterns_vue = [
     # fallback to vue view
     url(r"^login_success.html", never_cache(LoginSuccessView.as_view())),
-    url(r"^(?P<project_code>[\w\-]+)/mesos", never_cache(VueTemplateView.as_view(container_orchestration="mesos"))),
     url(r"^(?P<project_code>[\w\-]+)", never_cache(VueTemplateView.as_view(container_orchestration="k8s"))),
 ]
 urlpatterns += urlpatterns_vue

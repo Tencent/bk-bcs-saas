@@ -23,15 +23,18 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts.bcs_perm import Cluster
-from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
 from backend.bcs_web.audit_log import client
 from backend.components import bcs, ops, paas_cc
-from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters import serializers as cluster_serializers
 from backend.container_service.clusters.base import utils as cluster_utils
 from backend.container_service.clusters.base.constants import ClusterCOES
-from backend.container_service.clusters.constants import ClusterNetworkType, ClusterStatusName
+from backend.container_service.clusters.constants import (
+    CLUSTER_UPGRADE_VERSION,
+    UPGRADE_TYPE,
+    ClusterNetworkType,
+    ClusterStatusName,
+)
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
 from backend.container_service.clusters.module_apis import get_cluster_mod
 from backend.container_service.clusters.utils import (
@@ -46,7 +49,6 @@ from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.func_controller import get_func_controller
-from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
 
 # 导入cluster模块
@@ -64,7 +66,7 @@ class ClusterBase:
         """get cluster info"""
         cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if cluster_resp.get("code") != ErrorCode.NoError:
-            raise error_codes.APIErrorf(cluster_resp.get("message"))
+            raise error_codes.APIError(cluster_resp.get("message"))
         cluster_data = cluster_resp.get("data") or {}
         return cluster_data
 
@@ -112,20 +114,6 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             return {}
         return cluster_resp.get("data") or {}
 
-    def _register_function_controller(self, func_code, cluster_list):
-        enabled, wlist = get_func_controller(func_code)
-        for cluster_info in cluster_list:
-            cluster_info.setdefault("func_wlist", set())
-
-            # 白名单控制
-            if enabled or cluster_info["cluster_id"] in wlist:
-                cluster_info["func_wlist"].add(func_code)
-
-    def register_function_controller(self, cluster_list):
-        """注册功能白名单"""
-        for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
-            self._register_function_controller(func_code, cluster_list)
-
     def get_cluster_create_perm(self, request, project_id):
         test_cluster_perm = Cluster(request, project_id, cluster_constants.NO_RES, resource_type="cluster_test")
         can_create_test = test_cluster_perm.can_create(raise_exception=False)
@@ -145,8 +133,6 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             allow_delete = False if cluster_node_map.get(info["cluster_id"]) else True
             info["allow"] = info["allow_delete"] = allow_delete
         perm_can_use = True if request.GET.get("perm_can_use") == "1" else False
-
-        self.register_function_controller(cluster_data)
 
         cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
         # add can create cluster perm for prod/test
@@ -209,23 +195,10 @@ class ClusterFilterViewSet(viewsets.ViewSet):
 class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def register_function_controller(self, cluster_info):
-        """注册功能白名单"""
-        for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
-            enabled, wlist = get_func_controller(func_code)
-            cluster_info.setdefault("func_wlist", set())
-
-            # 白名单控制
-            if enabled or cluster_info["cluster_id"] in wlist:
-                cluster_info["func_wlist"].add(func_code)
-
     def retrieve(self, request, project_id, cluster_id):
         cluster_data = self.get_cluster(request, project_id, cluster_id)
 
         cluster_data["environment"] = cluster_env_transfer(cluster_data["environment"])
-
-        # 添加功能白名单
-        self.register_function_controller(cluster_data)
 
         return response.Response({"code": ErrorCode.NoError, "data": cluster_data})
 
@@ -387,11 +360,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         cluster["master_count"] = self.get_master_count(request, project_id, cluster_id)
         # get node count
         cluster["node_count"] = self.get_node_count(request, project_id, cluster_id)
-        if request.project.kind == app_constants.MESOS_KIND:
-            # mesos单位是MB，需要转换为GB
-            total_mem = normalize_metric(cluster["total_mem"] / 1024)
-        else:
-            total_mem = normalize_metric(cluster["total_mem"])
+        total_mem = normalize_metric(cluster["total_mem"])
         cluster["total_mem"] = total_mem
 
         # 获取集群调度引擎
@@ -463,16 +432,6 @@ class ClusterVersionViewSet(viewsets.ViewSet):
         version_list = cluster_utils.get_cluster_versions(request.user.token.access_token, kind=coes)
 
         return response.Response(version_list)
-
-
-class MesosIPPoolViewSet(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def get(self, request, project_id, cluster_id):
-        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-        data = client.get_cluster_ippool()
-
-        return response.Response(data.get("data") or {})
 
 
 class UpgradeClusterViewSet(viewsets.ViewSet):

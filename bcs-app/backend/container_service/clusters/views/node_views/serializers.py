@@ -29,10 +29,6 @@ class FilterNodeLabelsSLZ(NodeLabelsSLZ):
     pass
 
 
-class SetNodeLabelsSLZ(NodeLabelsSLZ):
-    pass
-
-
 class QueryNodeListSLZ(serializers.Serializer):
     node_name_list = serializers.ListField(child=serializers.CharField())
 
