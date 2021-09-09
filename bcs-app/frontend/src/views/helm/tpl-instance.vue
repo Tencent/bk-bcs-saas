@@ -845,7 +845,7 @@
 
                 this.isQuestionsLoading = true
                 try {
-                    const fnPath = this.$INTERNAL ? 'getChartVersionDetail' : 'helm/getChartByVersion'
+                    const fnPath = this.$INTERNAL ? 'helm/getChartVersionDetail' : 'helm/getChartByVersion'
                     const res = await this.$store.dispatch(fnPath, {
                         projectId,
                         chartId: this.$INTERNAL ? this.curTpl.name : this.curTpl.id,
