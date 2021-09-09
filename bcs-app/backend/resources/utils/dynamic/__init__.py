@@ -13,12 +13,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
 
-# k8s 平台服务用的命名空间
-# TODO: bcs-system命名空间后续处理
-K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
+def patch_resource():
+    """patch Resource and Subresource because of extra_args grow recursively"""
+    from kubernetes.dynamic import discovery, resource  # noqa
 
-# 平台和系统使用的命名空间
-K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
+    from backend.resources.utils.dynamic.resource import Resource, Subresource
+
+    discovery.Resource = Resource
+    discovery.Subresource = Subresource
+
+    resource.Subresource = Subresource
+    resource.Resource = Resource
