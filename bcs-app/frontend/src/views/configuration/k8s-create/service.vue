@@ -148,11 +148,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort' && curService.config.spec.type !== 'LoadBalancer'">
+                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort'">
                                         <label class="bk-label" style="width: 140px;">ClusterIP：</label>
                                         <div class="bk-form-content" style="margin-left: 140px;">
                                             <bkbcs-input :placeholder="$t('请输入ClusterIP')" style="width: 310px;" v-model="curService.config.spec.clusterIP" />
-                                            <p class="biz-tip mt5">{{$t('不填或None')}}</p>
+                                            <!-- <p class="biz-tip mt5">{{$t('不填或None')}}</p> -->
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
@@ -555,6 +555,11 @@
                     this.curService.config.spec.ports.forEach(port => {
                         port.nodePort = ''
                     })
+                }
+                if (index === 'NodePort') {
+                    delete this.curService.config.spec.clusterIP
+                } else {
+                    this.$set(this.curService.config.spec, 'clusterIP', '')
                 }
             },
             async initResource (data) {
