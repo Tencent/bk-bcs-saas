@@ -14,10 +14,13 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from backend.apps import constants
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters import constants as cluster_constants
-from backend.container_service.clusters.constants import K8S_SKIP_NS_LIST
+from backend.container_service.clusters.constants import (
+    K8S_SKIP_NS_LIST,
+    DockerStatusDefaultOrder,
+    DockerStatusOrdering,
+)
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -86,7 +89,7 @@ class K8SDriver:
 
         containers = sorted(
             [i for i in containers],
-            key=lambda x: constants.DockerStatusOrdering.get(x['status'], constants.DockerStatusDefaultOrder),
+            key=lambda x: DockerStatusOrdering.get(x['status'], DockerStatusDefaultOrder),
         )
         return containers
 

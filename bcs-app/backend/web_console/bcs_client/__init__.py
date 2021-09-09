@@ -12,7 +12,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.web_console.bcs_client import k8s, mesos
+from backend.web_console.bcs_client import k8s
 
 
 class BCSClientFactory:
@@ -31,7 +31,6 @@ class BCSClientFactory:
 
 
 factory = BCSClientFactory()
-factory.register(mesos.ContainerDirectClient)
 factory.register(k8s.ContainerDirectClient)
 factory.register(k8s.KubectlInternalClient)
 factory.register(k8s.KubectlExternalClient)

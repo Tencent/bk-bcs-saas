@@ -20,14 +20,14 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps import constants
 from backend.components import data as data_api
 from backend.components import paas_cc
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters.models import ClusterInstallLog, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
-from backend.utils.exceptions import ResNotFoundError
+
+# metrics 默认时间 1小时
+METRICS_DEFAULT_TIMEDELTA = 3600
 
 
 class NodeLabelSLZ(serializers.ModelSerializer):
@@ -253,7 +253,7 @@ class MetricsSLZBase(serializers.Serializer):
             data['start_at'] = arrow.get(data['start_at']).timestamp * 1000
         else:
             # default one hour
-            data['start_at'] = now - constants.METRICS_DEFAULT_TIMEDELTA * 1000
+            data['start_at'] = now - METRICS_DEFAULT_TIMEDELTA * 1000
         # handle the end_at
         if 'end_at' in data:
             data['end_at'] = arrow.get(data['end_at']).timestamp * 1000

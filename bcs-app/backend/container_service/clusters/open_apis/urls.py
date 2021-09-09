@@ -19,7 +19,6 @@ from backend.utils.url_slug import KUBE_NAME_REGEX, NAMESPACE_REGEX
 from .cluster import ClusterViewSet
 from .deployment import DeploymentViewSet
 from .namespace import NamespaceViewSet
-from .node import NodeLabelsViewSet
 from .pod import PodViewSet
 
 urlpatterns = [
@@ -33,7 +32,6 @@ urlpatterns = [
         r"^(?P<cluster_id>[\w\-]+)/sync_namespaces/$",
         NamespaceViewSet.as_view({"put": "sync_namespaces"}),
     ),
-    url(r"^(?P<cluster_id>[\w\-]+)/nodes/-/labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"})),
     url(
         r"^(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>%s)/deployments/$" % NAMESPACE_REGEX,
         DeploymentViewSet.as_view({"get": "list_by_namespace"}),
