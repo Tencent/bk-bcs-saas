@@ -11,14 +11,18 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+存放一些 URL 相关小工具 & 常量
 """
 
-# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
+# 默认的 URL 占位符，用于 url 参数无需指定的情况，如 /pod/-/containers/
+URL_DEFAULT_PLACEHOLDER = '-'
 
-# k8s 平台服务用的命名空间
-# TODO: bcs-system命名空间后续处理
-K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
+# k8s 命名空间格式
+NAMESPACE_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
 
-# 平台和系统使用的命名空间
-K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
+# k8s 资源名称格式
+KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
+
+# IPV4 正则表达式
+IPV4_REGEX = r'(((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))\.){3}((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))'
