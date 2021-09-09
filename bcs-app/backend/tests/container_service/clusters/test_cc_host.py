@@ -152,6 +152,9 @@ class TestCCAPI:
     def patch_list_hosts_api_call(self):
         """ mock cmdb, paas_cc, gse 接口 """
         with mock.patch(
+            'backend.container_service.clusters.cc_host.views.cc.get_application_name',
+            new=lambda *args, **kwargs: 'test-app-name',
+        ), mock.patch(
             'backend.container_service.clusters.cc_host.views.cc.list_all_hosts_by_topo', new=fake_list_all_hosts
         ), mock.patch(
             'backend.container_service.clusters.cc_host.utils.paas_cc.get_project_cluster_resource',
@@ -172,7 +175,6 @@ class TestCCAPI:
         resp_data = response.json()['data']
         assert resp_data['count'] == 5
         assert len(resp_data['results']) == 4
-        assert resp_data['unavailable_ip_count'] == 3
         assert resp_data['results'][-1]['is_used']
         assert resp_data['results'][-1]['cluster_id'] == 'BCS-K8S-1001'
 
