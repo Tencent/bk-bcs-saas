@@ -1369,13 +1369,18 @@ export default {
                     innerIp: node.inner_ip
                 })
             } else {
-                this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
-                    innerIp: node.inner_ip
-                })
                 if (this.$INTERNAL) {
+                    this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                        innerIp: node.inner_ip
+                    })
                     this.stopDialogConf.content = this.$t(
                         '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
                     )
+                } else {
+                    this.stopDialogConf.title = ' '
+                    this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                        innerIp: node.inner_ip
+                    })
                 }
             }
 

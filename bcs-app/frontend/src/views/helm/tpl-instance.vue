@@ -840,17 +840,22 @@
                 const list = []
                 const projectId = this.projectId
                 const version = index
-                const chartId = this.curTpl.name
+                const versionId = this.curTplVersions.find(item => item.version === index).id
                 const isPublic = this.curTpl.repository.name === 'public-repo'
 
                 this.isQuestionsLoading = true
                 try {
-                    const res = await this.$store.dispatch('helm/getChartVersionDetail', { projectId, chartId, version, isPublic })
+                    const fnPath = this.$INTERNAL ? 'getChartVersionDetail' : 'helm/getChartByVersion'
+                    const res = await this.$store.dispatch(fnPath, {
+                        projectId,
+                        chartId: this.$INTERNAL ? this.curTpl.name : this.curTpl.id,
+                        version: this.$INTERNAL ? version : versionId,
+                        isPublic
+                    })
                     const tplData = res.data
                     const files = res.data.data.files
                     const tplName = tplData.name
                     const bcsTplName = tplData.name + '/bcs-values'
-                    console.log(`^${tplName}/[\w-]*values.(yaml|yml)$`)
                     const regex = new RegExp(`^${tplName}\\/[\\w-]*values.(yaml|yml)$`)
                     const bcsRegex = new RegExp(`^${bcsTplName}\\/[\\w-]*.(yaml|yml)$`)
 

@@ -14,20 +14,16 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+from collections import defaultdict
 from functools import partial
 
 from kubernetes import __version__
 from kubernetes.dynamic.discovery import CacheDecoder, CacheEncoder, LazyDiscoverer
+from kubernetes.dynamic.exceptions import NotFoundError
 
 from backend.utils.cache import rd_client
 
 logger = logging.getLogger(__name__)
-
-
-def log_error_cache(file_name: str, file_content: bytes):
-    """临时用于保存触发 maximum recursion depth 异常的 cache 文件"""
-    with open(f'/root/{file_name}', 'wb') as f:
-        f.write(file_content)
 
 
 class DiscovererCache:
@@ -51,6 +47,15 @@ class BcsLazyDiscoverer(LazyDiscoverer):
     - 用redis替代文件缓存
     """
 
+    def get_resources_for_api_version(self, prefix, group, version, preferred):
+        """ 忽略 NotFoundError，直接返回默认值，避免使用 缓存中存在但不存在于集群中的 group 请求 resources 导致报错 """
+        resources = defaultdict(list)
+        try:
+            resources = super().get_resources_for_api_version(prefix, group, version, preferred)
+        except NotFoundError:
+            logger.warning('Ignore get_resources_for_api_version failed, group: %s, version: %s', group, version)
+        return resources
+
     def _Discoverer__init_cache(self, refresh=False):
         discoverer_cache = self._Discoverer__cache_file
 
@@ -58,7 +63,6 @@ class BcsLazyDiscoverer(LazyDiscoverer):
             self._cache = {'library_version': __version__}
             refresh = True
         else:
-            cache_content = None
             try:
                 cache_content = discoverer_cache.get_content()
                 self._cache = json.loads(cache_content, cls=partial(CacheDecoder, self.client))
@@ -67,8 +71,6 @@ class BcsLazyDiscoverer(LazyDiscoverer):
                     self.invalidate_cache()
             except Exception as e:
                 logger.error("load cache error: %s", e)
-                # 临时用于记录 maximum recursion depth 异常的 cache 文件, 定位后删除
-                log_error_cache(discoverer_cache.cache_key, cache_content)
                 self.invalidate_cache()
         self._load_server_info()
         self.discover()

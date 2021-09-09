@@ -15,9 +15,6 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.clusters.open_apis.namespace import NamespaceViewSet
-from backend.resources.namespace import Namespace
 from backend.tests.resources.conftest import FakeBcsKubeConfigurationService
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks import bcs_perm, paas_cc
@@ -39,11 +36,6 @@ class TestNamespace:
             "backend.resources.namespace.utils.create_cc_namespace", new=lambda *args, **kwargs: fake_data
         ):
             yield
-
-    @pytest.fixture(autouse=True)
-    def patch_user_viewset(self):
-        # 需要通过指定接口获取不同项目类型，覆盖conftest中的patch_user_viewset
-        pass
 
     @patch(
         "backend.bcs_web.permissions.PaaSCCClient",
