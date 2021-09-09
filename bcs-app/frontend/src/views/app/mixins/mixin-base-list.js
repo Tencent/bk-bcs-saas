@@ -2872,39 +2872,18 @@ export default {
          * 重建
          */
         async reBuildConfirm () {
-            let params = {}
-            let url = 'app/reBuildInstance'
-            if (this.PROJECT_TYPE === 'MESOS') {
-                params = {
-                    projectId: this.projectId,
-                    instanceId: this.curInstance.id,
-                    name: this.curInstance.name,
-                    cluster_id: this.curInstance.cluster_id
+            const params = {
+                projectId: this.projectId,
+                data: {
+                    resource_list: [{
+                        resource_kind: this.curInstance.category,
+                        name: this.curInstance.name,
+                        namespace: this.curInstance.namespace,
+                        cluster_id: this.curInstance.cluster_id
+                    }]
                 }
-
-                if (!this.curInstance.from_platform && this.curInstance.id === 0) {
-                    params.namespace = this.curInstance.namespace
-                    params.category = this.curInstance.category
-                }
-
-                if (this.CATEGORY) {
-                    params.category = this.CATEGORY
-                }
-            } else {
-                const data = { resource_list: [] }
-                data.resource_list.push({
-                    resource_kind: this.curInstance.category,
-                    name: this.curInstance.name,
-                    namespace: this.curInstance.namespace,
-                    cluster_id: this.curInstance.cluster_id
-                })
-
-                params = {
-                    projectId: this.projectId,
-                    data
-                }
-                url = 'app/batchRebuild'
             }
+            const url = 'app/batchRebuild'
 
             this.isUpdating = true
             this.curInstance.state && this.curInstance.state.lock()

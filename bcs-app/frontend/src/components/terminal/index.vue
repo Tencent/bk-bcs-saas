@@ -1,7 +1,7 @@
 <template>
     <div
         :class="['bk-dropdown-menu biz-terminal active', { 'active': isActive }]"
-        v-if="curProject && curProject.kind !== PROJECT_MESOS && clusterList.length"
+        v-if="curProject && clusterList.length"
         @mouseover="handlerMouseover"
         @mouseout="handlerMouseout">
         <div class="bk-dropdown-trigger">
@@ -41,7 +41,6 @@
         data () {
             return {
                 PROJECT_K8S: window.PROJECT_K8S,
-                PROJECT_MESOS: window.PROJECT_MESOS,
                 PROJECT_TKE: window.PROJECT_TKE,
                 terminalWins: null,
                 isActive: false,
@@ -77,13 +76,6 @@
                 return this.$route.name
             }
         },
-        // watch: {
-        //     isFocus (newVal, oldVal) {
-        //         if (oldVal && !newVal) {
-        //             this.isShow = false
-        //         }
-        //     }
-        // },
         mounted () {
             if (!this.clusterList.length && this.routeName !== 'clusterMain') {
                 this.getClusters()
