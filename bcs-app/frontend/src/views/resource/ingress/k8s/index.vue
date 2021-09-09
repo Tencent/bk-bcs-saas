@@ -1246,7 +1246,6 @@
                 computer.certType = data.certType
             },
             rowSelectable (row, index) {
-                console.log(row)
                 return row.can_delete && row.permissions.use
             }
         }
