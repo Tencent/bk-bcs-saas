@@ -23,11 +23,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
 from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
@@ -40,7 +38,6 @@ from backend.templatesets.legacy_apps.instance.serializers import (
 from backend.templatesets.legacy_apps.instance.utils import (
     handle_all_config,
     validate_instance_entity,
-    validate_lb_info_by_version_id,
     validate_ns_by_tempalte_id,
     validate_version_id,
 )
@@ -190,16 +187,6 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
                     config = resource.config
                 search_list = check_var_by_config(config)
                 key_list.extend(search_list)
-                # mesos Deployment 需要再查询 Application 的配置文件
-                if cate in ["deployment"]:
-                    deployment_app = VersionedEntity.get_application_by_deployment_id(version_id, _id)
-                    deployment_app_config = deployment_app.config
-                    _search_list = check_var_by_config(deployment_app_config)
-                    key_list.extend(_search_list)
-
-            # mesos service 查询需要lb的列表
-            if project_kind == 2 and cate == "service":
-                lb_services = version_entity.get_lb_services_by_ids(cate_id_list)
 
         key_list = list(set(key_list))
         variable_dict = {}
@@ -324,7 +311,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         self.template_id = version_entity.template_id
         tem_instance_entity = version_entity.get_version_instance_resource_ids
 
-        project_kind = 2 if project_kind == "mesos" else 1
+        project_kind = 1
         # 默认为is_start为True
         req_data["is_start"] = True
         # 转换ns名称为ns ID
@@ -364,11 +351,6 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
 
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = self.instance_entity.get("service") or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, ns_id_list, slz_data.get("lb_info", {}), service_id_list
-        )
-        if not v_res:
-            return JsonResponse({"code": 400, "message": err_msg, "data": err_list})
 
         # 判断 template 下 前台传过来的 namespace 是否已经实例化过
         res, ns_name_list, namespace_dict = validate_ns_by_tempalte_id(
@@ -552,27 +534,6 @@ class InstanceStatus(BaseAPIViews):
         namespace = labels.get("io.tencent.bcs.namespace")
         return cluster_id, namespace, curr_inst.category, curr_inst.name
 
-    def get_mesos_application_deploy_status(
-        self, access_token, project_id, cluster_id, category, instance_name, namespace
-    ):
-        """获取mesos的状态"""
-        client = MesosClient(access_token, project_id, cluster_id, None)
-        if category == "application":
-            resp = client.get_mesos_app_instances(
-                app_name=instance_name,
-                field="data.metadata.name,data.metadata.namespace,data.status,data.message",  # noqa
-                namespace=namespace,
-            )
-        else:
-            resp = client.get_deployment(
-                name=instance_name,
-                field="data.application,data.application_ext,data.metadata",  # noqa
-                namespace=namespace,
-            )
-        if resp.get("code") != 0:
-            raise error_codes.CheckFailed.f(resp.get("message"), replace=True)
-        return resp.get("data")
-
     def get_k8s_category_status(self, access_token, project_id, cluster_id, category, instance_name, namespace):
         """获取k8s状态"""
         client = K8SClient(access_token, project_id, cluster_id, None)
@@ -594,45 +555,16 @@ class InstanceStatus(BaseAPIViews):
         params_slz.is_valid(raise_exception=True)
         params_slz = params_slz.data
         access_token = params_slz["access_token"]
-        project_kind, app_code = check_user_project(access_token, project_id, cc_app_id, self.jwt_info(request))
         # 获取namespace及集群信息
         cluster_id, namespace, category, inst_name = self.get_cluster_ns(instance_id)
-        # 根据类型请求k8s或mesos状态
-        if project_kind in ["k8s", "tke"]:
-            data = self.get_k8s_category_status(access_token, project_id, cluster_id, category, inst_name, namespace)
-            if not data:
-                return JsonResponse({"code": 0, "data": {}, "message": "查询数据为空"})
-            for info in data:
-                replicas, available = utils.get_k8s_desired_ready_instance_count(info, REVERSE_CATEGORY_MAP[category])
-                if available != replicas or available == 0:
-                    return JsonResponse({"code": 0, "data": {"status": "unready"}})
-        else:
-            if category == "deployment":
-                data = self.get_mesos_application_deploy_status(
-                    access_token, project_id, cluster_id, category, inst_name, namespace
-                )
-                if not data:
-                    return JsonResponse({"code": 0, "data": {}, "message": "查询数据为空"})
-                inst_name_list = []
-                for info in data:
-                    application = (info.get("data") or {}).get("application")
-                    application_ext = (info.get("data") or {}).get("application_ext")
-                    inst_name_list.append(application.get("name"))
-                    if application_ext:
-                        inst_name_list.append(application_ext.get("name"))
-                inst_name = ",".join(inst_name_list)
-            # 转换到application
-            data = self.get_mesos_application_deploy_status(
-                access_token, project_id, cluster_id, "application", inst_name, namespace
-            )
-            if not data:
-                return JsonResponse({"code": 0, "data": {}, "message": "查询数据为空"})
-            for info in data:
-                item = info.get("data") or {}
-                if item.get("status") in UNNORMAL_STATUS:
-                    return JsonResponse({"code": 0, "data": {"status": "unnormal"}, "message": item.get("message")})
-                elif item.get("status") not in NORMAL_STATUS:
-                    return JsonResponse({"code": 0, "data": {"status": "operating"}, "message": item.get("message")})
+        # 根据类型请求k8s状态
+        data = self.get_k8s_category_status(access_token, project_id, cluster_id, category, inst_name, namespace)
+        if not data:
+            return JsonResponse({"code": 0, "data": {}, "message": "查询数据为空"})
+        for info in data:
+            replicas, available = utils.get_k8s_desired_ready_instance_count(info, REVERSE_CATEGORY_MAP[category])
+            if available != replicas or available == 0:
+                return JsonResponse({"code": 0, "data": {"status": "unready"}})
 
         return JsonResponse({"code": 0, "data": {"status": "running"}})
 
@@ -662,8 +594,8 @@ class BaseHandleInstance(BaseAPIViews):
         name = params.get("name")
         namespace = params.get("namespace")
         category = params.get("category")
-        mesos_k8s = CATEGORY_MODULE_MAP[str(request.user.project_kind)]
-        instance_info = MODULE_DICT[mesos_k8s[category]].objects.filter(name=name, namespace=namespace)
+        k8s_resource = CATEGORY_MODULE_MAP[str(request.user.project_kind)]
+        instance_info = MODULE_DICT[k8s_resource[category]].objects.filter(name=name, namespace=namespace)
         if not instance_info:
             raise error_codes.CheckFailed.f("没有查询到[%s]-[%s]-[%s]对应的实例" % (category, name, namespace))
         return instance_info[0].id
@@ -691,8 +623,6 @@ class BaseBatchHandleInstance(BaseAPIViews):
         project_info = paas_cc.get_project(access_token, project_id)
         if project_info.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(project_info.get("message"))
-        if project_info.get("data", {}).get("kind") not in constants.PROJECT_KIND_LIST:
-            raise error_codes.APIError.f("该项目编排类型不正确，请确认!", replace=True)
         return project_info["data"]
 
     def get_batch_inst_info(self, inst_id_list):
@@ -721,10 +651,7 @@ class BaseBatchHandleInstance(BaseAPIViews):
         return default_variables
 
     def category_map(self, kind, category):
-        if kind in [1, 3]:
-            map_info = CATEGORY_MODULE_MAP["k8s"]
-        else:
-            map_info = CATEGORY_MODULE_MAP["mesos"]
+        map_info = CATEGORY_MODULE_MAP["k8s"]
         real_category = map_info.get(category)
         if not real_category:
             raise error_codes.CheckFailed.f("类型[%s]不正确，请确认后重试" % category, replace=True)
@@ -793,7 +720,7 @@ class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
             raise error_codes.CheckFailed.f("参数instance_num必须为整数")
         # project_info = self.get_project_info(request.user.token.access_token, project_id)
         # project_kind = project_info["kind"]
-        project_kind = 1 if request.user.project_kind in ["k8s", "tke"] else 2
+        project_kind = 1
         batch_inst_info = self.get_batch_inst_info(inst_id_list)
         for inst_id in inst_id_list:
             curr_inst = batch_inst_info[str(inst_id)]
@@ -947,12 +874,8 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         }
         conf = self.generate_ns_config_info(request, inst_info.namespace, tmpl_entity, params, is_save=False)
         new_conf = conf[category][0]["config"]
-        # 针对k8s和mesos分开处理replica和instance
-        if kind in [1, 3]:
-            if category in ["K8sDeployment", "K8sStatefulSet"]:
-                new_conf["spec"]["replicas"] = instance_num
-        else:
-            new_conf["spec"]["instance"] = instance_num
+        if category in ["K8sDeployment", "K8sStatefulSet"]:
+            new_conf["spec"]["replicas"] = instance_num
         return new_conf
 
     def get_tmpl_ids(self, version_id, category):
@@ -1041,7 +964,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         req_category = request.GET.get("category")
         if req_category not in all_category_list:
             raise error_codes.CheckFailed.f("类型[%s]不存在，请确认后重试" % req_category)
-        project_kind = 1 if request.user.project_kind in ["k8s", "tke"] else 2
+        project_kind = 1
         real_category = self.category_map(project_kind, req_category)
         # 查询相应的实例信息
         version_id = None
@@ -1078,9 +1001,8 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
                 version_id = show_version_info[0].id
             namespace = metadata.get("namespace")
             pre_instance_num = 0
-            if project_kind in [1, 3]:
-                if category in ["Deployment", "StatefulSet"]:
-                    pre_instance_num = inst_conf["spec"]["replicas"]
+            if category in ["Deployment", "StatefulSet"]:
+                pre_instance_num = inst_conf["spec"]["replicas"]
             else:
                 pre_instance_num = inst_conf["spec"]["instance"]
             # 获取版本配置
@@ -1117,8 +1039,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
                 project_kind,
                 curr_variables,
             )
-            if project_kind in [1, 3]:
-                self.check_selector(inst_conf, new_inst_conf)
+            self.check_selector(inst_conf, new_inst_conf)
             resp = self.update_deployment(
                 request,
                 project_id,
@@ -1131,156 +1052,6 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
             )
             inst_state = InsState.UPDATE_SUCCESS.value
             if resp.data.get("code") == ErrorCode.NoError:
-                inst_state = InsState.UPDATE_FAILED.value
-                self.update_instance_record_status(
-                    inst_info, oper_type=app_constants.ROLLING_UPDATE_INSTANCE, is_bcs_success=True
-                )
-            # 更新conf
-            self.update_conf_version(
-                inst_id,
-                new_inst_conf,
-                inst_state,
-                inst_info.config,
-                inst_info.instance_id,
-                version_id,
-                show_version_info.name,
-                tmpl_entity[category],
-                inst_info.name,
-                inst_info.category,
-                show_version_info.real_version_id,
-                inst_info.variables,
-                curr_variables,
-            )
-        return JsonResponse({"message": "下发任务成功!", "code": 0})
-
-
-class BatchUpdateApplicationInstance(app_views.UpdateApplication, BaseBatchHandleInstance):
-    def get_params_from_gcloud(self, request, project_id):
-        """标准运维请求来的参数格式"""
-        ns_id_name_map, ns_name_id_map = self.get_ns_id_name_map(request.user.token.access_token, project_id)
-        all_data = dict(request.data)
-        inst_variables = all_data.get("inst_variables")
-
-        if not isinstance(inst_variables, dict):
-            raise error_codes.CheckFailed.f("变量[inst_variables]必须为DICT类型", replace=True)
-        inst_id_list = []
-        all_ns_id_list = []
-        for inst_name, inst_info in inst_variables.items():
-            ns_id_list = []
-            ns_list = inst_info.get("namespace_list")
-            if not inst_info.get("version_name"):
-                raise error_codes.CheckFailed.f("参数[version_name]不能为空")
-            if not ns_list:
-                raise error_codes.CheckFailed.f("参数[namespace_list]不能为空", replace=True)
-            for info in inst_info["namespace_list"]:
-                ns_id = ns_name_id_map.get(info)
-                if not ns_id:
-                    raise error_codes.CheckFailed.f("命名空间[%s]不存在" % info, replace=True)
-                all_ns_id_list.append(ns_id)
-                ns_id_list.append(ns_id)
-            # 进行适配名称->ID
-            inst_info = InstanceConfig.objects.filter(namespace__in=ns_id_list, name=inst_name, category="application")
-            inst_id_list.extend([info.id for info in inst_info])
-
-        ns_var_map = self.get_ns_variables(project_id, all_ns_id_list)
-        ns_var_map_new = {}
-        for ns_id, var_info in ns_var_map.items():
-            for info in var_info:
-                item = {info["key"]: info["value"]}
-                if ns_id in ns_var_map_new:
-                    ns_var_map_new[ns_id].update(item)
-                else:
-                    ns_var_map_new[ns_id] = item
-        return inst_id_list, inst_variables, ns_id_name_map, ns_var_map_new
-
-    def get_params(self, request):
-        """获取参数"""
-        version_id = request.GET.get("version_id")
-        # 获取环境变量，如果有未赋值的，则认为参数不正确
-        data = dict(request.data)
-        variables = data.get("variable") or {}
-        inst_variables = data.get("inst_variables") or {}
-        inst_id_list = data.get("inst_id_list") or []
-        if not inst_id_list:
-            raise error_codes.CheckFailed.f("实例ID不能为空", replace=True)
-        return version_id, variables, inst_id_list, inst_variables
-
-    def api_put(self, request, cc_app_id, project_id):
-        self.init_handler(request, cc_app_id, project_id, serializers.BatchUpdateInstanceParamsSLZ)
-        # 查询相应的实例信息
-        version_id = None
-        ns_var_map = {}
-        if request.user.app_code in ["gcloud", "workbench"]:
-            inst_id_list, inst_variables, ns_id_name_map, ns_var_map = self.get_params_from_gcloud(request, project_id)
-        else:
-            version_id, variables, inst_id_list, inst_variables = self.get_params(request)
-        project_kind = 1 if request.user.project_kind in ["k8s", "tke"] else 2
-        batch_inst_info = self.get_batch_inst_info(inst_id_list)
-        for inst_id in inst_id_list:
-            # 获取实例信息
-            inst_info = batch_inst_info[str(inst_id)]
-
-            category = inst_info.category
-            if category != "application":
-                raise error_codes.CheckFailed.f("更新的实例必须为application类型，请确认!")
-            inst_name = inst_info.name
-            # 获取namespace
-            inst_conf = json.loads(inst_info.config)
-            metadata = inst_conf.get("metadata", {})
-            labels = metadata.get("labels", {})
-            cluster_id = labels.get("io.tencent.bcs.clusterid")
-            template_id = labels.get("io.tencent.paas.templateid")
-            if request.user.app_code in ["gcloud", "workbench"]:
-                curr_inst_info_detail = inst_variables.get(inst_name)
-                if not curr_inst_info_detail:
-                    continue
-                show_version_info = ShowVersion.objects.filter(
-                    name=curr_inst_info_detail["version_name"], template_id=template_id
-                )
-                if not show_version_info:
-                    raise error_codes.CheckFailed.f("版本信息[%s]不存在" % curr_inst_info_detail["version_name"])
-                version_id = show_version_info[0].id
-            namespace = metadata.get("namespace")
-            # 数量必须为先前的数据
-            pre_instance_num = inst_conf["spec"]["instance"]
-            # 获取版本配置
-            show_version_info = self.get_show_version_info(version_id)
-            ids = self.get_tmpl_ids(show_version_info.real_version_id, category)
-            tmpl_entity = self.get_tmpl_entity(category, ids, inst_name)
-            real_instance_num = pre_instance_num
-
-            # 获取当前实例对应的变量
-            curr_variables = json.loads(inst_info.variables) if inst_info.variables else {}
-            if request.user.app_code in ["gcloud", "workbench"]:
-                ns_var_info = ns_var_map.get(int(inst_info.namespace)) or {}
-            else:
-                ns_var_info = {}
-            curr_variables.update(ns_var_info)
-            if inst_variables:
-                if request.user.app_code in ["gcloud", "workbench"]:
-                    curr_inst_info_detail = inst_variables[inst_name]
-                    if namespace in curr_inst_info_detail.get("namespace_list") or []:
-                        curr_variables.update(curr_inst_info_detail.get("variables") or {})
-                else:
-                    if inst_id in inst_variables:
-                        curr_variables.update(inst_variables.get(inst_id) or {})
-
-            new_inst_conf = self.generate_conf(
-                request,
-                project_id,
-                inst_info,
-                show_version_info,
-                namespace,
-                tmpl_entity,
-                category,
-                real_instance_num,
-                project_kind,
-                curr_variables,
-            )
-            mesos_client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = mesos_client.update_application(namespace, new_inst_conf)
-            inst_state = InsState.UPDATE_SUCCESS.value
-            if resp.get("code") == ErrorCode.NoError:
                 inst_state = InsState.UPDATE_FAILED.value
                 self.update_instance_record_status(
                     inst_info, oper_type=app_constants.ROLLING_UPDATE_INSTANCE, is_bcs_success=True
@@ -1358,7 +1129,7 @@ class BatchDeleteInstance(BaseBatchHandleInstance, app_views.BaseAPI):
 
     def api_delete(self, request, cc_app_id, project_id):
         self.init_handler(request, cc_app_id, project_id, serializers.BatchDeleteInstanceParamsSLZ)
-        project_kind = 1 if request.user.project_kind in ["k8s", "tke"] else 2
+        project_kind = 1
         data = dict(request.data)
         inst_id_list = data.get("inst_id_list") or []
         inst_info = data.get("inst_info")
@@ -1416,7 +1187,7 @@ class BatchRecreateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
             raise error_codes.CheckFailed.f("实例ID不能为空", replace=True)
         # project_info = self.get_project_info(request.user.token.access_token, project_id)
         # project_kind = project_info["kind"]
-        project_kind = 1 if request.user.project_kind in ["k8s", "tke"] else 2
+        project_kind = 1
         for inst_id in inst_id_list:
             inst_info = self.get_inst_info(inst_id)
             # 获取namespace
@@ -1672,17 +1443,10 @@ class GetInstanceVersionConf(BaseAPIViews):
         if show_version_id:
             real_version_id = self.get_show_version_info(show_version_id)
             category_id_list = self.get_version_info(category, real_version_id)
-            if project_kind == 2:
-                real_app_version_id = self.get_show_version_info(show_version_id)
-                app_category_id_list = self.get_version_info("application", real_app_version_id)
         else:
             instance_entity = json.loads(inst_version_info[0].instance_entity)
             # 获取模板
             category_id_list = instance_entity.get(category) or []
-            if project_kind == 2:
-                app_show_version_id = inst_version_info[0].show_version_id
-                real_app_version_id = self.get_show_version_info(app_show_version_id)
-                app_category_id_list = self.get_version_info("application", real_app_version_id)
         all_info = self.get_tmpl_info(category, category_id_list, inst_info.name)
 
         if not all_info:
@@ -1690,16 +1454,6 @@ class GetInstanceVersionConf(BaseAPIViews):
         # 通过展示版本获取真正版本
         curr_info = all_info[0]
         version_conf = curr_info.config
-        # 针对mesos，需要application关联deployment
-        if not app_category_id_list and project_kind == 2:
-            raise error_codes.CheckFailed.f("没有查询到关联的application信息")
-        if project_kind == 2 and category == "deployment":
-            app_info = MODULE_DICT["application"].objects.filter(app_id=curr_info.app_id, id__in=app_category_id_list)
-            if not app_info:
-                raise error_codes.CheckFailed.f("没有查询到关联的application信息")
-            app_config = json.loads(app_info[0].config)
-            app_config["spec"]["strategy"] = json.loads(version_conf)["strategy"]
-            version_conf = json.dumps(app_config)
         instance_num_var_flag = False
         variable_map = []
         if show_version_id:

@@ -100,7 +100,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('Chart')" prop="source" min-width="160">
+                        <bk-table-column label="Chart" prop="source" min-width="160">
                             <template slot-scope="{ row }">
                                 {{ `${row.chart_name}:${row.current_version}` }}
                             </template>
@@ -814,7 +814,6 @@
                 if (keyword) {
                     const results = list.filter(item => {
                         for (const key of keyList) {
-                            console.log(item['cluster_name'])
                             if (item[key].indexOf(keyword) > -1) {
                                 return true
                             }
@@ -822,9 +821,11 @@
                         return false
                     })
                     this.appList.splice(0, this.appList.length, ...results)
+                    this.curPageData = this.getDataByPage(this.pagination.current)
                 } else {
                     // 没有搜索关键字，直接从缓存返回列表
                     this.appList.splice(0, this.appList.length, ...list)
+                    this.curPageData = this.getDataByPage(this.pagination.current)
                 }
             },
 
@@ -933,7 +934,8 @@
                         page: this.pagination.current,
                         offset: 0,
                         cluster_id: this.searchScope,
-                        namespace: ''
+                        namespace: '',
+                        keyword: this.keyword
                     }
                 }
                 if (this.searchNamespace) {
@@ -1128,6 +1130,8 @@
                                 }
                             })
                         })
+                        this.curPageData = this.getDataByPage(this.pagination.current)
+                        this.isPageLoading = false
 
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {

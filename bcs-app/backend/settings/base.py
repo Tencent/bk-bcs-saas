@@ -29,11 +29,14 @@ import os
 import pymysql
 from django.conf.global_settings import gettext_noop as _
 
+from backend.resources.utils import dynamic
+
 pymysql.install_as_MySQLdb()
+
+dynamic.patch_resource()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -67,7 +70,6 @@ INSTALLED_APPS = [
     "backend.templatesets.legacy_apps.instance.apps.TemplatesetsInstanceConfig",
     "backend.uniapps.resource",
     "backend.uniapps.network",
-    # "backend.container_service.observability.metric",
     "backend.apps.ticket",
     "backend.helm.app",
     "backend.helm.helm",
@@ -75,7 +77,6 @@ INSTALLED_APPS = [
     "backend.container_service.infras.hosts.terraform",
     # 模板集功能模块
     "backend.templatesets.var_mgmt.apps.VarMgmtConfig",
-    "backend.container_service.observability.metric_mesos",
 ]
 
 MIDDLEWARE = [

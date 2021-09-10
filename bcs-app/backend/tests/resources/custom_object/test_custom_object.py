@@ -71,6 +71,8 @@ class TestCRDAndCustomObject:
     def update_or_create_crd(self, crd_client):
         name = sample_crd['metadata']['name']
         crd_client.update_or_create(body=sample_crd, namespace='default', name=name)
+        # NOTE 创建 CRD 后立即使用 可能出现 NotFoundError(404) 异常，需等待就绪
+        time.sleep(3)
         yield
         crd_client.delete_wait_finished(namespace="default", name=name)
 
@@ -83,8 +85,6 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def update_or_create_custom_object(self, cobj_client):
-        # NOTE 创建 CRD 后立即 创建 CustomObject 可能出现 NotFoundError(404) 异常，需等待就绪后再创建
-        time.sleep(1)
         cobj_client.update_or_create(
             body=sample_custom_object, namespace="default", name=getitems(sample_custom_object, "metadata.name")
         )

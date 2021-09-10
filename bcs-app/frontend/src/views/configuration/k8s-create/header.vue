@@ -1089,9 +1089,6 @@
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
                 this.isVersionListLoading = true
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    return false
-                }
                 if (templateId !== '0' && templateId !== 0) {
                     await this.$store.dispatch('k8sTemplate/getVersionList', { projectId, templateId }).then(res => {
                         let versionList = []

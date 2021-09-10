@@ -27,9 +27,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_web.audit_log import client
 from backend.celery_app.tasks.application import update_create_error_record
-from backend.components.bcs import mesos
-from backend.container_service.projects.base.constants import ProjectKind
-from backend.templatesets.legacy_apps.configuration.constants import MesosResourceName
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
 from backend.templatesets.legacy_apps.instance.constants import InsState
@@ -1321,12 +1318,8 @@ class UpdateInstanceNew(InstanceAPI):
         except Exception:
             raise error_codes.CheckFailed(_("实例数 {} 不是整数").format(instance_num))
 
-        # 针对k8s和mesos分开处理replica和instance
-        if kind == 1:
-            if category in ["K8sDeployment", "K8sStatefulSet"]:
-                new_conf["spec"]["replicas"] = instance_num
-        else:
-            new_conf["spec"]["instance"] = instance_num
+        if category in ["K8sDeployment", "K8sStatefulSet"]:
+            new_conf["spec"]["replicas"] = instance_num
         return new_conf
 
     def check_selector(self, old_conf, new_conf):
@@ -1451,104 +1444,6 @@ class UpdateInstanceNew(InstanceAPI):
         return resp
 
 
-class UpdateApplication(UpdateInstanceNew):
-    def get_params(self, request):
-        """获取参数"""
-        version_id = request.GET.get("version_id")
-        if not version_id:
-            raise error_codes.CheckFailed(_("升级的版本信息不能为空"))
-        # 获取环境变量，如果有未赋值的，则认为参数不正确
-        data = dict(request.data)
-        variables = data.get("variable") or {}
-        if variables:
-            for key, val in variables.items():
-                if not val:
-                    raise error_codes.CheckFailed(_("环境变量 {} 对应的值不能为空").format(key))
-        return version_id, variables
-
-    def put(self, request, project_id, instance_id):
-        project_kind = self.project_kind(request)
-
-        if not self._from_template(instance_id):
-            return self.update_online_app(request, project_id, project_kind)
-
-        # TODO: 这一部分只有MESOS使用，需要mesos提供application yaml接口后，调整此部分
-        version_id, variables = self.get_params(request)
-        # 获取实例信息
-        inst_info = self.get_instance_info(instance_id)
-
-        category = inst_info.category
-        if category != APPLICATION_CATEGORY:
-            raise error_codes.CheckFailed(_("更新的实例必须为application类型，请确认!"))
-        inst_name = inst_info.name
-        # 获取namespace
-        inst_conf = json.loads(inst_info.config)
-        metadata = inst_conf.get("metadata", {})
-        labels = metadata.get("labels", {})
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace
-        )
-
-        cluster_id = labels.get("io.tencent.bcs.clusterid")
-        namespace = metadata.get("namespace")
-        # 数量必须为先前的数据
-        pre_instance_num = inst_conf["spec"]["instance"]
-        # 获取版本配置
-        show_version_info = self.get_show_version_info(version_id)
-        ids = self.get_tmpl_ids(show_version_info.real_version_id, category)
-        tmpl_entity = self.get_tmpl_entity(category, ids, inst_name)
-        real_instance_num = pre_instance_num
-        new_inst_conf = self.generate_conf(
-            request,
-            project_id,
-            inst_info,
-            show_version_info,
-            namespace,
-            tmpl_entity,
-            category,
-            real_instance_num,
-            project_kind,
-            variables,
-        )
-        # self.render_instance_conf(new_inst_conf, params)
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="instance",
-            resource=inst_name,
-            resource_id=instance_id,
-            extra=json.dumps({"namespace": inst_info.namespace}),
-            description=_("应用滚动升级"),
-        ).log_modify():
-            mesos_client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = mesos_client.update_application(namespace, new_inst_conf)
-        inst_state = InsState.UPDATE_SUCCESS.value
-        if resp.get("code") == ErrorCode.NoError:
-            inst_state = InsState.UPDATE_FAILED.value
-            self.update_instance_record_status(
-                inst_info, oper_type=app_constants.ROLLING_UPDATE_INSTANCE, is_bcs_success=True
-            )
-        # 更新conf
-        self.update_conf_version(
-            instance_id,
-            new_inst_conf,
-            inst_state,
-            inst_info.config,
-            inst_info.instance_id,
-            version_id,
-            show_version_info.name,
-            tmpl_entity[category],
-            inst_info.name,
-            inst_info.category,
-            show_version_info.real_version_id,
-            inst_info.variables,
-            variables,
-        )
-
-        return utils.APIResponse(resp)
-
-
 class ScaleInstance(InstanceAPI):
     def update_inst_conf(self, curr_inst, instance_num, inst_state):
         """更新配置"""
@@ -1620,8 +1515,6 @@ class ScaleInstance(InstanceAPI):
     def scale_online_app(self, request, project_id, project_kind, inst_count):
         """扩缩容线上应用"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
-        if request.project.kind == ProjectKind.MESOS.value and category == MesosResourceName.deployment.value:
-            name = self._get_mesos_app_names_by_deployment(request, cluster_id, name, namespace, category)[0]
         online_app_conf = None
         if project_kind == 1:
             online_app_conf = self.online_app_conf(
@@ -1783,50 +1676,6 @@ class CancelUpdateInstance(InstanceAPI):
             self.update_conf(curr_inst.id, curr_inst.category, curr_inst.instance_id)
 
         return resp
-
-
-class RollbackApplication(CancelUpdateInstance):
-    def put(self, request, project_id, instance_id):
-        # 获取instance info
-        inst_info = self.get_instance_info(instance_id)
-        # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
-        # 获取namespace
-        curr_inst = inst_info[0]
-
-        if curr_inst.category != APPLICATION_CATEGORY:
-            raise error_codes.CheckFailed(_("实例类型必须为application, 请确认!"))
-        conf = self.get_common_instance_conf(curr_inst)
-        metadata = conf.get("metadata", {})
-        labels = metadata.get("labels", {})
-        cluster_id = labels.get("io.tencent.bcs.clusterid")
-        namespace = metadata.get("namespace")
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
-        )
-        name = metadata.get("name")
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="instance",
-            resource=name,
-            resource_id=instance_id,
-            extra=json.dumps({"config": conf, "namespace": "namespace"}),
-            description=_("应用取消滚动升级"),
-        ).log_modify():
-            last_config = json.loads(curr_inst.last_config)
-            mesos_client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = mesos_client.rollback_mesos_app_instance(namespace, last_config["old_conf"])
-
-        if resp.get("code") == ErrorCode.NoError:
-            self.update_instance_record_status(curr_inst, oper_type=app_constants.CANCEL_INSTANCE, is_bcs_success=True)
-            # 更新信息
-            self.update_conf(curr_inst.id, curr_inst.category, curr_inst.instance_id)
-
-        return utils.APIResponse(resp)
 
 
 class PauseUpdateInstance(InstanceAPI):

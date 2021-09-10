@@ -4,7 +4,6 @@
 
 <script>
     import k8sService from './service/k8s'
-    import mesosService from './service/mesos'
     import globalMixin from '@open/mixins/global'
 
     export default {
@@ -13,13 +12,12 @@
             next(true)
         },
         components: {
-            k8sService,
-            mesosService
+            k8sService
         },
         mixins: [globalMixin],
         data () {
             return {
-                currentView: ''
+                currentView: 'k8sService'
             }
         },
         computed: {
@@ -29,22 +27,9 @@
         },
         mounted () {
             this.curProject = this.initCurProject()
-            this.setComponent()
         },
         beforeDestroy () {
             this.$refs.service.leaveCallback()
-        },
-        methods: {
-            /**
-             * 根据项目类型动态设置service组件
-             */
-            setComponent () {
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    this.currentView = 'mesosService'
-                } else {
-                    this.currentView = 'k8sService'
-                }
-            }
         }
     }
 </script>

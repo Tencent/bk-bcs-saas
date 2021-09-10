@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 
 from backend.components import paas_auth, paas_cc
-from backend.uniapps.apis.constants import PAAS_CD_APIGW_PUBLIC_KEY, PROJECT_KIND_MAP
+from backend.uniapps.apis.constants import PAAS_CD_APIGW_PUBLIC_KEY
 from backend.utils.authentication import JWTClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -49,7 +49,6 @@ def check_user_project(access_token, project_id, cc_app_id, jwt_info, project_co
         data = resp.get("data") or {}
         if str(data.get("cc_app_id")) != str(cc_app_id):
             raise error_codes.CheckFailed.f("用户没有访问项目的权限，请确认", replace=True)
-        project_kind = PROJECT_KIND_MAP.get(str(data.get("kind", "")))
         if project_code_flag:
             project_code = data.get("english_name")
         project_info = data
@@ -65,14 +64,10 @@ def check_user_project(access_token, project_id, cc_app_id, jwt_info, project_co
         ]
         if not ret_data:
             raise error_codes.CheckFailed.f("用户没有访问项目的权限，请确认", replace=True)
-        project_kind = PROJECT_KIND_MAP.get(str(ret_data[0].get("kind", "")))
         project_info = ret_data[0]
         project_code = project_info.get("english_name")
-    # 统一处理项目类型
-    if not project_kind:
-        raise error_codes.CheckFailed.f("项目类型只能为k8s/mesos，请确认", replace=True)
-
     # 直接返回原生的project信息
+    project_kind = "k8s"
     if is_orgin_project:
         return project_kind, app_code, project_info
     if project_code_flag:

@@ -1,5 +1,5 @@
 <template>
-    <div id="app" class="biz-app" :class="systemCls" v-bkloading="{ isLoading: isLoading && projectCode, zIndex: 10 }">
+    <div id="app" class="biz-app" :class="systemCls" v-bkloading="{ isLoading: isLoading && projectCode }">
         <router-view name="project"></router-view>
         <template v-if="!isLoading && $route.name !== 'projectManage'">
             <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
@@ -121,7 +121,7 @@
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
                     + `<p class="f14">${self.$t('Sorry，您的权限不足，请去')}`
-                    + `<a class="bk-text-button" href="${data.data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
+                    + `<a class="bk-text-button" href="${data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
@@ -184,6 +184,8 @@
                     localStorage.removeItem('bcs-cluster')
                     sessionStorage.removeItem('bcs-cluster')
                     this.$store.commit('updateCurClusterId', '')
+                    localStorage.setItem('curProjectCode', projectCode)
+                    window.location.href = `${window.location.origin}${SITE_URL}/${projectCode}`
                 }
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
                 this.initProjectId(projectCode)
@@ -315,7 +317,7 @@
                     await this.$store.dispatch('editProject', Object.assign({}, this.curProject, {
                         // deploy_type 值固定，就是原来页面上的：部署类型：容器部署
                         deploy_type: [2],
-                        // kind 业务编排类型：1 Kubernetes, 2 Mesos
+                        // kind 业务编排类型
                         kind: parseInt(this.kind, 10),
                         // use_bk 值固定，就是原来页面上的：使用蓝鲸部署服务
                         use_bk: true,

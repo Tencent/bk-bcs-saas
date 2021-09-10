@@ -11,7 +11,6 @@ import 'echarts/lib/component/legend'
 import yamljs from 'js-yaml'
 import { Decimal } from 'decimal.js'
 
-
 import { instanceDetailChart } from '@open/common/chart-option'
 import { randomInt, catchErrorHandler, chartColors, formatBytes, copyText } from '@open/common/util'
 import ace from '@open/components/ace-editor'
@@ -599,7 +598,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodCpuUsage (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodCpuChart([])
                 return
@@ -609,7 +608,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId
@@ -748,7 +747,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodMemUsage (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodMemChart([])
                 return
@@ -757,7 +756,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId
@@ -889,7 +888,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodNet (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodNetChart([], [])
                 return
@@ -898,7 +897,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId

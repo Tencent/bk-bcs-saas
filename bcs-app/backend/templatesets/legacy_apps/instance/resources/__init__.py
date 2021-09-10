@@ -16,11 +16,11 @@ import importlib
 import os
 import pkgutil
 
-from backend.templatesets.legacy_apps.instance.constants import K8S_MODULE_NAME, MESOS_MODULE_NAME
+from backend.templatesets.legacy_apps.instance.constants import K8S_MODULE_NAME
 from backend.templatesets.legacy_apps.instance.resources.__resource import BCSResource  # noqa
 
 pkgpath = os.path.dirname(__file__)
-for m in [MESOS_MODULE_NAME, K8S_MODULE_NAME]:
-    for _, name, _ in pkgutil.iter_modules([f'{pkgpath}/{m}']):
-        if not name.startswith('__'):
-            importlib.import_module(f'.{name}', f'{__name__}.{m}')
+m = K8S_MODULE_NAME
+for _, name, _ in pkgutil.iter_modules([f'{pkgpath}/{m}']):
+    if not name.startswith('__'):
+        importlib.import_module(f'.{name}', f'{__name__}.{m}')

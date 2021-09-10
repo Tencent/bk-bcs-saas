@@ -169,6 +169,5 @@ DEFAULT_METRIC_SOURCE_PROM_WLIST = []
 
 WEB_CONSOLE_MODE = "internal"
 
-# 初始化时渲染K8S/MESOS版本
+# 初始化时渲染K8S版本
 K8S_VERSION = os.environ.get("BKAPP_K8S_VERSION")
-MESOS_VERSION = os.environ.get("BKAPP_MESOS_VERSION")

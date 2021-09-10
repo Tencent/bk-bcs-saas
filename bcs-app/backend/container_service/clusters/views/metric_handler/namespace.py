@@ -14,10 +14,8 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from django.utils.translation import ugettext_lazy as _
-
-from backend.apps import constants
 from backend.components import bcs, paas_cc
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
@@ -30,7 +28,7 @@ logger = logging.getLogger(__name__)
 def get_cluster_namespace(request, project_id, cluster_id):
     """获取集群下namespace的数量"""
     resp = paas_cc.get_cluster_namespace_list(
-        request.user.token.access_token, project_id, cluster_id, limit=constants.ALL_LIMIT
+        request.user.token.access_token, project_id, cluster_id, limit=LIMIT_FOR_ALL_DATA
     )
     if resp.get("code") != ErrorCode.NoError:
         logger.error(u"获取命名空间数量异常，当前集群ID: %s, 详情: %s" % (cluster_id, resp.get("message")))
@@ -62,15 +60,7 @@ def get_used_namespace(project_id):
 
 def get_used_namespace_via_bcs(request, project_id, cluster_id, all_namespace_list):
     """通过bcs查询已经使用的命名空间"""
-    kind = request.project["kind"]
-    if kind not in [1, 2]:
-        raise error_codes.CheckFailed(_("项目类型不正确，请重新确认"))
-    if kind == 1:
-        bcs_name, kind_name = "k8s", "K8S"
-    else:
-        bcs_name, kind_name = "mesos", "Mesos"
-    bcs_api = getattr(bcs, bcs_name)
-    client = getattr(bcs_api, "%sClient" % kind_name)(request.user.token.access_token, project_id, cluster_id, None)
+    client = bcs.k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, None)
     used_ns_info = client.get_used_namespace()
     if used_ns_info.get("code") != ErrorCode.NoError:
         raise error_codes.APIError.f(used_ns_info.get("message"))
