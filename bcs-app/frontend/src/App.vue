@@ -1,11 +1,8 @@
 <template>
-    <div id="app" class="biz-app" :class="systemCls">
-        <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
-        <!-- 这里的v-if不要去掉，为了解决项目初始化问题，todo：后续优化!!! -->
-        <div style="height: 100%;" v-if="isLoading">
-            <div class="bk-loading" v-bkloading="{ isLoading }"></div>
-        </div>
-        <template v-else>
+    <div id="app" class="biz-app" :class="systemCls" v-bkloading="{ isLoading: isLoading && projectCode }">
+        <router-view name="project"></router-view>
+        <template v-if="!isLoading && $route.name !== 'projectManage'">
+            <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
             <div class="app-container" :style="{ minHeight: minHeight + 'px' }" v-if="isUserBKService">
                 <router-view :key="routerKey" />
             </div>
