@@ -972,7 +972,7 @@
                         clusterId: item.cluster_id
                     }).then(res => {
                         item.cpu_usage = res.data.cpu_usage
-                        item.mem_usage = res.data.mem_usage
+                        item.mem_usage = res.data.memory_usage
                         item.disk_usage = res.data.disk_usage
                     })
                 })
