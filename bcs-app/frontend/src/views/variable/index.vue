@@ -1000,15 +1000,6 @@
                         }
 
                         routeName = k8sRoutes[type]
-                    } else if (this.curProjectData.projectKind === 2) {
-                        const mesosRoutes = {
-                            'application': 'mesosTemplatesetApplication',
-                            'deployment': 'mesosTemplatesetDeployment',
-                            'service': 'mesosTemplatesetService',
-                            'configmap': 'mesosTemplatesetConfigmap',
-                            'secret': 'mesosTemplatesetSecret'
-                        }
-                        routeName = mesosRoutes[type]
                     }
                     if (routeName) {
                         this.$router.push({

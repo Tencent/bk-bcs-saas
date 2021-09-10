@@ -26,7 +26,6 @@ from backend.resources.namespace import Namespace
 from backend.resources.namespace import utils as ns_utils
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
-from backend.utils.error_codes import error_codes
 
 
 class NamespaceViewSet(UserViewSet):
@@ -44,7 +43,6 @@ class NamespaceViewSet(UserViewSet):
 
         access_token = request.user.token.access_token
         username = request.user.username
-        project_id = request.project.project_id
 
         project_kind_name = ProjectKind.get_choice_label(request.project.kind)
         namespace = getattr(self, f"_create_{project_kind_name.lower()}_namespace")(

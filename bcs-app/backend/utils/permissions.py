@@ -23,6 +23,9 @@ from backend.utils import FancyDict
 from backend.utils.cache import region
 from backend.utils.error_codes import error_codes
 
+# 跳过路径为projects、projects_pub的namespace的项目校验
+SKIP_REQUEST_NAMESPACE = ["projects", "projects_pub"]
+
 
 class HasProject(BasePermission):
     def has_permission(self, request, view):
@@ -130,13 +133,11 @@ class ProjectHasBCS(BasePermission):
 
             if request_namespace in SKIP_REQUEST_NAMESPACE:
                 # 如果是SKIP_REQUEST_NAMESPACE，有更新接口，不判断kind
-                if project.get("cc_app_id") != 0 and project.get("kind") in ClusterType:
-                    region.set(cache_key, project)
-
-            elif project.get("kind") in ClusterType:
-                # 如果已经开启容器服务，判断是否cc_app_id再缓存
                 if project.get("cc_app_id") != 0:
                     region.set(cache_key, project)
+
+            elif project.get("cc_app_id") != 0:
+                region.set(cache_key, project)
             else:
                 # 其他抛出没有开启容器服务
                 raise error_codes.NoBCSService()

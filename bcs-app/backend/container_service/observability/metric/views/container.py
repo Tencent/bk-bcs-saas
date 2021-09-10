@@ -22,8 +22,10 @@ from backend.components import prometheus as prom
 from backend.container_service.observability.metric.constants import (
     METRICS_DEFAULT_CONTAINER_LIST,
     METRICS_DEFAULT_NAMESPACE,
+    METRICS_DEFAULT_POD_NAME,
 )
 from backend.container_service.observability.metric.serializers import FetchContainerMetricSLZ
+from backend.utils.url_slug import URL_DEFAULT_PLACEHOLDER
 
 
 class ContainerMetricViewSet(SystemViewSet):
@@ -46,7 +48,7 @@ class ContainerMetricViewSet(SystemViewSet):
         query_params = {
             'cluster_id': cluster_id,
             'namespace': METRICS_DEFAULT_NAMESPACE,
-            'pod_name': pod_name,
+            'pod_name': pod_name if pod_name != URL_DEFAULT_PLACEHOLDER else METRICS_DEFAULT_POD_NAME,
             'container_id_list': params['container_ids']
             if params.get('container_ids')
             else METRICS_DEFAULT_CONTAINER_LIST,

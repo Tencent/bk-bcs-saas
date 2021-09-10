@@ -24,7 +24,6 @@ DONE：
 
 TODO:
 - 实例化失败，再次实例化时，应该更新而不是创建数据
-- mesos/k8s 创建分开调用底层API
 """
 import logging
 
@@ -49,7 +48,6 @@ from backend.templatesets.legacy_apps.instance.utils import (
     handle_all_config,
     preview_config_json,
     validate_instance_entity,
-    validate_lb_info_by_version_id,
     validate_ns_by_tempalte_id,
     validate_template_id,
     validate_version_id,
@@ -58,7 +56,7 @@ from backend.uniapps.application.base_views import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from ..auditor import TemplatesetAuditor
-from ..constants import K8sResourceName, MesosResourceName
+from ..constants import K8sResourceName
 from ..models import CATE_SHOW_NAME, MODULE_DICT
 from ..tasks import check_instance_status
 
@@ -209,11 +207,6 @@ class VersionInstanceView(viewsets.ViewSet):
         lb_info = slz_data.get('lb_info', {})
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = instance_entity.get('service') or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, [namespace], lb_info, service_id_list
-        )
-        if not v_res:
-            return Response({"code": 400, "message": err_msg, "data": err_list})
 
         # 查询当前命名空间的变量信息
         variable_dict = slz_data.get('variable_info', {}).get(namespace) or {}
@@ -289,11 +282,6 @@ class VersionInstanceView(viewsets.ViewSet):
 
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = self.instance_entity.get('service') or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, ns_list, slz_data.get('lb_info', {}), service_id_list
-        )
-        if not v_res:
-            return Response({"code": 400, "message": err_msg, "data": err_list})
 
         # 判断 template 下 前台传过来的 namespace 是否已经实例化过
         res, ns_name_list, namespace_dict = validate_ns_by_tempalte_id(
@@ -429,7 +417,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
             ns_id = int(inst_config.namespace)
 
             # HPA只通过模板集管理，可以重试实例化(apply操作)
-            if inst_config.category in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
+            if inst_config.category == K8sResourceName.K8sHPA.value:
                 continue
 
             if ns_id not in ns_resources:

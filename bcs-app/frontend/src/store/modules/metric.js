@@ -128,7 +128,7 @@ export default {
          * @return {Promise} promise 对象
          */
         listServices (context, { projectId, clusterId }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/services/`, {}, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/services/`, {}, config)
         },
 
         /**
@@ -142,7 +142,7 @@ export default {
          * @return {Promise} promise 对象
          */
         listServiceMonitor (context, { projectId, clusterId }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/servicemonitors/`, {}, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/service_monitors/`, {}, config)
         },
 
         /**
@@ -156,7 +156,7 @@ export default {
          * @return {Promise} promise 对象
          */
         listTargets (context, { projectId, clusterId }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/targets/`, {}, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/targets/`, {}, config)
         },
 
         /**
@@ -171,8 +171,8 @@ export default {
          */
         getServiceMonitorTargets (context, { projectId, clusterId, namespace, name }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/servicemonitors/${namespace}/${name}/targets/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `service_monitors/${namespace}/${name}/targets/`,
                 {},
                 config
             )
@@ -190,8 +190,8 @@ export default {
          */
         getServiceMonitor (context, { projectId, clusterId, namespace, name }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `service_monitors/${namespace}/${name}/`,
                 {},
                 config
             )
@@ -212,7 +212,7 @@ export default {
             delete params.projectId
             delete params.displayName
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${params.cluster_id}/metrics/servicemonitors/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${params.cluster_id}/service_monitors/`,
                 params,
                 config
             )
@@ -229,8 +229,8 @@ export default {
          */
         deleteServiceMonitor (context, { projectId, clusterId, namespace, name }, config = {}) {
             return http.delete(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `service_monitors/${namespace}/${name}/`,
                 {},
                 config
             )
@@ -247,7 +247,7 @@ export default {
          */
         batchDeleteServiceMonitor (context, { projectId, clusterId, data }, config = {}) {
             return http.delete(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/servicemonitors/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/service_monitors/batch/`,
                 { data },
                 config
             )
@@ -272,8 +272,8 @@ export default {
             delete params.namespace
             delete params.name
             return http.put(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `service_monitors/${namespace}/${name}/`,
                 params,
                 config
             )
@@ -291,8 +291,8 @@ export default {
          */
         getPrometheusUpdate (context, { projectId, clusterId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/prometheus/update/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `prometheus/update/`,
                 {},
                 config
             )
@@ -310,8 +310,8 @@ export default {
          */
         startPrometheusUpdate (context, { projectId, clusterId }, config = {}) {
             return http.put(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
-                    + `metrics/prometheus/update/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/`
+                    + `prometheus/update/`,
                 {},
                 config
             )

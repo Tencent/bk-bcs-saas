@@ -28,14 +28,14 @@ from backend.bcs_web.audit_log import client
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import data as data_api
 from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
+from backend.components.bcs import k8s
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters import utils as cluster_utils
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.clusters.constants import DEFAULT_SYSTEM_LABEL_KEYS
-from backend.container_service.clusters.driver import BaseDriver
+from backend.container_service.clusters.driver.k8s import K8SDriver
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
 from backend.container_service.clusters.serializers import NodeLabelParamsSLZ
@@ -210,10 +210,10 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         slz.is_valid(raise_exception=True)
         return dict(slz.validated_data)
 
-    def add_container_count(self, request, project_id, cluster_id, project_kind, node_list):
+    def add_container_count(self, request, project_id, cluster_id, node_list):
         host_ip_list = [info['inner_ip'] for info in node_list]
         try:
-            driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
+            driver = K8SDriver(request, project_id, cluster_id)
             host_container_map = driver.get_host_container_count(host_ip_list)
         except Exception as e:
             logger.exception(f"通过BCS API查询主机container数量异常, 详情: {e}")
@@ -226,7 +226,7 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         if not (with_containers and data):
             return data
         # add container count
-        return self.add_container_count(request, project_id, cluster_id, request.project['kind'], data)
+        return self.add_container_count(request, project_id, cluster_id, data)
 
     def add_env_perm(self, request, project_id, cluster_id, data, cluster_env_info):
         nodes_results = bcs_perm.Cluster.hook_perms(request, project_id, [{'cluster_id': cluster_id}])
@@ -355,7 +355,7 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             raise error_codes.CheckFailed(not_allow_msg)
 
     def node_handler(self, request, project_id, cluster_id, node_info):
-        driver = BaseDriver(request.project['kind']).driver(request, project_id, cluster_id)
+        driver = K8SDriver(request, project_id, cluster_id)
         if node_info['status'] == NodeStatus.ToRemoved:
             driver.disable_node(node_info['inner_ip'])
         elif node_info['status'] == NodeStatus.Normal:
@@ -364,7 +364,7 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             raise error_codes.CheckFailed(f'node of the {node_info["status"]} does not allow operation')
 
     def get_node_container_num(self, request, project_id, cluster_id, inner_ip):
-        driver = BaseDriver(request.project['kind']).driver(request, project_id, cluster_id)
+        driver = K8SDriver(request, project_id, cluster_id)
         node_container_data = driver.get_host_container_count([inner_ip])
         return node_container_data.get(inner_ip) or 0
 
@@ -665,7 +665,7 @@ class NodeContainers(NodeBase, viewsets.ViewSet):
         # get params
         params = self.get_params(request, project_id, cluster_id)
         # get containers
-        driver = BaseDriver(request.project['kind']).driver(request, project_id, cluster_id)
+        driver = K8SDriver(request, project_id, cluster_id)
         containers = driver.flatten_container_info(params['res_id'])
 
         return response.Response(containers)
@@ -760,11 +760,8 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         node_id_labels = slz.data
         return node_id_labels.get("node_id_list"), node_id_labels.get("node_label_info")
 
-    def label_regex(self, node_label_info, project_kind):
+    def label_regex(self, node_label_info):
         """校验label满足正则"""
-        # 由于mesos没有限制，因此可以直接跳过
-        if project_kind != 1:
-            return
         prefix_part_regex = re.compile(
             r"^(?=^.{3,253}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$"
         )
@@ -877,34 +874,6 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             if k8s_resp.get("code") != ErrorCode.NoError:
                 raise error_codes.APIError(k8s_resp.get("message"))
 
-    def create_node_label_via_mesos(self, request, project_id, label_operation_map):
-        """Mesos打tag"""
-        # 调整为全量更新
-        cluster_node_map = {}
-        for node_id, info in label_operation_map.items():
-            labels = info['add']
-            labels.update(info['update'])
-            labels.update(info['existed'])
-            inner_ip = info['ip']
-            cluster_id = info['cluster_id']
-            # mesos 排除inner_ip这个key
-            labels.pop('InnerIP', None)
-            ip_label_info = {
-                'innerIP': inner_ip,
-                'disable': False,
-                'strings': {key: {"value": val} for key, val in labels.items()},
-            }
-            if cluster_id in cluster_node_map:
-                cluster_node_map[cluster_id].append(ip_label_info)
-            else:
-                cluster_node_map[cluster_id] = [ip_label_info]
-
-        for cluster_id, ip_label_info in cluster_node_map.items():
-            client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.update_agent_attrs(ip_label_info)
-            if resp.get("code") != ErrorCode.NoError:
-                raise error_codes.APIError(resp.get("message"))
-
     def create_or_update(self, request, project_id, label_operation_map):
         for node_id, info in label_operation_map.items():
             if info["new"]:
@@ -939,11 +908,10 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 
     def create_node_labels(self, request, project_id):
         """添加节点标签"""
-        project_kind = request.project["kind"]
         # 解析参数
         node_id_list, node_label_info = self.get_create_label_params(request)
         # 校验label中key和value
-        self.label_regex(node_label_info, project_kind)
+        self.label_regex(node_label_info)
         # 获取数据库中节点的label
         # NOTE: 节点为正常状态时，才允许设置标签
         project_node_info = self.get_node_list(request, project_id, None).get('results') or []
@@ -964,12 +932,8 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         label_operation_map = self.get_label_operation(
             pre_node_labels, node_label_info, node_id_list, all_node_id_ip_map
         )
-        # 针对k8s和mesos做不同的处理
-        # k8s 是以节点为维度；mesos是label为维度
-        if project_kind == 1:
-            self.create_node_label_via_k8s(request, project_id, label_operation_map)
-        else:
-            self.create_node_label_via_mesos(request, project_id, label_operation_map)
+        # k8s 是以节点为维度
+        self.create_node_label_via_k8s(request, project_id, label_operation_map)
         # 写入数据库
         self.create_or_update(request, project_id, label_operation_map)
 
@@ -1064,13 +1028,11 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
     permission = ClusterPermission()
 
     def validate_node_status(self, node_info):
-        # NOTE: 需要注意，mesos not ready 状态需要list/watch功能上线后，支持
         if node_info.get('status') not in [NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
             raise ValidationError(_("节点必须为不可调度状态，请点击【停止调度】按钮！"))
 
     def reschedule_pods_taskgroups(self, request, project_id, cluster_id, node_info):
-        project_kind = self.request.project['kind']
-        driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
+        driver = K8SDriver(request, project_id, cluster_id)
         driver.reschedule_host_pods(node_info['inner_ip'], raise_exception=False)
 
     def put(self, request, project_id, cluster_id, node_id):
@@ -1175,7 +1137,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             self.node_handler(request, project_id, cluster_id, info)
 
     def update_nodes_status(self, request, project_id, cluster_id, node_list, ip_list):
-        driver = BaseDriver(request.project['kind']).driver(request, project_id, cluster_id)
+        driver = K8SDriver(request, project_id, cluster_id)
         node_container_data = driver.get_host_container_count(ip_list)
         update_data = []
         for info in node_list:

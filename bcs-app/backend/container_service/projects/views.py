@@ -37,7 +37,6 @@ from backend.utils.basic import normalize_datetime
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.utils.func_controller import get_func_controller
 from backend.utils.renderers import BKAPIRenderer
 
 from . import serializers
@@ -66,20 +65,6 @@ class Projects(viewsets.ViewSet):
                 return []
         return deploy_type_list
 
-    def _register_function_controller(self, func_code, project_list):
-        enabled, wlist = get_func_controller(func_code)
-        for project in project_list:
-            # 黑名单控制
-            if project["project_id"] in wlist:
-                continue
-
-            project["func_wlist"].add(func_code)
-
-    def register_function_controller(self, project_list):
-        """注册功能白名单"""
-        for func_code in getattr(settings, "PROJECT_FUNC_CODES", []):
-            self._register_function_controller(func_code, project_list)
-
     def list(self, request):
         """获取项目列表"""
         # 获取已经授权的项目
@@ -101,10 +86,6 @@ class Projects(viewsets.ViewSet):
             )
             info["project_code"] = info["english_name"]
             info["deploy_type"] = self.deploy_type_list(info.get("deploy_type"))
-            info["func_wlist"] = set()
-
-        # 白名单用于控制mesos集群是否开启了service monitor组件
-        self.register_function_controller(data)
 
         return Response(data)
 
@@ -137,9 +118,6 @@ class Projects(viewsets.ViewSet):
         # 添加业务名称
         data["cc_app_name"] = get_application_name(request)
         data["can_edit"] = self.can_edit(request, project_id)
-        # TODO: 待拆分后，可以去掉func_list
-        data["func_wlist"] = set()
-        self.register_function_controller([data])
         return Response(data)
 
     def validate_update_project_data(self, request):

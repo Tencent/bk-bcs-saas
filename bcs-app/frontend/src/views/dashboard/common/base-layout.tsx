@@ -148,15 +148,17 @@ export default defineComponent({
 
         // 初始化集群列表信息
         // useCluster(ctx)
-
         // 命名空间
         let cacheNamespace = ''
+        const curSelectNameSpace = sessionStorage.getItem(CUR_SELECT_NAMESPACE)
         if (ctx.root.$route.name === 'dashboardCustomObjects') {
-            const { isCrd } = JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)) || {}
-            if (!isCrd) sessionStorage.removeItem(CUR_SELECT_NAMESPACE)
+            if (curSelectNameSpace) {
+                const { isCrd } = JSON.parse(curSelectNameSpace) || {}
+                if (!isCrd) sessionStorage.removeItem(CUR_SELECT_NAMESPACE)
+            }
         }
-        if (sessionStorage.getItem(CUR_SELECT_NAMESPACE)) {
-            cacheNamespace = JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)).namespace
+        if (curSelectNameSpace) {
+            cacheNamespace = JSON.parse(curSelectNameSpace).namespace
         }
         const namespaceValue = ref(cacheNamespace)
         const namespaceDisabled = computed(() => {
@@ -236,7 +238,7 @@ export default defineComponent({
         const handleNamespaceChange = (value) => {
             const namespaceData = {
                 namespace: value,
-                isCrd : ctx.root.$route.name === 'dashboardCustomObjects'
+                isCrd: ctx.root.$route.name === 'dashboardCustomObjects'
             }
             sessionStorage.setItem(CUR_SELECT_NAMESPACE, JSON.stringify(namespaceData))
         }
@@ -464,7 +466,7 @@ export default defineComponent({
                             this.showCreate ? (
                                 <bk-button v-authority={{
                                     clickable: this.pagePerms.create?.clickable,
-                                    content: this.pagePerms.create?.tip || this.crdTips
+                                    content: this.pagePerms.create?.tip || this.crdTips || this.$t('无权限')
                                 }}
                                 class="resource-create"
                                 icon="plus"
