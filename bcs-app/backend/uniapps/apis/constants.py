@@ -19,9 +19,6 @@ from backend.components.apigw import get_api_public_key
 
 logger = logging.getLogger(__name__)
 
-# 项目类型映射
-PROJECT_KIND_MAP = {"1": "k8s", "2": "mesos"}
-
 # 类型映射
 CATEGORY_MODULE_MAP = {
     "k8s": {
@@ -29,8 +26,7 @@ CATEGORY_MODULE_MAP = {
         "Job": "K8sJob",
         "Deployment": "K8sDeployment",
         "StatefulSet": "K8sStatefulSet",
-    },
-    "mesos": {"Application": "application", "Deployment": "deployment"},
+    }
 }
 
 PAAS_CD_APIGW_PUBLIC_KEY = get_api_public_key("paas-cd", "bk_bcs", os.environ.get("BKAPP_BK_BCS_TOKEN"))

@@ -1,5 +1,5 @@
 <template>
-    <component :is="componentName"></component>
+    <wlist-metric></wlist-metric>
 </template>
 
 <script>
@@ -7,40 +7,9 @@
         /* webpackChunkName: 'metric' */'./main'
     )
 
-    const metric = () => import(
-        /* webpackChunkName: 'metric' */'./metric-main'
-    )
-
     export default {
         components: {
-            wlistMetric,
-            metric
-        },
-        data () {
-            return {
-                componentName: ''
-            }
-        },
-        computed: {
-            curProject () {
-                return this.$store.state.curProject
-            }
-        },
-        mounted () {
-            this.setComponent()
-        },
-        methods: {
-            /**
-             * 设置动态组件
-             */
-            setComponent () {
-                const funcWlist = this.curProject.func_wlist
-                if (funcWlist && funcWlist.length && funcWlist.indexOf('ServiceMonitor') > -1) {
-                    this.componentName = 'wlistMetric'
-                } else {
-                    this.componentName = 'metric'
-                }
-            }
+            wlistMetric
         }
     }
 </script>

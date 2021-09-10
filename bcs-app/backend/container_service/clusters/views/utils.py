@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 """
 from backend.components import paas_cc
 from backend.container_service.clusters.base.constants import ClusterCOES
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -22,11 +21,11 @@ from backend.utils.error_codes import error_codes
 def filter_areas(request, data):
     """
     1. 如果容器编排类型为TKE，并且区域中文名称以TKE开始，则认为是来源TKE
-    2. 如果为BCS(K8S/Mesos)，并且区域不以TKE开始，则认为来源BCS
+    2. 如果区域不以TKE开始，则认为来源BCS
     """
     areas = {'TKE': [], 'BCS': []}
     for area in data['results'] or []:
-        if area['chinese_name'].startswith(ProjectKind.TKE.name):
+        if area['chinese_name'].startswith(ClusterCOES.TKE.name):
             areas['TKE'].append(area)
         else:
             areas['BCS'].append(area)

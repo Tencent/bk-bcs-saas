@@ -4,13 +4,11 @@
 
 <script>
     import k8sLoadBalance from './loadbalance/k8s/index'
-    import mesosLoadBalance from './loadbalance/mesos/index'
     import globalMixin from '@open/mixins/global'
 
     export default {
         components: {
-            k8sLoadBalance,
-            mesosLoadBalance
+            k8sLoadBalance
         },
         mixins: [globalMixin],
         data () {
@@ -26,7 +24,7 @@
         },
         mounted () {
             this.curProject = this.initCurProject()
-            this.setComponent()
+            this.$store.commit('network/updateLoadBalanceList', [])
         },
         beforeDestroy () {
             this.$refs.loadbalance.leaveCallback()
@@ -34,20 +32,6 @@
         beforeRouteLeave (to, from, next) {
             this.$refs.loadbalance.leaveCallback()
             next(true)
-        },
-        methods: {
-            /**
-             * 根据项目类型动态设置service组件
-             */
-            setComponent () {
-                this.$store.commit('network/updateLoadBalanceList', [])
-                // mesos
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    this.currentView = 'mesosLoadBalance'
-                } else {
-                    this.currentView = 'k8sLoadBalance'
-                }
-            }
         }
     }
 </script>

@@ -255,7 +255,6 @@
                 </div>
             </div>
         </bk-dialog>
-        <cluster-guide ref="clusterGuide" @status-change="toggleGuide"></cluster-guide>
         <tip-dialog
             ref="clusterNoticeDialog"
             icon="bcs-icon bcs-icon-exclamation-triangle"
@@ -274,11 +273,9 @@
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
     import { bus } from '@open/common/bus'
-    import ClusterGuide from './guide'
 
     export default {
         components: {
-            ClusterGuide,
             tipDialog,
             'bk-ip-searcher': bkIPSearcher
         },

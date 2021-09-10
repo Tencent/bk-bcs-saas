@@ -17,7 +17,7 @@ import json
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
+from backend.components.bcs import k8s
 from backend.utils.cache import region
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
@@ -124,38 +124,6 @@ def get_cc_zk_config(access_token, project_id, cluster_id):
 
 def get_cc_repo_domain(access_token, project_id, cluster_id):
     return paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
-
-
-@parse_response_data()
-def create_or_update_agent_labels(access_token, project_id, cluster_id, labels):
-    client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-    return client.update_agent_attrs(labels)
-
-
-def query_mesos_node_labels(access_token, project_id, cluster_nodes):
-    # 需要支持跨集群操作
-    # cluster_nodes格式: {"cluster-id1": ["ip1", "ip2"], "cluster-id2": ["ip3", "ip4"]]
-    node_labels = {cluster_id: {} for cluster_id in cluster_nodes}
-    for cluster_id, node_ips in cluster_nodes.items():
-        client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-        # 现阶段查询标签仅接口仅支持get请求，而get请求有长度限制，因此，先查询集群下的所有节点的属性，然后通过inner_ip进行匹配
-        data = client.get_agent_attrs()
-        ip_labels_map = {
-            node["innerIP"]: [{key: val["value"]} for key, val in (node.get("strings") or {}).items()] for node in data
-        }
-        for ip in node_ips:
-            node_labels[cluster_id][ip] = ip_labels_map.get(ip) or []
-        # 当过滤的IP为空时，返回整个集群的节点标签
-        if not node_ips:
-            node_labels[cluster_id] = ip_labels_map
-
-    return node_labels
-
-
-def set_mesos_node_labels(access_token, project_id, labels):
-    # labels格式: {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
-    for cluster_id, node_labels in labels.items():
-        create_or_update_agent_labels(access_token, project_id, cluster_id, node_labels)
 
 
 @parse_response_data()

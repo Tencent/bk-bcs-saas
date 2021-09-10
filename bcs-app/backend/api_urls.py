@@ -41,11 +41,6 @@ urlpatterns = [
     ),
     # 提供给iam拉取资源实例的url(已注册到iam后台)
     url(r"^iam/", include("backend.bcs_web.iam.open_apis.urls")),
-    # metrics接口
-    url(
-        r"^metrics/projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w-]+)/",
-        include("backend.container_service.observability.metric.open_apis.urls"),
-    ),
     # web_console API
     url(
         r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/web_console/sessions/",
