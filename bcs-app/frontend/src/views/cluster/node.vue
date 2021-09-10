@@ -125,15 +125,12 @@
                                 </bk-button>
                             </span>
                         </div>
-                        <div class="biz-cluster-node-table-wrapper" v-show="isPageLoading" v-bkloading="{ isLoading: true, opacity: 1 }">
+                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading }">
                             <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
                                 <thead>
                                     <tr>
-                                        <!-- k8s 10 列，mesos、tke 9 列 -->
+                                        <!-- k8s 10 列、tke 9 列 -->
                                         <th style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
-                                            <!-- <label class="bk-form-checkbox" style="margin-top: 7px;">
-                                                <input type="checkbox" name="check-all-node" v-model="isCheckCurPageAllNode" @click="checkAllNode($event)" />
-                                            </label> -->
                                             <bk-checkbox name="check-all-node" v-model="isCheckCurPageAllNode" @change="checkAllNode(...arguments)" />
                                         </th>
                                         <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
@@ -142,155 +139,46 @@
                                         <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                             <th style="width: 8%;">{{$t('Pod数量')}}</th>
                                         </template>
-                                        <template v-if="curClusterInPage.type === 'mesos'">
-                                            <th style="width: 8%;">{{$t('配置')}}</th>
-                                        </template>
                                         <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用IP(个)')}}</template>
-                                            <template v-else>
-                                                CPU
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc"
-                                                        :class="sortIdx === 'cpu_summary' ? 'active' : ''"
-                                                        :title="sortIdx === 'cpu_summary' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('cpu_summary', 'asc', 'cpu_summary')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-cpu_summary' ? 'active' : ''"
-                                                        :title="sortIdx === '-cpu_summary' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('cpu_summary', 'desc', '-cpu_summary')"></span>
-                                                </div>
-                                            </template>
-                                        </th>
-                                        <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用内存(GB)')}}</template>
-                                            <template v-else>
-                                                {{$t('内存')}}
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc"
-                                                        :class="sortIdx === 'mem' ? 'active' : ''"
-                                                        :title="sortIdx === 'mem' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('mem', 'asc', 'mem')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-mem' ? 'active' : ''"
-                                                        :title="sortIdx === '-mem' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('mem', 'desc', '-mem')"></span>
-                                                </div>
-                                            </template>
-                                        </th>
-                                        <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用CPU(核)')}}</template>
-                                            <template v-else>
-                                                {{$t('磁盘')}}
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc "
-                                                        :class="sortIdx === 'disk' ? 'active' : ''"
-                                                        :title="sortIdx === 'disk' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('disk', 'asc', 'disk')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-disk' ? 'active' : ''"
-                                                        :title="sortIdx === '-disk' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('disk', 'desc', '-disk')"></span>
-                                                </div>
-                                            </template>
-                                        </th>
-                                        <template v-if="curClusterInPage.type !== 'mesos'">
-                                            <th style="width: 9%;">
-                                                {{$t('磁盘IO')}}
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc "
-                                                        :class="sortIdx === 'io' ? 'active' : ''"
-                                                        :title="sortIdx === 'io' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('io', 'asc', 'io')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-io' ? 'active' : ''"
-                                                        :title="sortIdx === '-io' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('io', 'desc', '-io')"></span>
-                                                </div>
-                                            </th>
-                                        </template>
-                                        <th style="width: 28%; text-align: left;"><span>{{$t('操作')}}</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="no-hover">
-                                        <td colspan="9">
-                                            <div class="bk-message-box">
-                                                <bcs-exception type="empty" scene="part"></bcs-exception>
+                                            CPU
+                                            <div class="biz-table-sort">
+                                                <span class="sort-direction asc"
+                                                    :class="sortIdx === 'cpu_summary' ? 'active' : ''"
+                                                    :title="sortIdx === 'cpu_summary' ? $t('取消') : $t('升序')"
+                                                    @click="sortNodeList('cpu_summary', 'asc', 'cpu_summary')"></span>
+                                                <span class="sort-direction desc"
+                                                    :class="sortIdx === '-cpu_summary' ? 'active' : ''"
+                                                    :title="sortIdx === '-cpu_summary' ? $t('取消') : $t('降序')"
+                                                    @click="sortNodeList('cpu_summary', 'desc', '-cpu_summary')"></span>
                                             </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="biz-cluster-node-table-wrapper" v-show="!isPageLoading">
-                            <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
-                                <thead>
-                                    <tr>
-                                        <!-- k8s 10 列，mesos、tke 9 列 -->
-                                        <th style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
-                                            <!-- <label class="bk-form-checkbox" style="margin-top: 7px;">
-                                                <input type="checkbox" name="check-all-node" v-model="isCheckCurPageAllNode" @click="checkAllNode($event)" />
-                                            </label> -->
-                                            <bk-checkbox name="check-all-node" v-model="isCheckCurPageAllNode" @change="checkAllNode(...arguments)" />
-                                        </th>
-                                        <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
-                                        <th style="width: 12%;">{{$t('状态')}}</th>
-                                        <th style="width: 8%;">{{$t('容器数量')}}</th>
-                                        <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
-                                            <th style="width: 8%;">{{$t('Pod数量')}}</th>
-                                        </template>
-                                        <template v-if="curClusterInPage.type === 'mesos'">
-                                            <th style="width: 8%;">{{$t('配置')}}</th>
-                                        </template>
-                                        <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用IP(个)')}}</template>
-                                            <template v-else>
-                                                CPU
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc"
-                                                        :class="sortIdx === 'cpu_summary' ? 'active' : ''"
-                                                        :title="sortIdx === 'cpu_summary' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('cpu_summary', 'asc', 'cpu_summary')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-cpu_summary' ? 'active' : ''"
-                                                        :title="sortIdx === '-cpu_summary' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('cpu_summary', 'desc', '-cpu_summary')"></span>
-                                                </div>
-                                            </template>
                                         </th>
                                         <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用内存(GB)')}}</template>
-                                            <template v-else>
-                                                {{$t('内存')}}
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc"
-                                                        :class="sortIdx === 'mem' ? 'active' : ''"
-                                                        :title="sortIdx === 'mem' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('mem', 'asc', 'mem')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-mem' ? 'active' : ''"
-                                                        :title="sortIdx === '-mem' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('mem', 'desc', '-mem')"></span>
-                                                </div>
-                                            </template>
+                                            {{$t('内存')}}
+                                            <div class="biz-table-sort">
+                                                <span class="sort-direction asc"
+                                                    :class="sortIdx === 'mem' ? 'active' : ''"
+                                                    :title="sortIdx === 'mem' ? $t('取消') : $t('升序')"
+                                                    @click="sortNodeList('mem', 'asc', 'mem')"></span>
+                                                <span class="sort-direction desc"
+                                                    :class="sortIdx === '-mem' ? 'active' : ''"
+                                                    :title="sortIdx === '-mem' ? $t('取消') : $t('降序')"
+                                                    @click="sortNodeList('mem', 'desc', '-mem')"></span>
+                                            </div>
                                         </th>
                                         <th style="width: 10%;">
-                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用CPU(核)')}}</template>
-                                            <template v-else>
-                                                {{$t('磁盘')}}
-                                                <div class="biz-table-sort">
-                                                    <span class="sort-direction asc "
-                                                        :class="sortIdx === 'disk' ? 'active' : ''"
-                                                        :title="sortIdx === 'disk' ? $t('取消') : $t('升序')"
-                                                        @click="sortNodeList('disk', 'asc', 'disk')"></span>
-                                                    <span class="sort-direction desc"
-                                                        :class="sortIdx === '-disk' ? 'active' : ''"
-                                                        :title="sortIdx === '-disk' ? $t('取消') : $t('降序')"
-                                                        @click="sortNodeList('disk', 'desc', '-disk')"></span>
-                                                </div>
-                                            </template>
+                                            {{$t('磁盘')}}
+                                            <div class="biz-table-sort">
+                                                <span class="sort-direction asc "
+                                                    :class="sortIdx === 'disk' ? 'active' : ''"
+                                                    :title="sortIdx === 'disk' ? $t('取消') : $t('升序')"
+                                                    @click="sortNodeList('disk', 'asc', 'disk')"></span>
+                                                <span class="sort-direction desc"
+                                                    :class="sortIdx === '-disk' ? 'active' : ''"
+                                                    :title="sortIdx === '-disk' ? $t('取消') : $t('降序')"
+                                                    @click="sortNodeList('disk', 'desc', '-disk')"></span>
+                                            </div>
                                         </th>
-                                        <template v-if="curClusterInPage.type !== 'mesos'">
+                                        <template>
                                             <th style="width: 9%;">
                                                 {{$t('磁盘IO')}}
                                                 <div class="biz-table-sort">
@@ -359,29 +247,11 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'bke_failed' || node.status === 'schedule_failed' ? $t('初始化失败') : $t('删除失败')}}
                                                 </td>
-                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <td>{{node.containerCount}}</td>
                                                 <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                                     <td>{{node.podCount}}</td>
                                                 </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos'">
-                                                    <td>{{node.device_class || '--'}}</td>
-                                                </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                                                    <td>{{node.mesosIpRemainCount}}</td>
-                                                    <td>
-                                                        <template v-if="node.mesosMemoryUsage">
-                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                    <td>
-                                                        <template v-if="node.mesosCpuUsage">
-                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                </template>
-                                                <template v-else>
+                                                <template>
                                                     <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3a84ff'"></ring-cell></td>
@@ -390,7 +260,7 @@
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
 
-                                                <template v-if="curClusterInPage.type !== 'mesos'">
+                                                <template>
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -423,29 +293,11 @@
                                                     <div class="biz-status-node"><i class="node warning"></i></div>
                                                     {{$t('不可调度')}}
                                                 </td>
-                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <td>{{node.containerCount}}</td>
                                                 <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                                     <td>{{node.podCount}}</td>
                                                 </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos'">
-                                                    <td>{{node.device_class || '--'}}</td>
-                                                </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                                                    <td>{{node.mesosIpRemainCount}}</td>
-                                                    <td>
-                                                        <template v-if="node.mesosMemoryUsage">
-                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                    <td>
-                                                        <template v-if="node.mesosCpuUsage">
-                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                </template>
-                                                <template v-else>
+                                                <template>
                                                     <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3a84ff'"></ring-cell></td>
@@ -454,7 +306,7 @@
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
 
-                                                <template v-if="curClusterInPage.type !== 'mesos'">
+                                                <template>
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -497,29 +349,11 @@
                                                     <div class="biz-status-node"><i class="node warning"></i></div>
                                                     {{$t('不可调度')}}
                                                 </td>
-                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <td>{{node.containerCount}}</td>
                                                 <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                                     <td>{{node.podCount}}</td>
                                                 </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos'">
-                                                    <td>{{node.device_class || '--'}}</td>
-                                                </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                                                    <td>{{node.mesosIpRemainCount}}</td>
-                                                    <td>
-                                                        <template v-if="node.mesosMemoryUsage">
-                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                    <td>
-                                                        <template v-if="node.mesosCpuUsage">
-                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                </template>
-                                                <template v-else>
+                                                <template>
                                                     <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3a84ff'"></ring-cell></td>
@@ -528,7 +362,7 @@
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
 
-                                                <template v-if="curClusterInPage.type !== 'mesos'">
+                                                <template>
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -564,29 +398,11 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{$t('不正常')}}
                                                 </td>
-                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <td>{{node.containerCount}}</td>
                                                 <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                                     <td>{{node.podCount}}</td>
                                                 </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos'">
-                                                    <td>{{node.device_class || '--'}}</td>
-                                                </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                                                    <td>{{node.mesosIpRemainCount}}</td>
-                                                    <td>
-                                                        <template v-if="node.mesosMemoryUsage">
-                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                    <td>
-                                                        <template v-if="node.mesosCpuUsage">
-                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                </template>
-                                                <template v-else>
+                                                <template>
                                                     <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3a84ff'"></ring-cell></td>
@@ -595,7 +411,7 @@
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
 
-                                                <template v-if="curClusterInPage.type !== 'mesos'">
+                                                <template>
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -626,39 +442,19 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{$t('不正常')}}
                                                 </td>
-                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <td>{{node.containerCount}}</td>
                                                 <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                                     <td>{{node.podCount}}</td>
                                                 </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos'">
-                                                    <td>{{node.device_class || '--'}}</td>
-                                                </template>
-
-                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
-                                                    <td>{{node.mesosIpRemainCount}}</td>
-                                                    <td>
-                                                        <template v-if="node.mesosMemoryUsage">
-                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                    <td>
-                                                        <template v-if="node.mesosCpuUsage">
-                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
-                                                        </template>
-                                                    </td>
-                                                </template>
-                                                <template v-else>
+                                                <template>
                                                     <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3a84ff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                     <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
-                                                    <template v-if="curClusterInPage.type !== 'mesos'">
-                                                        <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                        <td v-else><loading-cell></loading-cell></td>
-                                                    </template>
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
                                                 </template>
 
                                                 <td style="text-align: left;">
@@ -1203,8 +999,7 @@
             :quick-close="false"
             @cancel="stopDialogConf.isShow = false">
             <template slot="content">
-                <div style="font-size: 16px;" v-if="curClusterInPage.type === 'mesos'">{{stopDialogConf.content}}</div>
-                <div style="color: #ff5656;" v-else>{{stopDialogConf.content}}</div>
+                <div :class="{ 'stopDialog-content': true, 'font-content': !this.$INTERNAL }">{{stopDialogConf.content}}</div>
             </template>
             <div slot="footer">
                 <div class="bk-dialog-outer">
@@ -1428,6 +1223,15 @@
         li {
             list-style: circle;
         }
+    }
+    .stopDialog-title {
+        font-size: 16px;
+    }
+    .stopDialog-content {
+        color: #ff5656;
+    }
+    .font-content {
+        color: #63656e !important;
     }
     /* .bk-dialog-footer .bk-dialog-outer button {
         margin-top: 30px;

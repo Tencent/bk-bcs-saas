@@ -15,7 +15,7 @@
         "spec":{
             "type": "ClusterIP",
             "selector": {},
-            "clusterIP": "None",
+            "clusterIP": "",
             "ports": [{
                 "name": "",
                 "port": "",

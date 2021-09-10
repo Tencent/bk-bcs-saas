@@ -67,16 +67,3 @@ class BatchUpdateInstanceParamsSLZ(BaseParamsSLZ):
 
 class BatchDeleteInstanceParamsSLZ(BaseParamsSLZ):
     pass
-
-
-class SendInstanceCommandParamsSLZ(BaseParamsSLZ):
-    env = serializers.ListField(required=False, default=[])
-    command = serializers.ListField()
-    username = serializers.CharField(default="root")
-    work_dir = serializers.CharField(required=False, default="")
-    privileged = serializers.BooleanField(default=False)
-    reserve_time = serializers.IntegerField(default=24607)
-
-
-class GetCommandStatusSLZ(BaseParamsSLZ):
-    task_id = serializers.CharField(required=True)

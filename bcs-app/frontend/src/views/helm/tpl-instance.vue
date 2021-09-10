@@ -105,7 +105,7 @@
                                             </div>
                                         </div>
                                         <div class="inner">
-                                            <div class="inner-item" v-if="$INTERNAL">
+                                            <div class="inner-item">
                                                 <label class="title">{{$t('所属集群')}}</label>
                                                 <bk-selector
                                                     style="width: 268px;"
@@ -840,17 +840,22 @@
                 const list = []
                 const projectId = this.projectId
                 const version = index
-                const chartId = this.curTpl.name
+                const versionId = this.curTplVersions.find(item => item.version === index).id
                 const isPublic = this.curTpl.repository.name === 'public-repo'
 
                 this.isQuestionsLoading = true
                 try {
-                    const res = await this.$store.dispatch('helm/getChartVersionDetail', { projectId, chartId, version, isPublic })
+                    const fnPath = this.$INTERNAL ? 'helm/getChartVersionDetail' : 'helm/getChartByVersion'
+                    const res = await this.$store.dispatch(fnPath, {
+                        projectId,
+                        chartId: this.$INTERNAL ? this.curTpl.name : this.curTpl.id,
+                        version: this.$INTERNAL ? version : versionId,
+                        isPublic
+                    })
                     const tplData = res.data
                     const files = res.data.data.files
                     const tplName = tplData.name
                     const bcsTplName = tplData.name + '/bcs-values'
-                    console.log(`^${tplName}/[\w-]*values.(yaml|yml)$`)
                     const regex = new RegExp(`^${tplName}\\/[\\w-]*values.(yaml|yml)$`)
                     const bcsRegex = new RegExp(`^${bcsTplName}\\/[\\w-]*.(yaml|yml)$`)
 
@@ -882,6 +887,7 @@
                     this.curTplYaml = files[`${tplName}/values.yaml`]
                     this.yamlFile = files[`${tplName}/values.yaml`]
                     this.editYaml()
+                    this.curTpl.description = res.data.data.description
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -936,10 +942,21 @@
             async getTplVersions () {
                 const projectId = this.projectId
                 try {
-                    const tplId = this.curTpl.name
-                    const isPublic = this.curTpl.repository.name === 'public-repo'
-                    const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
-                    this.curTplVersions = res.data
+                    if (this.$INTERNAL) {
+                        // 内部版本
+                        const tplId = this.curTpl.name
+                        const isPublic = this.curTpl.repository.name === 'public-repo'
+                        const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
+                        this.curTplVersions = res.data
+                    } else {
+                        // 外部版本
+                        const tplId = this.curTpl.id
+                        const res = await this.$store.dispatch('helm/getTplVersions', {
+                            projectId,
+                            tplId
+                        })
+                        this.curTplVersions = res.data.results || []
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {

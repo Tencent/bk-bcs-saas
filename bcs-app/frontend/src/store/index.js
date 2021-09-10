@@ -19,7 +19,6 @@ import variable from '@open/store/modules/variable'
 import configuration from '@open/store/modules/configuration'
 import templateset from '@open/store/modules/templateset'
 import network from '@open/store/modules/network'
-import mesosTemplate from '@open/store/modules/mesos-template'
 import k8sTemplate from '@open/store/modules/k8s-template'
 import helm from '@open/store/modules/helm'
 import crdcontroller from '@open/store/modules/crdcontroller'
@@ -56,7 +55,6 @@ const store = new Vuex.Store({
         configuration,
         templateset,
         network,
-        mesosTemplate,
         k8sTemplate,
         helm,
         hpa,
@@ -197,8 +195,6 @@ const store = new Vuex.Store({
             const { list, isDashboard } = data
             if (isDashboard) {
                 state.sideMenu.dashboardMenuList.splice(0, state.sideMenu.dashboardMenuList.length, ...list)
-            } else if (Boolean(state.curClusterId) && state.curProject.kind === PROJECT_MESOS) {
-                state.sideMenu.clusterMenuList.splice(0, state.sideMenu.clusterMenuList.length, ...list)
             } else if (Boolean(state.curClusterId) && (state.curProject.kind === PROJECT_K8S || state.curProject.kind === PROJECT_TKE)) {
                 state.sideMenu.clusterk8sMenuList.splice(0, state.sideMenu.clusterk8sMenuList.length, ...list)
             } else if (state.curProject && (state.curProject.kind === PROJECT_K8S || state.curProject.kind === PROJECT_TKE)) {
@@ -349,8 +345,6 @@ const store = new Vuex.Store({
                     case 'bcs':
                         if (isDashboard) {
                             tmp.splice(0, 0, ...context.state.sideMenu.dashboardMenuList)
-                        } else if (Boolean(context.state.curClusterId) && context.state.curProject.kind === PROJECT_MESOS) {
-                            tmp.splice(0, 0, ...context.state.sideMenu.clusterMenuList)
                         } else if ((Boolean(context.state.curClusterId) && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE))) {
                             tmp.splice(0, 0, ...context.state.sideMenu.clusterk8sMenuList)
                         } else if ((context.state.curProject && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE)) || projectType === 'k8s') {

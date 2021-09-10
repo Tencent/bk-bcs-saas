@@ -1582,7 +1582,6 @@ export default {
     '重命名': ['Rename'],
     '新增文件': ['Add File'],
     '新增目录': ['Add Catalog'],
-    '导入模板集': ['Import Templateset'],
     '新建CL5成功': ['Create CL5 Success'],
     '是否有sid': ['has sid'],
     '转换到YAML': ['Export To YAML'],
@@ -1747,7 +1746,7 @@ export default {
     '新增集群': ['Create Cluster'],
     '数据盘大小/CPU核数 > 50，申请的服务器有运管人工审批环节；如需加急，请联系{name}协助推动': ['The size of the data disk / number of CPU cores is greater than 50, and the application server has a manual approval process for operation management; if you need to expedite, please contact {name} for assistance'],
     '和集群所属区域一致': ['Consistent with the region to which the cluster belongs'],
-    '和集群所属网络类型一致': ['Consistent with the networkType of the cluster'],
+    '和集群网络类型一致': ['Consistent with the networkType of the cluster'],
     '已选择': ['Selected'],
     '资源视图': ['Dashboard'],
     '概览': ['Overview'],
@@ -1924,6 +1923,7 @@ export default {
     '按Esc即可退出全屏模式': ['Press Esc to exit full screen mode'],
     '自定义资源': ['CustomResource'],
     '选择CRD': ['Select CRD'],
+    '无权限': ['No permission'],
     '设置Flags，如设置wait，输入格式为 --wait = true': ['If you want to set wait, enter the format --wait = true'],
     '确认删除当前资源': ['Confirm to delete the resource'],
     '下一步': ['Next'],
@@ -1955,7 +1955,8 @@ export default {
     '编辑项目': ['Edit'],
     '申请监控中心': ['Application monitor'],
     '检索关键字': ['Search key'],
-    '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or']
+    '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or'],
+    '系统内置变量，不能删除': ['System variables, can not delete']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

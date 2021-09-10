@@ -821,7 +821,7 @@
                         projectId: this.projectId,
                         clusterId: this.searchClusterId,
                         data: {
-                            servicemonitors: this.checkedNodeList.map(item => {
+                            service_monitors: this.checkedNodeList.map(item => {
                                 return {
                                     namespace: item.namespace,
                                     name: item.name

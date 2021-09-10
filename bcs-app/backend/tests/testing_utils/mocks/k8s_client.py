@@ -17,7 +17,7 @@ from functools import lru_cache
 
 from kubernetes import client
 
-from backend.resources.utils.discovery import BcsLazyDiscoverer, DiscovererCache
+from backend.resources.utils.dynamic.discovery import BcsLazyDiscoverer, DiscovererCache
 from backend.resources.utils.kube_client import CoreDynamicClient
 
 

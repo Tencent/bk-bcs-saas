@@ -55,7 +55,7 @@
                             <node-searcher
                                 :cluster-id="clusterId"
                                 :project-id="projectId"
-                                :had-search-data="!isMesosProject"
+                                had-search-data
                                 :search-labels-data="searchLabelsData"
                                 ref="searcher"
                                 @search="searchNodeList">
@@ -127,27 +127,6 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column v-if="isMesosProject" :label="$t('所属集群')" prop="cluster_name" width="200">
-                            <template slot-scope="{ row }">
-                                <div v-if="ingStatus.includes(row.status)">
-                                    <bk-tooltip :content="`${row.cluster_id}`" placement="top">
-                                        <p class="biz-text-wrapper">{{row.cluster_name}}</p>
-                                    </bk-tooltip>
-                                </div>
-                                <div v-if="failStatus.includes(row.status)
-                                    || row.status === 'to_removed'
-                                    || row.status === 'removable'
-                                    || row.status === 'not_ready'
-                                    || row.status === 'unnormal'
-                                    || row.status === 'normal'">
-                                    <bk-tooltip :content="`${row.cluster_id}`" placement="top">
-                                        <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(row)">
-                                            <p class="biz-text-wrapper">{{row.cluster_name}}</p>
-                                        </a>
-                                    </bk-tooltip>
-                                </div>
-                            </template>
-                        </bk-table-column>
                         <bk-table-column :label="$t('标签')" prop="source_type" :show-overflow-tooltip="false">
                             <template slot-scope="{ row, $index }">
                                 <bcs-popover v-if="row.transformLabels.length" :delay="300" placement="left-end">
@@ -172,7 +151,7 @@
                                 <template v-else>--</template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column v-if="!isMesosProject" :label="$t('污点')" :show-overflow-tooltip="false">
+                        <bk-table-column :label="$t('污点')" :show-overflow-tooltip="false">
                             <template slot-scope="{ row, $index }">
                                 <bcs-popover v-if="row.transformTaints.length" :delay="300" placement="left">
                                     <div class="label-list" :ref="`taint_${pageConf.current}_${$index}`">
@@ -203,7 +182,7 @@
                                     @click.stop="showSetLabelInRow(row)">
                                     {{$t('设置标签')}}
                                 </bk-button>
-                                <bk-button v-if="!isMesosProject" text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
+                                <bk-button text @click.stop="showTaintDialog(row)">{{$t('设置污点')}}</bk-button>
                                 <bk-button text @click.stop="goClusterNode(row)">{{$t('更多操作')}}</bk-button>
                             </template>
                         </bk-table-column>
@@ -419,9 +398,6 @@
             labelDocUrl () {
                 return this.curProject.kind === window.PROJECT_K8S ? this.PROJECT_CONFIG.doc.nodeLabelK8s : this.PROJECT_CONFIG.doc.nodeLabelMesos
             },
-            isMesosProject () {
-                return this.curProject.kind === window.PROJECT_MESOS
-            },
             isEn () {
                 return this.$store.state.isEn
             },
@@ -429,7 +405,6 @@
                 return this.$store.state.curClusterId
             },
             searchLabelsData () {
-                if (this.isMesosProject) return {}
                 const res = {}
                 for (const node of this.nodeList) {
                     Object.keys(node.labels || {}).forEach(key => {
@@ -496,12 +471,6 @@
                         this.curSelectedClusterName = list.length ? list[0].name : this.$t('全部集群')
                         this.curSelectedClusterId = list.length ? list[0].cluster_id : 'all'
                     }
-                    if (this.isMesosProject) {
-                        list.unshift({
-                            name: this.$t('全部集群'),
-                            cluster_id: 'all'
-                        })
-                    }
 
                     this.clusterList.splice(0, this.clusterList.length, ...list)
                 } catch (e) {
@@ -518,7 +487,6 @@
                 this.curSelectedClusterName = cluster.name
                 this.curSelectedClusterId = clusterId
                 this.pageConf.current = 1
-                this.showLoading = true
                 await this.fetchData(true)
             },
 
@@ -561,61 +529,44 @@
                 if (!isPolling) {
                     await this.getClusters()
                 }
-                if (!this.clusterList.length) return
+                if (!this.clusterList.length) {
+                    this.pageLoading = false
+                    return
+                }
                 this.showLoading = true
                 try {
-                    const api = this.isMesosProject ? 'cluster/getMesosNodeList' : 'cluster/getK8sNodes'
-                    const params = {}
-                    if (this.isMesosProject) {
-                        params.projectId = this.projectId
-                        if (this.curSelectedClusterId !== 'all') {
-                            params.clusterId = this.curSelectedClusterId
-                        }
-                    } else {
-                        params.$clusterId = this.curSelectedClusterId
+                    const params = {
+                        $clusterId: this.curSelectedClusterId
                     }
-                    const res = await this.$store.dispatch(api, params)
+                    const res = await this.$store.dispatch('cluster/getK8sNodes', params)
 
-                    const list = this.isMesosProject ? res?.data?.results || [] : res
+                    const list = res
 
                     const nodeList = []
                     list.forEach(item => {
                         item.transformLabels = []
-                        if (this.isMesosProject) {
-                            item.labels.forEach((label, index) => {
-                                const labelKey = Object.keys(label)[0]
-                                const labelVal = label[labelKey]
-                                item.transformLabels.push({
-                                    key: labelKey,
-                                    value: labelVal
-                                })
+                        Object.entries(item.labels || {}).forEach(entries => {
+                            item.transformLabels.push({
+                                key: entries[0],
+                                value: entries[1]
                             })
-                        } else {
-                            Object.entries(item.labels || {}).forEach(entries => {
-                                item.transformLabels.push({
-                                    key: entries[0],
-                                    value: entries[1]
-                                })
-                            })
+                        })
 
-                            // 兼容数据格式
-                            item.permissions = {
-                                create: true,
-                                delete: true,
-                                deploy: false,
-                                download: false,
-                                edit: true,
-                                use: true,
-                                view: true
-                            }
+                        // 兼容数据格式
+                        item.permissions = {
+                            create: true,
+                            delete: true,
+                            deploy: false,
+                            download: false,
+                            edit: true,
+                            use: true,
+                            view: true
                         }
-                        if (!this.isMesosProject) {
-                            item.transformTaints = []
-                            for (const taint of item.taints) {
-                                item.transformTaints.push(Object.assign({}, taint, {
-                                    displayValue: taint.value && taint.effect ? taint.value + ' : ' + taint.effect : taint.value || taint.effect
-                                }))
-                            }
+                        item.transformTaints = []
+                        for (const taint of item.taints) {
+                            item.transformTaints.push(Object.assign({}, taint, {
+                                displayValue: taint.value && taint.effect ? taint.value + ' : ' + taint.effect : taint.value || taint.effect
+                            }))
                         }
 
                         item.isExpandLabels = false
@@ -859,7 +810,7 @@
                         })
                     }
                     Object.keys(resultMap).forEach(ip => {
-                        const labels = this.isMesosProject ? resultMap[ip].labels : Object.keys(resultMap[ip].labels).map(key => ({ [key]: resultMap[ip].labels[key] }))
+                        const labels = Object.keys(resultMap[ip].labels).map(key => ({ [key]: resultMap[ip].labels[key] }))
                         for (let i = 0; i < len; i++) {
                             if (!labels.filter(
                                 label => JSON.stringify(label) === JSON.stringify(sLabels[i])).length
@@ -1080,31 +1031,21 @@
                     this.setLabelConf.isShow = true
                     this.setLabelConf.loading = true
 
-                    const api = this.isMesosProject ? 'cluster/getMesosNodeLabel' : 'cluster/fetchK8sNodeLabels'
                     const params = {
                         $clusterId: this.curSelectedClusterId,
                         node_name_list: this.checkedNodeList.map(checkedNode => checkedNode.name)
                     }
-                    if (this.isMesosProject) {
-                        params.projectId = this.projectId
-                        params.node_labels = this.checkedNodeList.map(checkedNode => ({
-                            cluster_id: checkedNode.cluster_id,
-                            inner_ip: checkedNode.inner_ip
-                        }))
-                    }
 
-                    const res = await this.$store.dispatch(api, params)
+                    const res = await this.$store.dispatch('cluster/fetchK8sNodeLabels', params)
 
-                    const labelsList = this.isMesosProject ? res.data || [] : [{}]
+                    const labelsList = [{}]
 
                     // 数据格式处理成和mesos相同
-                    if (!this.isMesosProject) {
-                        Object.keys(res).forEach(key => {
-                            labelsList[0] = Object.assign(labelsList[0], {
-                                [key]: Object.entries(res[key]).map(entries => ({ [entries[0]]: entries[1] }))
-                            })
+                    Object.keys(res).forEach(key => {
+                        labelsList[0] = Object.assign(labelsList[0], {
+                            [key]: Object.entries(res[key]).map(entries => ({ [entries[0]]: entries[1] }))
                         })
-                    }
+                    })
 
                     const labels = this.getMesosLabls(labelsList)
                     const list = Object.keys(labels)
@@ -1157,20 +1098,13 @@
                 try {
                     this.setLabelConf.isShow = true
                     this.setLabelConf.loading = true
-                    const api = this.isMesosProject ? 'cluster/getMesosNodeLabel' : 'cluster/fetchK8sNodeLabels'
-                    const params = this.isMesosProject ? {
-                        projectId: this.projectId,
-                        node_labels: [{
-                            cluster_id: node.cluster_id,
-                            inner_ip: node.inner_ip
-                        }]
-                    } : {
+                    const params = {
                         $clusterId: this.curSelectedClusterId,
                         node_name_list: [node.name]
                     }
-                    const res = await this.$store.dispatch(api, params)
+                    const res = await this.$store.dispatch('cluster/fetchK8sNodeLabels', params)
 
-                    const labels = this.isMesosProject ? this.getMesosLabls(res.data || []) : res?.[node.inner_ip]
+                    const labels = res?.[node.inner_ip]
                     const list = Object.keys(labels)
                     const labelList = []
                     if (list.length) {
@@ -1277,8 +1211,7 @@
 
                 try {
                     this.setLabelConf.loading = true
-                    let api = 'cluster/setK8sNodeLabels'
-                    let params = {
+                    const params = {
                         $clusterId: this.curSelectedClusterId,
                         node_label_list: resNodeList.map(node => {
                             const nodeLabelInfo = {}
@@ -1295,30 +1228,7 @@
                             }
                         })
                     }
-                    if (this.isMesosProject) {
-                        api = 'cluster/updateMesosNodeLabel'
-                        const keys = Object.keys(labelInfo)
-                        params = {
-                            projectId: this.projectId,
-                            node_labels: resNodeList.map(item => {
-                                const originalLabels = item.labels.reduce((res, label) => Object.assign(res, label), {})
-                                const labels = []
-                                for (const key of keys) {
-                                    if (labelInfo[key] === '*****-----$$$$$' && originalLabels[key]) {
-                                        labels.push({ [key]: originalLabels[key] })
-                                    } else if (labelInfo[key] !== '*****-----$$$$$') {
-                                        labels.push({ [key]: labelInfo[key] })
-                                    }
-                                }
-                                return {
-                                    cluster_id: item.cluster_id,
-                                    inner_ip: item.inner_ip,
-                                    labels
-                                }
-                            })
-                        }
-                    }
-                    await this.$store.dispatch(api, params)
+                    await this.$store.dispatch('cluster/setK8sNodeLabels', params)
 
                     this.hideSetLabel()
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])

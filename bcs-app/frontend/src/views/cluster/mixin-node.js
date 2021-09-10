@@ -492,9 +492,6 @@ export default {
                             item.diskioMetric = this.nodeSummaryMap[item.id].diskioMetric
                             item.containerCount = this.nodeSummaryMap[item.id].containerCount
                             item.podCount = this.nodeSummaryMap[item.id].podCount
-                            item.mesosMemoryUsage = this.nodeSummaryMap[item.id].mesosMemoryUsage
-                            item.mesosIpRemainCount = this.nodeSummaryMap[item.id].mesosIpRemainCount
-                            item.mesosCpuUsage = this.nodeSummaryMap[item.id].mesosCpuUsage
                         }
                     })
                 }
@@ -653,16 +650,10 @@ export default {
          */
         async getNodeSummary (cur, index) {
             try {
-                const args = {}
-                if (this.curClusterInPage.type === 'mesos' && this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
-                    args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
-                }
-
                 const res = await this.$store.dispatch('cluster/getNodeOverview', {
                     projectId: cur.project_id,
                     clusterId: cur.cluster_id,
-                    nodeIp: cur.inner_ip,
-                    data: args
+                    nodeIp: cur.inner_ip
                 })
 
                 cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
@@ -671,9 +662,6 @@ export default {
                 cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
                 cur.containerCount = res.data.container_count || 0
                 cur.podCount = res.data.pod_count || 0
-                cur.mesosMemoryUsage = res.data.mesos_memory_usage || { remain: 0, total: 0 }
-                cur.mesosIpRemainCount = res.data.mesos_ip_remain_count || 0
-                cur.mesosCpuUsage = res.data.mesos_cpu_usage || { remain: 0, total: 0 }
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
@@ -681,10 +669,7 @@ export default {
                     diskMetric: cur.diskMetric,
                     diskioMetric: cur.diskioMetric,
                     containerCount: cur.containerCount,
-                    podCount: cur.podCount,
-                    mesosMemoryUsage: cur.mesosMemoryUsage,
-                    mesosIpRemainCount: cur.mesosIpRemainCount,
-                    mesosCpuUsage: cur.mesosCpuUsage
+                    podCount: cur.podCount
                 }
 
                 this.$set(this.nodeList, index, cur)
@@ -1363,20 +1348,18 @@ export default {
 
             this.stopDialogConf.isShow = true
 
-            if (this.curClusterInPage.type === 'mesos') {
+            if (this.$INTERNAL) {
+                this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
+                this.stopDialogConf.content = this.$t(
+                    '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
+                )
+            } else {
                 this.stopDialogConf.title = ' '
                 this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
                     innerIp: node.inner_ip
                 })
-            } else {
-                this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
-                    innerIp: node.inner_ip
-                })
-                if (this.$INTERNAL) {
-                    this.stopDialogConf.content = this.$t(
-                        '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
-                        )
-                }
             }
 
             this.curNode = Object.assign({}, node)
