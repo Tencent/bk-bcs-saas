@@ -26,6 +26,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.audit_log import client
 from backend.components import data, paas_cc
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
@@ -704,7 +705,7 @@ class TaskgroupEvents(InstanceAPI):
         return conf
 
     def get_rc_name_by_deployment(
-        self, request, project_id, cluster_id, instance_name, project_kind=2, namespace=None
+        self, request, project_id, cluster_id, instance_name, project_kind=ProjectKindID, namespace=None
     ):
         """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
@@ -822,7 +823,7 @@ class ContainerInfo(InstanceAPI):
         return conf
 
     def get_rc_name_by_deployment(
-        self, request, project_id, cluster_id, instance_name, project_kind=2, namespace=None
+        self, request, project_id, cluster_id, instance_name, project_kind=ProjectKindID, namespace=None
     ):
         """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
