@@ -937,19 +937,10 @@
                     }
                     this.showLoading = false // 关闭loading，让集群列表先出来，指标慢慢加载（后面重构）
 
-                    for (let index = 0; index < list.length; index++) {
-                        const item = list[index]
-                        if (!notLoading) {
-                            const d = await this.$store.dispatch('cluster/clusterOverview', {
-                                projectId: this.projectId,
-                                clusterId: item.cluster_id
-                            })
-                            item.cpu_usage = d.data.cpu_usage
-                            item.mem_usage = d.data.mem_usage
-                            item.disk_usage = d.data.disk_usage
-                        }
-                    }
                     this.$store.commit('cluster/forceUpdateClusterList', list)
+                    if (!notLoading) {
+                        this.handleGetClusterOverview()
+                    }
 
                     if (this.cancelLoop) {
                         clearTimeout(this.timer)
@@ -973,7 +964,21 @@
                     this.showLoading = false
                 }
             },
-
+            async handleGetClusterOverview () {
+                const newClusterList = JSON.parse(JSON.stringify(this.clusterList))
+                const promiseList = newClusterList.filter(item => item.status === 'normal').map(item => {
+                    return this.$store.dispatch('cluster/clusterOverview', {
+                        projectId: this.projectId,
+                        clusterId: item.cluster_id
+                    }).then(res => {
+                        item.cpu_usage = res.data.cpu_usage
+                        item.mem_usage = res.data.memory_usage
+                        item.disk_usage = res.data.disk_usage
+                    })
+                })
+                await Promise.all(promiseList)
+                this.$store.commit('cluster/forceUpdateClusterList', newClusterList)
+            },
             /**
              * 重新初始化
              *

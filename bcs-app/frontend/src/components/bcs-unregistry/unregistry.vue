@@ -241,7 +241,7 @@
         }
     }
     .type-content {
-        justify-content: end;
+        justify-content: end !important;
     }
 }
 </style>
