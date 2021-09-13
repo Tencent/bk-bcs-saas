@@ -196,8 +196,6 @@ class GetInstances(BaseNamespaceMetric):
         )
         if filter_ns_id and str(ns_id) != str(filter_ns_id):
             return APIResponse({"data": {}})
-        # 获取项目类型
-        project_kind = self.project_kind(request)
         # 获取项目下集群类型
         cluster_env_map = self.get_cluster_id_env(request, project_id)
         # 检查命名空间属于项目

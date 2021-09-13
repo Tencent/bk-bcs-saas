@@ -127,11 +127,8 @@ class Template(BaseModel):
         container_list = []
         draft = self.get_draft()
         apps = []
-        if project_kind == K8S_KIND:
-            for resource_name in POD_RES_LIST:
-                apps.extend(draft.get(resource_name) or [])
-        else:
-            apps = draft.get("application") or []
+        for resource_name in POD_RES_LIST:
+            apps.extend(draft.get(resource_name) or [])
 
         for app in apps:
             config = app.get("config") or {}
@@ -621,24 +618,13 @@ class VersionedEntity(BaseModel):
                 if type == "port":
                     port_list = _con.get("ports")
                     for _port in port_list:
-                        if project_kind == 1:
-                            container_list.append(
-                                {
-                                    "name": _port.get("name"),
-                                    "containerPort": _port.get("containerPort"),
-                                    "id": _port.get("id"),
-                                }
-                            )
-                        else:
-                            container_list.append(
-                                {
-                                    "name": _port.get("name"),
-                                    "protocol": _port.get("protocol"),
-                                    # TODO ： 根据网络模式确定
-                                    "target_port": _port.get("containerPort"),
-                                    "id": _port.get("id"),
-                                }
-                            )
+                        container_list.append(
+                            {
+                                "name": _port.get("name"),
+                                "containerPort": _port.get("containerPort"),
+                                "id": _port.get("id"),
+                            }
+                        )
                 elif type == "base":
                     container_list.append({"name": _con.get("name"), "image": _con.get("image").split("/")[-1]})
         return container_list
