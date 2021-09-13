@@ -27,6 +27,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_web.audit_log import client
 from backend.celery_app.tasks.application import update_create_error_record
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
 from backend.templatesets.legacy_apps.instance.constants import InsState
@@ -149,7 +150,6 @@ class GetProjectMuster(BaseMusterMetric):
         cluster_type, app_status, muster_id, app_id, ns_id, request_cluster_id = self.get_filter_params(
             request, project_id
         )
-        project_kind = self.project_kind(request)
         # 获取模板集
         all_muster_list = self.get_muster(project_id, muster_id)
         # 获取集群及环境
@@ -158,30 +158,23 @@ class GetProjectMuster(BaseMusterMetric):
         app_name = self.get_inst_name(app_id)
         # 获取模板
         muster_id_list = [info["id"] for info in all_muster_list]
-        if project_kind == 2:
-            # 获取模板id和名称的对应关系
-            muster_id_name_map = {info["id"]: info["name"] for info in all_muster_list}
-            # 获取version instance，用于展示模板集下是否有实例
-            muster_num_map = self.get_version_instance(muster_id_list, cluster_env_map, cluster_type, app_name, ns_id)
-            ret_data = self.muster_tmpl_handler(muster_id_name_map, muster_num_map)
-        else:
-            category = request.GET.get("category")
-            if not category:
-                raise error_codes.CheckFailed(_("分类不能为空"))
-            k8s_view_client = k8s_views.K8SMuster()
-            ret_data = k8s_view_client.get(
-                request,
-                project_id,
-                all_muster_list,
-                muster_id_list,
-                category,
-                cluster_type,
-                app_status,
-                app_name,
-                ns_id,
-                cluster_env_map,
-                request_cluster_id,
-            )
+        category = request.GET.get("category")
+        if not category:
+            raise error_codes.CheckFailed(_("分类不能为空"))
+        k8s_view_client = k8s_views.K8SMuster()
+        ret_data = k8s_view_client.get(
+            request,
+            project_id,
+            all_muster_list,
+            muster_id_list,
+            category,
+            cluster_type,
+            app_status,
+            app_name,
+            ns_id,
+            cluster_env_map,
+            request_cluster_id,
+        )
         return utils.APIResponse({"data": ret_data})
 
 
@@ -589,53 +582,36 @@ class GetMusterTemplate(BaseMusterMetric):
             muster_id, cluster_type, filter_app_name, ns_id, cluster_env_map, request_cluster_id
         )
 
-        if project_kind == 2:
-            # 根据模板集获取所有模板
-            version_id_map_list = self.get_tmpl_info(muster_id)
-            # 获取deployment对应的application
-            application_demployment_map = self.get_application_by_deployment(
-                request, cluster_ns_inst, project_id, project_kind
-            )
-            # 获取异常数量
-            inst_status = self.get_inst_status_for_tmpl(
-                request, cluster_ns_inst, project_id, project_kind, application_demployment_map
-            )
-            # 拼装模板总数量和异常数量
-            tmpl_count_info = self.compose_status_count_data(muster_tmpl_map, tmpl_create_error, inst_status)
-            # 拼装数据
-            ret_data = self.compose_ret_data(version_id_map_list, version_map, tmpl_count_info, app_status)
-        else:
-            category = request.GET.get("category")
-            if not category or category not in k8s_views.CATEGORY_MAP:
-                raise error_codes.CheckFailed(_("分类不正确"))
-            # 根据模板集获取所有模板
-            version_id_map_list = self.get_tmpl_info(muster_id, category=category)
-            k8s_view_client = k8s_views.GetMusterTemplate()
-            ret_data = k8s_view_client.get(
-                request,
-                cluster_ns_inst,
-                project_id,
-                project_kind,
-                version_id_map_list,
-                version_map,
-                category,
-                muster_tmpl_map,
-                tmpl_create_error,
-                cluster_type,
-                app_status,
-                filter_app_name,
-                ns_id,
-                cluster_env_map,
-            )
+        category = request.GET.get("category")
+        if not category or category not in k8s_views.CATEGORY_MAP:
+            raise error_codes.CheckFailed(_("分类不正确"))
+        # 根据模板集获取所有模板
+        version_id_map_list = self.get_tmpl_info(muster_id, category=category)
+        k8s_view_client = k8s_views.GetMusterTemplate()
+        ret_data = k8s_view_client.get(
+            request,
+            cluster_ns_inst,
+            project_id,
+            project_kind,
+            version_id_map_list,
+            version_map,
+            category,
+            muster_tmpl_map,
+            tmpl_create_error,
+            cluster_type,
+            app_status,
+            filter_app_name,
+            ns_id,
+            cluster_env_map,
+        )
         ret_data_values = self.refine_template(ret_data)
         return utils.APIResponse({"data": ret_data_values})
 
 
 class AppInstance(BaseMusterMetric):
-    def get_version_instance(self, muster_id, ids, category, project_kind=2):
+    def get_version_instance(self, muster_id, ids, category, project_kind=ProjectKindID):
         """获取实例版本信息"""
-        if project_kind == 1:
-            category = k8s_views.CATEGORY_MAP[category]
+        category = k8s_views.CATEGORY_MAP[category]
         all_version_info = VersionInstance.objects.filter(is_deleted=False, template_id=muster_id).order_by("-created")
         # 组装数据
         instance_version_ids = []
@@ -682,15 +658,12 @@ class AppInstance(BaseMusterMetric):
         cluster_env_map,
         app_name,
         ns_id,
-        project_kind=2,
+        project_kind=ProjectKindID,
         request_cluster_id=None,
     ):
         """获取实例信息"""
-        if project_kind == 1:
-            category = k8s_views.CATEGORY_MAP[category]
-            filter_category = [category]
-        else:
-            filter_category = [APPLICATION_CATEGORY, DEPLOYMENT_CATEGORY]
+        category = k8s_views.CATEGORY_MAP[category]
+        filter_category = [category]
         ret_data = {}
         inst_info = (
             InstanceConfig.objects.filter(instance_id__in=instance_version_ids, category=category, is_deleted=False)
@@ -770,30 +743,15 @@ class AppInstance(BaseMusterMetric):
             }
             annotations = metadata.get("annotations") or {}
             item.update(utils.get_instance_version(annotations, labels))
-            if project_kind == 2:
-                item.update(
-                    {
-                        "application_status": "Deploying",
-                        "deployment_status": "Deploying",
-                        "application_status_message": "",
-                        "deployment_status_message": "",
-                        "task_group_count": "0/0",
-                        "category": info.category,
-                    }
-                )
-                ret_data[key_name] = item
-                # 获取rollingupdate
-                ret_data[key_name].update(self.get_rolling_update_info(conf))
-            else:
-                item.update(
-                    {
-                        "status": "Unready",
-                        "status_message": _("请点击查看详情"),
-                        "pod_count": "0/0",
-                        "category": k8s_views.REVERSE_CATEGORY_MAP[info.category],
-                    }
-                )
-                ret_data[key_name] = item
+            item.update(
+                {
+                    "status": "Unready",
+                    "status_message": _("请点击查看详情"),
+                    "pod_count": "0/0",
+                    "category": k8s_views.REVERSE_CATEGORY_MAP[info.category],
+                }
+            )
+            ret_data[key_name] = item
         return ret_data
 
     def get_cluster_namespace_inst1(self, instance_info):
@@ -967,10 +925,9 @@ class AppInstance(BaseMusterMetric):
         if update_id_status_list:
             self.update_inst_label(update_id_status_list)
 
-    def get_template_info(self, template_id, category, project_kind=2):
+    def get_template_info(self, template_id, category, project_kind=ProjectKindID):
         """获取模板信息"""
-        if project_kind == 1:
-            category = k8s_views.CATEGORY_MAP[category]
+        category = k8s_views.CATEGORY_MAP[category]
         info = MODULE_DICT[category].objects.filter(id=template_id, is_deleted=False)
         if not info:
             raise error_codes.RecordNotFound(_("没有查询到记录!"))
@@ -1050,45 +1007,8 @@ class AppInstance(BaseMusterMetric):
             project_kind=project_kind,
             request_cluster_id=request_cluster_id,
         )
-        if project_kind == 2:
-            cluster_ns_inst = self.get_cluster_namespace_inst(instance_info)
-            if category == APPLICATION_CATEGORY:
-                all_status = self.get_application_status(
-                    request, cluster_ns_inst, project_id=project_id, kind=project_kind
-                )
-            else:
-                # 通过deployment获取application
-                deploy_application_info = self.get_application_by_deployment(
-                    request, cluster_ns_inst, kind=project_kind, project_id=project_id
-                )
-                # 组装格式
-                application_info = self.get_cluster_namespace_deployment(instance_info, deploy_application_info)
-                deployment_status = self.get_deployment_status(
-                    request, cluster_ns_inst, project_id=project_id, kind=project_kind
-                )
-                application_status = self.get_application_status(
-                    request, application_info, project_id=project_id, kind=project_kind
-                )
-                # 合并状态
-                for deploy, deploy_val in deployment_status.items():
-                    app_name = deploy_application_info.get(deploy, [])
-                    for name in app_name:
-                        key_name = (deploy[0], deploy[1], name)
-                        app_status_info = application_status.get(key_name, {})
-                        deploy_val.update(app_status_info)
-                all_status = deployment_status
-
-            # 组装返回数据
-            self.compose_data(request, instance_info, all_status)
-            ret_data = instance_info.values()
-            # 根据状态统计总数量及异常数量
-            # 如果传递了,则要计算数量
-            inst_count_label = request.GET.get("with_count")
-            if inst_count_label:
-                ret_data = self.inst_count_handler(instance_info, app_status)
-        else:
-            client = k8s_views.AppInstance()
-            ret_data = client.get(request, project_id, instance_info, category, app_status)
+        client = k8s_views.AppInstance()
+        ret_data = client.get(request, project_id, instance_info, category, app_status)
         # 添加权限
         ret_instance_list = self.bcs_perm_handler(request, project_id, ret_data["instance_list"])
         # 处理数据
@@ -1388,11 +1308,8 @@ class UpdateInstanceNew(InstanceAPI):
         cluster_id = labels.get("io.tencent.bcs.clusterid")
         namespace = metadata.get("namespace")
         pre_instance_num = 0
-        if project_kind == 1:
-            if category in ["K8sDeployment", "K8sStatefulSet"]:
-                pre_instance_num = inst_conf["spec"]["replicas"]
-        else:
-            pre_instance_num = inst_conf["spec"]["instance"]
+        if category in ["K8sDeployment", "K8sStatefulSet"]:
+            pre_instance_num = inst_conf["spec"]["replicas"]
         # 获取版本配置
         show_version_info = self.get_show_version_info(version_id)
         ids = self.get_tmpl_ids(show_version_info.real_version_id, category)
@@ -1412,8 +1329,7 @@ class UpdateInstanceNew(InstanceAPI):
             project_kind,
             variables,
         )
-        if project_kind == 1:
-            self.check_selector(inst_conf, new_inst_conf)
+        self.check_selector(inst_conf, new_inst_conf)
         # self.render_instance_conf(new_inst_conf, params)
         resp = self.update_instance(
             request, project_id, project_kind, cluster_id, inst_name, instance_id, namespace, category, new_inst_conf
@@ -1461,7 +1377,7 @@ class ScaleInstance(InstanceAPI):
         curr_inst.save()
 
     def get_rc_name_by_deployment(
-        self, request, cluster_id, instance_name, project_id=None, project_kind=2, namespace=None
+        self, request, cluster_id, instance_name, project_id=None, project_kind=ProjectKindID, namespace=None
     ):
         """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
@@ -1516,10 +1432,9 @@ class ScaleInstance(InstanceAPI):
         """扩缩容线上应用"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         online_app_conf = None
-        if project_kind == 1:
-            online_app_conf = self.online_app_conf(
-                request, project_id, project_kind, cluster_id, name, namespace, category
-            )
+        online_app_conf = self.online_app_conf(
+            request, project_id, project_kind, cluster_id, name, namespace, category
+        )
         return self.scale_inst(
             request, project_id, project_kind, cluster_id, 0, name, namespace, inst_count, category, online_app_conf
         )
@@ -1652,23 +1567,17 @@ class CancelUpdateInstance(InstanceAPI):
             extra=json.dumps({"config": conf, "namespace": "namespace"}),
             description=_("应用取消滚动升级"),
         ).log_modify():
-            if project_kind == 2:
-                resp = self.cancel_update_deployment(
-                    request, project_id, cluster_id, namespace, name, kind=project_kind
-                )
-            else:
-                last_config = json.loads(curr_inst.last_config)
-                resp = self.update_deployment(
-                    request,
-                    project_id,
-                    cluster_id,
-                    namespace,
-                    last_config["old_conf"],
-                    kind=project_kind,
-                    category=curr_inst.category,
-                    app_name=curr_inst.name,
-                )
-                # 更新信息
+            last_config = json.loads(curr_inst.last_config)
+            resp = self.update_deployment(
+                request,
+                project_id,
+                cluster_id,
+                namespace,
+                last_config["old_conf"],
+                kind=project_kind,
+                category=curr_inst.category,
+                app_name=curr_inst.name,
+            )
 
         if resp.data.get("code") == ErrorCode.NoError:
             self.update_instance_record_status(curr_inst, oper_type=app_constants.CANCEL_INSTANCE, is_bcs_success=True)

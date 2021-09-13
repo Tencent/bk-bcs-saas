@@ -15,6 +15,7 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 
 from backend.components import paas_auth, paas_cc
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.uniapps.apis.constants import PAAS_CD_APIGW_PUBLIC_KEY
 from backend.utils.authentication import JWTClient
 from backend.utils.errcodes import ErrorCode
@@ -67,7 +68,7 @@ def check_user_project(access_token, project_id, cc_app_id, jwt_info, project_co
         project_info = ret_data[0]
         project_code = project_info.get("english_name")
     # 直接返回原生的project信息
-    project_kind = "k8s"
+    project_kind = ProjectKindName
     if is_orgin_project:
         return project_kind, app_code, project_info
     if project_code_flag:

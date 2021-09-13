@@ -26,6 +26,7 @@ from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils
@@ -311,7 +312,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         self.template_id = version_entity.template_id
         tem_instance_entity = version_entity.get_version_instance_resource_ids
 
-        project_kind = 1
+        project_kind = ProjectKindID
         # 默认为is_start为True
         req_data["is_start"] = True
         # 转换ns名称为ns ID
@@ -682,7 +683,7 @@ class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         curr_inst.save()
 
     def get_rc_name_by_deployment(
-        self, request, cluster_id, instance_name, project_id=None, project_kind=2, namespace=None
+        self, request, cluster_id, instance_name, project_id=None, project_kind=ProjectKindID, namespace=None
     ):
         """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
@@ -718,9 +719,7 @@ class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         instance_num = request.GET.get("instance_num")
         if not instance_num or not str(instance_num).isdigit():
             raise error_codes.CheckFailed.f("参数instance_num必须为整数")
-        # project_info = self.get_project_info(request.user.token.access_token, project_id)
-        # project_kind = project_info["kind"]
-        project_kind = 1
+        project_kind = ProjectKindID
         batch_inst_info = self.get_batch_inst_info(inst_id_list)
         for inst_id in inst_id_list:
             curr_inst = batch_inst_info[str(inst_id)]
@@ -964,7 +963,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         req_category = request.GET.get("category")
         if req_category not in all_category_list:
             raise error_codes.CheckFailed.f("类型[%s]不存在，请确认后重试" % req_category)
-        project_kind = 1
+        project_kind = ProjectKindID
         real_category = self.category_map(project_kind, req_category)
         # 查询相应的实例信息
         version_id = None
@@ -1129,7 +1128,7 @@ class BatchDeleteInstance(BaseBatchHandleInstance, app_views.BaseAPI):
 
     def api_delete(self, request, cc_app_id, project_id):
         self.init_handler(request, cc_app_id, project_id, serializers.BatchDeleteInstanceParamsSLZ)
-        project_kind = 1
+        project_kind = ProjectKindID
         data = dict(request.data)
         inst_id_list = data.get("inst_id_list") or []
         inst_info = data.get("inst_info")
@@ -1185,9 +1184,7 @@ class BatchRecreateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         inst_id_list = inst_id_info.get("inst_id_list") or []
         if not inst_id_list:
             raise error_codes.CheckFailed.f("实例ID不能为空", replace=True)
-        # project_info = self.get_project_info(request.user.token.access_token, project_id)
-        # project_kind = project_info["kind"]
-        project_kind = 1
+        project_kind = ProjectKindID
         for inst_id in inst_id_list:
             inst_info = self.get_inst_info(inst_id)
             # 获取namespace
@@ -1428,7 +1425,6 @@ class GetInstanceVersionConf(BaseAPIViews):
         project_info = paas_cc.get_project(access_token, project_id)
         if project_info.get("code") != 0:
             raise error_codes.APIError.f(project_info.get("message"))
-        project_kind = project_info["data"]["kind"]
         inst_info = self.get_instance_info(instance_id)[0]
         category = inst_info.category
         # inst_name = inst_info.name
@@ -1512,21 +1508,16 @@ class BaseProjectMuster(BaseAPIViews):
         return re.findall(r"[^,;]+", res)
 
     def template_handler(self, project_kind, entity):
-        if project_kind in [1, 3]:
-            deployment = self.split_res(entity.get("K8sDeployment") or "")
-            daemonset = self.split_res(entity.get("K8sDaemonSet") or "")
-            job = self.split_res(entity.get("K8sJob") or "")
-            statefulset = self.split_res(entity.get("K8sStatefulSet") or "")
-            return {
-                "K8sDeployment": deployment,
-                "K8sDaemonSet": daemonset,
-                "K8sJob": job,
-                "K8sStatefulSet": statefulset,
-            }
-        else:
-            application = self.split_res(entity.get("application") or "")
-            deployment = self.split_res(entity.get("deploymen") or "")
-            return {"application": application, "deployment": deployment}
+        deployment = self.split_res(entity.get("K8sDeployment") or "")
+        daemonset = self.split_res(entity.get("K8sDaemonSet") or "")
+        job = self.split_res(entity.get("K8sJob") or "")
+        statefulset = self.split_res(entity.get("K8sStatefulSet") or "")
+        return {
+            "K8sDeployment": deployment,
+            "K8sDaemonSet": daemonset,
+            "K8sJob": job,
+            "K8sStatefulSet": statefulset,
+        }
 
 
 class ProjectMuster(BaseProjectMuster):
