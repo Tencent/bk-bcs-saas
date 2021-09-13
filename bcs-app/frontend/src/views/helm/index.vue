@@ -822,10 +822,12 @@
                     })
                     this.appList.splice(0, this.appList.length, ...results)
                     this.curPageData = this.getDataByPage(this.pagination.current)
+                    this.pagination.count = this.curPageData.length
                 } else {
                     // 没有搜索关键字，直接从缓存返回列表
                     this.appList.splice(0, this.appList.length, ...list)
                     this.curPageData = this.getDataByPage(this.pagination.current)
+                    this.pagination.count = this.curPageData.length
                 }
             },
 
@@ -1131,6 +1133,7 @@
                             })
                         })
                         this.curPageData = this.getDataByPage(this.pagination.current)
+                        this.pagination.count = this.curPageData.length
                         this.isPageLoading = false
 
                         this.appCheckTime = SLOW_TIME
@@ -1335,6 +1338,7 @@
                 this.isCheckAll = false
                 this.pagination.current = page
                 this.curPageData = this.getDataByPage(page)
+                this.pagination.count = this.curPageData.length
             },
 
             /**
@@ -1373,7 +1377,6 @@
              */
             checkApp (row) {
                 this.selectLists = this.curPageData.filter(item => item.isChecked === true)
-                console.log(this.selectLists)
                 this.isCheckAll = this.selectLists.length === this.curPageData.length
             },
 
