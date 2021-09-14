@@ -26,6 +26,7 @@ from backend.accounts import bcs_perm
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.templatesets.legacy_apps.instance.constants import EventType
@@ -330,7 +331,7 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
@@ -365,7 +366,7 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name=None,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
@@ -387,7 +388,7 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
