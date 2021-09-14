@@ -620,9 +620,7 @@ class VersionedEntity(BaseModel):
                         container_list.append(
                             {
                                 "name": _port.get("name"),
-                                "protocol": _port.get("protocol"),
-                                # TODO ： 根据网络模式确定
-                                "target_port": _port.get("containerPort"),
+                                "containerPort": _port.get("containerPort"),
                                 "id": _port.get("id"),
                             }
                         )
