@@ -31,6 +31,7 @@ def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int 
     :param cluster_id: 集群 ID
     :param name: 命名空间名
     :return: iam_ns_id，用于注册到权限中心
+
     note: 权限中心对资源ID有长度限制，不超过32位
     iam_ns_id 的初始结构是`集群ID:命名空间name`，如 `BCS-K8S-40000:default`
     如果整体长度超过32，则进行压缩计算. 压缩计算需要保留集群ID，目的是用于 namespace provider 中的 fetch_instance_info
@@ -141,7 +142,7 @@ class NamespacePermission(Permission):
     resource_request_cls: Type[ResourceRequest] = NamespaceRequest
     parent_res_perm = ClusterPermission()
 
-    @related_cluster_perm(method_name='can_view')
+    @related_cluster_perm(method_name='can_use')
     def can_create(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         return self.can_action(perm_ctx, NamespaceAction.CREATE, raise_exception)
 
@@ -150,20 +151,20 @@ class NamespacePermission(Permission):
         perm_ctx.validate_resource_id()
         return self.can_action(perm_ctx, NamespaceAction.VIEW, raise_exception)
 
-    @related_namespace_perm(method_name='can_view')
+    @related_cluster_perm(method_name='can_use')
     def can_update(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, NamespaceAction.UPDATE, raise_exception)
+        return self.can_action_with_view(perm_ctx, NamespaceAction.UPDATE, NamespaceAction.VIEW, raise_exception)
 
-    @related_namespace_perm(method_name='can_view')
+    @related_cluster_perm(method_name='can_use')
     def can_delete(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, NamespaceAction.DELETE, raise_exception)
+        return self.can_action_with_view(perm_ctx, NamespaceAction.DELETE, NamespaceAction.VIEW, raise_exception)
 
-    @related_namespace_perm(method_name='can_view')
+    @related_cluster_perm(method_name='can_use')
     def can_use(self, perm_ctx: NamespacePermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, NamespaceAction.USE, raise_exception)
+        return self.can_action_with_view(perm_ctx, NamespaceAction.USE, NamespaceAction.VIEW, raise_exception)
 
     def make_res_request(self, res_id: str, perm_ctx: NamespacePermCtx) -> ResourceRequest:
         return self.resource_request_cls(res_id, project_id=perm_ctx.project_id, cluster_id=perm_ctx.cluster_id)
