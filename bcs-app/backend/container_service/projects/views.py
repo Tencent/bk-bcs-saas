@@ -20,17 +20,15 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import permissions, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from backend.bcs_web.audit_log import client
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.constants import bcs_project_cache_key
 from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components import bcs_api, paas_cc
+from backend.components import paas_cc
 from backend.container_service.projects import base as Project
 from backend.container_service.projects.utils import (
     get_app_by_user_role,
