@@ -55,10 +55,6 @@ CACHES = {
     },
 }
 
-# cors settings
-CORS_ORIGIN_REGEX_WHITELIST = (r".*",)
-CORS_ALLOW_CREDENTIALS = True
-
 REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 REDIS_DB = os.environ.get("REDIS_DB", 0)
