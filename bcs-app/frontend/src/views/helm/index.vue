@@ -821,13 +821,13 @@
                         return false
                     })
                     this.appList.splice(0, this.appList.length, ...results)
-                    this.curPageData = this.getDataByPage(this.pagination.current)
-                    this.pagination.count = this.curPageData.length
+                    this.curPageData = this.getDataByPage(this.pagination.current, false)
+                    this.pagination.count = this.appList.length
                 } else {
                     // 没有搜索关键字，直接从缓存返回列表
                     this.appList.splice(0, this.appList.length, ...list)
-                    this.curPageData = this.getDataByPage(this.pagination.current)
-                    this.pagination.count = this.curPageData.length
+                    this.curPageData = this.getDataByPage(this.pagination.current, false)
+                    this.pagination.count = this.appList.length
                 }
             },
 
@@ -966,7 +966,7 @@
                     this.searchScope = data.params.cluster_id
                     this.pagination.count = res.data.results.length
                     this.appList = res.data.results
-                    this.curPageData = this.getDataByPage(this.pagination.current)
+                    this.curPageData = this.getDataByPage(this.pagination.current, false)
                     
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
 
@@ -1132,10 +1132,8 @@
                                 }
                             })
                         })
-                        this.curPageData = this.getDataByPage(this.pagination.current)
-                        this.pagination.count = this.curPageData.length
-                        this.isPageLoading = false
-
+                        this.curPageData = this.getDataByPage(this.pagination.current, false)
+                        
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
                             if (app.transitioning_on) {
@@ -1338,7 +1336,6 @@
                 this.isCheckAll = false
                 this.pagination.current = page
                 this.curPageData = this.getDataByPage(page)
-                this.pagination.count = this.curPageData.length
             },
 
             /**
@@ -1346,10 +1343,10 @@
              * @param  {number} page 第几页
              * @return {object} data 数据
              */
-            getDataByPage (page) {
+            getDataByPage (page, loading = true) {
                 let startIndex = (page - 1) * this.pagination.limit
                 let endIndex = page * this.pagination.limit
-                this.isPageLoading = true
+                this.isPageLoading = loading
                 if (startIndex < 0) {
                     startIndex = 0
                 }
