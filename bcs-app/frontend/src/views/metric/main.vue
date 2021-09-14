@@ -80,10 +80,10 @@
                                     :header-border="false"
                                     :data="row.targetData.targets
                                         ? row.targetData.targets.slice(
-                                            subTablePageConfig[row.instance_id].pageSize * (subTablePageConfig[row.instance_id].curPage - 1),
-                                            subTablePageConfig[row.instance_id].pageSize * subTablePageConfig[row.instance_id].curPage)
+                                            subTableConfig[row.instance_id].pageSize * (subTableConfig[row.instance_id].curPage - 1),
+                                            subTableConfig[row.instance_id].pageSize * subTableConfig[row.instance_id].curPage)
                                         : []"
-                                    :page-params="subTablePageConfig[row.instance_id]"
+                                    :page-params="subTableConfig[row.instance_id]"
                                     @page-change="(page) => handleSubTablePageChange(page, row)"
                                     @page-limit-change="(pageSize) => handleSubTablePageSizeChange(pageSize, row)">
                                     <bk-table-column label="Endpoints" prop="name" width="250">
@@ -96,7 +96,7 @@
                                             </bcs-popover>
                                         </template>
                                     </bk-table-column>
-                                    <bk-table-column :label="$t('状态')" prop="name" width="150">
+                                    <bk-table-column :label="$t('状态')" prop="health" width="150">
                                         <template slot-scope="scope">
                                             <bk-tag type="filled" v-if="scope.row.health === 'up'" theme="success">{{$t('正常')}}</bk-tag>
                                             <bk-tag type="filled" v-else theme="danger">{{$t('异常')}}</bk-tag>
@@ -337,7 +337,7 @@
                     // 是否显示翻页条
                     show: false
                 },
-                subTablePageConfig: {},
+                subTableConfig: {},
                 isShowCreateMetric: false,
                 searchClusterId: '',
                 searchClusterName: '',
@@ -607,6 +607,15 @@
                         item.canDel = item.permissions.delete
                         item.delMsg = item.permissions.delete_msg
                         item.targetData = Object.assign({}, this.targets[item.instance_id] || {})
+                        item.targetData.targets = item.targetData.targets ? item.targetData.targets.sort((pre, next) => {
+                            if (pre.health === next.health) {
+                                return 0
+                            }
+                            if (pre.health === 'up' && next.health === 'danger') {
+                                return 1
+                            }
+                            return -1
+                        }) : []
                         item.isChecked = false
                     })
                     this.dataListTmp.splice(0, this.dataListTmp.length, ...list)
@@ -687,13 +696,13 @@
             },
 
             handleSubTablePageChange (page = 1, row) {
-                this.subTablePageConfig[row.instance_id].curPage = page
+                this.subTableConfig[row.instance_id].curPage = page
             },
             handleSubTablePageSizeChange (pageSize, row) {
-                this.subTablePageConfig[row.instance_id].pageSize = pageSize
+                this.subTableConfig[row.instance_id].pageSize = pageSize
             },
             handleExpandChange (row) {
-                this.$set(this.subTablePageConfig, row.instance_id, {
+                this.$set(this.subTableConfig, row.instance_id, {
                     total: row.targetData.targets ? row.targetData.targets.length : 0,
                     pageSize: 5,
                     curPage: 1,
