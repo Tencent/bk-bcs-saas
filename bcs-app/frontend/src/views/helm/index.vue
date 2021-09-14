@@ -1336,6 +1336,7 @@
                 this.isCheckAll = false
                 this.pagination.current = page
                 this.curPageData = this.getDataByPage(page)
+                this.pagination.count = this.curPageData.length
             },
 
             /**
