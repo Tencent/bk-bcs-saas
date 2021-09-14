@@ -6,6 +6,7 @@ introduction: 容器服务
 version: __VERSION__
 language: python
 is_use_celery: True
+is_use_celery_beat: False
 desktop:
     width: 1200
     height: 720
