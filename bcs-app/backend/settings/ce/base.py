@@ -236,6 +236,8 @@ DEPOT_API = f"{APIGW_HOST}/api/apigw/harbor_api/"
 BCS_CLUSTER_ENV_AND_HTTPS_SERVER_HOST = {"prod": os.environ.get("BKAPP_BCS_API_DOMAIN")}
 # BCS API PRE URL
 BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"
+BCS_API_GW_DOMAIN = f"{APIGW_HOST}/api/apigw/bcs-api-gateway"
+BCS_API_GW_ENV = "prod"
 
 BK_SSM_HOST = os.environ.get("BKAPP_SSM_HOST")
 

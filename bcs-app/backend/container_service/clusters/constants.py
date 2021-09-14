@@ -198,3 +198,21 @@ class KubeProxy(str, StructuredEnum):
 # k8s cluster master role
 # 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
 K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"
+
+
+class ContainerRuntime(str, StructuredEnum):
+    """容器运行时"""
+
+    Docker = "docker"
+    Containerd = "containerd"
+
+
+class ClusterStatus(str, StructuredEnum):
+    """集群状态"""
+
+    CREATING = EnumField("CREATING", label=_("创建中"))
+    RUNNING = EnumField("RUNNING", label=_("运行中，标识集群正常"))
+    DELETING = EnumField("DELETING", label=_("删除中"))
+    FAILURE = EnumField("FAILURE", label=_("失败"))
+    INITIALIZATION = EnumField("INITIALIZATION", label=_("初始化"))
+    DELETED = EnumField("DELETED", label=_("已删除"))

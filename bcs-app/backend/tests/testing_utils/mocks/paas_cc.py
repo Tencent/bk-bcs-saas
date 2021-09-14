@@ -13,9 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import uuid
-from typing import Dict
-
-from backend.container_service.projects.base.constants import ProjectKind
+from typing import Dict, List
 
 from .utils import mockable_function
 
@@ -35,15 +33,28 @@ class StubPaaSCCClient:
         return self.make_project_data(project_id)
 
     @mockable_function
-    def get_mesos_project(self, project_id: str) -> Dict:
-        """返回mesos项目信息"""
-        data = self.make_project_data(project_id)
-        data["kind"] = ProjectKind.MESOS.value
-        return data
-
-    @mockable_function
     def get_cluster_namespace_list(self, project_id: str, cluster_id: str) -> Dict:
         return self.make_cluster_namespace_data(project_id, cluster_id)
+
+    @mockable_function
+    def update_project(self, project_id: str, *args, **kwargs) -> Dict:
+        return self.make_project_data(project_id)
+
+    @mockable_function
+    def create_cluster(self, project_id: str, cluster_id: str, *args, **kwargs) -> Dict:
+        return self.make_cluster_data(project_id, cluster_id)
+
+    @mockable_function
+    def update_cluster(self, project_id: str, cluster_id: str, *args, **kwargs) -> Dict:
+        return self.make_cluster_data(project_id, cluster_id, *args, **kwargs)
+
+    @mockable_function
+    def add_nodes(self, project_id: str, cluster_id: str) -> List:
+        return self.make_nodes_data(project_id, cluster_id)
+
+    @mockable_function
+    def update_node_list(self, project_id: str, cluster_id: str) -> List:
+        return self.make_nodes_data(project_id, cluster_id)
 
     @staticmethod
     def wrap_resp(data):
@@ -56,7 +67,8 @@ class StubPaaSCCClient:
         }
 
     @staticmethod
-    def make_cluster_data(project_id: str, cluster_id: str):
+    def make_cluster_data(project_id: str, cluster_id: str, *args, **kwargs):
+        status = args[0]["status"] if args and "status" in args[0] else "normal"
         _stub_time = '2021-01-01T00:00:00+08:00'
         return {
             'area_id': 1,
@@ -81,7 +93,7 @@ class StubPaaSCCClient:
             'remain_cpu': 10,
             'remain_disk': 0,
             'remain_mem': 10,
-            'status': 'normal',
+            'status': status,
             'total_cpu': 12,
             'total_disk': 0,
             'total_mem': 64,
@@ -91,7 +103,6 @@ class StubPaaSCCClient:
 
     @staticmethod
     def make_project_data(project_id: str):
-        _stub_time = '2021-01-01T00:00:00+08:00'
         return {
             "approval_status": 2,
             "approval_time": "2020-01-01T00:00:00+08:00",
@@ -145,3 +156,7 @@ class StubPaaSCCClient:
                 }
             ],
         }
+
+    @staticmethod
+    def make_nodes_data(project_id: str, cluster_id: str) -> List:
+        return [{"id": 1, "inner_ip": "127.0.0.1", "project_id": project_id, "cluster_id": cluster_id}]

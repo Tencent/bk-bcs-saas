@@ -18,7 +18,7 @@ from django.conf import settings
 from requests import PreparedRequest
 from requests.auth import AuthBase
 
-from .base import BaseHttpClient, BkApiClient, ComponentAuth, update_url_parameters
+from ..base import BaseHttpClient, BkApiClient, ComponentAuth, update_url_parameters
 
 
 class BcsApiConfig:
@@ -51,12 +51,9 @@ class BcsApiAuth(AuthBase):
 
 class BcsApiClient(BkApiClient):
     """访问 BCS API 服务的 Client 对象
-
     :param auth: 包含校验信息的对象
-
     API 方法常用请求参数说明
     ===
-
     :param env_name: 集群环境，比如 stag/prod
     :param project_id: 项目 ID
     :param cluster_id: 集群 ID
@@ -69,7 +66,6 @@ class BcsApiClient(BkApiClient):
 
     def query_cluster_id(self, env_name: str, project_id: str, cluster_id: str) -> str:
         """查询集群在 BCS-Api 中的 ID
-
         :returns: 集群 ID 字符串
         """
         url = self._config.query_cluster_id_url.format(env_name=env_name)
@@ -81,7 +77,6 @@ class BcsApiClient(BkApiClient):
     def get_cluster_credentials(self, env_name: str, bcs_cluster_id: str) -> Dict:
         """
         获取访问集群 apiserver 所需的鉴权信息，比如证书、user_token、server_address_path 等
-
         :returns: 包含集群鉴权信息的字典
         """
         url = self._config.get_cluster_credentials_url.format(env_name=env_name, bcs_cluster_id=bcs_cluster_id)
