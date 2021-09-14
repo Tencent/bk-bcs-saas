@@ -611,7 +611,7 @@
                             if (pre.health === next.health) {
                                 return 0
                             }
-                            if (pre.health === 'up' && next.health === 'danger') {
+                            if (pre.health === 'up' && next.health === 'down') {
                                 return 1
                             }
                             return -1
