@@ -56,7 +56,8 @@
                         :data="curPageData"
                         :page-params="pageConf"
                         @page-change="pageChange"
-                        @page-limit-change="changePageSize">
+                        @page-limit-change="changePageSize"
+                        @expand-change="handleExpandChange">
                         <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
                             <template slot-scope="{ row }">
                                 <label class="bk-form-checkbox">
@@ -77,7 +78,14 @@
                                     v-bkloading="{ isLoading: row.expanding }"
                                     :outer-border="false"
                                     :header-border="false"
-                                    :data="row.targetData.targets">
+                                    :data="row.targetData.targets
+                                        ? row.targetData.targets.slice(
+                                            subTablePageConfig[row.instance_id].pageSize * (subTablePageConfig[row.instance_id].curPage - 1),
+                                            subTablePageConfig[row.instance_id].pageSize * subTablePageConfig[row.instance_id].curPage)
+                                        : []"
+                                    :page-params="subTablePageConfig[row.instance_id]"
+                                    @page-change="(page) => handleSubTablePageChange(page, row)"
+                                    @page-limit-change="(pageSize) => handleSubTablePageSizeChange(pageSize, row)">
                                     <bk-table-column label="Endpoints" prop="name" width="250">
                                         <template slot-scope="scope">
                                             <bcs-popover placement="top" :delay="500">
@@ -329,6 +337,7 @@
                     // 是否显示翻页条
                     show: false
                 },
+                subTablePageConfig: {},
                 isShowCreateMetric: false,
                 searchClusterId: '',
                 searchClusterName: '',
@@ -675,6 +684,21 @@
                 this.pageConf.curPage = 1
                 this.initPageConf()
                 this.pageChange()
+            },
+
+            handleSubTablePageChange (page = 1, row) {
+                this.subTablePageConfig[row.instance_id].curPage = page
+            },
+            handleSubTablePageSizeChange (pageSize, row) {
+                this.subTablePageConfig[row.instance_id].pageSize = pageSize
+            },
+            handleExpandChange (row) {
+                this.$set(this.subTablePageConfig, row.instance_id, {
+                    total: row.targetData.targets ? row.targetData.targets.length : 0,
+                    pageSize: 5,
+                    curPage: 1,
+                    limitList: [5, 10, 20]
+                })
             },
 
             /**
