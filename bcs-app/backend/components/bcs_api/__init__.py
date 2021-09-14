@@ -51,9 +51,12 @@ class BcsApiAuth(AuthBase):
 
 class BcsApiClient(BkApiClient):
     """访问 BCS API 服务的 Client 对象
+
     :param auth: 包含校验信息的对象
+
     API 方法常用请求参数说明
     ===
+
     :param env_name: 集群环境，比如 stag/prod
     :param project_id: 项目 ID
     :param cluster_id: 集群 ID

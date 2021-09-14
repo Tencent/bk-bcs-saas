@@ -12,160 +12,28 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import uuid
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from backend.container_service.projects.base.constants import ProjectKind
-
-from .utils import mockable_function
+from backend.components.cc import PageData
 
 
-class StubPaaSCCClient:
-    """使用假数据的 PaaSCCClient 对象"""
-
+class FakeBkCCClient:
     def __init__(self, *args, **kwargs):
         pass
 
-    @mockable_function
-    def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
-        return self.wrap_resp(self.make_cluster_data(project_id, cluster_id))
-
-    @mockable_function
-    def get_project(self, project_id: str) -> Dict:
-        return self.make_project_data(project_id)
-
-    @mockable_function
-    def get_mesos_project(self, project_id: str) -> Dict:
-        """返回mesos项目信息"""
-        data = self.make_project_data(project_id)
-        data["kind"] = ProjectKind.MESOS.value
-        return data
-
-    @mockable_function
-    def get_cluster_namespace_list(self, project_id: str, cluster_id: str) -> Dict:
-        return self.make_cluster_namespace_data(project_id, cluster_id)
-
-    @mockable_function
-    def update_project(self, project_id: str, *args, **kwargs) -> Dict:
-        return self.make_project_data(project_id)
-
-    @mockable_function
-    def create_cluster(self, project_id: str, cluster_id: str, *args, **kwargs) -> Dict:
-        return self.make_cluster_data(project_id, cluster_id)
-
-    @mockable_function
-    def update_cluster(self, project_id: str, cluster_id: str, *args, **kwargs) -> Dict:
-        return self.make_cluster_data(project_id, cluster_id)
-
-    @mockable_function
-    def add_nodes(self, project_id: str, cluster_id: str) -> List:
-        return self.make_nodes_data(project_id, cluster_id)
-
-    @mockable_function
-    def update_node_list(self, project_id: str, cluster_id: str) -> List:
-        return self.make_nodes_data(project_id, cluster_id)
-
-    @staticmethod
-    def wrap_resp(data):
-        return {
-            'code': 0,
-            'data': data,
-            'message': '',
-            'request_id': uuid.uuid4().hex,
-            'result': True,
-        }
-
-    @staticmethod
-    def make_cluster_data(project_id: str, cluster_id: str):
-        _stub_time = '2021-01-01T00:00:00+08:00'
-        return {
-            'area_id': 1,
-            'artifactory': '',
-            'capacity_updated_at': _stub_time,
-            'cluster_id': cluster_id,
-            'cluster_num': 1,
-            'config_svr_count': 0,
-            'created_at': _stub_time,
-            'creator': 'unknown',
-            'description': 'cluster description',
-            'disabled': False,
-            'environment': 'stag',
-            'extra_cluster_id': '',
-            'ip_resource_total': 0,
-            'ip_resource_used': 0,
-            'master_count': 0,
-            'name': 'test-cluster',
-            'need_nat': True,
-            'node_count': 1,
-            'project_id': project_id,
-            'remain_cpu': 10,
-            'remain_disk': 0,
-            'remain_mem': 10,
-            'status': 'normal',
-            'total_cpu': 12,
-            'total_disk': 0,
-            'total_mem': 64,
-            'type': 'k8s',
-            'updated_at': _stub_time,
-        }
-
-    @staticmethod
-    def make_project_data(project_id: str):
-        _stub_time = '2021-01-01T00:00:00+08:00'
-        return {
-            "approval_status": 2,
-            "approval_time": "2020-01-01T00:00:00+08:00",
-            "approver": "",
-            "bg_id": -1,
-            "bg_name": "",
-            "cc_app_id": 100,
-            "center_id": 100,
-            "center_name": "",
-            "created_at": "2020-01-01 00:00:00",
-            "creator": "unknown",
-            "data_id": 0,
-            "deploy_type": "null",
-            "dept_id": -1,
-            "dept_name": "",
-            "description": "",
-            "english_name": "unittest-cluster",
-            "extra": {},
-            "is_offlined": False,
-            "is_secrecy": False,
-            "kind": 1,
-            "logo_addr": "",
-            "project_id": project_id,
-            "project_name": "unittest-cluster",
-            "project_type": 1,
-            "remark": "",
-            "updated_at": "2020-01-01 00:00:00",
-            "use_bk": False,
-            "cc_app_name": "demo-app",
-            "can_edit": False,
-        }
-
-    @staticmethod
-    def make_cluster_namespace_data(project_id: str, cluster_id: str) -> Dict:
-        _stub_time = '2021-06-30T11:13:00+08:00'
+    def search_biz(self, page: PageData, fields: Optional[List] = None, condition: Optional[Dict] = None) -> Dict:
         return {
             "count": 1,
-            "results": [
+            "info": [
                 {
-                    "cluster_id": cluster_id,
-                    "created_at": _stub_time,
-                    "creator": "admin",
-                    "description": "",
-                    "env_type": "dev",
-                    "has_image_secret": True,
-                    "id": 1,
-                    "name": "default",
-                    "project_id": project_id,
-                    "status": "",
-                    "updated_at": _stub_time,
+                    "bs2_name_id": 1,
+                    "bk_oper_plan": "admin",
+                    "bk_biz_developer": "admin",
+                    "bk_biz_maintainer": "admin",
+                    "bk_dept_name_id": 1,
+                    "bk_biz_name": "demo",
+                    "bk_product_name": "demo",
+                    "default": 0,
                 }
             ],
         }
-
-    @staticmethod
-    def make_nodes_data(project_id: str, cluster_id: str) -> List:
-        return [{"id": 1, "inner_ip": "127.0.0.1", "project_id": project_id, "cluster_id": cluster_id}]
