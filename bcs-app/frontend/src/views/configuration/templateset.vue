@@ -11,70 +11,24 @@
             <template v-if="!isLoading">
                 <div class="biz-panel-header" style="padding: 20px;">
                     <div class="left">
-                        <template v-if="projectKind === PROJECT_MESOS">
-                            <bk-button type="primary" @click.stop.prevent="addTemplate('mesosTemplatesetApplication')">
+                        <bk-dropdown-menu
+                            @show="dropdownShow"
+                            @hide="dropdownHide"
+                            :key="projectKind"
+                            ref="dropdown">
+                            <bk-button type="primary" slot="dropdown-trigger">
                                 <i class="bcs-icon bcs-icon-plus f14" style="top: -1px;"></i>
                                 <span class="f14">{{$t('添加模板集')}}</span>
                             </bk-button>
-
-                            <template v-if="isImportLoading">
-                                <bk-button
-                                    href="javascript:void(0)"
-                                    style="width: 128px; min-width: 70px; cursor: default;"
-                                    :key="fileImportIndex"
-                                    :class="['bk-button bk-default biz-import-btn']">
-                                    <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-primary">
-                                        <div class="rotate rotate1"></div>
-                                        <div class="rotate rotate2"></div>
-                                        <div class="rotate rotate3"></div>
-                                        <div class="rotate rotate4"></div>
-                                        <div class="rotate rotate5"></div>
-                                        <div class="rotate rotate6"></div>
-                                        <div class="rotate rotate7"></div>
-                                        <div class="rotate rotate8"></div>
-                                    </div>
-                                    {{$t('导入中...')}}
-                                </bk-button>
-                            </template>
-                            <template v-else>
-                                <button
-                                    href="javascript:void(0)"
-                                    style="min-width: 70px;"
-                                    v-bk-tooltips="zipTooltipText"
-                                    :key="fileImportIndex"
-                                    :class="['bk-button bk-default biz-import-btn']">
-                                    <i class="bcs-icon bcs-icon-upload"></i>
-                                    {{$t('导入模板集')}}
-                                    <input
-                                        ref="fileInput"
-                                        type="file"
-                                        name="upload"
-                                        class="file-input"
-                                        accept="application/zip,application/x-zip,application/x-zip-compressed"
-                                        @change="handleFileInput()">
-                                </button>
-                            </template>
-                        </template>
-                        <template v-else>
-                            <bk-dropdown-menu
-                                @show="dropdownShow"
-                                @hide="dropdownHide"
-                                :key="projectKind"
-                                ref="dropdown">
-                                <bk-button type="primary" slot="dropdown-trigger">
-                                    <i class="bcs-icon bcs-icon-plus f14" style="top: -1px;"></i>
-                                    <span class="f14">{{$t('添加模板集')}}</span>
-                                </bk-button>
-                                <ul class="bk-dropdown-list" slot="dropdown-content">
-                                    <li>
-                                        <a href="javascript:;" @click="addTemplate('K8sYamlTemplateset')">{{$t('YAML模式')}}</a>
-                                    </li>
-                                    <li>
-                                        <a href="javascript:;" @click.stop.prevent="addTemplate('k8sTemplatesetDeployment')">{{$t('表单模式')}}</a>
-                                    </li>
-                                </ul>
-                            </bk-dropdown-menu>
-                        </template>
+                            <ul class="bk-dropdown-list" slot="dropdown-content">
+                                <li>
+                                    <a href="javascript:;" @click="addTemplate('K8sYamlTemplateset')">{{$t('YAML模式')}}</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:;" @click.stop.prevent="addTemplate('k8sTemplatesetDeployment')">{{$t('表单模式')}}</a>
+                                </li>
+                            </ul>
+                        </bk-dropdown-menu>
                     </div>
                     <div class="right">
                         <p class="biz-tpl-desc" v-if="templatesetCount">{{$t('共')}} <strong>{{templatesetCount}}</strong> {{$t('个1')}}</p>
@@ -147,18 +101,6 @@
                                                             </template>
                                                         </div>
                                                     </td>
-                                                    <!-- <td class="image">
-                                                        <template v-if="template.containers.length">
-                                                            <div class="biz-image-wrapper" :key="serviceIndex" v-for="(service, serviceIndex) in template.containers">
-                                                                <bcs-popover :content="service.image" placement="top">
-                                                                    {{service.image || '--'}}
-                                                                </bcs-popover>
-                                                            </div>
-                                                        </template>
-                                                        <template v-else>
-                                                            --
-                                                        </template>
-                                                    </td> -->
                                                     <td class="operate">
                                                         <div class="operate-wrapper">
                                                             <template v-if="!template.permissions.use">
@@ -420,7 +362,7 @@
 
 <script>
     import applyPerm from '@open/mixins/apply-perm'
-    import { catchErrorHandler, random } from '@open/common/util'
+    import { catchErrorHandler } from '@open/common/util'
     import { Archive } from 'libarchive.js/main.js'
 
     Archive.init({
@@ -928,15 +870,6 @@
                             }
                         })
                     }
-                } else if (this.projectKind === PROJECT_MESOS) {
-                    this.$router.push({
-                        name: 'mesosTemplatesetApplication',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode,
-                            templateId: template.id
-                        }
-                    })
                 } else {
                     this.$bkMessage({
                         theme: 'error',
@@ -1218,7 +1151,7 @@
 
                     if (this.tplCategory === 'application' || this.tplCategory === 'deployment' || isRedirect) {
                         this.$router.push({
-                            name: this.projectKind === 1 ? 'deployments' : 'mesos',
+                            name: 'deployments',
                             params: {
                                 projectId: this.projectId,
                                 projectCode: this.projectCode,
@@ -1400,32 +1333,6 @@
                 })
             },
 
-            async handleFileInput () {
-                this.curTemplateId = 0
-                this.curVersion = 0
-                this.isImportLoading = true
-                const fileInput = this.$refs.fileInput
-                if (fileInput.files && fileInput.files.length) {
-                    try {
-                        const file = fileInput.files[0]
-                        const archive = await Archive.open(file)
-                        const zipFile = await archive.extractFiles()
-                        if (zipFile) {
-                            this.importFileList = []
-                            this.getImportFileList(zipFile)
-                            this.renderJsonFile()
-                            this.fileImportIndex++
-                        }
-                    } catch (e) {
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: this.$t('请选择系统导出的压缩包')
-                        })
-                        this.isImportLoading = false
-                    }
-                }
-            },
-
             getImportFileList (zip, folderName = '') {
                 for (const key in zip) {
                     const file = zip[key]
@@ -1451,204 +1358,6 @@
                     }
                     reader.readAsText(file)
                 })
-            },
-
-            async renderJsonFile () {
-                const promiseList = []
-                const self = this
-                const index = this.importFileList.findIndex(file => file.name === 'description.json')
-                let desc = {}
-                if (index > -1) {
-                    const file = this.importFileList.splice(index, 1)
-                    const data = await this.readFile(file[0])
-                    desc = JSON.parse(data)
-                }
-                this.importFileList.forEach(file => {
-                    if (file.name.endsWith('.json')) {
-                        // 保存资源
-                        promiseList.push(() => {
-                            return new Promise((resolve, reject) => {
-                                const reader = new FileReader()
-                                reader.onloadend = async function (event) {
-                                    if (event.target.readyState === FileReader.DONE) {
-                                        const content = event.target.result
-                                        const fileMetadata = file.name.split('--')
-                                        const fileType = fileMetadata[0]
-                                        const fileName = fileMetadata[1].replace('.json', '')
-                                        self.importFile(fileName, fileType, content, resolve, reject, desc)
-                                    }
-                                }
-                                reader.readAsText(file)
-                            })
-                        })
-                    }
-                })
-
-                if (promiseList.length) {
-                    // 保存模板
-                    promiseList.push(() => {
-                        return new Promise(async (resolve, reject) => {
-                            const projectId = this.projectId
-                            const templateId = this.curTemplateId
-                            const params = {
-                                show_version_id: 0,
-                                name: desc.version || 'v1.1.0',
-                                real_version_id: this.curVersion
-                            }
-                            await this.$store.dispatch('mesosTemplate/saveVersion', { projectId, templateId, params })
-                            resolve(true)
-                        })
-                    })
-                }
-
-                // 上一个完成才可执行下一个
-                let promiseIndex = 0
-                try {
-                    while (promiseIndex >= 0 && promiseIndex < promiseList.length) {
-                        await promiseList[promiseIndex]()
-                        promiseIndex++
-                    }
-                    this.getTemplateList(true)
-                    self.$bkMessage({
-                        theme: 'success',
-                        message: self.$t('导入成功')
-                    })
-                } catch (e) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('导入失败')
-                    })
-                } finally {
-                    this.isImportLoading = false
-                }
-            },
-
-            async importFile (fileName, fileType, content, resolve, reject, desc) {
-                // 处理关联
-                this.linkAppList.forEach(linkApp => {
-                    const appName = linkApp.app_name
-                    const reg = new RegExp(`<%${appName}%>`, 'g')
-                    content = content.replace(reg, linkApp.app_id)
-                })
-                const data = JSON.parse(content)
-
-                // 处理属性
-                const now = +new Date()
-                data.id = `local_${now}`
-                data.isEdited = true
-
-                // 如果是application，需要先保存才可让deployment、service绑定
-                const projectId = this.projectId
-                const actionMap = {
-                    applications: {
-                        add: 'mesosTemplate/addApplication',
-                        new: 'mesosTemplate/addFirstApplication'
-                    },
-                    deployments: {
-                        add: 'mesosTemplate/addDeployment',
-                        new: 'mesosTemplate/addFirstDeployment'
-                    },
-                    configmaps: {
-                        add: 'mesosTemplate/addConfigmap',
-                        new: 'mesosTemplate/addFirstConfigmap'
-                    },
-                    secrets: {
-                        add: 'mesosTemplate/addSecret',
-                        new: 'mesosTemplate/addFirstSecret'
-                    },
-                    ingresss: {
-                        add: 'mesosTemplate/addIngress',
-                        new: 'mesosTemplate/addFirstIngress'
-                    },
-                    services: {
-                        add: 'mesosTemplate/addService',
-                        new: 'mesosTemplate/addFirstService'
-                    }
-                }
-                try {
-                    if (this.curVersion) {
-                        const res = await this.$store.dispatch(actionMap[fileType].add, { projectId, version: this.curVersion, data })
-                        this.curVersion = res.data.version
-                    } else {
-                        const templateId = 0
-                        data.template = {
-                            desc: this.$t('模板集描述'),
-                            name: desc.name ? `${desc.name}_imported_${random(3)}` : `${this.$t('模板集_')}${+new Date()}`
-                        }
-                        const res = await await this.$store.dispatch(actionMap[fileType].new, { projectId, templateId, data })
-                        this.curVersion = res.data.version
-                        this.curTemplateId = res.data.template_id
-                    }
-
-                    if (fileType === 'applications') {
-                        const res1 = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version: this.curVersion })
-                        this.linkAppList = res1.data
-                    }
-                } catch (err) {
-                    reject(false)
-                }
-                // switch (fileType) {
-                //     case 'applications':
-                //         delete data.app_id
-
-                //         break
-
-                //     case 'deployments':
-                //         this.linkAppList.forEach(linkApp => {
-                //             const appName = linkApp.app_name
-                //             const reg = new RegExp(`<%${appName}%>`, 'g')
-                //             content = content.replace(reg, linkApp.app_id)
-                //         })
-                //         data = JSON.parse(content)
-                //         if (this.curVersion) {
-                //             const res = await this.$store.dispatch('mesosTemplate/addDeployment', { projectId, version: this.curVersion, data })
-                //             this.curVersion = res.data.version
-                //         } else {
-                //             const templateId = 0
-                //             data.template = {
-                //                 desc: '模板集描述',
-                //                 name: `模板集_${+new Date()}`
-                //             }
-                //             const res = await await this.$store.dispatch('mesosTemplate/addFirstDeployment', { projectId, templateId, data })
-                //             this.curVersion = res.data.version
-                //             this.curTemplateId = res.data.template_id
-                //         }
-                //         break
-                // }
-                console.log('执行完成', fileName)
-                resolve(true)
-
-                // if (fileType === 'applications') {
-                //     await this.saveApplication(app)
-                //     const projectId = this.projectId
-                //     const version = this.curVersion
-                //     const res = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version })
-                //     this.linkAppList = res.data
-                // } else if (fileType === 'deployments' || fileType === 'services') {
-                //     this.linkAppList.forEach(linkApp => {
-                //         const appName = linkApp.app_name
-                //         const reg = new RegExp(`<%${appName}%>`, 'g')
-                //         content = content.replace(reg, linkApp.app_id)
-                //     })
-                //     app = JSON.parse(content)
-                // }
-
-                // 处理同名问题
-                // const resources = this[fileType]
-                // const matchIndex = resources.findIndex(item => {
-                //     return item.config.metadata.name === fileName
-                // })
-                // if (matchIndex > -1) {
-                //     resources.splice(matchIndex, 1, app)
-                // } else {
-                //     resources.push(app)
-                // }
-                // console.log('执行完成', fileName)
-                // 处理关联
-                // console.log('fffxx', fileType)
-                // if (folderName === 'applications') {
-                //     await self.autoSaveResource('mesosTemplatesetApplication')
-                // }
             }
         }
     }

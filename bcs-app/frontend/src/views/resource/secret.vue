@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Secrets
-                <span class="biz-tip ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建Secret') : $t('请通过模板集或Helm创建Secret')}}</span>
+                <span class="biz-tip ml10">{{$t('请通过模板集或Helm创建Secret')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -290,7 +290,6 @@
                 isSecretLoading: false,
                 secretTimer: null,
                 curProject: {},
-                currentView: 'k8sService',
                 isBatchRemoving: false,
                 curSelectedData: [],
                 alreadySelectedNums: 0,
@@ -398,7 +397,6 @@
         },
         mounted () {
             this.curProject = this.initCurProject()
-            this.setComponent()
         },
         methods: {
             /**
@@ -527,17 +525,6 @@
             },
 
             /**
-             * 根据当前项目调用k8s/mesos
-             */
-            setComponent () {
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    this.currentView = 'mesosService'
-                } else if (this.curProject.kind === PROJECT_K8S) {
-                    this.currentView = 'k8sService'
-                }
-            },
-
-            /**
              * 更新secret
              * @param  {Object} secret secret
              */
@@ -656,48 +643,25 @@
                 enity.config['metadata'] = oName
                 const keyList = []
                 const oKey = {}
-                if (this.currentView === 'k8sService') {
-                    const k8sList = this.secretKeyList
-                    const k8sLength = k8sList.length
-                    for (let i = 0; i < k8sLength; i++) {
-                        const item = k8sList[i]
-                        keyList.push(item.key)
-                        oKey[item.key] = item.content
-                    }
-                    const aKey = keyList.sort()
-                    for (let i = 0; i < aKey.length; i++) {
-                        if (aKey[i] === aKey[i + 1]) {
-                            this.bkMessageInstance = this.$bkMessage({
-                                theme: 'error',
-                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
-                            })
-                            return
-                        }
-                    }
-                    enity.config['data'] = oKey
-                    enity.config['type'] = this.curSecret.data.type || 'Opaque'
-                } else {
-                    const mesosList = this.secretKeyList
-                    const mesosLength = mesosList.length
-                    for (let i = 0; i < mesosLength; i++) {
-                        const item = mesosList[i]
-                        keyList.push(item.key)
-                        oKey[item.key] = {
-                            content: item.content
-                        }
-                    }
-                    const aKey = keyList.sort()
-                    for (let i = 0; i < aKey.length; i++) {
-                        if (aKey[i] === aKey[i + 1]) {
-                            this.bkMessageInstance = this.$bkMessage({
-                                theme: 'error',
-                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
-                            })
-                            return
-                        }
-                    }
-                    enity.config['datas'] = oKey
+                const k8sList = this.secretKeyList
+                const k8sLength = k8sList.length
+                for (let i = 0; i < k8sLength; i++) {
+                    const item = k8sList[i]
+                    keyList.push(item.key)
+                    oKey[item.key] = item.content
                 }
+                const aKey = keyList.sort()
+                for (let i = 0; i < aKey.length; i++) {
+                    if (aKey[i] === aKey[i + 1]) {
+                        this.bkMessageInstance = this.$bkMessage({
+                            theme: 'error',
+                            message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
+                        })
+                        return
+                    }
+                }
+                enity.config['data'] = oKey
+                enity.config['type'] = this.curSecret.data.type || 'Opaque'
                 try {
                     this.isUpdateLoading = true
                     await this.$store.dispatch('resource/updateSingleSecret', {
@@ -742,20 +706,11 @@
              */
             addKey () {
                 const index = this.secretKeyList.length + 1
-                if (this.currentView === 'k8sService') {
-                    this.secretKeyList.push({
-                        key: 'key-' + index,
-                        isEdit: false,
-                        content: ''
-                    })
-                } else {
-                    this.secretKeyList.push({
-                        key: 'key-' + index,
-                        isEdit: false,
-                        type: 'file',
-                        content: ''
-                    })
-                }
+                this.secretKeyList.push({
+                    key: 'key-' + index,
+                    isEdit: false,
+                    content: ''
+                })
                 this.curKeyParams = this.secretKeyList[index - 1]
                 this.curKeyIndex = index - 1
                 this.$refs.keyTooltip.visible = false
@@ -843,24 +798,13 @@
              */
             initKeyList (secret) {
                 const list = []
-                if (this.currentView === 'k8sService') {
-                    const k8sSecretData = secret.data.data
-                    for (const [key, value] of Object.entries(k8sSecretData)) {
-                        list.push({
-                            key: key,
-                            isEdit: false,
-                            content: value
-                        })
-                    }
-                } else {
-                    const mesosSecretData = secret.data.datas
-                    for (const [key, value] of Object.entries(mesosSecretData)) {
-                        list.push({
-                            key: key,
-                            isEdit: false,
-                            content: value.content
-                        })
-                    }
+                const k8sSecretData = secret.data.data
+                for (const [key, value] of Object.entries(k8sSecretData)) {
+                    list.push({
+                        key: key,
+                        isEdit: false,
+                        content: value
+                    })
                 }
                 this.curKeyIndex = 0
                 if (list.length) {
@@ -897,31 +841,17 @@
             updateSecretList () {
                 if (this.curSecret) {
                     const results = []
-                    let data = {}
 
-                    if (this.currentView === 'k8sService') {
-                        data = this.curSecret.data.data || {}
+                    const data = this.curSecret.data.data || {}
 
-                        const keys = Object.keys(data)
-                        keys.forEach(key => {
-                            results.push({
-                                isExpanded: false,
-                                key: key,
-                                value: data[key]
-                            })
+                    const keys = Object.keys(data)
+                    keys.forEach(key => {
+                        results.push({
+                            isExpanded: false,
+                            key: key,
+                            value: data[key]
                         })
-                    } else {
-                        data = this.curSecret.data.datas || {}
-
-                        const keys = Object.keys(data)
-                        keys.forEach(key => {
-                            results.push({
-                                isExpanded: false,
-                                key: key,
-                                value: data[key].content
-                            })
-                        })
-                    }
+                    })
 
                     this.curSecretKeyList = results
                 } else {

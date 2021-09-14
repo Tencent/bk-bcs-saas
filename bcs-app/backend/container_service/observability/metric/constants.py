@@ -19,14 +19,14 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components import prometheus as prom
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-# IPV4 正则表达式
-IPV4_REGEX_EXP = r'(((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))\.){3}((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))'
-
 # 没有指定时间范围的情况下，默认获取一小时的数据
 METRICS_DEFAULT_TIMEDELTA = 3600
 
 # 默认查询的命名空间（所有）
 METRICS_DEFAULT_NAMESPACE = '.*'
+
+# 查询容器指标可不指定特定的 Pod（不推荐）
+METRICS_DEFAULT_POD_NAME = '.*'
 
 # 默认查询 POD 下所有的容器
 METRICS_DEFAULT_CONTAINER_LIST = ['.*']

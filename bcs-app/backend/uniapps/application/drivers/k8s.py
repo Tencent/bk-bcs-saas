@@ -12,7 +12,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

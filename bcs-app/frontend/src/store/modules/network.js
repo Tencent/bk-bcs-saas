@@ -212,34 +212,8 @@ export default {
             //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
             // }
 
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
-            // mesos
-            if (project.kind === PROJECT_MESOS) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/?${json2Query(params)}`
-            }
+            const url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
 
-            return http.get(url).then(res => {
-                context.commit('updateLoadBalanceList', res.data)
-                return res
-            })
-        },
-
-        /**
-         * 获取 mesos loadbalance 列表 (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} curProject 当前项目
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosLoadBalanceList (context, { project, params }, config = {}) {
-            if (!project) {
-                return false
-            }
-            const projectId = project.project_id
-            // '^api/network/projects/(?P<project_id>\w{32})/clusters/-/mesos-lbs/
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/-/mesos-lbs/?${json2Query(params)}`
             return http.get(url).then(res => {
                 context.commit('updateLoadBalanceList', res.data)
                 return res
@@ -286,11 +260,7 @@ export default {
                 return false
             }
             const projectId = project.project_id
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
-            // mesos
-            if (project.kind === PROJECT_MESOS) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?${json2Query(params)}`
-            }
+            const url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
             return http.get(url).then(res => {
                 // mesos和k8s的接口格式不一样，处理兼容
                 if (res.data && res.data.results) {
@@ -311,25 +281,8 @@ export default {
          * @return {Promise} promise 对象
          */
         removeLoadBalance (context, { projectId, loadBalanceId, projectKind }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (projectKind && (projectKind !== PROJECT_MESOS)) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
-            }
+            const url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
 
-            return http.delete(url)
-        },
-
-        /**
-         * 删除 mesos loadBalance (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, loadBalanceId, projectKind
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        removeMesosLoadBalance (context, { projectId, loadBalanceId, namespace, clusterId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/`
             return http.delete(url)
         },
 
@@ -344,20 +297,6 @@ export default {
          */
         stopBcsLoadBalance (context, { projectId, loadBalanceId }, config = {}) {
             return http.delete(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/bcs/${loadBalanceId}/`, {}, config)
-        },
-
-        /**
-         * 停止 mesos loadBalance (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, loadBalanceId
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        stopMesosLoadBalance (context, { projectId, loadBalanceId, namespace, clusterId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/operation/`
-            return http.delete(url, {}, config)
         },
 
         /**
@@ -377,23 +316,6 @@ export default {
         },
 
         /**
-         * 获取 mesos loadBalance状态 (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, loadBalanceId
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosLoadBalanceStatus (context, { projectId, loadBalanceId, namespace, clusterId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/`
-            return http.get(url).then(res => {
-                context.commit('updateLoadBalanceInList', res.data)
-                return res
-            })
-        },
-
-        /**
          * 后台创建 loadBalance
          *
          * @param {Object} context store 上下文对象
@@ -407,20 +329,6 @@ export default {
         },
 
         /**
-         * 后台启动 mesos loadBalance（新）
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        runMesosLoadBalance (context, { projectId, loadBalanceId, clusterId, namespace }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/operation/`
-            return http.post(url, {}, config)
-        },
-
-        /**
          * 添加 loadBalance
          *
          * @param {Object} context store 上下文对象
@@ -431,20 +339,6 @@ export default {
          */
         addLoadBalance (context, { projectId, data }, config = {}) {
             return http.post(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`, data, config)
-        },
-
-        /**
-         * 添加 mesos loadBalance (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, data
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        addMesosLoadBalance (context, { projectId, data }, config = {}) {
-            // ^api/network/projects/(?P<project_id>\w{32})/clusters/-/mesos-lbs/$'
-            return http.post(`${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/-/mesos-lbs/`, data, config)
         },
 
         /**
@@ -470,25 +364,8 @@ export default {
          * @return {Promise} promise 对象
          */
         updateLoadBalance (context, { projectId, data, loadBalanceId, projectKind }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (projectKind && (projectKind !== PROJECT_MESOS)) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
-            }
+            const url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
 
-            return http.put(url, data, config)
-        },
-
-        /**
-         * 更新 mesos loadBalance (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, data, loadBalanceId, projectKind
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        updateMesosLoadBalance (context, { projectId, data, loadBalanceId, clusterId, namespace }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/`
             return http.put(url, data, config)
         },
 
@@ -515,25 +392,8 @@ export default {
          * @return {Promise} promise 对象
          */
         getLoadBalanceDetail (context, { projectId, loadBalanceId, projectKind }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (projectKind && (projectKind !== PROJECT_MESOS)) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
-            }
+            const url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
 
-            return http.get(url, {}, config)
-        },
-
-        /**
-         * 获取 mesos loadbalance 详情 (新)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含：projectId, loadBalanceId, projectKind
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosLoadBalanceDetail (context, { projectId, loadBalanceId, namespace, clusterId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/mesos-lbs/${loadBalanceId}/`
             return http.get(url, {}, config)
         },
 
@@ -810,36 +670,6 @@ export default {
             // const url = '/app/network?invoke=updateCloudLoadBalance'
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/${loadBalanceId}/`
             return http.put(url, data, config)
-        },
-
-        /**
-         * 启动clb controller
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        runCloudLoadBalance (context, { projectId, loadBalanceId }, config = {}) {
-            // const url = '/app/network?invoke=runCloudLoadBalance'
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/mesos/clbs/${loadBalanceId}/`
-            return http.post(url, {}, config)
-        },
-
-        /**
-         * 停止clb controller
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        stopCloudLoadBalance (context, { projectId, loadBalanceId }, config = {}) {
-            // const url = '/app/network?invoke=stopCloudLoadBalance'
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/mesos/clbs/${loadBalanceId}/`
-            return http.delete(url, {}, config)
         },
 
         /**

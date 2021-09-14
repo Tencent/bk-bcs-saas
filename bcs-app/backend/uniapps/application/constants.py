@@ -47,10 +47,6 @@ BACKEND_APPLICATION_ERROR = BACKEND_ERROR = "Error"
 BACKEND_APPLICATION_NORMAL = BACKEND_NORMAL = "Normal"
 BACKEND_APPLICATION_RUNNING = BACKEND_RUNNING = "Running"
 
-# taskgroup status
-TASKGROUP_NORMAL_STATUS = ["Running", "Finish", "Killed"]
-TASKGROUP_UNNORMAL_STATUS = ["Staging", "Error", "Failed", "Lost"]
-
 # 分割images的分隔符
 SPLIT_IMAGE = ["prod", "dev", "test"]
 
@@ -113,14 +109,10 @@ RESOURCE_REPLICAS_KEYS = {
     },
 }
 
-
-MESOS_FUNC_MAP = {"application": "get_mesos_app_instances", "deployment": "get_deployment"}
-
 ALL_CATEGORY_LIST = ["application", "deployment", "K8sDeployment", "K8sDaemonSet", "K8sJob", "K8sStatefulSet"]
 
-# k8s/mesos
+# k8s
 K8S_KIND = 1
-MESOS_KIND = 2
 
 # 集群类型及状态
 CLUSTER_TYPE = [1, 2, "1", "2"]

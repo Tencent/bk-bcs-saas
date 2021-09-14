@@ -1244,6 +1244,9 @@
 
             handlerSelectCert (computer, index, data) {
                 computer.certType = data.certType
+            },
+            rowSelectable (row, index) {
+                return row.can_delete && row.permissions.use
             }
         }
     }

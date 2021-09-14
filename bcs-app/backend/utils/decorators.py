@@ -24,7 +24,6 @@ from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 from requests.models import Response
 
-from backend.apps.constants import SENSITIVE_KEYWORD
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import APIError, ComponentError
@@ -42,6 +41,9 @@ MAX_RESP_TEXT_SIZE = 1024 * 10
 # 马赛克
 MOSAIC_CHAR = "*"
 MOSAIC_WORD = MOSAIC_CHAR * 3
+
+# 敏感单词
+SENSITIVE_KEYWORD = ["access_token", "bk_app_secret", "X-BKAPI-AUTHORIZATION", "X-BK-APP-SECRET"]
 
 
 def get_desensitive_url(request, params):

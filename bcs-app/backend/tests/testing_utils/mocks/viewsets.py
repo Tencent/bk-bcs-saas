@@ -19,6 +19,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.renderers import BrowsableAPIRenderer
 
+from backend.utils import FancyDict
 from backend.utils.renderers import BKAPIRenderer
 
 
@@ -26,8 +27,23 @@ class FakeProjectEnableBCS(BasePermission):
     """ 假的权限控制类，单元测试用 """
 
     def has_permission(self, request, view):
-        self._set_ctx_project_cluster(request, view.kwargs.get('project_id', ''), view.kwargs.get('cluster_id', ''))
+        project_id = view.kwargs.get('project_id', '')
+        # project 内容为 StubPaaSCCClient 所 mock，如需要自定义 project，可以参考
+        # backend/tests/container_service/clusters/open_apis/test_namespace.py:53
+        request.project = self._get_enabled_project('fake_access_token', project_id)
+        self._set_ctx_project_cluster(request, project_id, view.kwargs.get('cluster_id', ''))
         return True
+
+    def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
+        from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
+
+        project_data = StubPaaSCCClient().get_project(project_id_or_code)
+        project = FancyDict(**project_data)
+
+        if project.cc_app_id != 0:
+            return project
+
+        return None
 
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         from backend.container_service.clusters.base.models import CtxCluster
