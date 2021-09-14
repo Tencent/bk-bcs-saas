@@ -4,13 +4,11 @@
 
 <script>
     import k8sIngress from './ingress/k8s/index'
-    import mesosIngress from './ingress/mesos/index'
     import globalMixin from '@open/mixins/global'
 
     export default {
         components: {
-            k8sIngress,
-            mesosIngress
+            k8sIngress
         },
         mixins: [globalMixin],
         data () {
@@ -26,25 +24,7 @@
         },
         mounted () {
             this.curProject = this.initCurProject()
-            this.setComponent()
-        },
-        // beforeDestroy () {
-        //     this.$refs.ingress.leaveCallback()
-        // },
-        // beforeRouteLeave (to, from, next) {
-        //     this.$refs.ingress.leaveCallback()
-        //     next(true)
-        // },
-        methods: {
-            setComponent () {
-                this.$store.commit('network/updateIngressList', [])
-                // mesos
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    this.currentView = 'mesosIngress'
-                } else if (this.curProject.kind === PROJECT_K8S) {
-                    this.currentView = 'k8sIngress'
-                }
-            }
+            this.$store.commit('network/updateIngressList', [])
         }
     }
 </script>

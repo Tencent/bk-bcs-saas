@@ -30,7 +30,6 @@ from .resfile import ResourceFile
 from .template import ShowVersion, Template, VersionedEntity, get_app_resource, get_template_by_project_and_id
 from .utils import (
     MODULE_DICT,
-    get_application_related_resource,
     get_k8s_container_ports,
     get_model_class_by_resource_name,
     get_pod_qsets_by_tag,

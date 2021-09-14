@@ -33,9 +33,6 @@ export const customResourceDelete = request('delete', '/api/dashboard/projects/$
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
 
-// application
-export const sourceExpansion = request('put', '/api/app/mesos/projects/$projectId/clusters/$clusterId/namespaces/$namespace/instances/$application/')
-
 // node
 export const getK8sNodes = request('get', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/')
 export const fetchK8sNodeLabels = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
