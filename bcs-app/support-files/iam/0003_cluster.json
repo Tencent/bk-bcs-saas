@@ -125,6 +125,32 @@
                 "related_actions": ["project_view", "cluster_view"],
                 "version": 1
             }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "cluster_use",
+                "name": "集群使用",
+                "name_en": "use cluster",
+                "description": "用户使用集群(如创建命名空间等)",
+                "description_en": "user use cluster(e.g. create namespace)",
+                "type": "use",
+                "related_resource_types": [{
+                    "system_id": "bk_bcs_app",
+                    "id": "cluster",
+                    "name_alias":  "",
+                    "name_alias_en": "",
+                    "selection_mode": "instance",
+                    "related_instance_selections": [
+                        {
+                            "system_id": "bk_bcs_app",
+                            "id": "cluster_list"
+                        }
+                    ]
+                }],
+                "related_actions": ["project_view", "cluster_view"],
+                "version": 1
+            }
         }
     ]
 }

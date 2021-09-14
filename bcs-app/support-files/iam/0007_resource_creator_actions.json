@@ -22,6 +22,10 @@
                         "id":"cluster",
                         "actions":[
                             {
+                                "id": "cluster_use",
+                                "required":false
+                            },
+                            {
                                 "id":"cluster_manage",
                                 "required":false
                             },
@@ -36,7 +40,7 @@
                         "actions":[
                             {
                                 "id": "namespace_use",
-                                "required": false
+                                "required":false
                             },
                             {
                                 "id":"namespace_update",
@@ -53,7 +57,7 @@
                         "actions":[
                             {
                                 "id": "templateset_instantiate",
-                                "required": false
+                                "required":false
                             },
                             {
                                 "id":"templateset_update",

@@ -46,6 +46,12 @@ class TestNamespacePermission:
             [
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.USE,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
+                ),
+                ActionResourcesRequest(
+                    resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.VIEW,
                     resources=[cluster_id],
                     parent_chain=[IAMResource(ResourceType.Project, project_id)],
@@ -86,6 +92,12 @@ class TestNamespacePermission:
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.USE,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
+                ),
+                ActionResourcesRequest(
+                    resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.VIEW,
                     resources=[cluster_id],
                     parent_chain=[IAMResource(ResourceType.Project, project_id)],
@@ -112,6 +124,12 @@ class TestNamespacePermission:
         assert exec.value.data['apply_url'] == generate_apply_url(
             username,
             [
+                ActionResourcesRequest(
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.USE,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
+                ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
                     action_id=ClusterAction.VIEW,
@@ -142,6 +160,12 @@ class TestNamespacePermDecorator:
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
                     action_id=NamespaceAction.CREATE,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
+                ),
+                ActionResourcesRequest(
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.USE,
                     resources=[cluster_id],
                     parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
@@ -190,6 +214,12 @@ class TestNamespacePermDecorator:
                         IAMResource(ResourceType.Project, project_id),
                         IAMResource(ResourceType.Cluster, cluster_id),
                     ],
+                ),
+                ActionResourcesRequest(
+                    resource_type=ClusterPermission.resource_type,
+                    action_id=ClusterAction.USE,
+                    resources=[cluster_id],
+                    parent_chain=[IAMResource(ResourceType.Project, project_id)],
                 ),
                 ActionResourcesRequest(
                     resource_type=ClusterPermission.resource_type,
