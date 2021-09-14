@@ -37,6 +37,9 @@
                                 },
                                 {
                                     "id": "cluster_delete"
+                                },
+                                {
+                                    "id": "cluster_use"
                                 }
                             ]
                         },

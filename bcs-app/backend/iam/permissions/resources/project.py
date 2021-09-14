@@ -19,7 +19,6 @@ from backend.iam.permissions.perm import PermCtx, Permission, ResCreatorActionCt
 from backend.iam.permissions.request import IAMResource
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-from ..exceptions import AttrValidationError
 from .constants import ResourceType
 
 
@@ -62,7 +61,7 @@ class ProjectPermission(Permission):
 
     def can_edit(self, perm_ctx: ProjectPermCtx, raise_exception: bool = True) -> bool:
         perm_ctx.validate_resource_id()
-        return self.can_action(perm_ctx, ProjectAction.EDIT, raise_exception)
+        return self.can_action_with_view(perm_ctx, ProjectAction.EDIT, ProjectAction.VIEW, raise_exception)
 
     def get_parent_chain(self, perm_ctx: ProjectPermCtx) -> List[IAMResource]:
         return []
