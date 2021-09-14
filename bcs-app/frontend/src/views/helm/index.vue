@@ -534,6 +534,8 @@
             handleSearch () {
                 window.sessionStorage['bcs-cluster'] = this.searchScope
                 window.sessionStorage['bcs-helm-namespace'] = this.searchNamespace
+                this.pagination.count = 0
+                this.pagination.current = 1
                 this.getAppList()
             },
 
@@ -967,7 +969,7 @@
                     this.pagination.count = res.data.results.length
                     this.appList = res.data.results
                     this.curPageData = this.getDataByPage(this.pagination.current, false)
-                    
+
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
 
                     this.getAppsStatus()
@@ -1133,7 +1135,7 @@
                             })
                         })
                         this.curPageData = this.getDataByPage(this.pagination.current, false)
-                        
+
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
                             if (app.transitioning_on) {
