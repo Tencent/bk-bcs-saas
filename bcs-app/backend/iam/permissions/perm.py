@@ -84,7 +84,7 @@ class Permission(ABC, IAMClient):
         self, perm_ctx: PermCtx, action_id: str, view_action_id: str, raise_exception: bool, use_cache: bool = False
     ) -> bool:
         """
-        检验用户的 action_id 权限时，级联校验对资源的查看(view_action_id)权限
+        校验用户的 action_id 权限时，级联校验对资源的查看(view_action_id)权限
 
         :param perm_ctx: 权限校验的上下文
         :param action_id: 资源操作 ID
@@ -120,7 +120,7 @@ class Permission(ABC, IAMClient):
 
     def can_action(self, perm_ctx: PermCtx, action_id: str, raise_exception: bool, use_cache: bool = False) -> bool:
         """
-        检验用户的 action_id 权限
+        校验用户的 action_id 权限
 
         :param perm_ctx: 权限校验的上下文
         :param action_id: 资源操作 ID
