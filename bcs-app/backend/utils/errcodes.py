@@ -20,5 +20,3 @@ class ErrorCode:
     UserError = 400
     SysError = 500
     NotFoundError = 404
-    MesosDeploymentNotFound = 1405202
-    MesosApplicationNotFound = 1405200

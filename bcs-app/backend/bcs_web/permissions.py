@@ -18,7 +18,6 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ClusterType
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.iam import permissions
 from backend.components.base import ComponentAuth
@@ -108,8 +107,8 @@ class ProjectEnableBCS(BasePermission):
 
         self._refine_project(project)
 
-        # 用户绑定了项目, 并且选择了编排类型
-        if project.cc_app_id != 0 and project.kind in ClusterType:
+        # 项目绑定了业务，即开启容器服务
+        if project.cc_app_id != 0:
             region.set(cache_key, project)
             return project
 

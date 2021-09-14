@@ -14,14 +14,14 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import serializers
 
-from backend.apps import constants
 from backend.bcs_web.iam.permissions import ProjectActions
+from backend.container_service.projects.base.constants import ProjectKindID
 
 
 class UpdateProjectNewSLZ(serializers.Serializer):
     """更新项目的参数"""
 
-    kind = serializers.ChoiceField(choices=constants.PROJECT_KIND_LIST, required=False)
+    kind = serializers.ChoiceField(choices=[ProjectKindID], required=False)
     cc_app_id = serializers.IntegerField(required=False, min_value=1)
 
 

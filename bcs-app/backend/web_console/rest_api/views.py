@@ -21,22 +21,20 @@ from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ProjectKind
 from backend.components import paas_auth, paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters import base as cluster
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 from backend.web_console import constants, pod_life_cycle
-from backend.web_console.bcs_client import k8s, mesos
+from backend.web_console.bcs_client import k8s
 from backend.web_console.utils import get_kubectld_version
 
 from ..session import session_mgr
 from . import utils
-from .serializers import K8SWebConsoleOpenSLZ, K8SWebConsoleSLZ, MesosWebConsoleSLZ
+from .serializers import K8SWebConsoleOpenSLZ, K8SWebConsoleSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -114,46 +112,6 @@ class WebConsoleSession(views.APIView):
 
         return bcs_context
 
-    def get_mesos_context(self, request, project_id, cluster_id):
-        """获取mesos context"""
-        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-        slz = MesosWebConsoleSLZ(data=request.query_params, context={"client": client})
-        slz.is_valid(raise_exception=True)
-
-        context = {
-            "short_container_id": slz.validated_data["container_id"][:12],
-            "project_kind": request.project.kind,
-            "server_address": client._bcs_server_host,
-            "user_pod_name": slz.validated_data["container_name"],
-        }
-        context.update(slz.validated_data)
-
-        exec_id = client.get_container_exec_id(context["host_ip"], context["short_container_id"])
-        if not exec_id:
-            utils.activity_log(
-                project_id,
-                cluster_id,
-                self.cluster_name,
-                request.user.username,
-                False,
-                f'连接{context["user_pod_name"]}失败',
-            )
-
-            raise error_codes.APIError(
-                _("连接 {} 失败，请检查容器状态是否正常{}").format(context["user_pod_name"], settings.COMMON_EXCEPTION_MSG)
-            )
-        context["exec_id"] = exec_id
-        context["mode"] = mesos.ContainerDirectClient.MODE
-
-        client_context = {
-            "access_token": request.user.token.access_token,
-            "project_id": project_id,
-            "cluster_id": cluster_id,
-            "env": client._bcs_server_stag,
-        }
-        context["client_context"] = client_context
-        return context
-
     def get(self, request, project_id, cluster_id):
         """获取session信息"""
         cluster_data = cluster.get_cluster(request.user.token.access_token, project_id, cluster_id)
@@ -170,15 +128,7 @@ class WebConsoleSession(views.APIView):
                 )
                 raise error
 
-        # 获取web-console context信息
-        if request.project.kind == ProjectKind.MESOS.value:
-            # 添加白名单控制
-            from .views_bk import ensure_mesos_wlist
-
-            ensure_mesos_wlist(project_id, cluster_id, request.user.username)
-            context = self.get_mesos_context(request, project_id, cluster_id)
-        else:
-            context = self.get_k8s_context(request, project_id, cluster_id)
+        context = self.get_k8s_context(request, project_id, cluster_id)
 
         context["username"] = request.user.username
         context.setdefault("namespace", constants.NAMESPACE)

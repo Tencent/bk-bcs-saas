@@ -19,6 +19,5 @@ from backend.utils.basic import ChoicesEnum
 class ClusterCOES(ChoicesEnum):
     BCS_K8S = "k8s"
     TKE = "tke"
-    MESOS = "mesos"
 
-    _choices_labels = ((BCS_K8S, "k8s"), (TKE, "tke"), (MESOS, "mesos"))
+    _choices_labels = ((BCS_K8S, "k8s"), (TKE, "tke"))
