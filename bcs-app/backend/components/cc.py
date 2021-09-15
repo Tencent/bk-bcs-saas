@@ -391,7 +391,7 @@ def list_all_hosts_by_topo(
             raise error_codes.APIError(r.ret['message'])
 
     # 所有的请求结果合并，即为全量数据
-    return list(chain(r.ret['data']['info'] for r in results))
+    return list(chain(*[r.ret['data']['info'] for r in results]))
 
 
 class BkCCConfig:

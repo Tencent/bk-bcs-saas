@@ -55,8 +55,7 @@ class CCViewSet(SystemViewSet):
         response_data = {
             'results': [],
             'count': 0,
-            'cc_application_name': cc_app_name,
-            'unavailable_ip_count': 0,
+            'cc_app_name': cc_app_name,
         }
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = utils.fetch_project_cluster_info(access_token)
@@ -66,9 +65,6 @@ class CCViewSet(SystemViewSet):
         # 如没有符合过滤条件的，直接返回默认值
         if not host_list:
             return Response(response_data)
-
-        # 被使用 / agent 异常的机器均视为 不可使用
-        response_data['unavailable_ip_count'] = len([h for h in host_list if h['is_used'] or not h['is_valid']])
 
         ret = custom_paginator(host_list, params['offset'], params['limit'])
         # 更新 Host 的 GSE Agent 状态信息
