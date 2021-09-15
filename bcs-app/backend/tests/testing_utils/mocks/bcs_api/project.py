@@ -46,7 +46,7 @@ class StubBcsProjectApiClient:
             "projectType": 0,
             "useBKRes": True,
             "description": "string",
-            "isOffline": True,
+            "isOffline": False,
             "kind": "string",
             "businessID": "string",
             "deployType": 0,
