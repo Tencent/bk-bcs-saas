@@ -12,14 +12,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
+from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
+from backend.bcs_web.audit_log.constants import ActivityType
+from backend.dashboard.auditor import DashboardAuditor
+from backend.dashboard.exceptions import DeleteResourceError, NotOwnerReferencesError
+from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.viewsets import DashboardViewSet
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
 from backend.resources.storages.persistent_volume_claim import PersistentVolumeClaim
 from backend.resources.workloads.pod import Pod
+from backend.utils.basic import getitems
 
 
 class PodViewSet(DashboardViewSet):
@@ -46,4 +54,26 @@ class PodViewSet(DashboardViewSet):
     def secrets(self, request, project_id, cluster_id, namespace, name):
         """ 获取 Pod Secret 信息 """
         response_data = Pod(request.ctx_cluster).filter_related_resources(Secret(request.ctx_cluster), namespace, name)
+        return Response(response_data)
+
+    @action(methods=['PUT'], url_path='reschedule', detail=True)
+    @log_audit_on_view(DashboardAuditor, activity_type=ActivityType.Reschedule)
+    def reschedule(self, request, project_id, cluster_id, namespace, name):
+        """ 重新调度 Pod（仅对有父级资源的 Pod 有效） """
+        # 操作类接口统一检查集群操作权限
+        validate_cluster_perm(request, project_id, cluster_id)
+        client = Pod(request.ctx_cluster)
+        request.audit_ctx.update_fields(
+            resource_type=self.resource_client.kind.lower(), resource=f'{namespace}/{name}'
+        )
+
+        # 检查 Pod 配置，必须有父级资源才可以重新调度
+        pod_manifest = client.fetch_manifest(namespace, name)
+        if not getitems(pod_manifest, 'metadata.ownerReferences'):
+            raise NotOwnerReferencesError(_('Pod {}/{} 不存在父级资源，无法被重新调度').format(namespace, name))
+        # 重新调度的原理是直接删除 Pod，利用父级资源重新拉起服务
+        try:
+            response_data = client.delete(name=name, namespace=namespace).to_dict()
+        except DynamicApiError as e:
+            raise DeleteResourceError(_('重新调度 Pod 失败: {}').format(e.summary()))
         return Response(response_data)

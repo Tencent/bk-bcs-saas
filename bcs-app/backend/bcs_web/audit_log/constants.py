@@ -32,6 +32,7 @@ class ActivityType(str, StructuredEnum):
     Stop = EnumField('stop', _('停止'))
     Restart = EnumField('restart', _('重启'))
     Retrieve = EnumField('retrieve', _('查询'))
+    Reschedule = EnumField('reschedule', _('重新调度'))
 
 
 class ActivityStatus(str, StructuredEnum):

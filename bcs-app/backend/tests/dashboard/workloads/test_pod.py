@@ -66,3 +66,8 @@ class TestPod:
         """ 测试获取单个资源接口 """
         response = api_client.get(f'{self.detail_url}secrets/')
         assert response.json()['code'] == 0
+
+    def test_reschedule(self, api_client):
+        """ 测试重新调度 Pod """
+        # TODO 创建有父级资源的 Pod，测试重新调度
+        pass
