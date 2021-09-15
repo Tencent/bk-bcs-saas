@@ -22,7 +22,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.components import data as data_api
 from backend.components import paas_cc
-from backend.container_service.clusters import constants as cluster_constants
+from backend.container_service.clusters import constants
 from backend.container_service.clusters.models import ClusterInstallLog, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.utils.errcodes import ErrorCode
 
@@ -55,7 +55,7 @@ class NodeLabelUpdateSLZ(serializers.ModelSerializer):
 
 class CreateClusterSLZ(serializers.Serializer):
     cluster_state = serializers.ChoiceField(
-        choices=cluster_constants.ClusterState.get_choices(), default=cluster_constants.ClusterState.BCSNew.value
+        choices=constants.ClusterState.get_choices(), default=constants.ClusterState.BCSNew.value
     )
     name = serializers.CharField(max_length=64)
     description = serializers.CharField(default="")
@@ -131,7 +131,7 @@ class BatchReinstallNodesSLZ(serializers.Serializer):
             raise ValidationError(_("部分节点不属于当前集群，请确认后重试"))
         # 状态必须为初始化失败
         for node_id in node_id_list:
-            if cluster_nodes[node_id]['status'] not in cluster_constants.NODE_FAILED_STATUS:
+            if cluster_nodes[node_id]['status'] not in constants.NODE_FAILED_STATUS:
                 raise ValidationError(_("重试节点必须处于初始化失败状态，请确认后重试"))
         return node_id_list
 
@@ -197,7 +197,7 @@ def get_order_choices():
 
 
 class ListNodeSLZ(serializers.Serializer):
-    limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
+    limit = serializers.IntegerField(required=False, default=constants.DEFAULT_NODE_LIMIT)
     offset = serializers.IntegerField(required=False, default=0)
     ip = serializers.CharField(required=False)
     ip_list = serializers.ListField(required=False)
@@ -216,7 +216,7 @@ class NodeSLZ(serializers.Serializer):
             request.user.token.access_token,
             project_id,
             cluster_id,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT},
+            params={'limit': constants.DEFAULT_NODE_LIMIT},
         )
         if node_resp.get('code') != ErrorCode.NoError:
             raise ValidationError(node_resp.get('message'))
@@ -283,3 +283,14 @@ class QueryLabelKeysSLZ(QueryLabelSLZ):
 
 class QueryLabelValuesSLZ(QueryLabelSLZ):
     key_name = serializers.CharField(required=True)
+
+
+class FetchCCHostSLZ(serializers.Serializer):
+    """ 获取 CMDB 业务下可用主机列表 """
+
+    limit = serializers.IntegerField(default=constants.DEFAULT_NODE_LIMIT)
+    offset = serializers.IntegerField(default=0)
+    ip_list = serializers.ListField(default=list)
+    set_id = serializers.IntegerField(default=None)
+    module_id = serializers.IntegerField(default=None)
+    fuzzy = serializers.BooleanField(default=False)

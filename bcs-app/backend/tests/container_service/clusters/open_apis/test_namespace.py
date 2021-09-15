@@ -27,14 +27,8 @@ class TestNamespace:
     @pytest.fixture(autouse=True)
     def pre_patch(self):
         with patch("backend.accounts.bcs_perm.Namespace", new=bcs_perm.FakeNamespace), patch(
-            "backend.bcs_web.permissions.bcs_perm.verify_project_by_user", new=lambda *args, **kwargs: True
-        ), patch(
-            "backend.resources.utils.kube_client.BcsKubeConfigurationService", new=FakeBcsKubeConfigurationService
-        ), patch(
             "backend.resources.namespace.client.get_namespaces_by_cluster_id", new=lambda *args, **kwargs: [fake_data]
-        ), patch(
-            "backend.resources.namespace.utils.create_cc_namespace", new=lambda *args, **kwargs: fake_data
-        ):
+        ), patch("backend.resources.namespace.utils.create_cc_namespace", new=lambda *args, **kwargs: fake_data):
             yield
 
     def test_create_k8s_namespace(self, api_client):
