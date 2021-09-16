@@ -28,7 +28,6 @@ from .metrics import ClusterMetrics, ClusterSummaryMetrics, DockerMetrics, NodeM
 from .namespace import NamespaceViewSet
 from .node import (  # noqa
     BatchUpdateDeleteNodeViewSet,
-    CCHostListViewSet,
     FailedNodeDeleteViewSet,
     NodeContainers,
     NodeCreateListViewSet,
