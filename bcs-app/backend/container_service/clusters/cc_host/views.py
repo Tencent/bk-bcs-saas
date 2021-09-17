@@ -52,15 +52,14 @@ class CCViewSet(SystemViewSet):
         # 根据指定的 IP 过滤
         host_list = filter_by_ips(host_list, params['ip_list'], key='bk_host_innerip', fuzzy=params['fuzzy'])
 
-        response_data = {
-            'results': [],
-            'count': 0,
-            'cc_app_name': cc_app_name,
-        }
+        response_data = {'results': [], 'count': 0, 'cc_app_name': cc_app_name}
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = utils.fetch_project_cluster_info(access_token)
         all_cluster_nodes = utils.fetch_all_cluster_nodes(access_token)
         host_list = utils.attach_project_cluster_info(host_list, all_cluster_nodes, project_cluster_info)
+
+        # 更新 可选择的机器 数量信息
+        response_data['selectable_cnt'] = len([h for h in host_list if utils.is_host_selectable(h)])
 
         # 如没有符合过滤条件的，直接返回默认值
         if not host_list:
