@@ -101,7 +101,7 @@ def fetch_has_maintain_perm_apps(username: str) -> List[Dict]:
 
 
 def get_application_name(username: str, bk_biz_id: int) -> str:
-    """ 通过业务ID，获取业务名称，若找不到业务，返回空字符串 """
+    """ 通过业务ID，获取业务名称 """
     try:
         app_info = AppQueryService(username).get(bk_biz_id)
     except BaseCompUtilError:
@@ -110,7 +110,7 @@ def get_application_name(username: str, bk_biz_id: int) -> str:
 
 
 def get_app_maintainers(username: str, bk_biz_id: int) -> List[str]:
-    """ 获取业务下的所有运维，若找不到业务，返回空列表 """
+    """ 获取业务下的所有运维 """
     try:
         app_info = AppQueryService(username).get(bk_biz_id)
     except BaseCompUtilError:

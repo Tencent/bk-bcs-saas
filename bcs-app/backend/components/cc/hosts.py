@@ -104,7 +104,7 @@ def get_has_perm_hosts(bk_biz_id: int, username: str) -> List:
     if username in all_maintainers:
         # 如果是业务运维，查询全量主机
         return HostQueryService(username, bk_biz_id).fetch_all()
-    # 否则查询有主机负责人权限的
+    # 否则查询有主机负责人权限的主机
     return _get_hosts_by_operator(bk_biz_id, username)
 
 
