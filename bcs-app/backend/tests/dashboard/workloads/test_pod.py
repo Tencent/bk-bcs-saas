@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 import time
 
+import mock
 import pytest
 
 from backend.dashboard.examples.utils import load_demo_manifest
@@ -69,6 +70,7 @@ class TestPod:
         response = api_client.get(f'{self.detail_url}secrets/')
         assert response.json()['code'] == 0
 
+    @mock.patch('backend.dashboard.workloads.views.pod.validate_cluster_perm', new=lambda *args, **kwargs: True)
     def test_reschedule(self, api_client):
         """ 测试重新调度 Pod """
         # 创建有父级资源的 Pod，测试重新调度
