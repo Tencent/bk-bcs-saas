@@ -371,6 +371,9 @@ def list_all_hosts_by_topo(
     :return: 主机列表
     """
     total = fetch_host_count_by_topo(username, bk_biz_id, bk_set_ids, bk_module_ids)
+    if not total:
+        return []
+
     default_params = {
         'bk_biz_id': bk_biz_id,
         'bk_set_ids': bk_set_ids,
