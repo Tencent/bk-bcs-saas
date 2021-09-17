@@ -30,14 +30,6 @@ def get_cluster_node_mod():
     return node
 
 
-def get_cmdb_mod():
-    try:
-        from backend.container_service.clusters.flow_views_ext.tools import cmdb
-    except ImportError:
-        from backend.container_service.clusters.flow_views.tools import cmdb
-    return cmdb
-
-
 def get_gse_mod():
     try:
         from backend.container_service.clusters.flow_views_ext.tools import gse

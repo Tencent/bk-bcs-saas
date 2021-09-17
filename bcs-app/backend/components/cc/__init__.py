@@ -12,28 +12,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Dict, List, Optional
+import logging
 
-from backend.components.cc import PageData
+logger = logging.getLogger(__name__)
 
+# 仅包含外部模块使用的方法，导入示例: from components.cc import xxx
+from .business import AppQueryService, fetch_has_maintain_perm_apps, get_app_maintainers, get_application_name  # noqa
+from .hosts import HostQueryService, get_has_perm_hosts, search_biz_inst_topo  # noqa
 
-class FakeBkCCClient:
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def search_biz(self, page: PageData, fields: Optional[List] = None, condition: Optional[Dict] = None) -> Dict:
-        return {
-            "count": 1,
-            "info": [
-                {
-                    "bs2_name_id": 1,
-                    "bk_oper_plan": "admin",
-                    "bk_biz_developer": "admin",
-                    "bk_biz_maintainer": "admin",
-                    "bk_dept_name_id": 1,
-                    "bk_biz_name": "demo",
-                    "bk_product_name": "demo",
-                    "default": 0,
-                }
-            ],
-        }
+# 加载 cc_ext 相关方法
+try:
+    from backend.components.cc_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

@@ -61,7 +61,7 @@ def fake_search_topo(*args, **kwargs):
     ]
 
 
-def fake_list_all_hosts(*args, **kwargs):
+def fake_fetch_all_hosts(*args, **kwargs):
     """ 返回测试用主机数据（省略非必须字段） """
     return [
         # 被使用的
@@ -155,7 +155,8 @@ class TestCCAPI:
             'backend.container_service.clusters.cc_host.views.cc.get_application_name',
             new=lambda *args, **kwargs: 'test-app-name',
         ), mock.patch(
-            'backend.container_service.clusters.cc_host.views.cc.list_all_hosts_by_topo', new=fake_list_all_hosts
+            'backend.container_service.clusters.cc_host.views.cc.HostQueryService.fetch_all',
+            new=fake_fetch_all_hosts,
         ), mock.patch(
             'backend.container_service.clusters.cc_host.utils.paas_cc.get_project_cluster_resource',
             new=fake_get_project_cluster_resource,

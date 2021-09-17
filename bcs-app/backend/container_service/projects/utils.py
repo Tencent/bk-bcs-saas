@@ -36,8 +36,8 @@ def get_application_name(request):
     return cc.get_application_name(request.user.username, request.project.cc_app_id)
 
 
-def get_app_by_user_role(request):
-    return cc.get_app_by_user_role(request.user.username)
+def fetch_has_maintain_perm_apps(request):
+    return cc.fetch_has_maintain_perm_apps(request.user.username)
 
 
 def update_bcs_service_for_project(request, project_id, data):

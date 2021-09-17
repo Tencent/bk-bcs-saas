@@ -14,12 +14,15 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import cc
+from backend.components.base import BaseCompError
 from backend.container_service.clusters.serializers import FetchCCHostSLZ
+from backend.utils.error_codes import error_codes
 from backend.utils.filter import filter_by_ips
 from backend.utils.paginator import custom_paginator
 
@@ -34,7 +37,10 @@ class CCViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='topology', detail=False)
     def biz_inst_topo(self, request, project_id):
         """ 查询业务实例拓扑 """
-        topo_info = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
+        try:
+            topo_info = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
+        except BaseCompError as e:
+            raise error_codes.APIError(_('查询业务拓扑信息失败：{}').format(e))
         return Response(data=topo_info)
 
     @action(methods=['POST'], url_path='hosts', detail=False)
@@ -46,7 +52,10 @@ class CCViewSet(SystemViewSet):
         bk_biz_id = request.project.cc_app_id
 
         # 从 CMDB 获取可用主机信息，业务名称信息
-        host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
+        try:
+            host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
+        except BaseCompError as e:
+            raise error_codes.APIError(str(e))
         cc_app_name = cc.get_application_name(username, bk_biz_id)
 
         # 根据指定的 IP 过滤

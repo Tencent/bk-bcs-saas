@@ -29,7 +29,7 @@ from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
 from backend.container_service.projects import base as Project
 from backend.container_service.projects.utils import (
-    get_app_by_user_role,
+    fetch_has_maintain_perm_apps,
     get_application_name,
     update_bcs_service_for_project,
 )
@@ -172,7 +172,7 @@ class CC(viewsets.ViewSet):
 
     def list(self, request):
         """获取当前用户CC列表"""
-        data = get_app_by_user_role(request)
+        data = fetch_has_maintain_perm_apps(request)
         return Response(data)
 
 

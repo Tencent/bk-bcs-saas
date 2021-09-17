@@ -15,14 +15,14 @@ specific language governing permissions and limitations under the License.
 import re
 from typing import List
 
-from backend.components.cc import get_cc_hosts
+from backend.components.cc import get_has_perm_hosts
 
 
 def can_use_hosts(bk_biz_id: int, username: str, host_ip_list: List) -> bool:
     """校验用户是否有使用主机的权限"""
-    resp = get_cc_hosts(bk_biz_id, username)
+    has_perm_hosts = get_has_perm_hosts(bk_biz_id, username)
     ip_list = []
-    for info in resp.get("data") or []:
+    for info in has_perm_hosts:
         inner_ip = info.get("bk_host_innerip", "")
         # 因为有多网卡的主机，因此需要拆分，便于后续的判断是否包含
         inner_ip_list = re.findall(r'[^;,]+', inner_ip)
