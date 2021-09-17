@@ -119,6 +119,18 @@ def attach_project_cluster_info(host_list: List, all_cluster_nodes: Dict, projec
     return new_host_list
 
 
+def is_host_selectable(host: Dict) -> bool:
+    """
+    判断机器是否可被选择为 Master / Node
+    已经被使用 / 机器类型不可用 则不能选择
+    Agent 异常也可以选择（初始化会重装）
+
+    :param host: 主机配置信息
+    :return: 是否可选择
+    """
+    return not host['is_used'] and host['is_valid']
+
+
 def update_gse_agent_status(username, host_list: List) -> List:
     """ 更新 GSE Agent 状态信息 """
     gse_params = []
