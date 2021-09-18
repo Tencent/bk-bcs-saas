@@ -56,7 +56,7 @@ class CCViewSet(SystemViewSet):
             host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
         except BaseCompError as e:
             raise error_codes.APIError(str(e))
-        cc_app_name = cc.get_application_name(username, bk_biz_id)
+        cc_app_name = cc.get_application_name(bk_biz_id)
 
         # 根据指定的 IP 过滤
         host_list = filter_by_ips(host_list, params['ip_list'], key='bk_host_innerip', fuzzy=params['fuzzy'])

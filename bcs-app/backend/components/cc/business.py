@@ -20,6 +20,7 @@ import re
 from typing import Dict, List
 
 from attr import dataclass
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components.base import CompParseBkCommonResponseError
@@ -95,15 +96,16 @@ def fetch_has_maintain_perm_apps(username: str) -> List[Dict]:
     """ 获取有运维权限的业务信息 """
     username_regex_info = '^{username},|,{username},|,{username}$|^{username}$'.format(username=username)
     regex_map = {'$regex': username_regex_info}
-    # NOTE: CMDB建议查询方式: 以admin用户身份跳过资源查询权限，然后CMDB接口根据传递的condition中用户，返回过滤的业务
-    maintainers_resp = AppQueryService('admin', condition={'bk_biz_maintainer': regex_map}).fetch_all()
+    # NOTE: CMDB 建议查询方式: 以 admin 用户身份跳过资源查询权限，然后CMDB接口根据传递的 condition 中用户，返回过滤的业务
+    maintainers_resp = AppQueryService(settings.ADMIN_USERNAME, condition={'bk_biz_maintainer': regex_map}).fetch_all()
     return [{'id': item['bk_biz_id'], 'name': item['bk_biz_name']} for item in maintainers_resp]
 
 
-def get_application_name(username: str, bk_biz_id: int) -> str:
+def get_application_name(bk_biz_id: int) -> str:
     """ 通过业务ID，获取业务名称 """
     try:
-        app_info = AppQueryService(username).get(bk_biz_id)
+        # 直接使用 admin 用户身份查询业务名称
+        app_info = AppQueryService(settings.ADMIN_USERNAME).get(bk_biz_id)
     except BaseCompUtilError:
         return ''
     return app_info.get('bk_biz_name', '')

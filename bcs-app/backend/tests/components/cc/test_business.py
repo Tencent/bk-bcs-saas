@@ -53,7 +53,7 @@ class TestComponentCCBusiness:
         assert ret == FAKE_BIZS_INFO['info'][0]
 
     def test_get_application_name(self):
-        ret = get_application_name('admin', 1001)
+        ret = get_application_name(1001)
         assert ret == '测试业务'
 
     def test_get_app_maintainers(self):
