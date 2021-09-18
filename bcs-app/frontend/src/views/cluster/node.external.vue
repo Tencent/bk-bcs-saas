@@ -568,190 +568,7 @@
             </div>
         </div>
 
-        <bk-dialog
-            :is-show.sync="dialogConf.isShow"
-            :width="dialogConf.width"
-            :content="dialogConf.content"
-            :has-header="dialogConf.hasHeader"
-            :close-icon="dialogConf.closeIcon"
-            :quick-close="false"
-            :ext-cls="'biz-cluster-create-choose-dialog'">
-            <div slot="content">
-                <div style="margin: -20px;" v-bkloading="{ isLoading: ccHostLoading, opacity: 1 }">
-                    <div class="biz-cluster-create-table-header">
-                        <div class="left">
-                            {{$t('选择服务器')}}
-                            <span style="font-size: 12px;cursor: pointer;">
-                                （{{$t('关联业务：')}}{{ccApplicationName}}）
-                            </span>
-                            <span class="remain-tip">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
-                        </div>
-                        <div style="position: absolute;right: 20px;top: 11px;">
-                            <div class="biz-searcher-wrapper">
-                                <bk-ip-searcher @search="handleSearch" ref="iPSearcher" :disable="isCreating" />
-                            </div>
-                        </div>
-                    </div>
-                    <div style="min-height: 443px;">
-                        <table class="bk-table has-table-hover biz-table biz-cluster-create-table" :style="{ borderBottomWidth: candidateHostList.length ? '1px' : 0 }">
-                            <thead>
-                                <tr>
-                                    <th style="width: 60px; text-align: right;">
-                                        <bk-dropdown-menu :align="'left'" ref="pageSelectDropdownMenu" class="all-page-select-dropdown-menu">
-                                            <label class="bk-form-checkbox" slot="dropdown-trigger">
-                                                <div class="mock-checkbox" :class="(checkAllMode === 'page' || checkAllMode === 'all') ? 'checked' : ''"></div>
-                                            </label>
-                                            <ul class="bk-dropdown-list" slot="dropdown-content">
-                                                <li>
-                                                    <a href="javascript:void(0)" @click="checkAll('page')" v-if="candidateHostList.filter(host => !host.is_used && String(host.agent) === '1' && host.is_valid).length && !isCreating">{{$t('全选当页')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'page'"></i></a>
-                                                    <a href="javascript:void(0)" class="disabled" v-else>{{$t('全选当页')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'page'"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" @click="checkAll('all')">{{$t('全选所有')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'all'"></i></a>
-                                                </li>
-                                            </ul>
-                                        </bk-dropdown-menu>
-                                    </th>
-                                    <th width="480">{{$t('主机名称')}}</th>
-                                    <th>{{$t('内网IP')}}</th>
-                                    <th>{{$t('Agent状态')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="candidateHostList.length">
-                                    <tr v-for="(host, index) in candidateHostList" @click.stop="rowClick" :style="{ cursor: !host.is_used && String(host.agent) === '1' && host.is_valid && !isCreating ? 'pointer' : 'not-allowed' }" :key="index">
-                                        <template v-if="!isCreating">
-                                            <td style="text-align: right;" v-if="host.is_used || String(host.agent) !== '1' || !host.is_valid">
-                                                <bk-tooltip placement="left">
-                                                    <label class="bk-form-checkbox">
-                                                        <input type="checkbox" name="check-host" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                    </label>
-                                                    <template slot="content">
-                                                        <p v-if="host.is_used" style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
-                                                            {{$t('当前节点已被项目（{projectName}）的集群（{clusterName}）占用', { projectName: host.project_name, clusterName: host.cluster_name })}}
-                                                        </p>
-                                                        <p v-if="String(host.agent) !== '1'" style="text-align: left; white-space: normal;word-break: break-all; width: 90px;">
-                                                            {{$t('Agent状态异常')}}
-                                                        </p>
-                                                        <p v-if="!host.is_valid" style="text-align: left; white-space: normal;word-break: break-all; width: 120px;">
-                                                            {{$t('Docker机不允许使用')}}
-                                                        </p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td style="text-align: right;" v-else>
-                                                <template v-if="checkAllMode === 'all'">
-                                                    <bk-tooltip placement="left">
-                                                        <label class="bk-form-checkbox">
-                                                            <div class="mock-checkbox checked-disabled"></div>
-                                                        </label>
-                                                        <template slot="content">
-                                                            <p style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
-                                                                {{$t('已经全选所有，如需清除，请在表头多选框清除')}}
-                                                            </p>
-                                                        </template>
-                                                    </bk-tooltip>
-                                                </template>
-                                                <template v-else>
-                                                    <label class="bk-form-checkbox">
-                                                        <input type="checkbox" name="check-host" v-model="host.isChecked" @click.stop="selectHost(candidateHostList)">
-                                                    </label>
-                                                </template>
-                                            </td>
-                                        </template>
-                                        <template v-else>
-                                            <td style="text-align: right;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-host" :checked="host.isChecked" disabled="disabled">
-                                                </label>
-                                            </td>
-                                        </template>
-                                        <td>
-                                            <bk-tooltip placement="top">
-                                                <div class="name" style="max-width: 360px;">{{host.host_name || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.host_name || '--'}}</p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip placement="top">
-                                                <div class="inner-ip">{{host.inner_ip || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.inner_ip || '--'}}</p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <span class="biz-success-text" v-if="String(host.agent) === '1'">
-                                                {{$t('正常')}}
-                                            </span>
-                                            <template v-else-if="String(host.agent) === '0'">
-                                                <bk-tooltip placement="top">
-                                                    <span class="biz-warning-text f12" style="vertical-align: super;">
-                                                        {{$t('异常')}}
-                                                    </span>
-                                                    <template slot="content">
-                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">
-                                                            {{$t('Agent异常，请先安装')}}
-                                                        </p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </template>
-                                            <span class="biz-danger-text f12" v-else>
-                                                {{$t('异常')}}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-if="!candidateHostList.length && !ccHostLoading">
-                                    <tr>
-                                        <td colspan="4">
-                                            <div class="bk-message-box no-data">
-                                                <p class="message empty-message" v-if="ccSearchKeys.length">{{$t('无匹配的主机资源')}}</p>
-                                                <p class="message empty-message" v-else>{{$t('您在当前业务下没有主机资源，请联系业务运维')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-box" v-if="pageConf.show && candidateHostList.length">
-                        <div class="cchost-paging-mask" v-if="isCreating"></div>
-                        <bk-paging
-                            :size="'small'"
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChange">
-                        </bk-paging>
-                    </div>
-                </div>
-            </div>
-            <div slot="footer">
-                <template>
-                    <div class="bk-dialog-outer">
-                        <template v-if="!isCreating">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                                @click="chooseServer" style="margin-top: 12px;">
-                                {{$t('确定')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="closeDialog" style="margin-top: 12px;">
-                                {{$t('取消')}}
-                            </button>
-                        </template>
-                        <template v-else>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled" style="margin-top: 12px;">
-                                {{$t('添加中...')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled" style="margin-top: 12px;">
-                                {{$t('取消')}}
-                            </button>
-                        </template>
-                    </div>
-                </template>
-            </div>
-        </bk-dialog>
+        <IpSelector v-model="showIpSelector" @confirm="chooseServer"></IpSelector>
 
         <bk-sideslider
             :is-show.sync="logSideDialogConf.isShow"
@@ -1144,21 +961,21 @@
 </template>
 
 <script>
-    import bkIPSearcher from '@open/components/ip-searcher'
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
     import RingCell from './ring-cell'
     import LoadingCell from './loading-cell'
     import mixin from './mixin-node'
     import nodeSearcher from './searcher'
+    import IpSelector from '@/components/ip-selector/selector-dialog.vue'
 
     export default {
         components: {
             RingCell,
             LoadingCell,
             tipDialog,
-            'bk-ip-searcher': bkIPSearcher,
-            nodeSearcher
+            nodeSearcher,
+            IpSelector
         },
         mixins: [applyPerm, mixin],
         data () {

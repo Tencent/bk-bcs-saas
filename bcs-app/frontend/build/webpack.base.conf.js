@@ -77,7 +77,7 @@ module.exports = {
                 enforce: 'pre',
                 loader: 'eslint-loader',
                 include: [resolve('src'), resolve('build')],
-                exclude: /node_modules\/|lib\.bundle\.js/,
+                exclude: /node_modules\/|lib\.bundle\.js|ip-selector\.js/,
                 options: {
                     formatter: friendlyFormatter
                 }
