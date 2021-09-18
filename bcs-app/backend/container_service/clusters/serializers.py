@@ -288,9 +288,10 @@ class QueryLabelValuesSLZ(QueryLabelSLZ):
 class FetchCCHostSLZ(serializers.Serializer):
     """ 获取 CMDB 业务下可用主机列表 """
 
-    limit = serializers.IntegerField(default=constants.DEFAULT_NODE_LIMIT)
-    offset = serializers.IntegerField(default=0)
-    ip_list = serializers.ListField(default=list)
-    set_id = serializers.IntegerField(default=None)
-    module_id = serializers.IntegerField(default=None)
-    fuzzy = serializers.BooleanField(default=False)
+    limit = serializers.IntegerField(label=_('查询行数'), default=constants.DEFAULT_NODE_LIMIT)
+    offset = serializers.IntegerField(label=_('偏移量'), default=0)
+    ip_list = serializers.ListField(label=_('待过滤 IP 列表'), default=list)
+    set_id = serializers.IntegerField(label=_('集群 ID'), default=None)
+    module_id = serializers.IntegerField(label=_('模块 ID'), default=None)
+    fuzzy = serializers.BooleanField(label=_('是否模糊匹配 IP'), default=False)
+    desire_all_data = serializers.BooleanField(label=_('请求全量数据'), default=False)

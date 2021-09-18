@@ -61,7 +61,7 @@ class CCViewSet(SystemViewSet):
         # 根据指定的 IP 过滤
         host_list = filter_by_ips(host_list, params['ip_list'], key='bk_host_innerip', fuzzy=params['fuzzy'])
 
-        response_data = {'results': [], 'count': 0, 'cc_app_name': cc_app_name}
+        response_data = {'count': 0, 'results': [], 'cc_app_name': cc_app_name}
         # 补充节点使用情况，包含使用的项目 & 集群
         project_cluster_info = utils.fetch_project_cluster_info(access_token)
         all_cluster_nodes = utils.fetch_all_cluster_nodes(access_token)
@@ -74,7 +74,14 @@ class CCViewSet(SystemViewSet):
         if not host_list:
             return Response(response_data)
 
-        ret = custom_paginator(host_list, params['offset'], params['limit'])
+        # 被使用 / agent 异常的机器均视为 不可使用
+        response_data['unavailable_ip_count'] = len([h for h in host_list if h['is_used'] or not h['is_valid']])
+
+        # 支持获取全量数据（仅跨页全选时候使用）
+        if params['desire_all_data']:
+            ret = {'count': len(host_list), 'results': host_list}
+        else:
+            ret = custom_paginator(host_list, params['offset'], params['limit'])
         # 更新 Host 的 GSE Agent 状态信息
         ret['results'] = utils.update_gse_agent_status(username, ret['results'])
 
