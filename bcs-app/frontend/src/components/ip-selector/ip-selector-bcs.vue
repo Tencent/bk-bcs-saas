@@ -39,16 +39,33 @@
     </ipSelector>
 </template>
 <script lang="ts">
-    import { defineComponent, reactive, toRefs, createElement, ref } from '@vue/composition-api'
+    import { defineComponent, reactive, toRefs, h, ref, watch } from '@vue/composition-api'
     import { ipSelector, AgentStatus } from './ip-selector'
     import './ip-selector.css'
     import { fetchBizTopo, fetchBizHosts } from '@/api/base'
     import { copyText } from '@/common/util'
 
+    export interface ISelectorState {
+        isLoading: boolean;
+        panels: any[];
+        active: string;
+        previewData: any[];
+        staticTableConfig: any[];
+        previewOperateList: any[];
+        searchDataOptions: any;
+        treeDataOptions: any;
+    }
     export default defineComponent({
         name: 'ip-selector-bcs',
         components: {
             ipSelector
+        },
+        props: {
+            // 回显IP列表
+            ipList: {
+                type: Array,
+                default: () => ([])
+            }
         },
         setup (props, ctx) {
             const { $i18n } = ctx.root
@@ -61,7 +78,7 @@
                 1: $i18n.t('正常')
             }
             const renderIpAgentStatus = (row) => {
-                return createElement(AgentStatus, {
+                return h(AgentStatus, {
                     props: {
                         type: 2,
                         data: [
@@ -73,7 +90,7 @@
                     }
                 })
             }
-            const state = reactive<{[key: string]: any}>({
+            const state = reactive<ISelectorState>({
                 isLoading: false,
                 panels: [
                     {
@@ -124,6 +141,24 @@
                 }
             })
             const selectorRef = ref<any>(null)
+
+            // 初始化回显列表
+            const { ipList } = toRefs(props)
+            watch(ipList, () => {
+                const groups = state.previewData.find(item => item.id === 'nodes')
+                if (groups) {
+                    ipList.value.forEach(item => {
+                        const index = groups.data.find(data => identityIp(data, item))
+                        index === -1 && groups.data.push(item)
+                    })
+                } else {
+                    state.previewData.push({
+                        id: 'nodes',
+                        data: [...ipList.value],
+                        dataNameKey: 'bk_host_innerip'
+                    })
+                }
+            }, { immediate: true })
 
             // 获取左侧Tree数据
             let treeData: any[] = []
@@ -294,6 +329,11 @@
                 const group = state.previewData.find(data => data.id === 'nodes')
                 ctx.emit('change', group?.data || [])
             }
+            // 获取IP节点数据
+            const handleGetData = () => {
+                const group = state.previewData.find(data => data.id === 'nodes')
+                return group?.data || []
+            }
 
             return {
                 ...toRefs(state),
@@ -306,7 +346,8 @@
                 handleRemoveNode,
                 handleChange,
                 getRowDisabledStatus,
-                getRowTipsContent
+                getRowTipsContent,
+                handleGetData
             }
         }
     })

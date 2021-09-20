@@ -1946,22 +1946,26 @@
     }, {
       key: "computedTableLimit",
       value: function computedTableLimit() {
-        var _this$pagination$limi;
+        var _this2 = this;
 
-        // 表格最大高度， 数字76: 去除 输入框 + margin + 分页组件 + margin 的高度
-        this.maxHeight = this.ipListWrapperRef.clientHeight - this.slotHeight - 86;
-        if (!this.maxHeight) return; // 表格分页条数，数字42: 去除表格header的高度
+        setTimeout(function () {
+          var _this2$pagination$lim;
 
-        var limit = Math.floor((this.maxHeight - 42) / 42);
-        if (limit <= 0) return;
+          // 表格最大高度， 数字76: 去除 输入框 + margin + 分页组件 + margin 的高度
+          _this2.maxHeight = _this2.ipListWrapperRef.clientHeight - _this2.slotHeight - 86;
+          if (!_this2.maxHeight) return; // 表格分页条数，数字42: 去除表格header的高度
 
-        if (!((_this$pagination$limi = this.pagination.limitList) !== null && _this$pagination$limi !== void 0 && _this$pagination$limi.includes(limit))) {
-          var _this$pagination$limi2;
+          var limit = Math.floor((_this2.maxHeight - 42) / 42);
+          if (limit <= 0) return;
 
-          (_this$pagination$limi2 = this.pagination.limitList) === null || _this$pagination$limi2 === void 0 ? void 0 : _this$pagination$limi2.push(limit);
-        }
+          if (!((_this2$pagination$lim = _this2.pagination.limitList) !== null && _this2$pagination$lim !== void 0 && _this2$pagination$lim.includes(limit))) {
+            var _this2$pagination$lim2;
 
-        this.pagination.limit = limit;
+            (_this2$pagination$lim2 = _this2.pagination.limitList) === null || _this2$pagination$lim2 === void 0 ? void 0 : _this2$pagination$lim2.push(limit);
+          }
+
+          _this2.pagination.limit = limit;
+        }, 0);
       } // eslint-disable-next-line @typescript-eslint/member-ordering
 
     }, {
@@ -1977,21 +1981,21 @@
     }, {
       key: "handleGetDefaultSelections",
       value: function handleGetDefaultSelections() {
-        var _this2 = this;
+        var _this3 = this;
 
         // 获取默认勾选项
         this.defaultSelections = this.tableData.filter(function (row) {
-          return _this2.getDefaultSelections && !!_this2.getDefaultSelections(row);
+          return _this3.getDefaultSelections && !!_this3.getDefaultSelections(row);
         });
       } // eslint-disable-next-line @typescript-eslint/member-ordering
 
     }, {
       key: "selectionAllData",
       value: function selectionAllData() {
-        var _this3 = this;
+        var _this4 = this;
 
         this.$nextTick(function () {
-          !!_this3.tableData.length && _this3.tableRef && _this3.tableRef.handleSelectionChange({
+          !!_this4.tableData.length && _this4.tableRef && _this4.tableRef.handleSelectionChange({
             value: 2,
             type: 'all'
           });
@@ -2293,7 +2297,7 @@
   var __vue_inject_styles__$9 = undefined;
   /* scoped */
 
-  var __vue_scope_id__$9 = "data-v-1a77622a";
+  var __vue_scope_id__$9 = "data-v-332be80f";
   /* module identifier */
 
   var __vue_module_identifier__$9 = undefined;

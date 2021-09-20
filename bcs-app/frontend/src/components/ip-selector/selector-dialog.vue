@@ -8,7 +8,7 @@
         :auto-close="false"
         @value-change="handleValueChange"
         @confirm="handleConfirm">
-        <Selector :key="selectorKey" @change="handleIpSelectorChange"></Selector>
+        <Selector ref="selector" :key="selectorKey" :ip-list="ipList" @change="handleIpSelectorChange"></Selector>
     </bcs-dialog>
 </template>
 <script lang="ts">
@@ -28,11 +28,15 @@
             modelValue: {
                 type: Boolean,
                 default: false
+            },
+            // 回显IP列表
+            ipList: {
+                type: Array,
+                default: () => ([])
             }
         },
         setup (props, ctx) {
             const { emit } = ctx
-            const ipList = ref([])
 
             const { modelValue } = toRefs(props)
             const selectorKey = ref(String(new Date().getTime()))
@@ -44,21 +48,24 @@
             }
 
             const handleIpSelectorChange = (data) => {
-                ipList.value = data
+                emit('nodes-change', data)
             }
 
+            const selector = ref<any>()
             const handleConfirm = () => {
-                if (!ipList.value.length) {
+                const data = selector.value?.handleGetData() || []
+                if (!data.length) {
                     ctx.root.$bkMessage({
                         theme: 'error',
                         message: ctx.root.$i18n.t('请选择服务器')
                     })
                     return
                 }
-                emit('confirm', ipList.value)
+                emit('confirm', data)
             }
 
             return {
+                selector,
                 selectorKey,
                 handleValueChange,
                 handleConfirm,
