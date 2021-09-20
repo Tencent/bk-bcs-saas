@@ -470,7 +470,7 @@
                 PROJECT_MESOS: window.PROJECT_MESOS,
                 fileImportIndex: 0,
                 zipTooltipText: this.$t('只允许导入从已有模板集导出的zip包'),
-                web_annotations: {},
+                webAnnotationsPerms: {},
                 isLoading: true,
                 isImportLoading: false,
                 searchKeyword: '',
@@ -599,7 +599,7 @@
         },
         methods: {
             getAuthority (actionId, templateId) {
-                return !!this.web_annotations?.perms?.[templateId]?.[actionId]
+                return !!this.webAnnotationsPerms[templateId]?.[actionId]
             },
             /**
              * 加载下一页数据
@@ -1312,7 +1312,7 @@
                         this.templateList.push(item)
                     })
 
-                    this.web_annotations = res.web_annotations || { perms: {} }
+                    this.web_annotations = Object.assign({}, this.web_annotations, res.web_annotations?.perms || {})
                     this.pageConf.hasNext = data.has_next
                     this.pageConf.total = data.count
 
