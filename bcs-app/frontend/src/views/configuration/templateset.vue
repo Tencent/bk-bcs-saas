@@ -1312,7 +1312,7 @@
                         this.templateList.push(item)
                     })
 
-                    this.web_annotations = Object.assign({}, this.web_annotations, res.web_annotations?.perms || {})
+                    this.webAnnotationsPerms = Object.assign({}, this.webAnnotationsPerms, res.web_annotations?.perms || {})
                     this.pageConf.hasNext = data.has_next
                     this.pageConf.total = data.count
 
