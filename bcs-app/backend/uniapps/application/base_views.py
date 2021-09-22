@@ -16,7 +16,6 @@ import base64
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List
 
 import yaml
 from django.utils.translation import ugettext_lazy as _
@@ -24,18 +23,16 @@ from rest_framework import views
 from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
-from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName, MesosResourceName
+from backend.container_service.projects.base.constants import ProjectKindID
+from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.templatesets.legacy_apps.instance.constants import EventType
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, InstanceEvent
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import ErrorCode as ErrorCodeCls
 from backend.utils.error_codes import error_codes
 
 from .common_views.serializers import BaseNotTemplateInstanceParamsSLZ
@@ -91,18 +88,13 @@ class BaseAPI(views.APIView):
         处理项目project info
         """
         kind = request.project.get("kind")
-        if kind not in [1, 2]:
-            raise error_codes.CheckFailed(_("项目类型必须为k8s/mesos, 请确认后重试!"))
+        if kind not in [1]:
+            raise error_codes.CheckFailed(_("项目类型必须为k8s, 请确认后重试!"))
         return kind
 
     def get_project_kind(self, request, project_id):
-        """获取项目类型，现阶段包含mesos和k8s"""
-        project_info = paas_cc.get_project(request.user.token.access_token, project_id)
-        if project_info.get("code") != ErrorCode.NoError:
-            return False, APIResponse({"code": project_info.get("code", DEFAULT_ERROR_CODE), "message": _("请求出现异常!")})
-        if project_info.get("data", {}).get("kind") not in constants.PROJECT_KIND_LIST:
-            return False, APIResponse({"code": ErrorCode.UserError, "message": _("该项目编排类型不正确!"), "data": None})
-        return True, project_info["data"]["kind"]
+        """获取项目类型"""
+        return True, request.project.kind
 
     def get_project_clusters(self, request, project_id):
         """查询项目下所有的集群"""
@@ -242,40 +234,31 @@ class BaseAPI(views.APIView):
         category=None,
     ):
         """获取taskgroup或者pod"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.get_mesos_app_taskgroup(
-                field=field or "data.containerStatuses.containerID,namespace,data.rcname",
-                app_name=app_name,
-                taskgroup_name=taskgroup_name,
-                namespace=ns_name,
-            )
+        # 添加owner reference的kind属性，用来过滤pod关联的deployment/sts等类型
+        owner_ref_kind = OWENER_REFERENCE_MAP.get(category)
+        if taskgroup_name:
+            pod_name = taskgroup_name
+            rs_name = None
+        elif app_name:
+            pod_name = None
+            rs_name = app_name
+            if category in ["deployment", "K8sDeployment"]:
+                rs_name = self.get_k8s_rs_info(request, project_id, cluster_id, ns_name, app_name)
+                if not rs_name:
+                    return True, []
         else:
-            # 添加owner reference的kind属性，用来过滤pod关联的deployment/sts等类型
-            owner_ref_kind = OWENER_REFERENCE_MAP.get(category)
-            if taskgroup_name:
-                pod_name = taskgroup_name
-                rs_name = None
-            elif app_name:
-                pod_name = None
-                rs_name = app_name
-                if category in ["deployment", "K8sDeployment"]:
-                    rs_name = self.get_k8s_rs_info(request, project_id, cluster_id, ns_name, app_name)
-                    if not rs_name:
-                        return True, []
-            else:
-                pod_name = None
-                rs_name = None
-            resp = self.get_k8s_pod_info(
-                request,
-                project_id,
-                cluster_id,
-                ns_name,
-                owner_ref_name=rs_name,
-                field=field,
-                pod_name=pod_name,
-                owner_ref_kind=owner_ref_kind,
-            )
+            pod_name = None
+            rs_name = None
+        resp = self.get_k8s_pod_info(
+            request,
+            project_id,
+            cluster_id,
+            ns_name,
+            owner_ref_name=rs_name,
+            field=field,
+            pod_name=pod_name,
+            owner_ref_kind=owner_ref_kind,
+        )
 
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message")})
@@ -283,16 +266,9 @@ class BaseAPI(views.APIView):
 
     def create_instance(self, request, project_id, cluster_id, ns, data, category="application", kind=2):
         """创建实例"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            if category == "application":
-                resp = client.create_application(ns, data)
-            else:
-                resp = client.create_deployment(ns, data)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            curr_func = getattr(client, FUNC_MAP[category] % "create")
-            resp = curr_func(ns, data)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        curr_func = getattr(client, FUNC_MAP[category] % "create")
+        resp = curr_func(ns, data)
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({"code": resp.get("code") or DEFAULT_ERROR_CODE, "message": resp.get("message")})
         return APIResponse({"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message")})
@@ -310,30 +286,15 @@ class BaseAPI(views.APIView):
         enforce=0,
     ):
         """删除instance"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            if category == "application":
-                resp = client.delete_mesos_app_instance(ns, instance_name, enforce=enforce)
-            elif category == "deployment":
-                resp = client.delete_deployment(ns, instance_name, enforce=enforce)
-            elif category == "secret":
-                resp = client.delete_secret(ns, instance_name)
-            elif category == "configmap":
-                resp = client.delete_configmap(ns, instance_name)
-            else:
-                resp = client.delete_service(ns, instance_name)
-            if inst_id_list:
-                delete_instance_task.delay(request.user.token.access_token, inst_id_list, kind)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        # deployment 需要级联删除 res\pod; daemonset/job/statefulset 需要级联删除 pod
+        if FUNC_MAP[category] in ['%s_deployment', '%s_daemonset', '%s_job', '%s_statefulset']:
+            fun_prefix = 'deep_delete'
         else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            # deployment 需要级联删除 res\pod; daemonset/job/statefulset 需要级联删除 pod
-            if FUNC_MAP[category] in ['%s_deployment', '%s_daemonset', '%s_job', '%s_statefulset']:
-                fun_prefix = 'deep_delete'
-            else:
-                fun_prefix = 'delete'
-            curr_func = getattr(client, FUNC_MAP[category] % fun_prefix)
+            fun_prefix = 'delete'
+        curr_func = getattr(client, FUNC_MAP[category] % fun_prefix)
 
-            resp = curr_func(ns, instance_name)
+        resp = curr_func(ns, instance_name)
         # 级联删除，会返回空
         if resp is None:
             # 启动后台任务，轮训任务状态
@@ -345,44 +306,10 @@ class BaseAPI(views.APIView):
         msg = resp.get("message")
         # message中有not found或者node does not exist时，认为已经删除成功
         # 状态码为正常或者满足不存在条件时，认为已经删除成功
-        if (
-            (
-                resp.get("code")
-                in [ErrorCode.NoError, ErrorCode.MesosDeploymentNotFound, ErrorCode.MesosApplicationNotFound]
-            )
-            or ("not found" in msg)
-            or ("node does not exist" in msg)
-        ):
+        if (resp.get("code") in [ErrorCode.NoError]) or ("not found" in msg) or ("node does not exist" in msg):
             return APIResponse({"code": ErrorCode.NoError, "message": _("删除成功")})
 
         return APIResponse({"code": resp.get("code"), "message": msg})
-
-    def get_mesos_application_deploy_status(
-        self, request, project_id, cluster_id, instance_name, category="application", field=None, namespace=None
-    ):
-        """查询mesos下application和deployment的状态"""
-        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-        if category == "application":
-            resp = retry_requests(
-                client.get_mesos_app_instances,
-                data={
-                    "app_name": instance_name,
-                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
-                    "namespace": namespace,
-                },
-            )
-        else:
-            resp = retry_requests(
-                client.get_deployment,
-                data={
-                    "name": instance_name,
-                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
-                    "namespace": namespace,
-                },
-            )
-        if resp.get("code") != ErrorCode.NoError:
-            return False, APIResponse({"code": resp.get("code") or DEFAULT_ERROR_CODE, "message": resp.get("message")})
-        return True, resp
 
     def get_k8s_application_deploy_status(
         self, request, project_id, cluster_id, instance_name, category="application", namespace=None, field=None
@@ -404,58 +331,20 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
         """获取详情"""
-        if project_kind == 2:
-            return self.get_mesos_application_deploy_status(
-                request,
-                project_id,
-                cluster_id,
-                instance_name,
-                category=category,
-                namespace=namespace,
-                field=field,
-            )
-        else:
-            return self.get_k8s_application_deploy_status(
-                request,
-                project_id,
-                cluster_id,
-                instance_name,
-                category=category,
-                namespace=namespace,
-                field=field,
-            )
-
-    def get_mesos_app_deploy_with_post(
-        self, request, project_id, cluster_id, instance_name=None, category="application", field=None, namespace=None
-    ):
-        """查询mesos下application和deployment的状态"""
-        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-        if category == "application":
-            resp = retry_requests(
-                client.get_application_with_post,
-                data={
-                    "name": instance_name,
-                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
-                    "namespace": namespace,
-                },
-            )
-        else:
-            resp = retry_requests(
-                client.get_deployment_with_post,
-                data={
-                    "name": instance_name,
-                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
-                    "namespace": namespace,
-                },
-            )
-        if resp.get("code") != ErrorCode.NoError:
-            return False, APIResponse({"code": resp.get("code") or DEFAULT_ERROR_CODE, "message": resp.get("message")})
-        return True, resp
+        return self.get_k8s_application_deploy_status(
+            request,
+            project_id,
+            cluster_id,
+            instance_name,
+            category=category,
+            namespace=namespace,
+            field=field,
+        )
 
     def get_k8s_app_deploy_with_post(
         self, request, project_id, cluster_id, instance_name=None, category="application", namespace=None, field=None
@@ -477,31 +366,20 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name=None,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
         """获取详情"""
-        if project_kind == 2:
-            return self.get_mesos_app_deploy_with_post(
-                request,
-                project_id,
-                cluster_id,
-                instance_name=instance_name,
-                category=category,
-                namespace=namespace,
-                field=field,
-            )
-        else:
-            return self.get_k8s_app_deploy_with_post(
-                request,
-                project_id,
-                cluster_id,
-                instance_name=instance_name,
-                category=category,
-                namespace=namespace,
-                field=field,
-            )
+        return self.get_k8s_app_deploy_with_post(
+            request,
+            project_id,
+            cluster_id,
+            instance_name=instance_name,
+            category=category,
+            namespace=namespace,
+            field=field,
+        )
 
     def get_application_deploy_status(
         self,
@@ -510,29 +388,20 @@ class BaseAPI(views.APIView):
         cluster_id,
         instance_name,
         category="application",
-        project_kind=2,
+        project_kind=ProjectKindID,
         namespace=None,
         field=None,
     ):
         """获取application和deployment"""
-        if project_kind == 2:
-            result, resp = self.get_mesos_application_deploy_status(
-                request, project_id, cluster_id, instance_name, category=category, namespace=namespace, field=field
-            )
-        else:
-            result, resp = self.get_k8s_application_deploy_status(
-                request, project_id, cluster_id, instance_name, category=category, namespace=namespace, field=field
-            )
+        result, resp = self.get_k8s_application_deploy_status(
+            request, project_id, cluster_id, instance_name, category=category, namespace=namespace, field=field
+        )
 
         return result, resp
 
     def get_instances(self, request, project_id, cluster_id, kind=2):
         """拉取项目下的所有Instance"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.get_mesos_app_instances()
-        else:
-            resp = DEFAULT_RESPONSE
+        resp = DEFAULT_RESPONSE
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message")})
         return True, resp["data"]
@@ -540,13 +409,9 @@ class BaseAPI(views.APIView):
     def update_instance(
         self, request, project_id, cluster_id, ns, instance_num, conf, kind=2, category=None, name=None
     ):  # noqa
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.update_mesos_app_instance(ns, instance_num, conf)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            curr_func = getattr(client, FUNC_MAP[category] % "update")
-            resp = curr_func(ns, name, conf)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        curr_func = getattr(client, FUNC_MAP[category] % "update")
+        resp = curr_func(ns, name, conf)
 
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse(
@@ -558,14 +423,10 @@ class BaseAPI(views.APIView):
         self, request, project_id, cluster_id, ns, app_name, instance_num, kind=2, category=None, data=None
     ):  # noqa
         """扩缩容"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.scale_mesos_app_instance(ns, app_name, instance_num)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            data["spec"]["replicas"] = int(instance_num)
-            curr_func = getattr(client, FUNC_MAP[category] % "update")
-            resp = curr_func(ns, app_name, data)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        data["spec"]["replicas"] = int(instance_num)
+        curr_func = getattr(client, FUNC_MAP[category] % "update")
+        resp = curr_func(ns, app_name, data)
 
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse(
@@ -573,24 +434,12 @@ class BaseAPI(views.APIView):
             )
         return APIResponse({"message": _("更新成功!")})
 
-    def update_mesos_instance(
-        self, access_token: str, project_id: str, cluster_id: str, ns: str, data: Dict, kind: str
-    ) -> Dict:
-        """更新 mesos 应用"""
-        client = MesosClient(access_token, project_id, cluster_id, None)
-        if kind == MesosResourceName.deployment.value:
-            return client.update_deployment(ns, data)
-        return client.update_application(ns, data)
-
     def update_deployment(self, request, project_id, cluster_id, ns, data, kind=2, category=None, app_name=None):
         """滚动升级"""
         access_token = request.user.token.access_token
-        if kind == 2:
-            resp = self.update_mesos_instance(access_token, project_id, cluster_id, ns, data, category)
-        else:
-            client = K8SClient(access_token, project_id, cluster_id, None)
-            curr_func = getattr(client, FUNC_MAP[category] % "update")
-            resp = curr_func(ns, app_name, data)
+        client = K8SClient(access_token, project_id, cluster_id, None)
+        curr_func = getattr(client, FUNC_MAP[category] % "update")
+        resp = curr_func(ns, app_name, data)
 
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse(
@@ -600,27 +449,14 @@ class BaseAPI(views.APIView):
 
     def cancel_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=2):
         """取消更新"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.cancel_update_deployment(ns, deployment_name)
-        else:
-            resp = DEFAULT_RESPONSE
-        if resp.get("code") != ErrorCode.NoError:
-            return APIResponse(
-                {"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message", _("请求出现异常!"))}
-            )
         return APIResponse({"message": _("取消更新成功!")})
 
     def pause_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=1, category=None):
         """暂停更新"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.pause_update_deployment(ns, deployment_name)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            curr_func = getattr(client, FUNC_MAP[category] % "patch")
-            params = {"spec": {"paused": True}}
-            resp = curr_func(ns, deployment_name, params)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        curr_func = getattr(client, FUNC_MAP[category] % "patch")
+        params = {"spec": {"paused": True}}
+        resp = curr_func(ns, deployment_name, params)
 
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse(
@@ -630,14 +466,10 @@ class BaseAPI(views.APIView):
 
     def resume_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=2, category=None):
         """重启更新"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.resume_update_deployment(ns, deployment_name)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            curr_func = getattr(client, FUNC_MAP[category] % "patch")
-            params = {"spec": {"paused": False}}
-            resp = curr_func(ns, deployment_name, params)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        curr_func = getattr(client, FUNC_MAP[category] % "patch")
+        params = {"spec": {"paused": False}}
+        resp = curr_func(ns, deployment_name, params)
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse(
                 {"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message", _("请求出现异常!"))}
@@ -646,12 +478,8 @@ class BaseAPI(views.APIView):
 
     def rescheduler_taskgroup(self, request, project_id, cluster_id, ns, instance_name, taskgroup_name, kind=2):
         """重启更新"""
-        if kind == 2:
-            client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.rescheduler_mesos_taskgroup(ns, instance_name, taskgroup_name)
-        else:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            resp = client.delete_pod(ns, taskgroup_name)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        resp = client.delete_pod(ns, taskgroup_name)
 
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse(
@@ -706,33 +534,6 @@ class BaseAPI(views.APIView):
         if is_bcs_success is not None:
             info.is_bcs_success = is_bcs_success
         info.save()
-
-    def get_rc_name_by_deployment_base(
-        self, request, project_id, cluster_id, instance_name, project_kind=2, namespace=None
-    ):
-        """如果是deployment，需要现根据deployment获取到application name"""
-        flag, resp = self.get_application_deploy_info(
-            request,
-            project_id,
-            cluster_id,
-            instance_name,
-            category="deployment",
-            project_kind=project_kind,
-            field="data.application,data.application_ext",
-            namespace=namespace,
-        )
-        if not flag:
-            raise error_codes.APIError.f(resp.data.get("message"))
-        ret_data = []
-        for info in resp.get("data") or []:
-            application = (info.get("data") or {}).get("application") or {}
-            application_ext = (info.get("data") or {}).get("application_ext") or {}
-            if application:
-                ret_data.append(application.get("name"))
-            if application_ext:
-                ret_data.append(application_ext.get("name"))
-        # ret_data.append(instance_name)
-        return ret_data
 
     def get_task_group_info_base(self, data, namespace=None):
         """获取pod信息"""
@@ -888,41 +689,26 @@ class BaseAPI(views.APIView):
             tmpl_perm = bcs_perm.Templates(request, project_id, muster_id, resource_name=muster_info.name)
             tmpl_perm.can_use(raise_exception=True)
 
-    def get_mesos_application_deployment_config(self, access_token, project_id, cluster_id, name, namespace, category):
-        """获取线上application和deployment配置"""
-        client = MesosClient(access_token, project_id, cluster_id, None)
-        if category == "application":
-            return client.get_application_conf(namespace, name)
-        return client.get_deployment_conf(namespace, name)
-
     def online_app_conf(self, request, project_id, project_kind, cluster_id, name, namespace, category):
         """针对非模板创建的应用，获取线上的配置"""
         conf = {}
-        if project_kind == 1:
-            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-            curr_func = FUNC_MAP[category] % "get"
-            resp = getattr(client, curr_func)({"name": name, "namespace": namespace})
-            if resp.get("code") != 0:
-                raise error_codes.APIError.f(resp.get("message", _("获取应用线上配置异常，请联系管理员处理!")))
-            data = resp.get("data") or []
-            if not data:
-                return {}
-            data = data[0]
-            # 组装数据
-            conf["kind"] = data["resourceType"]
-            conf["metadata"] = {}
-            conf["spec"] = data["data"]["spec"]
-            conf["metadata"]["name"] = data["data"]["metadata"]["name"]
-            conf["metadata"]["namespace"] = data["data"]["metadata"]["namespace"]
-            conf["metadata"]["labels"] = data["data"]["metadata"]["labels"]
-            conf["metadata"]["annotations"] = data["data"]["metadata"]["annotations"]
-        else:
-            resp = self.get_mesos_application_deployment_config(
-                request.user.token.access_token, project_id, cluster_id, name, namespace, category
-            )
-            if resp.get("code") != ErrorCode.NoError:
-                raise error_codes.APIError.f(resp.get("message", _("获取应用线上配置异常，请联系管理员处理!")))
-            conf = resp.get('data') or {}
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        curr_func = FUNC_MAP[category] % "get"
+        resp = getattr(client, curr_func)({"name": name, "namespace": namespace})
+        if resp.get("code") != 0:
+            raise error_codes.APIError.f(resp.get("message", _("获取应用线上配置异常，请联系管理员处理!")))
+        data = resp.get("data") or []
+        if not data:
+            return {}
+        data = data[0]
+        # 组装数据
+        conf["kind"] = data["resourceType"]
+        conf["metadata"] = {}
+        conf["spec"] = data["data"]["spec"]
+        conf["metadata"]["name"] = data["data"]["metadata"]["name"]
+        conf["metadata"]["namespace"] = data["data"]["metadata"]["namespace"]
+        conf["metadata"]["labels"] = data["data"]["metadata"]["labels"]
+        conf["metadata"]["annotations"] = data["data"]["metadata"]["annotations"]
         return conf
 
 
@@ -972,17 +758,3 @@ class InstanceAPI(BaseAPI):
         if resource_kind.lower() in K8sResourceName.K8sStatefulSet.value.lower():
             raise ValidationError(_("StatefulSet类型不允许此操作"))
         return True
-
-    def _get_mesos_app_names_by_deployment(
-        self, request, cluster_id: str, name: str, namespace: str, kind: str
-    ) -> List:
-        # mesos deployment资源，需要查询deployment下的application，再通过application查询taskgroup
-        app_name_list = self.get_rc_name_by_deployment_base(
-            request,
-            request.project.project_id,
-            cluster_id,
-            name,
-            project_kind=request.project.kind,
-            namespace=namespace,
-        )
-        return list(set(app_name_list))

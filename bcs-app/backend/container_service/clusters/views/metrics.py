@@ -17,15 +17,12 @@ import time
 from itertools import groupby
 
 import arrow
-from django.conf import settings
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps import constants as app_constants
 from backend.components import data as apigw_data
 from backend.components import paas_cc, prometheus
-from backend.container_service.clusters import serializers
 from backend.container_service.clusters import serializers as cluster_serializers
 from backend.container_service.clusters.utils import use_prometheus_source
 from backend.container_service.clusters.views.metric_handler import get_namespace_metric, get_node_metric
@@ -88,13 +85,8 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
             metrics_cpu.append(
                 {'time': time, 'remain_cpu': num_transform(i['remain_cpu']), 'total_cpu': i['total_cpu']}
             )
-            if request.project.kind == app_constants.ProjectKind.MESOS.value:
-                # transfer GB
-                total_mem = normalize_metric(i['total_mem'] / 1024)
-                remain_mem = normalize_metric(num_transform(i['remain_mem']) / 1024)
-            else:
-                total_mem = normalize_metric(i['total_mem'])
-                remain_mem = normalize_metric(num_transform(i['remain_mem']))
+            total_mem = normalize_metric(i['total_mem'])
+            remain_mem = normalize_metric(num_transform(i['remain_mem']))
             metrics_mem.append({'time': time, 'remain_mem': remain_mem, 'total_mem': total_mem})
             # add disk metric
             metrics_disk.append(

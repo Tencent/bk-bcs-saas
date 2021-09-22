@@ -33,15 +33,14 @@ export const customResourceDelete = request('delete', '/api/dashboard/projects/$
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
 
-// application
-export const sourceExpansion = request('put', '/api/app/mesos/projects/$projectId/clusters/$clusterId/namespaces/$namespace/instances/$application/')
-
 // node
 export const getK8sNodes = request('get', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/')
 export const fetchK8sNodeLabels = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
 export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
 export const getNodeTaints = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
+export const fetchBizTopo = request('get', '/api/projects/$projectId/cc/topology/')
+export const fetchBizHosts = request('post', '/api/projects/$projectId/cc/hosts/')
 
 // project
 export const createProject = request('post', '/api/nav/projects/')
@@ -79,5 +78,7 @@ export default {
     customResourceCreate,
     customResourceUpdate,
     customResourceDelete,
-    editProject
+    editProject,
+    fetchBizTopo,
+    fetchBizHosts
 }

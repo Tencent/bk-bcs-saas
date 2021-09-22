@@ -9,7 +9,7 @@
         </div>
         <!-- bk-form-header end -->
         <bk-collapse v-model="collapseName" class="biz-var-collapse" accordion>
-            <bk-collapse-item :name="groupName" v-for="(groupName, index) of Object.keys(groups)" :key="index">
+            <bcs-collapse-item :name="groupName" v-for="(groupName, index) of Object.keys(groups)" :key="index">
                 {{groupName || ''}}
                 <div slot="content" class="p10">
                     <div class="bk-form" style="width: 700px;">
@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </div>
-            </bk-collapse-item>
+            </bcs-collapse-item>
         </bk-collapse>
     </div>
 </template>
@@ -187,7 +187,7 @@
                         }
                     })
                 }
-            
+
                 const components = this.$refs
                 for (const key in components) {
                     if (components[key] && components[key][0] && components[key][0].checkValue) {

@@ -633,40 +633,6 @@ export default {
         },
 
         /**
-         * 获取 mesos 命名空间里的资源
-         *
-         * @param {Object} context store 上下文对象
-         * @param {string} projectId 项目 id
-         * @param {string} tplVerId template version id
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosNamespaceRes (context, { projectId, namespaceId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/namespaces/${namespaceId}/resources/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 删除 mesos 命名空间
-         *
-         * @param {Object} context store 上下文对象
-         * @param {string} projectId 项目 id
-         * @param {string} tplVerId template version id
-         *
-         * @return {Promise} promise 对象
-         */
-        deleteMesosNamespace (context, { projectId, namespaceId }, config = {}) {
-            return http.delete(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/namespaces/${namespaceId}/resources/`,
-                {},
-                config
-            )
-        },
-
-        /**
          * 获取配额数据
          *
          * @param {Object} context store 上下文对象

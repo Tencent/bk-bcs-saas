@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.components import cc
 from backend.container_service.misc.depot.api import create_project_path_by_api
-from backend.container_service.projects.drivers.base import BaseDriver
+from backend.container_service.projects.drivers import K8SDriver
 from backend.templatesets.legacy_apps.configuration.init_data import init_template
 from backend.utils.notify import notify_manager
 
@@ -42,16 +42,12 @@ def get_app_by_user_role(request):
 
 def update_bcs_service_for_project(request, project_id, data):
     backend_create_depot_path(request, project_id, request.project.cc_app_id)
-    expected_kind = data.get('kind')
-    # 当需要变动调度类型，并且和先前不一样时，需要初始化模板
-    if (not expected_kind) or (expected_kind == request.project.kind):
-        return
     logger.info(f'init_template [update] project_id: {project_id}')
     init_template.delay(
-        project_id, request.project.english_name, expected_kind, request.user.token.access_token, request.user.username
+        project_id, request.project.english_name, request.user.token.access_token, request.user.username
     )
     # helm handler
-    BaseDriver(expected_kind).driver.backend_create_helm_info(project_id)
+    K8SDriver.backend_create_helm_info(project_id)
     notify_manager.delay(
         '{prefix_msg}[{username}]{project}{project_name}{suffix_msg}'.format(
             prefix_msg=_("用户"),

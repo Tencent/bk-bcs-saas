@@ -115,7 +115,7 @@
                         <div>当前内容</div>
                         <div>更新内容</div>
                     </div>
-                    
+
                     <div :class="['diff-editor-box', { 'editor-fullscreen': yamlDiffEditorOptions.fullScreen }]" style="position: relative;">
                         <monaco-editor
                             ref="yamlEditor"
@@ -211,20 +211,8 @@
                 return this.$route.params.projectId
             }
         },
-        
-        created () {
-            // 如果不是mesos类型的项目，无法访问页面，重定向回集群首页
-            if (this.curProject && this.curProject.kind === PROJECT_MESOS) {
-                this.$router.push({
-                    name: 'clusterMain',
-                    params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode
-                    }
-                })
-                return false
-            }
 
+        created () {
             this.curClusterId = this.$route.params.clusterId
             this.curCrdId = this.$route.params.id
             this.curCrdName = this.$route.params.name

@@ -131,6 +131,7 @@ class InstanceConfig(BaseModel):
 
 
 class MetricConfig(BaseModel):
+    # TODO 待模板集重构废弃
     category_choice = (('metric', u"Metric"),)
     instance_id = models.IntegerField(_("关联的 VersionInstance ID"))
     namespace = models.CharField(_("命名空间ID"), max_length=32)

@@ -12,7 +12,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.constants import K8S_RESERVED_KEY_WORDS

@@ -26,11 +26,12 @@ from backend.dashboard.exceptions import CreateResourceError, DeleteResourceErro
 from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.dashboard.utils.web import gen_base_web_annotations
-from backend.resources.constants import KUBE_NAME_REGEX, K8sResourceKind
+from backend.resources.constants import K8sResourceKind
 from backend.resources.custom_object import CustomResourceDefinition, get_cobj_client_by_crd
 from backend.resources.custom_object.formatter import CustomObjectCommonFormatter
 from backend.utils.basic import getitems
 from backend.utils.response import BKAPIResponse
+from backend.utils.url_slug import KUBE_NAME_REGEX
 
 
 class CRDViewSet(SystemViewSet):

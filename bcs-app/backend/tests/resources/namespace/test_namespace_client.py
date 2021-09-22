@@ -27,7 +27,7 @@ class TestNamespaceClient:
     namespace_for_test = 'ns-for-test-{}'.format(generate_random_string(8))
 
     @pytest.fixture
-    def common_patch(self, patch_get_dynamic_client):
+    def common_patch(self):
         with mock.patch(
             'backend.resources.namespace.client.get_namespaces_by_cluster_id',
             new=lambda *args, **kwargs: [{'id': 1, 'name': 'default'}],
