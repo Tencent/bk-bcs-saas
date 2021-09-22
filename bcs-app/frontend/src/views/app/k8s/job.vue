@@ -30,6 +30,9 @@
                         tmplAppId: tpl.tmpl_app_id,
                         tmplAppName: tpl.tmpl_app_name,
                         searchParamsList: this.searchParamsList
+                    },
+                    query: {
+                        clusterId: this.clusterValue
                     }
                 })
             },
