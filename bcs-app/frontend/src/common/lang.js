@@ -1956,7 +1956,22 @@ export default {
     '申请监控中心': ['Application monitor'],
     '检索关键字': ['Search key'],
     '项目下存在主机申请失败的单据，请联系申请者【{name}】或': ['There is a receipt for host application failure under the item, please contact the applicant {name} or'],
-    '系统内置变量，不能删除': ['System variables, can not delete']
+    '系统内置变量，不能删除': ['System variables, can not delete'],
+    '{count} 个IP节点': ['{count} Ip nodes'],
+    '此操作仅移除节点在平台中的记录；如果集群中节点处于正常状态，会再次同步到平台的记录中': [''],
+    '自有集群不支持通过平台添加节点': [''],
+    '静态选择': [''],
+    '自定义输入': [''],
+    '移除所有': [''],
+    '已选节点': [''],
+    '请输入IP，多IP可使用空格分隔': [''],
+    '搜索拓扑节点': [''],
+    '精确': [''],
+    '请在左侧勾选IP或者节点': [''],
+    '本页全选': [''],
+    '跨页全选': [''],
+    '成功复制IP {number} 个': [''],
+    '查无数据': ['']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],
