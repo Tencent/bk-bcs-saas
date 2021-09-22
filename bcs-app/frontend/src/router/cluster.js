@@ -5,7 +5,13 @@
 // 集群首页
 const Cluster = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster')
 // 创建集群
-const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create')
+const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create-cluster/create-cluster')
+// 表单模式
+const CreateFormCluster = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create-cluster/create-form-cluster')
+// import模式
+const CreateImportCluster = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create-cluster/create-import-cluster')
+// 集群模板创建
+const CreateClusterTemplate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create-cluster/create-template-cluster')
 // 外部版创建集群
 const ClusterCreateExternal = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create.external')
 // 集群总览
@@ -42,6 +48,24 @@ const childRoutes = [
         path: ':projectCode/cluster/create',
         name: 'clusterCreate',
         component: global.REGION === 'ieod' ? ClusterCreate : ClusterCreateExternal
+    },
+    // 创建集群 - 表单模式
+    {
+        path: ':projectCode/cluster/create/form',
+        name: 'createFormCluster',
+        component: CreateFormCluster
+    },
+    // 创建集群 - import导入模式
+    {
+        path: ':projectCode/cluster/create/import',
+        name: 'createImportCluster',
+        component: CreateImportCluster
+    },
+    // 创建集群模板
+    {
+        path: ':projectCode/cluster/create/template',
+        name: 'createClusterTemplate',
+        component: CreateClusterTemplate
     },
     // 集群总览
     {
