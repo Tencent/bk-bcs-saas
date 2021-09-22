@@ -11,24 +11,20 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-
-应用相关的视图，包含k8s和mesos
 """
 import copy
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.accounts import bcs_perm
 from backend.components import paas_cc
-from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.utils.errcodes import ErrorCode
 
-from ..base_views import BaseAPI, error_codes
+from ..base_views import error_codes
 from ..constants import CATEGORY_MAP
 from ..filters.base_metrics import BaseNamespaceMetric
 from ..utils import APIResponse, cluster_env, exclude_records
-from . import k8s_views, mesos_views
+from . import k8s_views
 
 CLUSTER_ENV_MAP = settings.CLUSTER_ENV_FOR_FRONT
 
@@ -149,36 +145,22 @@ class GetProjectNamespace(BaseNamespaceMetric):
         inst_name = None
         if app_id:
             inst_name = self.get_inst_name(app_id)
-        if project_kind == 1:
-            category = request.GET.get("category")
-            if not category or category not in CATEGORY_MAP.keys():
-                raise error_codes.CheckFailed(_("类型不正确"))
-            client = k8s_views.GetNamespace()
-            ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
-                request,
-                ns_id_list,
-                category,
-                ns_map,
-                project_id,
-                project_kind,
-                self.get_app_deploy_with_post,
-                inst_name,
-                ns_name_list,
-                cluster_id_list,
-            )
-        else:
-            client = mesos_views.GetNamespace()
-            ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
-                request,
-                ns_id_list,
-                ns_map,
-                project_id,
-                project_kind,
-                self.get_app_deploy_with_post,
-                inst_name,
-                ns_name_list,
-                cluster_id_list,
-            )
+        category = request.GET.get("category")
+        if not category or category not in CATEGORY_MAP.keys():
+            raise error_codes.CheckFailed(_("类型不正确"))
+        client = k8s_views.GetNamespace()
+        ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
+            request,
+            ns_id_list,
+            category,
+            ns_map,
+            project_id,
+            project_kind,
+            self.get_app_deploy_with_post,
+            inst_name,
+            ns_name_list,
+            cluster_id_list,
+        )
         # 匹配数据
         self.compose_data(
             ns_map, cluster_env, ns_app, exist_app, ns_inst_error_count, create_error, app_status, all_ns_inst_count
@@ -214,8 +196,6 @@ class GetInstances(BaseNamespaceMetric):
         )
         if filter_ns_id and str(ns_id) != str(filter_ns_id):
             return APIResponse({"data": {}})
-        # 获取项目类型
-        project_kind = self.project_kind(request)
         # 获取项目下集群类型
         cluster_env_map = self.get_cluster_id_env(request, project_id)
         # 检查命名空间属于项目
@@ -225,41 +205,22 @@ class GetInstances(BaseNamespaceMetric):
             inst_name = self.get_inst_name(app_id)
         ns_name_id = self.get_namespace_name_id(request, project_id)
         # 根据类型进行过滤数据
-        if project_kind == 1:
-            category = request.GET.get("category")
-            if not category or category not in CATEGORY_MAP.keys():
-                raise error_codes.CheckFailed(_("类型不正确"))
-            client = k8s_views.GetInstances()
-            ret_data = client.get(
-                request,
-                project_id,
-                ns_id,
-                category,
-                inst_name,
-                app_status,
-                cluster_env_map,
-                cluster_id,
-                ns_name,
-                ns_name_id,
-            )
-        else:
-            func_app = self.get_application_deploy_status
-            func_deploy = self.get_application_deploy_info
-            client = mesos_views.GetInstances()
-            ret_data = client.get(
-                request,
-                project_id,
-                ns_id,
-                project_kind,
-                func_app,
-                func_deploy,
-                inst_name,
-                app_status,
-                cluster_env_map,
-                cluster_id,
-                ns_name,
-                ns_name_id,
-            )
+        category = request.GET.get("category")
+        if not category or category not in CATEGORY_MAP.keys():
+            raise error_codes.CheckFailed(_("类型不正确"))
+        client = k8s_views.GetInstances()
+        ret_data = client.get(
+            request,
+            project_id,
+            ns_id,
+            category,
+            inst_name,
+            app_status,
+            cluster_env_map,
+            cluster_id,
+            ns_name,
+            ns_name_id,
+        )
         # 拆分需要处理权限和默认权限
         auth_instance_list = []
         default_auth_instance_list = []

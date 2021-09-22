@@ -5,20 +5,12 @@
         <main class="main">
             <div class="form-item">
                 <div class="form-item-label">{{ $t('业务编排类型') }}</div>
-                <div class="form-item-content type-content kind">
-                    <div v-for="item in kindList"
-                        :class="['kind-panel', { active: kind === item.id, disabled: item.disabled }]"
-                        :key="item.id"
-                        v-bk-tooltips="{
-                            disabled: !item.disabled && !item.tips,
-                            html: item.tips
-                        }"
-                        @click="handleKindChange(item)">
-                        <div class="kind-panel-title">{{ item.name }}</div>
-                        <div class="kind-panel-desc mt5">{{ item.desc }}</div>
+                <div class="form-item-content kind">
+                    <div class="kind-panel active">
+                        <div class="kind-panel-title">K8S</div>
+                        <div class="kind-panel-desc mt5">{{ $t('k8s容器编排引擎') }}</div>
                     </div>
                 </div>
-                <div class="form-item-tips">{{ $t('创建集群后，容器编排类型将不可更改') }}</div>
             </div>
             <div class="form-item mt30">
                 <div class="form-item-label">{{ $t('关联CMDB业务') }}</div>
@@ -76,7 +68,13 @@
         },
         data () {
             return {
-                kindList: [],
+                kindList: [
+                    {
+                        id: 1,
+                        name: 'K8S',
+                        desc: this.$t('k8s容器编排引擎')
+                    }
+                ],
                 guideList: [],
                 kind: this.defaultKind,
                 ccKey: ''
@@ -88,22 +86,6 @@
             }
         },
         created () {
-            this.kindList = [
-                {
-                    id: 1,
-                    name: 'K8S',
-                    desc: this.$t('k8s容器编排引擎')
-                }
-            ]
-            if (this.$INTERNAL) {
-                this.kindList.push({
-                    id: 2,
-                    name: 'Mesos',
-                    desc: this.$t('基于mesos框架自研的容器编排引擎'),
-                    disabled: true,
-                    tips: `${this.$t('如需使用，请联系')}<a href="${this.PROJECT_CONFIG.doc.contact}" style="color: #3a84ff" target="">${this.$t('【蓝鲸容器助手】')}</a>`
-                })
-            }
             this.guideList = [
                 {
                     id: 'binding',
@@ -129,12 +111,6 @@
             ]
         },
         methods: {
-            handleKindChange (item) {
-                if (item.disabled) return
-
-                this.$emit('kind-change', item.id, this.kind)
-                this.kind = item.id
-            },
             handleCmdbChange (value, oldvalue) {
                 this.$emit('cc-change', value, oldvalue)
             },
@@ -252,9 +228,6 @@
                 }
             }
         }
-    }
-    .type-content {
-        justify-content: end;
     }
 }
 </style>

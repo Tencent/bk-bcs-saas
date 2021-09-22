@@ -39,7 +39,7 @@ from backend.components.base import (
     CompRequestError,
     CompResponseError,
 )
-from backend.container_service.projects.base.constants import ProjectKind
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.dashboard.exceptions import DashboardBaseError
 from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import cache
@@ -349,11 +349,9 @@ class VueTemplateView(APIView):
             # 未开启容器服务
             if result['data']['kind'] == 0:
                 return ""
-
             # mesos
-            if result['data']['kind'] == ProjectKind.MESOS.value:
+            if result['data']['kind'] != ProjectKindID:
                 return "mesos"
-
             # 包含 k8s, tke
             return "k8s"
 

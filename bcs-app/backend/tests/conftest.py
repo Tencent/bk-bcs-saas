@@ -31,13 +31,22 @@ from kubernetes import client
 from rest_framework.test import APIClient
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet, FakeUserViewSet
 from backend.utils import FancyDict
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
+
+# 直接全局 patch 掉 SystemViewSet & UserViewSet & get_dynamic_client
+from backend.bcs_web import viewsets  # noqa
+
+viewsets.SystemViewSet = FakeSystemViewSet
+viewsets.UserViewSet = FakeUserViewSet
+
+from backend.resources import resource  # noqa
+
+resource.get_dynamic_client = get_dynamic_client
 
 
 @pytest.fixture
@@ -91,7 +100,6 @@ def bk_user():
     user.token.access_token = generate_random_string(12)
     user.token.expires_soon = lambda: False
 
-    user.project_kind = ProjectKind.K8S.value
     return user
 
 
@@ -139,24 +147,6 @@ def use_fake_k8sclient(cluster_id):
 TEST_PROJECT_ID = os.environ.get("TEST_PROJECT_ID", generate_random_string(32))
 TEST_CLUSTER_ID = os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
 TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
-
-
-@pytest.fixture(autouse=True, scope='package')
-def patch_system_viewset():
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
-        yield
-
-
-@pytest.fixture(autouse=True, scope='package')
-def patch_user_viewset():
-    with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
-        yield
-
-
-@pytest.fixture(autouse=True, scope='package')
-def patch_get_dynamic_client():
-    with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
-        yield
 
 
 @pytest.fixture

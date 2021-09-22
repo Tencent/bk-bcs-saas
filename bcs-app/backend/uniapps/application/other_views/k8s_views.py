@@ -15,7 +15,6 @@ specific language governing permissions and limitations under the License.
 针对k8s的应用列表部分
 TODO: 状态流转需要明确
 """
-import base64
 import json
 import logging
 from datetime import datetime
@@ -24,23 +23,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs.k8s import K8SClient
-from backend.templatesets.legacy_apps.configuration.models import (
-    MODULE_DICT,
-    Application,
-    Deplpyment,
-    ShowVersion,
-    Template,
-    VersionedEntity,
-)
+from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT
 from backend.templatesets.legacy_apps.instance.constants import InsState
-from backend.templatesets.legacy_apps.instance.models import (
-    InstanceConfig,
-    InstanceEvent,
-    MetricConfig,
-    VersionInstance,
-)
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import ErrorCode as ErrorCodeCls
 from backend.utils.error_codes import error_codes
 
 from .. import constants as app_constants

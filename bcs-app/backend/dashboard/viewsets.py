@@ -25,9 +25,9 @@ from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.dashboard.utils.web import gen_base_web_annotations
-from backend.resources.constants import KUBE_NAME_REGEX
 from backend.utils.basic import getitems
 from backend.utils.response import BKAPIResponse
+from backend.utils.url_slug import KUBE_NAME_REGEX
 
 
 class ListAndRetrieveMixin:

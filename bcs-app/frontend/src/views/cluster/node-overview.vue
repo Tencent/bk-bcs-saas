@@ -263,39 +263,6 @@
                                 </div>
                             </div>
                         </bk-tab-panel>
-                        <!-- <bk-tab-panel name="label" :title="$t('标签')">
-                            <div class="container-table-wrapper" v-bkloading="{ isLoading: labelListLoading }">
-                                <table class="bk-table has-table-hover biz-table biz-app-instance-label-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="text-align: left;padding-left: 27px; width: 200px">
-                                                {{$t('键')}}
-                                            </th>
-                                            <th style="width: 260px">{{$t('值')}}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template v-if="labelList.length">
-                                            <tr v-for="(label, index) in labelList" :key="index">
-                                                <td style="text-align: left;padding-left: 27px;">
-                                                    {{label.key}}
-                                                </td>
-                                                <td>{{label.val}}</td>
-                                            </tr>
-                                        </template>
-                                        <template v-else>
-                                            <tr>
-                                                <td colspan="2">
-                                                    <div class="bk-message-box no-data">
-                                                        <bcs-exception type="empty" scene="part" v-if="!labelListLoading"></bcs-exception>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </bk-tab-panel> -->
                     </bk-tab>
                 </div>
             </div>

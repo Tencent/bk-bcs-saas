@@ -11,13 +11,9 @@
 
 import axios from 'axios'
 import Clipboard from 'clipboard'
-import CheckMode from '@open/components/check-mode/check-mode'
 import { catchErrorHandler } from '@open/common/util'
 
 export default {
-    components: {
-        CheckMode
-    },
     data () {
         return {
             ingStatus: [
@@ -48,7 +44,6 @@ export default {
                 // 删除失败
                 'remove_failed'
             ],
-            ccSearchKeys: [],
             permissions: {},
             // 弹出层搜索
             search: '',
@@ -103,12 +98,6 @@ export default {
                 // 是否显示翻页条
                 show: true
             },
-            dialogConf: {
-                isShow: false,
-                width: 920,
-                hasHeader: false,
-                closeIcon: false
-            },
             logSideDialogConf: {
                 isShow: false,
                 title: '',
@@ -125,30 +114,9 @@ export default {
             // 所以这个时候会报错，但是也不能依此串行请求，需要并行请求提高速度，所以设置此变量来配合 searchDisabled
             alreadyGetNodeSummaryList: [],
             sortIdx: '',
-            ccHostLoading: false,
             // 已选服务器集合
             hostList: [],
-            // 已选服务器集合的缓存，用于在弹框中选择，点击确定时才把 hostListCache 赋值给 hostList，同时清空 hostListCache
-            // hostListCache: [],
-            hostListCache: {},
-            // 备选服务器集合
-            candidateHostList: [],
-            // 备选服务器集合缓存，用于搜索
-            candidateHostListTmp: [],
-            curPageData: [],
-            // 当前页是否全选中
-            isCheckCurPageAll: false,
-            // 添加节点弹层 全选模式
-            // page 为全选当页，all 为全选所有页，为空表示没有全选
-            checkAllMode: '',
-            // 当前选择的 checkAllMode
-            curCheckAllMode: '',
-            // 是否正在创建节点
-            isCreating: false,
-            // 弹层选择 master 节点，已经选择了多少个
-            remainCount: 0,
             searchDisabled: false,
-            ccApplicationName: '',
             cancelLoop: false,
             timer: null,
             // 节点 cpu 磁盘 内存占用数据的缓存
@@ -216,13 +184,8 @@ export default {
             // 允许批量操作 -> 重新添加的状态
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
-            // hostSourceKey: 'biz_host_pool',
-            // hostSourceList: [{ id: 'biz_host_pool', name: this.$t('业务资源池') }, { id: 'bcs_host_pool', name: this.$t('平台资源池') }],
             nodeList4Copy: [],
-            cpuManagementList: [{ id: 'none', name: 'none' }, { id: 'static', name: 'static' }],
-            cpuManagementKey: 'none',
-            checkMode: 0,
-            modeType: 'page'
+            showIpSelector: false
         }
     },
     computed: {
@@ -263,9 +226,6 @@ export default {
             }
             this.allowBatch = true
             this.dontAllowBatchMsg = ''
-        },
-        checkAllMode (v) {
-            this.checkMode = ['page', 'all'].includes(v) ? 2 : 0
         }
     },
     beforeDestroy () {
@@ -280,27 +240,6 @@ export default {
         this.release()
         this.cancelLoop = false
 
-        // if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-        //     if (this.projectId && this.clusterId) {
-        //         await this.fetchClusterData()
-        //     }
-        // } else {
-        //     const params = {
-        //         limit: this.nodeListPageConf.pageSize,
-        //         offset: 0,
-        //         with_containers: '1'
-        //     }
-        //     if (this.$route.query.inner_ip) {
-        //         params.ip = this.$route.query.inner_ip
-        //         this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
-        //             id: 'ip',
-        //             text: this.$t('IP地址'),
-        //             value: params.ip,
-        //             valueArr: [params.ip]
-        //         }])
-        //     }
-        //     this.getNodeList(params)
-        // }
         const params = {
             limit: this.nodeListPageConf.pageSize,
             offset: 0,
@@ -345,24 +284,6 @@ export default {
             } catch (e) {
                 catchErrorHandler(e, this)
             }
-        },
-
-        /**
-         * 渲染 table header checkbox
-         *
-         */
-        handleRenderCheckboxHeader (h) {
-            return <CheckMode
-                v-model={this.checkMode}
-                mode={this.modeType}
-                disabled={!this.candidateHostList.filter(host => !host.is_used && String(host.agent) === '1' && host.is_valid).length && this.isCreating}
-                on-change={(v) => {
-                    this.checkAll(this.modeType)
-                }}
-                on-mode-change={(mode) => {
-                    this.modeType = mode
-                }}>
-            </CheckMode>
         },
 
         /**
@@ -492,9 +413,6 @@ export default {
                             item.diskioMetric = this.nodeSummaryMap[item.id].diskioMetric
                             item.containerCount = this.nodeSummaryMap[item.id].containerCount
                             item.podCount = this.nodeSummaryMap[item.id].podCount
-                            item.mesosMemoryUsage = this.nodeSummaryMap[item.id].mesosMemoryUsage
-                            item.mesosIpRemainCount = this.nodeSummaryMap[item.id].mesosIpRemainCount
-                            item.mesosCpuUsage = this.nodeSummaryMap[item.id].mesosCpuUsage
                         }
                     })
                 }
@@ -653,16 +571,10 @@ export default {
          */
         async getNodeSummary (cur, index) {
             try {
-                const args = {}
-                if (this.curClusterInPage.type === 'mesos' && this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
-                    args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
-                }
-
                 const res = await this.$store.dispatch('cluster/getNodeOverview', {
                     projectId: cur.project_id,
                     clusterId: cur.cluster_id,
-                    nodeIp: cur.inner_ip,
-                    data: args
+                    nodeIp: cur.inner_ip
                 })
 
                 cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
@@ -671,9 +583,6 @@ export default {
                 cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
                 cur.containerCount = res.data.container_count || 0
                 cur.podCount = res.data.pod_count || 0
-                cur.mesosMemoryUsage = res.data.mesos_memory_usage || { remain: 0, total: 0 }
-                cur.mesosIpRemainCount = res.data.mesos_ip_remain_count || 0
-                cur.mesosCpuUsage = res.data.mesos_cpu_usage || { remain: 0, total: 0 }
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
@@ -681,10 +590,7 @@ export default {
                     diskMetric: cur.diskMetric,
                     diskioMetric: cur.diskioMetric,
                     containerCount: cur.containerCount,
-                    podCount: cur.podCount,
-                    mesosMemoryUsage: cur.mesosMemoryUsage,
-                    mesosIpRemainCount: cur.mesosIpRemainCount,
-                    mesosCpuUsage: cur.mesosCpuUsage
+                    podCount: cur.podCount
                 }
 
                 this.$set(this.nodeList, index, cur)
@@ -766,221 +672,7 @@ export default {
                 })
             }
 
-            this.remainCount = 0
-            this.pageConf.curPage = 1
-            this.pageConf.allCount = 0
-            this.dialogConf.isShow = true
-            this.candidateHostList.splice(0, this.candidateHostList.length, ...[])
-            this.hostListCache = Object.assign({}, {})
-            this.hostList.splice(0, this.hostList.length, ...[])
-            this.isCheckCurPageAll = false
-            this.$refs.iPSearcher && this.$refs.iPSearcher.clearSearchParams()
-
-            // 这里不需要请求了，handleSearch 方法会请求
-            // await this.fetchCCData({
-            //     offset: 0
-            // })
-        },
-
-        /**
-         * 关闭选择服务器弹层
-         */
-        closeDialog () {
-            this.dialogConf.isShow = false
-            this.checkAllMode = ''
-        },
-
-        /**
-         * cc host 弹框中 change 机器来源下拉框回调函数
-         */
-        async changeHostSource (index, data) {
-            await this.fetchCCData()
-        },
-
-        /**
-         * 获取 cc 表格数据
-         *
-         * @param {Object} params ajax 查询参数
-         */
-        async fetchCCData (params = {}) {
-            this.ccHostLoading = true
-            try {
-                const args = {
-                    projectId: this.projectId,
-                    limit: this.pageConf.pageSize,
-                    offset: params.offset,
-                    ip_list: params.ipList || []
-                }
-                if (this.curClusterInPage.type === 'tke') {
-                    args.node_role = 'node'
-                    // args.host_source = this.hostSourceKey
-                    args.cluster_id = this.clusterId
-                }
-                const res = await this.$store.dispatch('cluster/getCCHostList', args)
-
-                this.ccApplicationName = res.data.cc_application_name || ''
-
-                const count = res.data.count
-
-                this.pageConf.show = !!count
-                this.pageConf.total = Math.ceil(count / this.pageConf.pageSize)
-                if (this.pageConf.total < this.pageConf.curPage) {
-                    this.pageConf.curPage = 1
-                }
-                this.pageConf.show = true
-                this.pageConf.allCount = count
-
-                const list = res.data.results || []
-
-                if (this.checkAllMode === 'all') {
-                    list.forEach(item => {
-                        item.isChecked = true
-                    })
-                } else {
-                    list.forEach(item => {
-                        if (this.hostListCache[`${item.inner_ip}-${item.asset_id}`]) {
-                            item.isChecked = true
-                        }
-                    })
-                }
-
-                this.candidateHostList.splice(0, this.candidateHostList.length, ...list)
-                this.selectHost(this.candidateHostList)
-            } catch (e) {
-                console.log(e)
-            } finally {
-                this.ccHostLoading = false
-            }
-        },
-
-        /**
-         * 弹框翻页回调
-         *
-         * @param {number} page 当前页
-         */
-        pageChange (page) {
-            this.pageConf.curPage = page
-            this.fetchCCData({
-                offset: this.pageConf.pageSize * (page - 1),
-                ipList: this.ccSearchKeys || []
-            })
-        },
-
-        /**
-         * 弹层表格全选
-         */
-        toogleCheckCurPage () {
-            this.$nextTick(() => {
-                const isChecked = this.isCheckCurPageAll
-                this.candidateHostList.forEach(host => {
-                    if (!host.is_used && String(host.agent) === '1' && host.is_valid) {
-                        host.isChecked = isChecked
-                    }
-                })
-                this.selectHost()
-            })
-        },
-
-        /**
-         * 弹层表格全选
-         *
-         * @param {string} idx 全选当前页还是全选所有页的标识。page 为全选当前页，all 为全选所有页面
-         */
-        checkAll (idx) {
-            // 说明当前选中的是已经选中的那个，这时需要取消
-            if (this.checkAllMode === idx) {
-                this.isCheckCurPageAll = false
-            } else {
-                this.isCheckCurPageAll = true
-            }
-            this.curCheckAllMode = idx
-            this.toogleCheckCurPage()
-
-            this.$nextTick(() => {
-                this.$refs.pageSelectDropdownMenu && this.$refs.pageSelectDropdownMenu.hide()
-            })
-        },
-
-        /**
-         * 在选择服务器弹层中选择
-         */
-        selectHost (hosts = this.candidateHostList) {
-            if (!hosts.length) {
-                return
-            }
-
-            this.$nextTick(() => {
-                const illegalLen = hosts.filter(host => host.is_used || String(host.agent) !== '1' || !host.is_valid).length
-                const selectedHosts = hosts.filter(host =>
-                    host.isChecked === true && !host.is_used && String(host.agent) === '1' && host.is_valid
-                )
-
-                if (selectedHosts.length === hosts.length - illegalLen && hosts.length !== illegalLen) {
-                    this.isCheckCurPageAll = true
-                    if (this.curCheckAllMode) {
-                        // checkAllMode 变化之前是 all，那么变化之后，需要把 hostListCache 清空一下
-                        if (this.checkAllMode === 'all') {
-                            this.hostListCache = Object.assign({}, {})
-                        }
-                        this.checkAllMode = this.curCheckAllMode
-                        this.curCheckAllMode = ''
-                    } else {
-                        if (this.checkAllMode === 'fromall') {
-                            this.checkAllMode = 'all'
-                        } else if (this.checkAllMode === 'frompage') {
-                            this.checkAllMode = 'page'
-                        }
-                    }
-                } else {
-                    this.isCheckCurPageAll = false
-                    if (this.curCheckAllMode) {
-                        // 说明当前选中的是已经选中的那个，这时需要取消
-                        if (this.checkAllMode === this.curCheckAllMode) {
-                            this.checkAllMode = ''
-                            this.hostListCache = Object.assign({}, {})
-                        } else {
-                            this.checkAllMode = this.curCheckAllMode
-                        }
-                        this.curCheckAllMode = ''
-                    } else {
-                        if (this.checkAllMode === 'all') {
-                            this.checkAllMode = 'fromall'
-                        } else if (this.checkAllMode === 'page') {
-                            this.checkAllMode = 'frompage'
-                        }
-                    }
-                }
-
-                // 清除 hostListCache
-                hosts.forEach(item => {
-                    delete this.hostListCache[`${item.inner_ip}-${item.asset_id}`]
-                })
-
-                // 重新根据选择的 host 设置到 hostListCache 中
-                selectedHosts.forEach(item => {
-                    this.hostListCache[`${item.inner_ip}-${item.asset_id}`] = item
-                })
-
-                // this.remainCount = Object.keys(this.hostListCache).length
-                if (this.checkAllMode === 'all') {
-                    this.remainCount = this.pageConf.allCount
-                } else {
-                    this.remainCount = Object.keys(this.hostListCache).length
-                }
-            })
-        },
-
-        /**
-         * 选择服务器弹层搜索事件
-         *
-         * @param {Array} searchKeys 搜索字符数组
-         */
-        async handleSearch (searchKeys) {
-            this.ccSearchKeys = searchKeys
-            await this.fetchCCData({
-                offset: 0,
-                ipList: searchKeys
-            })
+            this.showIpSelector = true
         },
 
         /**
@@ -1000,16 +692,8 @@ export default {
         /**
          * 选择服务器弹层确定按钮
          */
-        async chooseServer () {
-            const list = Object.keys(this.hostListCache)
-            const len = list.length
-            if (!len) {
-                this.$bkMessage({
-                    theme: 'error',
-                    message: this.$t('请选择服务器')
-                })
-                return
-            }
+        async chooseServer (ipList) {
+            this.hostList = ipList
             this.$refs.nodeNoticeDialog.show()
         },
 
@@ -1018,60 +702,24 @@ export default {
          */
         async saveNode () {
             const params = {
-                ip: [],
+                ip: this.hostList.map(item => item.bk_host_innerip),
                 projectId: this.projectId,
-                clusterId: this.clusterId,
-                is_select_all: false
-            }
-            if (this.checkAllMode === 'all') {
-                params.is_select_all = true
-                params.ip = this.ccSearchKeys
-            } else {
-                const list = Object.keys(this.hostListCache)
-
-                const data = []
-                list.forEach(key => {
-                    data.push(this.hostListCache[key])
-                })
-
-                this.hostList.splice(0, this.hostList.length, ...data)
-
-                this.hostList.forEach(item => {
-                    params.ip.push(item.inner_ip)
-                })
+                clusterId: this.clusterId
             }
 
-            // if (this.curClusterInPage.type === 'tke') {
-            //     params.host_source = this.hostSourceKey
-            // }
-
-            params.cpu_manager_policy = this.cpuManagementKey
-
-            // alert('打开控制台查看参数')
-            // console.warn(params)
-            // console.warn('\n')
-            // console.warn('JSON.stringify: \n')
-            // console.warn(JSON.stringify(params))
-            this.isCreating = true
             this.$refs.nodeNoticeDialog.hide()
+            try {
+                await this.$store.dispatch('cluster/addNode', params)
 
-            setTimeout(async () => {
-                try {
-                    await this.$store.dispatch('cluster/addNode', params)
-
-                    this.cancelLoop = false
-                    this.sortIdx = ''
-                    this.nodeListPageConf.curPage = 1
-                    this.clearSearchParams()
-
-                    this.isCheckCurPageAll = false
-                    this.dialogConf.isShow = false
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                } finally {
-                    this.isCreating = false
-                }
-            }, 100)
+                this.cancelLoop = false
+                this.sortIdx = ''
+                this.nodeListPageConf.curPage = 1
+                this.clearSearchParams()
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.hostList = []
+            }
         },
 
         /**
@@ -1363,25 +1011,18 @@ export default {
 
             this.stopDialogConf.isShow = true
 
-            if (this.curClusterInPage.type === 'mesos') {
+            if (this.$INTERNAL) {
+                this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
+                this.stopDialogConf.content = this.$t(
+                    '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
+                )
+            } else {
                 this.stopDialogConf.title = ' '
                 this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
                     innerIp: node.inner_ip
                 })
-            } else {
-                if (this.$INTERNAL) {
-                    this.stopDialogConf.title = this.$t(`确认要停止调度节点【{innerIp}】？`, {
-                        innerIp: node.inner_ip
-                    })
-                    this.stopDialogConf.content = this.$t(
-                        '注意: 如果有使用Ingress及LoadBalancer类型的Service，节点停止调度后，Service Controller会剔除LB到nodePort的映射，请确认是否停止调度'
-                    )
-                } else {
-                    this.stopDialogConf.title = ' '
-                    this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
-                        innerIp: node.inner_ip
-                    })
-                }
             }
 
             this.curNode = Object.assign({}, node)

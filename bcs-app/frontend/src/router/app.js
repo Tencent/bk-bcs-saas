@@ -10,36 +10,6 @@ const childRoutes = [
         path: ':projectCode/app',
         component: App,
         children: [
-            // mesos 应用
-            {
-                path: 'mesos',
-                name: 'mesos',
-                children: [
-                    // mesos 应用里的实例详情页面
-                    {
-                        path: ':instanceId',
-                        name: 'instanceDetail'
-                    },
-
-                    {
-                        path: ':instanceName/:instanceNamespace/:instanceCategory',
-                        name: 'instanceDetail2'
-                    },
-                    // mesos 应用里的容器详情页面
-                    {
-                        path: ':instanceId/taskgroups/:taskgroupName/containers/:containerId',
-                        name: 'containerDetail'
-                    },
-                    {
-                        path: ':instanceName/:instanceNamespace/:instanceCategory/taskgroups/:taskgroupName/containers/:containerId',
-                        name: 'containerDetail2'
-                    },
-                    {
-                        path: ':templateId/instantiation/:category/:tmplAppName/:tmplAppId',
-                        name: 'mesosInstantiation'
-                    }
-                ]
-            },
             // k8s deployments 应用
             {
                 path: 'deployments',

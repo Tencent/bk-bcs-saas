@@ -19,8 +19,8 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.kube_core.hpa import constants, utils
 from backend.resources.exceptions import DeleteResourceError
 from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
@@ -45,7 +45,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         cluster_data = cluster_dicts.get('results', {}) or {}
         k8s_hpa_list = []
 
-        namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+        namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
         namespace_data = namespace_res.get('data', {}).get('results') or []
         namespace_dict = {i['name']: i['id'] for i in namespace_data}
 
@@ -69,7 +69,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         access_token = request.user.token.access_token
 
         # 根据 namespace  查询 ns_id
-        namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+        namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
         namespace_data = namespace_res.get('data', {}).get('results') or []
         namespace_dict = {i['name']: i['id'] for i in namespace_data}
         for namespace in namespace_list:
@@ -123,6 +123,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 success_list.append({'name': name, 'desc': "{}[命名空间:{}]".format(name, ns_name)})
 
         # 添加操作审计
+        message = '--'
         if success_list:
             name_list = [_s.get('name') for _s in success_list]
             desc_list = [_s.get('desc') for _s in success_list]

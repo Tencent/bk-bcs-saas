@@ -225,16 +225,12 @@
                 statusList: [
                     { text: this.$t('正常'), value: ['normal'] },
                     { text: this.$t('不可调度'), value: ['to_removed', 'removable'] }
-                ],
-                mesosLabelMap: {}
+                ]
             }
         },
         computed: {
             curProject () {
                 return this.$store.state.curProject
-            },
-            isMesosProject () {
-                return this.curProject.kind === window.PROJECT_MESOS
             }
         },
         watch: {
@@ -343,13 +339,11 @@
                     }
                     this.tagLoading = true
                     try {
-                        const api = this.isMesosProject ? 'cluster/getMesosNodeLabels' : 'cluster/getNodeKeyList'
-                        const res = await this.$store.dispatch(api, {
+                        const res = await this.$store.dispatch('cluster/getNodeKeyList', {
                             projectId: this.projectId,
                             clusterId: this.clusterId
                         })
-                        const keyList = this.isMesosProject ? Object.keys(res.data || {}) : res.data || []
-                        this.isMesosProject && (this.mesosLabelMap = res.data || {})
+                        const keyList = res.data || []
                         this.keyList.splice(0, this.keyList.length, ...keyList)
                         this.keyListTmp.splice(0, this.keyList.length, ...keyList)
                         this.$nextTick(() => {
@@ -429,16 +423,12 @@
                     this.curInputValue = ''
                     this.inputPlaceholder = this.$t('请输入要搜索的value')
                     let valueList = []
-                    if (this.isMesosProject) {
-                        valueList = this.mesosLabelMap[k] || []
-                    } else {
-                        const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
-                            projectId: this.projectId,
-                            clusterId: this.clusterId,
-                            keyName: k
-                        })
-                        valueList = res.data || []
-                    }
+                    const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
+                        projectId: this.projectId,
+                        clusterId: this.clusterId,
+                        keyName: k
+                    })
+                    valueList = res.data || []
                     this.valueList.splice(0, this.valueList.length, ...valueList)
                     this.valueListTmp.splice(0, this.valueList.length, ...valueList)
                     this.$refs.searchInput.focus()

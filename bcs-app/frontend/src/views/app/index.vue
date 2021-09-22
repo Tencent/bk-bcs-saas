@@ -1,30 +1,12 @@
 <template>
     <keep-alive>
-        <app-exception v-if="isError" :type="'404'"></app-exception>
+        <app-exception v-if="isError" type="404"></app-exception>
         <component v-else :is="componentName" :cur-project="curProject"></component>
     </keep-alive>
     <!-- <router-view v-else :key="$route.path"></router-view> -->
 </template>
 
 <script>
-    const mesos = () => import(
-        /* webpackChunkName: 'app-list' */'./mesos/mesos'
-    )
-    const instanceDetail = () => import(
-        /* webpackChunkName: 'app-instance' */'./mesos/instance'
-    )
-    const instanceDetail2 = () => import(
-        /* webpackChunkName: 'app-instance' */'./mesos/instance2'
-    )
-    const containerDetail = () => import(
-        /* webpackChunkName: 'app-container' */'./mesos/container'
-    )
-    const containerDetail2 = () => import(
-        /* webpackChunkName: 'app-container' */'./mesos/container2'
-    )
-    const mesosInstantiation = () => import(
-        /* webpackChunkName: 'app-instantiation' */'./mesos/instantiation'
-    )
     const deployments = () => import(
         /* webpackChunkName: 'app-list' */'./k8s/deployments'
     )
@@ -111,12 +93,6 @@
 
     export default {
         components: {
-            mesos,
-            instanceDetail,
-            instanceDetail2,
-            containerDetail,
-            containerDetail2,
-            mesosInstantiation,
 
             deployments,
             deploymentsInstanceDetail,
@@ -152,14 +128,6 @@
         },
         data () {
             return {
-                mesosPathNameList: [
-                    'mesos',
-                    'instanceDetail',
-                    'instanceDetail2',
-                    'containerDetail',
-                    'containerDetail2',
-                    'mesosInstantiation'
-                ],
                 k8sPathNameList: [
                     'deployments',
                     'deploymentsInstanceDetail',
@@ -239,49 +207,15 @@
              */
             setComponent () {
                 const routeName = this.$route.name
-                // mesos
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    if (this.k8sPathNameList.indexOf(routeName) > -1) {
-                        this.$router.replace({
-                            name: 'mesos',
-                            params: {
-                                projectId: this.projectId,
-                                projectCode: this.projectCode
-                            }
-                        })
-                    } else {
-                        if (this.mesosPathNameList.indexOf(routeName) <= -1) {
-                            this.componentName = 'mesos'
-                            this.$store.dispatch('updateMenuListSelected', {
-                                pathName: 'mesos',
-                                idx: 'bcs'
-                            })
-                        } else {
-                            this.componentName = routeName
-                        }
-                    }
+                if (this.k8sPathNameList.indexOf(routeName) <= -1) {
+                    this.componentName = 'deployments'
+                    this.$store.dispatch('updateMenuListSelected', {
+                        pathName: 'deployments',
+                        idx: 'bcs',
+                        projectType: 'k8s'
+                    })
                 } else {
-                    // k8s
-                    if (this.mesosPathNameList.indexOf(routeName) > -1) {
-                        this.$router.replace({
-                            name: 'deployments',
-                            params: {
-                                projectId: this.projectId,
-                                projectCode: this.projectCode
-                            }
-                        })
-                    } else {
-                        if (this.k8sPathNameList.indexOf(routeName) <= -1) {
-                            this.componentName = 'deployments'
-                            this.$store.dispatch('updateMenuListSelected', {
-                                pathName: 'deployments',
-                                idx: 'bcs',
-                                projectType: 'k8s'
-                            })
-                        } else {
-                            this.componentName = routeName
-                        }
-                    }
+                    this.componentName = routeName
                 }
             }
         }

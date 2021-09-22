@@ -20,14 +20,14 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps import constants
 from backend.components import data as data_api
 from backend.components import paas_cc
-from backend.container_service.clusters import constants as cluster_constants
+from backend.container_service.clusters import constants
 from backend.container_service.clusters.models import ClusterInstallLog, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
-from backend.utils.exceptions import ResNotFoundError
+
+# metrics 默认时间 1小时
+METRICS_DEFAULT_TIMEDELTA = 3600
 
 
 class NodeLabelSLZ(serializers.ModelSerializer):
@@ -55,7 +55,7 @@ class NodeLabelUpdateSLZ(serializers.ModelSerializer):
 
 class CreateClusterSLZ(serializers.Serializer):
     cluster_state = serializers.ChoiceField(
-        choices=cluster_constants.ClusterState.get_choices(), default=cluster_constants.ClusterState.BCSNew.value
+        choices=constants.ClusterState.get_choices(), default=constants.ClusterState.BCSNew.value
     )
     name = serializers.CharField(max_length=64)
     description = serializers.CharField(default="")
@@ -131,7 +131,7 @@ class BatchReinstallNodesSLZ(serializers.Serializer):
             raise ValidationError(_("部分节点不属于当前集群，请确认后重试"))
         # 状态必须为初始化失败
         for node_id in node_id_list:
-            if cluster_nodes[node_id]['status'] not in cluster_constants.NODE_FAILED_STATUS:
+            if cluster_nodes[node_id]['status'] not in constants.NODE_FAILED_STATUS:
                 raise ValidationError(_("重试节点必须处于初始化失败状态，请确认后重试"))
         return node_id_list
 
@@ -197,7 +197,7 @@ def get_order_choices():
 
 
 class ListNodeSLZ(serializers.Serializer):
-    limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
+    limit = serializers.IntegerField(required=False, default=constants.DEFAULT_NODE_LIMIT)
     offset = serializers.IntegerField(required=False, default=0)
     ip = serializers.CharField(required=False)
     ip_list = serializers.ListField(required=False)
@@ -216,7 +216,7 @@ class NodeSLZ(serializers.Serializer):
             request.user.token.access_token,
             project_id,
             cluster_id,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT},
+            params={'limit': constants.DEFAULT_NODE_LIMIT},
         )
         if node_resp.get('code') != ErrorCode.NoError:
             raise ValidationError(node_resp.get('message'))
@@ -253,7 +253,7 @@ class MetricsSLZBase(serializers.Serializer):
             data['start_at'] = arrow.get(data['start_at']).timestamp * 1000
         else:
             # default one hour
-            data['start_at'] = now - constants.METRICS_DEFAULT_TIMEDELTA * 1000
+            data['start_at'] = now - METRICS_DEFAULT_TIMEDELTA * 1000
         # handle the end_at
         if 'end_at' in data:
             data['end_at'] = arrow.get(data['end_at']).timestamp * 1000
@@ -283,3 +283,15 @@ class QueryLabelKeysSLZ(QueryLabelSLZ):
 
 class QueryLabelValuesSLZ(QueryLabelSLZ):
     key_name = serializers.CharField(required=True)
+
+
+class FetchCCHostSLZ(serializers.Serializer):
+    """ 获取 CMDB 业务下可用主机列表 """
+
+    limit = serializers.IntegerField(label=_('查询行数'), default=constants.DEFAULT_NODE_LIMIT)
+    offset = serializers.IntegerField(label=_('偏移量'), default=0)
+    ip_list = serializers.ListField(label=_('待过滤 IP 列表'), default=list)
+    set_id = serializers.IntegerField(label=_('集群 ID'), default=None)
+    module_id = serializers.IntegerField(label=_('模块 ID'), default=None)
+    fuzzy = serializers.BooleanField(label=_('是否模糊匹配 IP'), default=False)
+    desire_all_data = serializers.BooleanField(label=_('请求全量数据'), default=False)
