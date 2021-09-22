@@ -30,6 +30,8 @@ import bkForm from './bk-form.js'
 import bkFormItem from './bk-form-item.js'
 import bkAlert from './bk-alert.js'
 import bkPopover from './bk-popover.js'
+import bkBigTree from './bk-big-tree.js'
+import bkVirtualScroll from './bk-virtual-scroll.js'
 
 const components = [
     bkButton,
@@ -62,7 +64,9 @@ const components = [
     bkForm,
     bkFormItem,
     bkAlert,
-    bkPopover
+    bkPopover,
+    bkBigTree,
+    bkVirtualScroll
 ]
 
 function install () {

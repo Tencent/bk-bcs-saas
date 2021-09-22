@@ -563,7 +563,7 @@
                             view: true
                         }
                         item.transformTaints = []
-                        for (const taint of item.taints) {
+                        for (const taint of (item.taints || [])) {
                             item.transformTaints.push(Object.assign({}, taint, {
                                 displayValue: taint.value && taint.effect ? taint.value + ' : ' + taint.effect : taint.value || taint.effect
                             }))

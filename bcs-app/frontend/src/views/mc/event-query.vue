@@ -299,7 +299,11 @@
             changePageSize (pageSize) {
                 this.pageConf.pageSize = pageSize
                 this.pageConf.curPage = 1
-                this.pageChange()
+                this.fetchData({
+                    projId: this.projectId,
+                    limit: this.pageConf.pageSize,
+                    offset: 0
+                })
             },
 
             /**
