@@ -18,7 +18,7 @@ from attr import asdict, dataclass
 from django.conf import settings
 
 from ..base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler
-from . import BcsApiAuth
+from . import BcsApiGatewayAuth
 from .constants import BCS_API_VERSION, DeployType, ProjectType
 
 
@@ -96,7 +96,7 @@ class BcsProjectApiClient(BkApiClient):
 
     def __init__(self, auth: ComponentAuth):
         self._config = BcsApiGatewayConfig(host=settings.BCS_API_GW_DOMAIN, env=settings.BCS_API_GW_ENV)
-        self._client = BaseHttpClient(BcsApiAuth(auth.access_token))
+        self._client = BaseHttpClient(BcsApiGatewayAuth(auth.access_token))
 
     @response_handler()
     def query_project(self, project_id: str) -> Dict:
