@@ -3,7 +3,7 @@
         ref="selectorRef"
         v-bkloading="{ isLoading }"
         :panels="panels"
-        :height="600"
+        :height="height"
         :active.sync="active"
         :preview-data="previewData"
         :get-default-data="handleGetDefaultData"
@@ -67,6 +67,10 @@
             ipList: {
                 type: Array,
                 default: () => ([])
+            },
+            height: {
+                type: Number,
+                default: 600
             }
         },
         setup (props, ctx) {
