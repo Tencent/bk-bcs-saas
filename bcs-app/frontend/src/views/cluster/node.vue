@@ -125,7 +125,7 @@
                                 </bk-button>
                             </span>
                         </div>
-                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading }">
+                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading, zIndex: 500 }">
                             <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
                                 <thead>
                                     <tr>
@@ -491,183 +491,7 @@
             </div>
         </div>
 
-        <bk-dialog
-            :position="{ top: 80 }"
-            :is-show.sync="dialogConf.isShow"
-            :width="dialogConf.width"
-            :content="dialogConf.content"
-            :has-header="dialogConf.hasHeader"
-            :close-icon="dialogConf.closeIcon"
-            :quick-close="false"
-            :ext-cls="'biz-cluster-create-choose-dialog'">
-            <template slot="content">
-                <div style="margin: -20px -24px -27px -24px;" v-bkloading="{ isLoading: ccHostLoading, opacity: 1 }">
-                    <div class="biz-cluster-create-table-header">
-                        <div class="left">
-                            {{$t('选择服务器')}}
-                            <span style="font-size: 12px;cursor: pointer;">
-                                （{{$t('关联业务：')}}{{ccApplicationName}}）
-                            </span>
-                            <span class="remain-tip">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
-                        </div>
-                        <div style="position: absolute;right: 20px;top: 11px;">
-                            <div class="biz-searcher-wrapper">
-                                <bk-ip-searcher @search="handleSearch" ref="iPSearcher" :disable="isCreating" />
-                            </div>
-                        </div>
-                    </div>
-                    <template v-if="curClusterInPage.type === 'tke'">
-                        <div class="host-source-wrapper" style="margin-bottom: 15px;">
-                            <div class="label" :class="isEn ? 'long' : ''">{{$t('CPU 管理策略：')}}</div>
-                            <div class="selector-wrapper">
-                                <bk-selector
-                                    :selected.sync="cpuManagementKey"
-                                    :list="cpuManagementList"
-                                    :setting-key="'id'"
-                                    :display-key="'name'">
-                                </bk-selector>
-                            </div>
-                        </div>
-                    </template>
-                    <bk-table ext-cls="host-seletor-table"
-                        :data="candidateHostList"
-                        :page-params="pageConf"
-                        @page-change="pageChange">
-                        <bk-table-column width="70" :render-header="handleRenderCheckboxHeader">
-                            <template slot-scope="{ row }">
-                                <template v-if="!isCreating">
-                                    <template v-if="row.is_used || String(row.agent) !== '1' || !row.is_valid">
-                                        <bcs-popover placement="left">
-                                            <bk-checkbox disabled></bk-checkbox>
-                                            <template slot="content">
-                                                <p v-if="row.is_used" style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
-                                                    {{$t('当前节点已被项目（{projectName}）的集群（{clusterName}）占用', { projectName: row.project_name, clusterName: row.cluster_name })}}
-                                                </p>
-                                                <p v-if="String(row.agent) !== '1'" style="text-align: left; white-space: normal;word-break: break-all; width: 90px;">
-                                                    {{$t('Agent状态异常')}}
-                                                </p>
-                                                <p v-if="!row.is_valid" style="text-align: left; white-space: normal;word-break: break-all; width: 120px;">
-                                                    {{$t('Docker机不允许使用')}}
-                                                </p>
-                                            </template>
-                                        </bcs-popover>
-                                    </template>
-                                    <template v-else>
-                                        <template v-if="checkAllMode === 'all'">
-                                            <bcs-popover placement="left">
-                                                <bk-checkbox disabled :checked="true"></bk-checkbox>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
-                                                        {{$t('已经全选所有，如需清除，请在表头多选框清除')}}
-                                                    </p>
-                                                </template>
-                                            </bcs-popover>
-                                        </template>
-                                        <template v-else>
-                                            <bk-checkbox v-model="row.isChecked" @change="selectHost(candidateHostList)"></bk-checkbox>
-                                        </template>
-                                    </template>
-                                </template>
-                                <template v-else>
-                                    <label class="bk-form-checkbox">
-                                        <input type="checkbox" name="check-host" :checked="row.isChecked" disabled="disabled">
-                                    </label>
-                                </template>
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('主机名称')" :show-overflow-tooltip="true">
-                            <template slot-scope="{ row }">
-                                {{row.host_name || '--'}}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('内网IP')" :show-overflow-tooltip="true">
-                            <template slot-scope="{ row }">
-                                {{row.inner_ip || '--'}}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('Agent状态')">
-                            <template slot-scope="{ row }">
-                                <span class="biz-success-text" v-if="String(row.agent) === '1'">
-                                    {{$t('正常')}}
-                                </span>
-                                <template v-else-if="String(row.agent) === '0'">
-                                    <bcs-popover placement="top">
-                                        <span class="biz-warning-text f12">
-                                            {{$t('异常')}}
-                                        </span>
-                                        <template slot="content">
-                                            <p style="text-align: left; white-space: normal;word-break: break-all;">
-                                                <template>
-                                                    {{$t('Agent异常，请先')}}<a :href="PROJECT_CONFIG.doc.installAgent" target="_blank" style="color:#3a84ff">{{$t('安装')}}</a>
-                                                </template>
-                                            </p>
-                                        </template>
-                                    </bcs-popover>
-                                </template>
-                                <span class="biz-danger-text f12" v-else>
-                                    {{$t('异常')}}
-                                </span>
-                            </template>
-                        </bk-table-column>
-                        <template v-if="$INTERNAL">
-                            <bk-table-column :label="$t('机房')" :show-overflow-tooltip="true">
-                                <template slot-scope="{ row }">
-                                    {{row.idcunit || '--'}}
-                                </template>
-                            </bk-table-column>
-                            <bk-table-column :label="$t('机架')" :show-overflow-tooltip="true">
-                                <template slot-scope="{ row }">
-                                    {{row.server_rack || '--'}}
-                                </template>
-                            </bk-table-column>
-                            <bk-table-column :label="$t('机型')" :show-overflow-tooltip="true">
-                                <template slot-scope="{ row }">
-                                    {{row.device_class || '--'}}
-                                </template>
-                            </bk-table-column>
-                        </template>
-                        <div class="bk-message-box no-data" slot="empty">
-                            <p class="message empty-message" v-if="ccSearchKeys.length">{{$t('无匹配的主机资源')}}</p>
-                            <p class="message empty-message" v-else>{{$t('您在当前业务下没有主机资源，请联系业务运维')}}</p>
-                        </div>
-                    </bk-table>
-                </div>
-            </template>
-            <div slot="footer">
-                <template v-if="$INTERNAL">
-                    <div class="create-selector-footer">
-                        <ul class="footer-tips" v-if="curClusterInPage.type !== 'tke'">
-                            <template>
-                                <li>{{$t('安装GSE Agent; 可以通过')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.so">SO</a>{{$t('安装')}}</li>
-                                <li>{{$t('操作系统版本: Tencent tlinux release 2.2 (Final)；如果不满足可以在')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.uwork">Uwork</a>{{$t('重装')}}</li>
-                                <li>{{$t('回收外网IP；如果存在外网，可以在')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.ipSniper">Sniper</a>{{$t('回收外网IP')}}</li>
-                                <li>{{$t('安装NAT模块：下载相应的')}}<a target="_blank" class="bk-text-button" :href="PROJECT_CONFIG.doc.mirror">{{$t('NAT模块')}}</a>{{$t('，然后进行安装; 重装系统后，如果内核版本大于0048，说明已经安装NAT模块')}}</li>
-                            </template>
-                        </ul>
-                        <div class="footer-tips" v-else>
-                            <!-- <p v-if="isEn">Default password is: <span style="color: red;">bG5T2OTx3rP6</span>, Please change the password in time.</p>
-                            <p v-else>初始化成功后，默认密码为: <span style="color: red;">bG5T2OTx3rP6</span>，请及时修改密码</p> -->
-                        </div>
-                        <div>
-                            <bk-button type="primary" :loading="isCreating" @click="chooseServer">
-                                {{$t('确定')}}
-                            </bk-button>
-                            <bk-button type="button" :disabled="isCreating" @click="closeDialog">
-                                {{$t('取消')}}
-                            </bk-button>
-                        </div>
-                    </div>
-                </template>
-                <template v-else>
-                    <bk-button type="primary" :loading="isCreating" @click="chooseServer">
-                        {{$t('确定')}}
-                    </bk-button>
-                    <bk-button type="button" :disabled="isCreating" @click="closeDialog">
-                        {{$t('取消')}}
-                    </bk-button>
-                </template>
-            </div>
-        </bk-dialog>
+        <IpSelector v-model="showIpSelector" @confirm="chooseServer"></IpSelector>
 
         <bk-sideslider
             :is-show.sync="logSideDialogConf.isShow"
@@ -1127,7 +951,6 @@
 </template>
 
 <script>
-    import bkIPSearcher from '@open/components/ip-searcher'
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
     import RingCell from './ring-cell'
@@ -1135,15 +958,16 @@
     import mixin from '@open/views/cluster/mixin-node'
     import nodeSearcher from '@open/views/cluster/searcher'
     import ApplyHost from './apply-host.vue'
+    import IpSelector from '@/components/ip-selector/selector-dialog.vue'
 
     export default {
         components: {
             RingCell,
             LoadingCell,
             tipDialog,
-            'bk-ip-searcher': bkIPSearcher,
             nodeSearcher,
-            ApplyHost
+            ApplyHost,
+            IpSelector
         },
         mixins: [applyPerm, mixin],
         data () {

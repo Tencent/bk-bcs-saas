@@ -270,22 +270,11 @@
                 })
             }
         },
-        // async created () {
-        //     if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
-        //         if (this.projectId && this.clusterId) {
-        //             await this.fetchClusterData()
-        //         }
-        //     } else if (this.curCluster.project_id && this.curCluster.cluster_id) {
-        //         await this.fetchClusterOverview()
-        //         await this.fetchClusterMetrics()
-        //         setTimeout(this.prepareChartData, 0)
-        //     }
-        // },
         async mounted () {
             if (this.curCluster.project_id && this.curCluster.cluster_id) {
                 await this.fetchClusterOverview()
-                await this.fetchClusterMetrics()
-                setTimeout(this.prepareChartData, 0)
+                this.fetchClusterMetrics()
+                this.prepareChartData()
             }
         },
         destroyed () {
@@ -356,30 +345,6 @@
                 }
                 return total === 0 ? 0 : ((total - remain) / total * 100).toFixed(2)
             },
-
-            /**
-             * 获取集群数据
-             */
-            // async fetchClusterData () {
-            //     this.showLoading = true
-            //     try {
-            //         await this.$store.dispatch('cluster/getCluster', {
-            //             projectId: this.projectId,
-            //             clusterId: this.clusterId
-            //         })
-            //         this.$nextTick(async () => {
-            //             if (this.curCluster && this.curCluster.project_id && this.curCluster.cluster_id) {
-            //                 await this.fetchClusterOverview()
-            //                 this.fetchClusterMetrics()
-            //                 setTimeout(this.prepareChartData, 0)
-            //             }
-            //         })
-            //     } catch (e) {
-            //         console.log(e)
-            //     } finally {
-            //         this.showLoading = false
-            //     }
-            // },
 
             /**
              * 构建图表数据

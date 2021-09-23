@@ -39,6 +39,8 @@ export const fetchK8sNodeLabels = request('post', '/api/cluster_mgr/projects/$pr
 export const setK8sNodeLabels = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/labels/')
 export const getNodeTaints = request('post', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
 export const setNodeTaints = request('put', '/api/cluster_mgr/projects/$projectId/clusters/$clusterId/nodes/taints/')
+export const fetchBizTopo = request('get', '/api/projects/$projectId/cc/topology/')
+export const fetchBizHosts = request('post', '/api/projects/$projectId/cc/hosts/')
 
 export default {
     stdLogs,
@@ -70,5 +72,7 @@ export default {
     retrieveCustomResourceDetail,
     customResourceCreate,
     customResourceUpdate,
-    customResourceDelete
+    customResourceDelete,
+    fetchBizTopo,
+    fetchBizHosts
 }
