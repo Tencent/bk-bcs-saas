@@ -125,8 +125,8 @@
                         label: $i18n.t('机房')
                     },
                     {
-                        prop: 'rack',
-                        label: $i18n.t('机架')
+                        prop: 'svr_device_class',
+                        label: $i18n.t('机型')
                     }
                 ],
                 previewOperateList: [
