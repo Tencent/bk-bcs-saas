@@ -3,7 +3,7 @@
         ref="selectorRef"
         v-bkloading="{ isLoading }"
         :panels="panels"
-        :height="600"
+        :height="dialogHeight"
         :active.sync="active"
         :preview-data="previewData"
         :get-default-data="handleGetDefaultData"
@@ -39,7 +39,7 @@
     </ipSelector>
 </template>
 <script lang="ts">
-    import { defineComponent, reactive, toRefs, h, ref, watch } from '@vue/composition-api'
+    import { defineComponent, reactive, toRefs, h, ref, watch, onMounted } from '@vue/composition-api'
     import { ipSelector, AgentStatus } from './ip-selector'
     import './ip-selector.css'
     import { fetchBizTopo, fetchBizHosts } from '@/api/base'
@@ -73,6 +73,7 @@
                 0: 'terminated',
                 1: 'running'
             }
+            const dialogHeight = ref<any>(0)
             const textMap = {
                 0: $i18n.t('异常'),
                 1: $i18n.t('正常')
@@ -159,6 +160,11 @@
                     })
                 }
             }, { immediate: true })
+
+            onMounted(() => {
+                dialogHeight.value = document.body.clientHeight < 1000 ? 600 : document.body.clientHeight - 320
+                console.log(dialogHeight.value, 22222222222222)
+            })
 
             // 获取左侧Tree数据
             let treeData: any[] = []
@@ -347,7 +353,8 @@
                 handleChange,
                 getRowDisabledStatus,
                 getRowTipsContent,
-                handleGetData
+                handleGetData,
+                dialogHeight
             }
         }
     })

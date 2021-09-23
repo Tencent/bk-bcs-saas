@@ -12,7 +12,7 @@
     </bcs-dialog>
 </template>
 <script lang="ts">
-    import { defineComponent, ref, toRefs, watch } from '@vue/composition-api'
+    import { defineComponent, ref, toRefs, watch, onMounted } from '@vue/composition-api'
     import Selector from './ip-selector-bcs.vue'
 
     export default defineComponent({
@@ -39,8 +39,7 @@
         setup (props, ctx) {
             const { emit } = ctx
             const { modelValue } = toRefs(props)
-            let { dialogWidth } = ref<any>(0)
-            dialogWidth = document.body.clientWidth < 1650 ? 1200 : document.body.clientWidth - 650
+            const dialogWidth = ref<any>(0)
             const selectorKey = ref(String(new Date().getTime()))
             watch(modelValue, () => {
                 selectorKey.value = String(new Date().getTime())
@@ -65,6 +64,10 @@
                 }
                 emit('confirm', data)
             }
+
+            onMounted(() => {
+                dialogWidth.value = document.body.clientWidth < 1650 ? 1200 : document.body.clientWidth - 650
+            })
 
             return {
                 selector,

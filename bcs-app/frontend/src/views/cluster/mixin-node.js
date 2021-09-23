@@ -695,7 +695,6 @@ export default {
         async chooseServer (ipList) {
             this.hostList = ipList
             this.$refs.nodeNoticeDialog.show()
-            this.showIpSelector = false
         },
 
         /**
@@ -716,6 +715,7 @@ export default {
                 this.sortIdx = ''
                 this.nodeListPageConf.curPage = 1
                 this.clearSearchParams()
+                this.showIpSelector = false
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
