@@ -1742,27 +1742,6 @@
 
                 if (!this.curContainer.ports.length) {
                     this.addPort()
-                } else {
-                    this.curContainer.ports.forEach(item => {
-                        const projectId = this.projectId
-                        const version = this.curVersion
-                        const portId = item.id
-                        if (portId) {
-                            this.$store.dispatch('mesosTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
-                                item.isLink = ''
-                            }, res => {
-                                const message = res.message || res.data.data || ''
-                                const msg = message.split(',')[0]
-                                if (msg) {
-                                    item.isLink = msg + `，${this.$t('不能修改协议')}`
-                                } else {
-                                    item.isLink = ''
-                                }
-                            })
-                        } else {
-                            item.isLink = ''
-                        }
-                    })
                 }
 
                 if (!this.curContainer.volumes.length) {
@@ -2940,15 +2919,7 @@
                 const projectId = this.projectId
                 const version = this.curVersion
                 const portId = item.id
-                this.$store.dispatch('mesosTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
-                }, res => {
-                    const message = res.message || res.data.data
-                    const msg = message.split(',')[0]
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: msg + `，${this.$t('不能修改协议')}`
-                    })
-                })
+                this.$store.dispatch('mesosTemplate/checkPortIsLink', { projectId, version, portId })
             },
             removePort (item, index) {
                 const projectId = this.projectId
@@ -2956,12 +2927,6 @@
                 const portId = item.id
                 this.$store.dispatch('mesosTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
                     this.curContainer.ports.splice(index, 1)
-                }, res => {
-                    const message = res.message || res.data.data
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
                 })
             },
             selectVolumeType (volumeItem) {
