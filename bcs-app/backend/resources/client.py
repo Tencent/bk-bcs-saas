@@ -23,6 +23,7 @@ from backend.components.bcs import k8s
 from backend.container_service.clusters.base import CtxCluster
 from backend.utils import exceptions
 from backend.utils.errcodes import ErrorCode
+from backend.utils.whitelist import check_bcs_api_gateway_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -79,19 +80,38 @@ class BcsKubeConfigurationService:
         config = client.Configuration()
         config.verify_ssl = False
         # Get credentials
-        credentials = self.get_client_credentials()
+        credentials = self.get_client_credentials(env_name)
         config.host = '{}{}'.format(self._get_apiservers_host(env_name), credentials['server_address_path']).rstrip(
             "/"
         )
         config.api_key = {"authorization": f"Bearer {credentials['user_token']}"}
         return config
 
-    def get_client_credentials(self) -> Dict[str, Any]:
-        """获取访问集群 apiserver 所需的鉴权信息，比如证书、user_token、server_address_path 等"""
-        env_name = self.env_querier.do()
+    def get_client_credentials(self, env_name: str) -> Dict[str, Any]:
+        """获取访问集群 apiserver 所需的鉴权信息，包含 user_token、server_address_path 等
+        NOTE: 白名单控制访问集群的链路，白名单中的集群通过 bcs-api-gateway 服务访问，其它通过 bcs-api 服务访问
+        """
+        if check_bcs_api_gateway_enabled(self.cluster.id):
+            return self._bcs_api_gateway_credentials(env_name)
+        return self._get_bcs_api_credentials(env_name)
 
+    def _get_bcs_api_credentials(self, env_name: str) -> Dict[str, Any]:
+        """获取通过 bcs api 服务访问集群 apiserver的鉴权信息
+
+        :param env_name: 集群所属环境，包含正式环境和测试环境
+        """
         bcs_cluster_id = self.bcs_api.query_cluster_id(env_name, self.cluster.project_id, self.cluster.id)
         return self.bcs_api.get_cluster_credentials(env_name, bcs_cluster_id)
+
+    def _bcs_api_gateway_credentials(self, env_name: str) -> Dict[str, Any]:
+        """获取通过 bcs api gateway 服务访问集群 apiserver 所需的鉴权信息
+
+        :param env_name: 集群所属环境，包含正式环境和测试环境
+        """
+        return {
+            "server_address_path": f"/{env_name}/v4/clusters/{self.cluster.id}",
+            "user_token": getattr(settings, "BCS_API_GW_AUTH_TOKEN", ""),
+        }
 
     @staticmethod
     def _get_apiservers_host(api_env_name: str) -> str:
