@@ -41,6 +41,7 @@ FUNC_PATH_MAP = {
     'search_host': '/v2/cc/search_host/',
     'list_biz_hosts': '/v2/cc/list_biz_hosts/',
     'search_biz_inst_topo': '/v2/cc/search_biz_inst_topo/',
+    'get_biz_internal_module': '/v2/cc/get_biz_internal_module/',
 }
 # 默认开发商账号
 DEFAULT_SUPPLIER_ACCOUNT = None
@@ -338,6 +339,20 @@ def search_biz_inst_topo(username: str, bk_biz_id: str) -> List:
     if not resp.get('result'):
         raise error_codes.APIError(resp.get('message'))
     return resp.get('data') or []
+
+
+def get_biz_internal_module(username: str, bk_biz_id: str) -> Dict:
+    """
+    查询业务的空闲机/故障机/待回收模块
+
+    :param username: 查询者用户名
+    :param bk_biz_id: 业务 ID
+    :return: 内部模块拓扑信息
+    """
+    resp = cmdb_base_request(FUNC_PATH_MAP['get_biz_internal_module'], username, {'bk_biz_id': bk_biz_id})
+    if not resp.get('result'):
+        raise error_codes.APIError(resp.get('message'))
+    return resp.get('data') or {}
 
 
 def fetch_host_count_by_topo(
