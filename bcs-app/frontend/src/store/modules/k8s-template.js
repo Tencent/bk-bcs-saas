@@ -317,7 +317,7 @@ export default {
                         if (!container.hasOwnProperty('workingDir')) {
                             container.workingDir = ''
                         }
-                        
+
                         // initContainers类型，在保存时会删除livenessProbe，readinessProbe，lifecycle
                         if (!container.hasOwnProperty('livenessProbe')) {
                             container.livenessProbe = {
@@ -360,7 +360,7 @@ export default {
                                 successThreshold: 1
                             }
                         }
-        
+
                         if (!container.hasOwnProperty('lifecycle')) {
                             container.lifecycle = {
                                 preStop: {
@@ -1527,7 +1527,7 @@ export default {
          */
         checkPortIsLink (context, { projectId, version, portId }) {
             if (projectId && version && portId) {
-                return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/check/version/${version}/port/${portId}/`)
+                return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/K8sDeployment/check/version/${version}/port/${portId}/`)
             }
         },
 
