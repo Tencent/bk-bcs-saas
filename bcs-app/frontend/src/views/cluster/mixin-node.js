@@ -695,6 +695,7 @@ export default {
         async chooseServer (ipList) {
             this.hostList = ipList
             this.$refs.nodeNoticeDialog.show()
+            this.showIpSelector = false
         },
 
         /**

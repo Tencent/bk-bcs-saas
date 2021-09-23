@@ -4,7 +4,7 @@
         :close-icon="false"
         :esc-close="false"
         :value="modelValue"
-        :width="1200"
+        :width="dialogWidth"
         :auto-close="false"
         @value-change="handleValueChange"
         @confirm="handleConfirm">
@@ -35,10 +35,12 @@
                 default: () => ([])
             }
         },
+      
         setup (props, ctx) {
             const { emit } = ctx
-
             const { modelValue } = toRefs(props)
+            let { dialogWidth } = ref<any>(0)
+            dialogWidth = document.body.clientWidth < 1650 ? 1200 : document.body.clientWidth - 650
             const selectorKey = ref(String(new Date().getTime()))
             watch(modelValue, () => {
                 selectorKey.value = String(new Date().getTime())
@@ -67,6 +69,7 @@
             return {
                 selector,
                 selectorKey,
+                dialogWidth,
                 handleValueChange,
                 handleConfirm,
                 handleIpSelectorChange
