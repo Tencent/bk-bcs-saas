@@ -60,11 +60,11 @@
                         :pagination="pagination"
                         @page-change="handlePageChange"
                         @page-limit-change="handlePageLimitChange">
-                        <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
+                        <!-- <bk-table-column key="selection" :render-header="renderSelectionHeader" width="50">
                             <template slot-scope="{ row }">
                                 <bk-checkbox name="check-strategy" v-model="row.isChecked" @change="checkApp(row)" />
                             </template>
-                        </bk-table-column>
+                        </bk-table-column> -->
                         <bk-table-column :label="$t('Release名称')" min-width="160">
                             <template slot-scope="{ row }">
                                 <div>
@@ -1122,9 +1122,10 @@
                     try {
                         const data = this.getParams()
                         const res = await this.$store.dispatch('helm/getAppList', data)
-
+                        const count = res.data.results.length
+                        const loading = this.appList.length !== count
                         this.appList = res.data.results
-                        this.pagination.count = res.data.results.length
+                        this.pagination.count = count
                         this.appListCache = JSON.parse(JSON.stringify(res.data.results))
                         // 轮询接口,保持选中状态
                         this.appList.forEach(appItem => {
@@ -1134,7 +1135,7 @@
                                 }
                             })
                         })
-                        this.curPageData = this.getDataByPage(this.pagination.current, false)
+                        this.curPageData = this.getDataByPage(this.pagination.current, loading)
 
                         this.appCheckTime = SLOW_TIME
                         this.appList.forEach(app => {
@@ -1361,35 +1362,35 @@
                 }, 200)
                 this.selectLists = []
                 return this.appList.slice(startIndex, endIndex)
-            },
-
-            /**
-             * 自定义checkbox表格头
-             */
-            renderSelectionHeader () {
-                return <bk-checkbox name="check-all-strategy" v-model={this.isCheckAll} onChange={this.checkAllApp} />
-            },
-
-            /**
-             * 列表每一行的 checkbox 点击
-             *
-             * @param {Object} row 当前对象
-             */
-            checkApp (row) {
-                this.selectLists = this.curPageData.filter(item => item.isChecked === true)
-                this.isCheckAll = this.selectLists.length === this.curPageData.length
-            },
-
-            /**
-             * 列表全选
-             */
-            checkAllApp (value) {
-                const isChecked = value
-                this.curPageData.forEach(item => {
-                    this.$set(item, 'isChecked', isChecked)
-                })
-                this.selectLists = isChecked ? this.curPageData : []
             }
+
+            // /**
+            //  * 自定义checkbox表格头
+            //  */
+            // renderSelectionHeader () {
+            //     return <bk-checkbox name="check-all-strategy" v-model={this.isCheckAll} onChange={this.checkAllApp} />
+            // },
+
+            // /**
+            //  * 列表每一行的 checkbox 点击
+            //  *
+            //  * @param {Object} row 当前对象
+            //  */
+            // checkApp (row) {
+            //     this.selectLists = this.curPageData.filter(item => item.isChecked === true)
+            //     this.isCheckAll = this.selectLists.length === this.curPageData.length
+            // }
+
+            // /**
+            //  * 列表全选
+            //  */
+            // checkAllApp (value) {
+            //     const isChecked = value
+            //     this.curPageData.forEach(item => {
+            //         this.$set(item, 'isChecked', isChecked)
+            //     })
+            //     this.selectLists = isChecked ? this.curPageData : []
+            // }
         }
     }
 </script>
