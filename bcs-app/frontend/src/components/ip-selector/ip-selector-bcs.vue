@@ -27,6 +27,7 @@
         :across-page="true"
         ip-key="bk_host_innerip"
         ellipsis-direction="ltr"
+        :default-accurate="true"
         @check-change="handleCheckChange"
         @remove-node="handleRemoveNode"
         @menu-click="handleMenuClick"
@@ -54,6 +55,7 @@
         previewOperateList: any[];
         searchDataOptions: any;
         treeDataOptions: any;
+        curTreeNode: any;
     }
     export default defineComponent({
         name: 'ip-selector-bcs',
@@ -138,7 +140,8 @@
                     idKey: 'bk_inst_id',
                     nameKey: 'bk_inst_name',
                     childrenKey: 'child'
-                }
+                },
+                curTreeNode: null
             })
             const selectorRef = ref<any>(null)
 
@@ -179,6 +182,7 @@
                     ip_list: tableKeyword.split(splitCode).filter(ip => !!ip)
                 }
                 const [node] = selections
+                state.curTreeNode = node
                 if (!node) return { total: 0, data: [] }
 
                 if (node.bk_obj_id === 'set') {
@@ -281,7 +285,15 @@
                     })
                 } else if (checkValue === 2) {
                     state.isLoading = true
-                    const data = await fetchBizHosts({ desire_all_data: true }).catch(() => ({ results: [] }))
+                    const params: any = {
+                        desire_all_data: true
+                    }
+                    if (state.curTreeNode.bk_obj_id === 'set') {
+                        params.set_id = state.curTreeNode.bk_inst_id
+                    } else if (state.curTreeNode.bk_obj_id === 'module') {
+                        params.module_id = state.curTreeNode.bk_inst_id
+                    }
+                    const data = await fetchBizHosts(params).catch(() => ({ results: [] }))
                     const ipList = data.results.filter(item => !getRowDisabledStatus(item))
                     state.previewData = [
                         {
