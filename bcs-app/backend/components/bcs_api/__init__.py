@@ -54,7 +54,7 @@ class BcsApiGatewayAuth(BcsApiAuth):
     """用于调用 bcs-api-gateway 系统的鉴权对象"""
 
     def __call__(self, r: PreparedRequest):
-        # 从配置文件读取访问系统的 admin token，置入请求头中
+        # 从配置文件读取访问系统的 admin token, 放置到请求头中
         r.headers["Authorization"] = f"Bearer {getattr(settings, 'BCS_API_GW_AUTH_TOKEN', '')}"
         r.headers["Content-Type"] = "application/json"
         r.headers['X-BKAPI-AUTHORIZATION'] = json.dumps({"access_token": self.access_token})
