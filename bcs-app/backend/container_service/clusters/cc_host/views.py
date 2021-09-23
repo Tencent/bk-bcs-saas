@@ -38,9 +38,9 @@ class CCViewSet(SystemViewSet):
     def biz_inst_topo(self, request, project_id):
         """ 查询业务实例拓扑 """
         try:
-            topo_info = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
+            topo_info = cc.BizTopoQueryService(request.user.username, request.project.cc_app_id).fetch()
         except BaseCompError as e:
-            raise error_codes.APIError(_('查询业务拓扑信息失败：{}').format(e))
+            raise error_codes.ComponentError(_('查询业务拓扑信息失败：{}').format(e))
         return Response(data=topo_info)
 
     @action(methods=['POST'], url_path='hosts', detail=False)
@@ -55,7 +55,7 @@ class CCViewSet(SystemViewSet):
         try:
             host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
         except BaseCompError as e:
-            raise error_codes.APIError(str(e))
+            raise error_codes.ComponentError(str(e))
         cc_app_name = cc.get_application_name(bk_biz_id)
 
         # 根据指定的 IP 过滤

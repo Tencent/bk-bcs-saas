@@ -63,6 +63,25 @@ FAKE_TOPO_RESP = {
     ],
 }
 
+# 测试用 get_biz_internal_module 放回结果
+FAKE_INTERNAL_MODULE_RESP = {
+    "code": 0,
+    "data": {
+        "bk_set_id": 1,
+        "bk_set_name": "空闲机池",
+        "module": [
+            {
+                "bk_module_id": 11,
+                "bk_module_name": "空闲机",
+            },
+            {
+                "bk_module_id": 12,
+                "bk_module_name": "故障机",
+            },
+        ],
+    },
+}
+
 # 测试用 list_biz_hosts 返回结果
 FAKE_HOSTS_RESP = {
     "code": 0,
@@ -98,6 +117,13 @@ class TestBkCCClient:
         requests_mock.post(ANY, json=FAKE_TOPO_RESP)
         topo = BkCCClient(request_user.username).search_biz_inst_topo(1)
         assert topo[0]['child'][0]['bk_inst_id'] == 5001
+        assert requests_mock.called
+
+    def test_get_biz_internal_module(self, request_user, requests_mock):
+        requests_mock.post(ANY, json=FAKE_INTERNAL_MODULE_RESP)
+        internal_module = BkCCClient(request_user.username).get_biz_internal_module(1)
+        assert internal_module['bk_set_name'] == '空闲机池'
+        assert internal_module['module'][0]['bk_module_id'] == 11
         assert requests_mock.called
 
     def test_list_biz_hosts(self, request_user, requests_mock):

@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import mock
 import pytest
 
-from backend.components.cc import HostQueryService, get_has_perm_hosts, search_biz_inst_topo
+from backend.components.cc import BizTopoQueryService, HostQueryService, get_has_perm_hosts
 
 # 测试用 search_biz_inst_topo 返回结果
 FAKE_TOPO_RESP = [
@@ -47,6 +47,22 @@ FAKE_TOPO_RESP = [
     }
 ]
 
+# 测试用 get_biz_internal_module 返回结果
+FAKE_INTERNAL_MODULE_RESP = {
+    "bk_set_id": 1,
+    "bk_set_name": "空闲机池",
+    "module": [
+        {
+            "bk_module_id": 11,
+            "bk_module_name": "空闲机",
+        },
+        {
+            "bk_module_id": 12,
+            "bk_module_name": "故障机",
+        },
+    ],
+}
+
 # 测试用 list_biz_hosts 返回结果
 FAKE_HOSTS_RESP = {
     # 设置为 501，刚好触发查询两次逻辑
@@ -77,6 +93,8 @@ class TestComponentCCHosts:
         ), mock.patch(
             'backend.components.cc.hosts.BkCCClient.list_biz_hosts', return_value=FAKE_HOSTS_RESP
         ), mock.patch(
+            'backend.components.cc.hosts.BkCCClient.get_biz_internal_module', return_value=FAKE_INTERNAL_MODULE_RESP
+        ), mock.patch(
             'backend.components.cc.hosts.get_app_maintainers', return_value=[]
         ):
             yield
@@ -87,8 +105,10 @@ class TestComponentCCHosts:
         assert len(ret) == 2
 
     def test_search_biz_inst_topo(self):
-        ret = search_biz_inst_topo('admin', 1001)
-        assert ret[0]['child'][0]['bk_inst_id'] == 5001
+        ret = BizTopoQueryService('admin', 1001).fetch()
+        print(ret)
+        assert ret[0]['child'][0]['child'][0]['bk_inst_id'] == 11
+        assert ret[0]['child'][1]['bk_inst_id'] == 5001
 
     def test_fetch_all_hosts(self):
         ret = HostQueryService('admin', 1001).fetch_all()

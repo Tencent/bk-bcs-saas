@@ -21,7 +21,7 @@ pytestmark = pytest.mark.django_db
 API_URL_PREFIX = f'/api/projects/{TEST_PROJECT_ID}/cc'
 
 
-def fake_search_topo(*args, **kwargs):
+def fake_fetch_topo(*args, **kwargs):
     """ 返回测试用 topo 数据 """
     return [
         {
@@ -29,6 +29,23 @@ def fake_search_topo(*args, **kwargs):
             "bk_obj_name": "业务",
             "bk_obj_id": "biz",
             "child": [
+                {
+                    "default": 0,
+                    "bk_obj_name": "集群",
+                    "bk_obj_id": "set",
+                    "child": [
+                        {
+                            "default": 0,
+                            "bk_obj_name": "模块",
+                            "bk_obj_id": "module",
+                            "child": [],
+                            "bk_inst_id": 1001,
+                            "bk_inst_name": "空闲机",
+                        }
+                    ],
+                    "bk_inst_id": 1,
+                    "bk_inst_name": "BCS-K8S-1000",
+                },
                 {
                     "default": 0,
                     "bk_obj_name": "集群",
@@ -53,7 +70,7 @@ def fake_search_topo(*args, **kwargs):
                     ],
                     "bk_inst_id": 5001,
                     "bk_inst_name": "BCS-K8S-1001",
-                }
+                },
             ],
             "bk_inst_id": 10001,
             "bk_inst_name": "BCS",
@@ -142,7 +159,7 @@ def fake_get_agent_status(*args, **kwargs):
 class TestCCAPI:
     """ 测试 CMDB API 相关接口 """
 
-    @mock.patch('backend.container_service.clusters.cc_host.views.cc.search_biz_inst_topo', new=fake_search_topo)
+    @mock.patch('backend.container_service.clusters.cc_host.views.cc.BizTopoQueryService.fetch', new=fake_fetch_topo)
     def test_get_biz_inst_topology(self, api_client):
         """ 测试创建资源接口 """
         response = api_client.get(f'{API_URL_PREFIX}/topology/')

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # 仅包含外部模块使用的方法，导入示例: from components.cc import xxx
 from .business import AppQueryService, fetch_has_maintain_perm_apps, get_app_maintainers, get_application_name  # noqa
-from .hosts import HostQueryService, get_has_perm_hosts, search_biz_inst_topo  # noqa
+from .hosts import BizTopoQueryService, HostQueryService, get_has_perm_hosts  # noqa
 
 # 加载 cc_ext 相关方法
 try:

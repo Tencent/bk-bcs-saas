@@ -39,15 +39,17 @@ class BkCCConfig:
     def __init__(self, host: str):
         # 请求域名
         self.host = host
-        self.prefix_path = '/api/c/compapi'
+        self.prefix_path = '/api/c/compapi/v2/cc'
 
         # 请求地址
         # 查询业务信息
-        self.search_business_url = f'{host}/{self.prefix_path}/v2/cc/search_business/'
+        self.search_business_url = f'{host}/{self.prefix_path}/search_business/'
         # 查询业务拓扑
-        self.search_biz_inst_topo_url = f'{host}/{self.prefix_path}/v2/cc/search_biz_inst_topo/'
+        self.search_biz_inst_topo_url = f'{host}/{self.prefix_path}/search_biz_inst_topo/'
+        # 查询内部模块拓扑
+        self.get_biz_internal_module_url = f'{host}/{self.prefix_path}/get_biz_internal_module/'
         # 查询业务下主机
-        self.list_biz_hosts_url = f'{host}/{self.prefix_path}/v2/cc/list_biz_hosts/'
+        self.list_biz_hosts_url = f'{host}/{self.prefix_path}/list_biz_hosts/'
 
 
 class BkCCAuth(AuthBase):
@@ -115,6 +117,18 @@ class BkCCClient(BkApiClient):
         :return: 业务拓扑信息
         """
         url = self._config.search_biz_inst_topo_url
+        params = {'bk_biz_id': bk_biz_id}
+        return self._client.request_json('POST', url, json=params)
+
+    @response_handler(default=dict)
+    def get_biz_internal_module(self, bk_biz_id: int) -> Dict:
+        """
+        查询内部模块拓扑
+
+        :param bk_biz_id: 业务 ID
+        :return: 内部模块拓扑信息
+        """
+        url = self._config.get_biz_internal_module_url
         params = {'bk_biz_id': bk_biz_id}
         return self._client.request_json('POST', url, json=params)
 

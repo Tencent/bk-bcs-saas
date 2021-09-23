@@ -98,6 +98,65 @@ class HostQueryService:
         return [host for r in results for host in r.ret['info']]
 
 
+@dataclass
+class BizTopoQueryService:
+    """
+    业务拓扑信息查询
+
+    :param bk_biz_id: 业务 ID
+    """
+
+    username: str
+    bk_biz_id: int
+
+    def _fetch_biz_inst_topo(self) -> List:
+        """
+        查询业务拓扑
+
+        :return: 业务，集群，模块拓扑信息
+        """
+        return BkCCClient(self.username).search_biz_inst_topo(self.bk_biz_id)
+
+    def _fetch_biz_internal_module(self) -> Dict:
+        """
+        查询业务的内部模块
+
+        :return: 业务的空闲机/故障机/待回收模块
+        """
+        return BkCCClient(self.username).get_biz_internal_module(self.bk_biz_id)
+
+    def fetch(self) -> List:
+        """
+        查询全量业务拓扑
+
+        :return: 全量业务拓扑（包含普通拓扑，内部模块）
+        """
+        biz_inst_topo = self._fetch_biz_inst_topo()
+        raw_inner_mod_topo = self._fetch_biz_internal_module()
+        # topo 最外层为业务，如果首个业务存在即为查询结果
+        if biz_inst_topo and raw_inner_mod_topo:
+            # 将内部模块补充到业务下属集群首位
+            inner_mod_topo = {
+                'bk_obj_id': 'set',
+                'bk_obj_name': _('集群'),
+                'bk_inst_id': raw_inner_mod_topo['bk_set_id'],
+                'bk_inst_name': raw_inner_mod_topo['bk_set_name'],
+                'child': [
+                    {
+                        'bk_obj_id': 'module',
+                        'bk_obj_name': _('模块'),
+                        'bk_inst_id': mod['bk_module_id'],
+                        'bk_inst_name': mod['bk_module_name'],
+                        'child': [],
+                    }
+                    for mod in raw_inner_mod_topo['module']
+                ],
+            }
+            biz_inst_topo[0]['child'].insert(0, inner_mod_topo)
+
+        return biz_inst_topo
+
+
 def get_has_perm_hosts(bk_biz_id: int, username: str) -> List:
     """ 查询业务下有权限的主机 """
     all_maintainers = get_app_maintainers(username, bk_biz_id)
@@ -106,17 +165,6 @@ def get_has_perm_hosts(bk_biz_id: int, username: str) -> List:
         return HostQueryService(username, bk_biz_id).fetch_all()
     # 否则查询有主机负责人权限的主机
     return _get_hosts_by_operator(bk_biz_id, username)
-
-
-def search_biz_inst_topo(username: str, bk_biz_id: int) -> List:
-    """
-    查询业务拓扑
-
-    :param username: 查询者用户名
-    :param bk_biz_id: 业务 ID
-    :return: 业务，集群，模块拓扑信息
-    """
-    return BkCCClient(username).search_biz_inst_topo(bk_biz_id)
 
 
 def _get_hosts_by_operator(bk_biz_id: int, username: str) -> List:
