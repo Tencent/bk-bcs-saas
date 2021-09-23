@@ -163,7 +163,6 @@
 
             onMounted(() => {
                 dialogHeight.value = document.body.clientHeight < 1000 ? 600 : document.body.clientHeight - 320
-                console.log(dialogHeight.value, 22222222222222)
             })
 
             // 获取左侧Tree数据
