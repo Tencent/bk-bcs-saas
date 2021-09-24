@@ -40,6 +40,7 @@
     </ipSelector>
 </template>
 <script lang="ts">
+    /* eslint-disable camelcase */
     import { defineComponent, reactive, toRefs, h, ref, watch } from '@vue/composition-api'
     import { ipSelector, AgentStatus } from './ip-selector'
     import './ip-selector.css'
@@ -278,8 +279,8 @@
                     })
                 }
             }
-            // 跨页全选
-            const handleAllChecked = async (data) => {
+            // 静态选择跨页全选
+            const handleStaticTopoAllChecked = async (data) => {
                 const { excludeData = [], checkValue } = data
                 if (checkValue === 1) {
                     excludeData.forEach((exclude) => {
@@ -292,9 +293,9 @@
                     const params: any = {
                         desire_all_data: true
                     }
-                    if (state.curTreeNode.bk_obj_id === 'set') {
+                    if (state.curTreeNode?.bk_obj_id === 'set') {
                         params.set_id = state.curTreeNode.bk_inst_id
-                    } else if (state.curTreeNode.bk_obj_id === 'module') {
+                    } else if (state.curTreeNode?.bk_obj_id === 'module') {
                         params.module_id = state.curTreeNode.bk_inst_id
                     }
                     const data = await fetchBizHosts(params).catch(() => ({ results: [] }))
@@ -313,10 +314,10 @@
             }
             // 表格勾选事件
             const handleCheckChange = async (data) => {
-                if (data?.checkType === 'current') {
+                if (data?.checkType === 'current' || state.active === 'custom-input') {
                     handleCurrentPageChecked(data)
                 } else if (data?.checkType === 'all') {
-                    await handleAllChecked(data)
+                    await handleStaticTopoAllChecked(data)
                 }
                 // 统一抛出change事件
                 handleChange()

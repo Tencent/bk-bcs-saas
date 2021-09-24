@@ -632,6 +632,7 @@
             :is-confirming="isCreating"
             :confirm-btn-text="$t('确定，添加节点')"
             :cancel-btn-text="$t('我再想想')"
+            :confirm-loading="nodeNoticeLoading"
             :confirm-callback="saveNode">
         </tip-dialog>
 
