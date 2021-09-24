@@ -70,8 +70,8 @@ class ResourceVersionExpired(DashboardBaseError):
     code = 4005005
 
 
-class NotOwnerReferencesError(DashboardBaseError):
+class OwnerReferencesNotExist(DashboardBaseError):
     """ 不存在父级资源 """
 
-    message = "Resource Not Have OwnerReferences"
+    message = "OwnerReferences Not Exist"
     code = 4005006

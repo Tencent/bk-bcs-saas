@@ -72,7 +72,10 @@ class TestPod:
 
     @mock.patch('backend.dashboard.workloads.views.pod.validate_cluster_perm', new=lambda *args, **kwargs: True)
     def test_reschedule(self, api_client):
-        """ 测试重新调度 Pod """
+        """
+        测试重新调度 Pod
+        TODO 可考虑 mock 掉下发集群操作，仅验证接口功能
+        """
         # 创建有父级资源的 Pod，测试重新调度
         deploy_manifest = load_demo_manifest('workloads/simple_deployment')
         deploy_name = deploy_manifest['metadata']['name']

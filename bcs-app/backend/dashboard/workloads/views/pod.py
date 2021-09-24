@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.dashboard.auditor import DashboardAuditor
-from backend.dashboard.exceptions import DeleteResourceError, NotOwnerReferencesError
+from backend.dashboard.exceptions import DeleteResourceError, OwnerReferencesNotExist
 from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.viewsets import DashboardViewSet
 from backend.resources.configs.configmap import ConfigMap
@@ -70,7 +70,7 @@ class PodViewSet(DashboardViewSet):
         # 检查 Pod 配置，必须有父级资源才可以重新调度
         pod_manifest = client.fetch_manifest(namespace, name)
         if not getitems(pod_manifest, 'metadata.ownerReferences'):
-            raise NotOwnerReferencesError(_('Pod {}/{} 不存在父级资源，无法被重新调度').format(namespace, name))
+            raise OwnerReferencesNotExist(_('Pod {}/{} 不存在父级资源，无法被重新调度').format(namespace, name))
         # 重新调度的原理是直接删除 Pod，利用父级资源重新拉起服务
         try:
             response_data = client.delete(name=name, namespace=namespace).to_dict()
