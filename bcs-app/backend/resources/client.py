@@ -103,7 +103,7 @@ class BcsKubeConfigurationService:
         """
         # TODO: 兼容逻辑，待 bcs api 新架构稳定后，废弃下面逻辑
         # 因为bcs cluster id(带有后缀随机字符的cluster id)注册后，不会变动；因此，可以长期缓存
-        cache_key = f'BK_DEVOPS_BCS:PROJECT_ID:{self.cluster.id}'
+        cache_key = f"BK_DEVOPS_BCS:CLUSTER_ID:{self.cluster.id}"
         bcs_cluster_id = region.get(cache_key, expiration_time=BCS_CLUSTER_EXPIRATION_TIME)
 
         if not bcs_cluster_id:
