@@ -20,7 +20,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import cc
-from backend.components.base import BaseCompError
+from backend.components.base import BaseCompError, CompParseBkCommonResponseError
 from backend.container_service.clusters.serializers import FetchCCHostSLZ
 from backend.utils.error_codes import error_codes
 from backend.utils.filter import filter_by_ips
@@ -39,8 +39,11 @@ class CCViewSet(SystemViewSet):
         """ 查询业务实例拓扑 """
         try:
             topo_info = cc.BizTopoQueryService(request.user.username, request.project.cc_app_id).fetch()
-        except BaseCompError as e:
+        except CompParseBkCommonResponseError as e:
             raise error_codes.ComponentError(_('查询业务拓扑信息失败：{}').format(e))
+        except BaseCompError as e:
+            logger.error('查询业务拓扑信息失败：%s', e)
+            raise error_codes.ComponentError(_('发生未知错误，请稍候再试'))
         return Response(data=topo_info)
 
     @action(methods=['POST'], url_path='hosts', detail=False)
@@ -54,8 +57,11 @@ class CCViewSet(SystemViewSet):
         # 从 CMDB 获取可用主机信息，业务名称信息
         try:
             host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
-        except BaseCompError as e:
+        except CompParseBkCommonResponseError as e:
             raise error_codes.ComponentError(str(e))
+        except BaseCompError as e:
+            logger.error('获取主机信息失败：%s', e)
+            raise error_codes.ComponentError(_('发生未知错误，请稍候再试'))
         cc_app_name = cc.get_application_name(bk_biz_id)
 
         # 根据指定的 IP 过滤
