@@ -202,7 +202,12 @@
             }
 
             const { params } = toRefs(props)
-            watch(params, handleGetMetricData)
+            watch(params, (newValue, oldValue) => {
+                if ((newValue && !oldValue)
+                    || (newValue && oldValue && JSON.stringify(newValue) !== JSON.stringify(oldValue))) {
+                    handleGetMetricData()
+                }
+            })
 
             onMounted(async () => {
                 await handleGetMetricData()

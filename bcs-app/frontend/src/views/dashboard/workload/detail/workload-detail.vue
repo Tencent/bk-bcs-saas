@@ -101,6 +101,12 @@
                                 <span>{{handleGetExtData(row.metadata.uid, 'age')}}</span>
                             </template>
                         </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="140" :resizable="false">
+                            <template #default="{ row }">
+                                <bk-button text @click="handleShowLog(row)">{{ $t('日志') }}</bk-button>
+                                <bk-button class="ml10" :disabled="rescheduleDisabled" text @click="handleReschedule(row)">{{ $t('重新调度') }}</bk-button>
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="label" :label="$t('标签')">
@@ -123,11 +129,22 @@
                     width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
             </template>
         </bcs-sideslider>
+        <bcs-dialog class="log-dialog" v-model="logShow" width="80%" :show-footer="false" render-directive="if">
+            <BcsLog
+                :project-id="projectId"
+                :cluster-id="clusterId"
+                :namespace-id="namespace"
+                :pod-id="curPodId"
+                :default-container="defaultContainer"
+                :global-loading="logLoading"
+                :container-list="containerList">
+            </BcsLog>
+        </bcs-dialog>
     </div>
 </template>
 <script lang="ts">
     /* eslint-disable camelcase */
-    import { defineComponent, computed, ref, onMounted } from '@vue/composition-api'
+    import { defineComponent, computed, ref, onMounted, reactive, toRefs } from '@vue/composition-api'
     import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
@@ -135,6 +152,8 @@
     import detailBasicList from './detail-basic'
     import Ace from '@/components/ace-editor'
     import fullScreen from '@open/directives/full-screen'
+    import useInterval from '../../common/use-interval'
+    import BcsLog from '@open/components/bcs-log/index'
 
     export interface IDetail {
         manifest: any;
@@ -150,7 +169,8 @@
         components: {
             StatusIcon,
             Metric,
-            Ace
+            Ace,
+            BcsLog
         },
         directives: {
             bkOverflowTips,
@@ -182,7 +202,7 @@
             }
         },
         setup (props, ctx) {
-            const { $store } = ctx.root
+            const { $store, $bkMessage, $i18n, $route } = ctx.root
             const {
                 isLoading,
                 detail,
@@ -244,10 +264,7 @@
                 }
             }
 
-            /**
-             * 获取工作负载下的pods数据
-             */
-            const handleGetWorkloadPods = async () => {
+            const handleGetPodsData = async () => {
                 // 获取工作负载下对应的pod数据
                 const matchLabels = detail.value?.manifest?.spec?.selector?.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
@@ -255,20 +272,79 @@
                     return pre
                 }, '')
 
-                podLoading.value = true
-                workloadPods.value = await $store.dispatch('dashboard/listWorkloadPods', {
+                const data = await $store.dispatch('dashboard/listWorkloadPods', {
                     $namespaceId: props.namespace,
                     label_selector: labelSelector,
                     owner_kind: props.kind,
                     owner_name: props.name
                 })
+                return data
+            }
+            // 获取工作负载下的pods数据
+            const handleGetWorkloadPods = async () => {
+                podLoading.value = true
+                workloadPods.value = await handleGetPodsData()
                 podLoading.value = false
             }
 
+            // 获取日志容器组件容器列表数据
+            const logState = reactive<{
+                logShow: boolean;
+                logLoading: boolean;
+                curPodId: string;
+                defaultContainer: string;
+                containerList: any[];
+            }>({
+                    logShow: false,
+                    logLoading: false,
+                    curPodId: '',
+                    defaultContainer: '',
+                    containerList: []
+                })
+            const projectId = computed(() => $route.params.projectId)
+            const clusterId = computed(() => $store.state.curClusterId)
+            const handleGetContainer = async (podId) => {
+                const data = await $store.dispatch('dashboard/listContainers', {
+                    $podId: podId,
+                    $namespaceId: props.namespace
+                })
+                return data
+            }
+            // 显示操作日志
+            const handleShowLog = async (row) => {
+                logState.logShow = true
+                // logState.logLoading = true
+                logState.curPodId = row.metadata.name
+                logState.containerList = await handleGetContainer(logState.curPodId)
+                logState.defaultContainer = logState.containerList[0]?.name
+                // logState.logLoading = false
+            }
+            // 重新调度
+            const rescheduleDisabled = ref(false)
+            const handleReschedule = async (row) => {
+                rescheduleDisabled.value = true
+                const result = await $store.dispatch('dashboard/reschedulePod', {
+                    $namespaceId: props.namespace,
+                    $podId: row.metadata.name
+                })
+                result && $bkMessage({
+                    theme: 'success',
+                    message: $i18n.t('调度成功')
+                })
+                rescheduleDisabled.value = false
+            }
+
+            // 刷新Pod状态
+            const handleRefreshPodsStatus = async () => {
+                workloadPods.value = await handleGetPodsData()
+            }
+            const { start } = useInterval(handleRefreshPodsStatus, 8000)
             onMounted(async () => {
                 // 详情接口前置
                 await handleGetDetail()
                 await handleGetWorkloadPods()
+                // 开启轮询
+                start()
             })
 
             return {
@@ -286,12 +362,18 @@
                 yaml,
                 showYamlPanel,
                 pagePerms,
+                rescheduleDisabled,
+                projectId,
+                clusterId,
+                ...toRefs(logState),
                 handleShowYamlPanel,
                 gotoPodDetail,
                 handleGetExtData,
                 getImagesTips,
                 handleUpdateResource,
-                handleDeleteResource
+                handleDeleteResource,
+                handleShowLog,
+                handleReschedule
             }
         }
     })
@@ -318,6 +400,30 @@
         .workload-tab {
             margin-top: 16px;
         }
+    }
+}
+.log-dialog {
+    /deep/ .bk-dialog-tool {
+        display: none;
+    }
+    /deep/ .bk-dialog {
+        top: 0;
+        position: relative;
+        height: calc(100% - 32px);
+        float: right;
+        margin: 16px;
+        border-radius: 6px;
+        transition-property: transform, opacity;
+        transition: transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1),opacity 100ms cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    /deep/ .bk-dialog-body {
+        padding: 0;
+        height: 100%;
+    }
+    /deep/ .bk-dialog-wrapper .bk-dialog-content {
+        border-radius: 6px;
+        height: 100%;
+        width: 100% !important;
     }
 }
 </style>

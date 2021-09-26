@@ -84,6 +84,26 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('镜像')" prop="image"></bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="180" :resizable="false" :show-overflow-tooltip="false">
+                            <template #default="{ row }">
+                                <bk-button text @click="handleShowTerminal(row)">WebConsole</bk-button>
+                                <bk-popover placement="bottom" theme="light dropdown" :arrow="false" v-if="row.container_id && $INTERNAL">
+                                    <bk-button style="cursor: default;" text class="ml10">{{ $t('日志检索') }}</bk-button>
+                                    <div slot="content">
+                                        <ul>
+                                            <a :href="logLinks[row.container_id] && logLinks[row.container_id].std_log_link"
+                                                target="_blank" class="dropdown-item">
+                                                {{ $t('标准输出检索') }}
+                                            </a>
+                                            <a :href="logLinks[row.container_id] && logLinks[row.container_id].file_log_link"
+                                                target="_blank" class="dropdown-item">
+                                                {{ $t('文件日志检索') }}
+                                            </a>
+                                        </ul>
+                                    </div>
+                                </bk-popover>
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="conditions" :label="$t('状态（Conditions）')">
@@ -266,7 +286,7 @@
             }
         },
         setup (props, ctx) {
-            const { $store } = ctx.root
+            const { $store, $route } = ctx.root
             const {
                 isLoading,
                 detail,
@@ -296,13 +316,17 @@
             })
 
             // 容器
-            const container = ref([])
+            const container = ref<any[]>([])
             const containerLoading = ref(false)
+            const logLinks = ref({})
             const handleGetContainer = async () => {
                 containerLoading.value = true
                 container.value = await $store.dispatch('dashboard/listContainers', {
                     $podId: name.value,
                     $namespaceId: namespace.value
+                })
+                logLinks.value = await $store.dispatch('dashboard/logLinks', {
+                    container_ids: container.value.map(item => item.container_id).join(',')
                 })
                 containerLoading.value = false
             }
@@ -372,6 +396,29 @@
                 }
             }
 
+            // 容器操作
+            // 1. 跳转WebConsole
+            const projectId = computed(() => $route.params.projectId)
+            const clusterId = computed(() => $store.state.curClusterId)
+            const terminalWins = new Map()
+            const handleShowTerminal = (row) => {
+                const url = `${window.DEVOPS_BCS_API_URL}/web_console/projects/${projectId.value}/clusters/${clusterId.value}/?container_id=${row.container_id}`
+                if (terminalWins.has(row.container_id)) {
+                    const win = terminalWins.get(row.container_id)
+                    if (!win.closed) {
+                        terminalWins.get(row.container_id).focus()
+                    } else {
+                        const win = window.open(url, '_blank')
+                        terminalWins.set(row.container_id, win)
+                    }
+                } else {
+                    const win = window.open(url, '_blank')
+                    terminalWins.set(row.container_id, win)
+                }
+            }
+            // 2. 日志检索
+            const isDropdownShow = ref(false)
+
             onMounted(async () => {
                 handleGetDetail()
                 handleGetStorage()
@@ -398,6 +445,8 @@
                 yaml,
                 showYamlPanel,
                 pagePerms,
+                isDropdownShow,
+                logLinks,
                 handleShowYamlPanel,
                 handleGetStorage,
                 handleGetContainer,
@@ -406,7 +455,8 @@
                 formatTime,
                 getImagesTips,
                 handleUpdateResource,
-                handleDeleteResource
+                handleDeleteResource,
+                handleShowTerminal
             }
         }
     })
@@ -441,6 +491,21 @@
                 margin-bottom: 8px;
             }
         }
+    }
+}
+>>> .dropdown-item {
+    display: block;
+    height: 32px;
+    line-height: 33px;
+    padding: 0 16px;
+    color: #63656e;
+    font-size: 12px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    &:hover {
+        background-color: #eaf3ff;
+        color: #3a84ff;
     }
 }
 </style>
