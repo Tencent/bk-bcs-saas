@@ -1,6 +1,6 @@
 
 <template>
-    <div class="metric-item" v-bkloading="{ isLoading }">
+    <div class="metric-item" v-bkloading="{ isLoading, zIndex: 10 }">
         <div class="metric-item-title">
             <span>{{ title }}</span>
             <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false">
