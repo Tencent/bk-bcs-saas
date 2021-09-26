@@ -297,9 +297,9 @@
                     const params: any = {
                         desire_all_data: true
                     }
-                    if (state.curTreeNode.bk_obj_id === 'set') {
+                    if (state.curTreeNode?.bk_obj_id === 'set') {
                         params.set_id = state.curTreeNode.bk_inst_id
-                    } else if (state.curTreeNode.bk_obj_id === 'module') {
+                    } else if (state.curTreeNode?.bk_obj_id === 'module') {
                         params.module_id = state.curTreeNode.bk_inst_id
                     }
                     const data = await fetchBizHosts(params).catch(() => ({ results: [] }))
