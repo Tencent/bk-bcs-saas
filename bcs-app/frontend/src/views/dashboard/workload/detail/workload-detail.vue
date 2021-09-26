@@ -64,7 +64,8 @@
                     <bk-table :data="pods">
                         <bk-table-column :label="$t('名称')" min-width="130" prop="metadata.name" sortable :resizable="false">
                             <template #default="{ row }">
-                                <bk-button class="bcs-button-ellipsis" text @click="gotoPodDetail(row)">{{ row.metadata.name }}</bk-button>
+                                <bk-button :disabled="rescheduleStatusMap[row.metadata.name]"
+                                    class="bcs-button-ellipsis" text @click="gotoPodDetail(row)">{{ row.metadata.name }}</bk-button>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('镜像')" min-width="200" :resizable="false" :show-overflow-tooltip="false">
@@ -103,8 +104,10 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('操作')" width="140" :resizable="false">
                             <template #default="{ row }">
-                                <bk-button text @click="handleShowLog(row)">{{ $t('日志') }}</bk-button>
-                                <bk-button class="ml10" :disabled="rescheduleDisabled" text @click="handleReschedule(row)">{{ $t('重新调度') }}</bk-button>
+                                <bk-button text :disabled="rescheduleStatusMap[row.metadata.name]"
+                                    @click="handleShowLog(row)">{{ $t('日志') }}</bk-button>
+                                <bk-button class="ml10" :disabled="rescheduleStatusMap[row.metadata.name]"
+                                    text @click="handleReschedule(row)">{{ $t('重新调度') }}</bk-button>
                             </template>
                         </bk-table-column>
                     </bk-table>
@@ -144,7 +147,7 @@
 </template>
 <script lang="ts">
     /* eslint-disable camelcase */
-    import { defineComponent, computed, ref, onMounted, reactive, toRefs } from '@vue/composition-api'
+    import { defineComponent, computed, ref, onMounted, reactive, toRefs, onBeforeUnmount, set } from '@vue/composition-api'
     import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
@@ -320,9 +323,9 @@
                 // logState.logLoading = false
             }
             // 重新调度
-            const rescheduleDisabled = ref(false)
+            const rescheduleStatusMap = ref({})
             const handleReschedule = async (row) => {
-                rescheduleDisabled.value = true
+                set(rescheduleStatusMap.value, row.metadata.name, true)
                 const result = await $store.dispatch('dashboard/reschedulePod', {
                     $namespaceId: props.namespace,
                     $podId: row.metadata.name
@@ -331,20 +334,23 @@
                     theme: 'success',
                     message: $i18n.t('调度成功')
                 })
-                rescheduleDisabled.value = false
+                rescheduleStatusMap.value[row.metadata.name] = false
             }
 
             // 刷新Pod状态
             const handleRefreshPodsStatus = async () => {
                 workloadPods.value = await handleGetPodsData()
             }
-            const { start } = useInterval(handleRefreshPodsStatus, 8000)
+            const { start, stop } = useInterval(handleRefreshPodsStatus, 8000)
             onMounted(async () => {
                 // 详情接口前置
                 await handleGetDetail()
                 await handleGetWorkloadPods()
                 // 开启轮询
                 start()
+            })
+            onBeforeUnmount(() => {
+                stop()
             })
 
             return {
@@ -362,7 +368,7 @@
                 yaml,
                 showYamlPanel,
                 pagePerms,
-                rescheduleDisabled,
+                rescheduleStatusMap,
                 projectId,
                 clusterId,
                 ...toRefs(logState),
