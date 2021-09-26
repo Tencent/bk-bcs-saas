@@ -61,6 +61,24 @@ def fake_search_topo(*args, **kwargs):
     ]
 
 
+def fake_inner_mod_topo(*args, **kwargs):
+    """ 返回测试用 internal module topo 数据 """
+    return {
+        'bk_set_id': 1,
+        'bk_set_name': '空闲机池',
+        'module': [
+            {
+                'bk_module_id': 11,
+                'bk_module_name': '空闲机',
+            },
+            {
+                'bk_module_id': 12,
+                'bk_module_name': '故障机',
+            },
+        ],
+    }
+
+
 def fake_list_all_hosts(*args, **kwargs):
     """ 返回测试用主机数据（省略非必须字段） """
     return [
@@ -143,6 +161,7 @@ class TestCCAPI:
     """ 测试 CMDB API 相关接口 """
 
     @mock.patch('backend.container_service.clusters.cc_host.views.cc.search_biz_inst_topo', new=fake_search_topo)
+    @mock.patch('backend.container_service.clusters.cc_host.views.cc.get_biz_internal_module', new=fake_inner_mod_topo)
     def test_get_biz_inst_topology(self, api_client):
         """ 测试创建资源接口 """
         response = api_client.get(f'{API_URL_PREFIX}/topology/')

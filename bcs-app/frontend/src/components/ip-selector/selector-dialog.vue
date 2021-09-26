@@ -8,7 +8,7 @@
         :auto-close="false"
         @value-change="handleValueChange"
         @confirm="handleConfirm">
-        <Selector ref="selector" :key="selectorKey" :ip-list="ipList" @change="handleIpSelectorChange"></Selector>
+        <Selector ref="selector" :key="selectorKey" :height="dialogHeight" :ip-list="ipList" @change="handleIpSelectorChange"></Selector>
     </bcs-dialog>
 </template>
 <script lang="ts">
@@ -35,11 +35,13 @@
                 default: () => ([])
             }
         },
-      
+
         setup (props, ctx) {
             const { emit } = ctx
             const { modelValue } = toRefs(props)
-            const dialogWidth = ref<any>(0)
+            const dialogWidth = ref(1200)
+            const dialogHeight = ref(600)
+
             const selectorKey = ref(String(new Date().getTime()))
             watch(modelValue, () => {
                 selectorKey.value = String(new Date().getTime())
@@ -67,12 +69,14 @@
 
             onMounted(() => {
                 dialogWidth.value = document.body.clientWidth < 1650 ? 1200 : document.body.clientWidth - 650
+                dialogHeight.value = document.body.clientHeight < 1000 ? 600 : document.body.clientHeight - 320
             })
 
             return {
                 selector,
                 selectorKey,
                 dialogWidth,
+                dialogHeight,
                 handleValueChange,
                 handleConfirm,
                 handleIpSelectorChange

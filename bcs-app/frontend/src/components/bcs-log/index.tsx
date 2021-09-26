@@ -23,9 +23,13 @@ export default defineComponent({
             type: [Number, String],
             default: '100%'
         },
-        groupData: {
-            type: Object,
-            default: () => ({})
+        defaultContainer: {
+            type: String,
+            default: ''
+        },
+        podId: {
+            type: String,
+            default: ''
         },
         projectId: {
             type: String,
@@ -57,7 +61,7 @@ export default defineComponent({
         const state = reactive<IState>({
             log: [], // 日志内容
             showTimeStamp: false, // 是否显示时间戳
-            container: props.groupData.defaultContainer, // 当前容器
+            container: props.defaultContainer, // 当前容器
             loading: false,
             contentLoading: false,
             previous: '',
@@ -72,7 +76,7 @@ export default defineComponent({
                 projectId: props.projectId,
                 clusterId: props.clusterId,
                 namespaceId: props.namespaceId,
-                podId: props.groupData.podId,
+                podId: props.podId,
                 containerName: state.container,
                 previous: state.showLastContainer
             }
@@ -88,12 +92,12 @@ export default defineComponent({
             contentRef.value?.scrollIntoIndex()
         }
 
-        const { groupData } = toRefs(props)
+        const { defaultContainer } = toRefs(props)
 
-        watch(groupData, async (newData) => {
-            state.container = newData?.defaultContainer
+        watch(defaultContainer, async (container) => {
+            state.container = container
             handleGetLog()
-        }, { immediate: true, deep: true })
+        }, { immediate: true })
 
         const initVirtualStatus = () => {
             contentRef.value?.initStatus()
@@ -134,7 +138,7 @@ export default defineComponent({
                 const data = await $store.dispatch('log/stdLogsSession', {
                     $clusterId: props.clusterId,
                     $namespaceId: props.namespaceId,
-                    $podId: props.groupData.podId,
+                    $podId: props.podId,
                     container_name: state.container
                 })
                 state.contentLoading = false
@@ -194,7 +198,7 @@ export default defineComponent({
         return (
             <article class="container" v-bkloading={{ isLoading: this.globalLoading, opacity: 0.1 }}>
                 <log-header
-                    title={this.groupData?.podId}
+                    title={this.podId}
                     containerList={this.containerList}
                     defaultTimeStamp={this.showTimeStamp}
                     defaultContainer={this.container}
