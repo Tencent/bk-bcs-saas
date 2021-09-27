@@ -129,6 +129,7 @@ NOT_TMPL_SOURCE_TYPE = _("非模板集")
 # instance not from template
 NOT_TMPL_IDENTIFICATION = "0"
 
+
 # source type
 class SourceType(ChoicesEnum):
     TEMPLATE = 'template'

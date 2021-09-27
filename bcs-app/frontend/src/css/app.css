@@ -2619,6 +2619,11 @@ div::-webkit-scrollbar-thumb {
     height: 16px;
     width: 12px;
 }
+.tippy-tooltip {
+    &.dropdown-theme {
+        padding: 5px 0;
+    }
+}
 .navigation-message-theme {
     padding: 0 !important;
 }

@@ -185,7 +185,8 @@ export default {
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
             nodeList4Copy: [],
-            showIpSelector: false
+            showIpSelector: false,
+            nodeNoticeLoading: false
         }
     },
     computed: {
@@ -701,13 +702,13 @@ export default {
          * 选择服务器弹层保存节点
          */
         async saveNode () {
+            this.nodeNoticeLoading = true
             const params = {
                 ip: this.hostList.map(item => item.bk_host_innerip),
                 projectId: this.projectId,
                 clusterId: this.clusterId
             }
 
-            this.$refs.nodeNoticeDialog.hide()
             try {
                 await this.$store.dispatch('cluster/addNode', params)
 
@@ -715,10 +716,12 @@ export default {
                 this.sortIdx = ''
                 this.nodeListPageConf.curPage = 1
                 this.clearSearchParams()
+                this.showIpSelector = false
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
                 this.hostList = []
+                this.nodeNoticeLoading = false
             }
         },
 

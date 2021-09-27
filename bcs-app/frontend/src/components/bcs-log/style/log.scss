@@ -31,9 +31,14 @@
                 }
             }
             .select {
-                background: hsla(0,0%,100%,.125);
                 border: none;
                 color: #f6f8fa;
+            }
+            .bk-select .bk-tooltip.bk-select-dropdown {
+                background: hsla(0,0%,100%,.125);
+            }
+            .bk-select.is-disabled {
+                background: hsla(0,0%,100%,.125);
             }
         }
     }

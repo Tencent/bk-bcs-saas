@@ -29,6 +29,7 @@ export const retrieveCustomResourceDetail = request('get', '/api/dashboard/proje
 export const customResourceCreate = request('post', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/') // 自定义资源创建
 export const customResourceUpdate = request('put', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/$name/') // 自定义资源更新
 export const customResourceDelete = request('delete', '/api/dashboard/projects/$projectId/clusters/$clusterId/crds/v2/$crd/$category/$name/') // 自定义资源删除
+export const reschedulePod = request('put', '/api/dashboard/projects/$projectId/clusters/$clusterId/namespaces/$namespaceId/workloads/pods/$podId/reschedule/') // pod重新调度
 
 // apply hosts
 export const getBizMaintainers = request('get', '/api/projects/$projectId/biz_maintainers/')
@@ -45,6 +46,7 @@ export const fetchBizHosts = request('post', '/api/projects/$projectId/cc/hosts/
 // project
 export const createProject = request('post', '/api/nav/projects/')
 export const editProject = request('put', '/api/nav/projects/$projectId')
+export const logLinks = request('post', '/api/datalog/projects/$projectId/log_links/')
 
 export default {
     stdLogs,
@@ -77,6 +79,9 @@ export default {
     retrieveCustomResourceDetail,
     customResourceCreate,
     customResourceUpdate,
+    customResourceDelete,
+    reschedulePod,
+    logLinks
     customResourceDelete,
     editProject,
     fetchBizTopo,

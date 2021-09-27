@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -35,6 +36,26 @@ class CCViewSet(SystemViewSet):
     def biz_inst_topo(self, request, project_id):
         """ 查询业务实例拓扑 """
         topo_info = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
+        raw_inner_mod_topo = cc.get_biz_internal_module(request.user.username, request.project.cc_app_id)
+        # topo 最外层为业务，如果存在首个业务即为查询的结果
+        if topo_info and raw_inner_mod_topo:
+            inner_mod_topo = {
+                'bk_obj_id': 'set',
+                'bk_obj_name': _('集群'),
+                'bk_inst_id': raw_inner_mod_topo['bk_set_id'],
+                'bk_inst_name': raw_inner_mod_topo['bk_set_name'],
+                'child': [
+                    {
+                        'bk_obj_id': 'module',
+                        'bk_obj_name': _('模块'),
+                        'bk_inst_id': mod['bk_module_id'],
+                        'bk_inst_name': mod['bk_module_name'],
+                        'child': [],
+                    }
+                    for mod in raw_inner_mod_topo['module']
+                ],
+            }
+            topo_info[0]['child'].insert(0, inner_mod_topo)
         return Response(data=topo_info)
 
     @action(methods=['POST'], url_path='hosts', detail=False)

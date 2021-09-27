@@ -12,7 +12,7 @@ import { dashbordList, retrieveDetail, podMetric, listWorkloadPods,
     listStoragePods, listContainers, retrieveContainerDetail, containerMetric,
     fetchContainerEnvInfo, resourceDelete, resourceCreate, resourceUpdate, exampleManifests,
     subscribeList, namespaceList, customResourceList, retrieveCustomResourceDetail, customResourceCreate,
-    customResourceUpdate, customResourceDelete } from '@open/api/base'
+    customResourceUpdate, customResourceDelete, reschedulePod, logLinks } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -219,6 +219,16 @@ export default {
         // 自定义资源删除
         async customResourceDelete (context, params) {
             const data = await customResourceDelete(params).catch(() => false)
+            return data
+        },
+        // 重新调度
+        async reschedulePod (context, params) {
+            const data = await reschedulePod(params).catch(() => false)
+            return data
+        },
+        // 容器日志链接
+        async logLinks (context, params) {
+            const data = await logLinks(params).catch(() => ({}))
             return data
         }
     }

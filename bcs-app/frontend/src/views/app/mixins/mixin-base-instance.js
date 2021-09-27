@@ -154,10 +154,8 @@ export default {
                 show: false,
                 loading: false,
                 containerList: [],
-                groupData: {
-                    podId: '',
-                    defaultContainer: ''
-                }
+                podId: '',
+                defaultContainer: ''
             }
         }
     },
@@ -2261,8 +2259,8 @@ export default {
                 id: item.name,
                 name: item.name
             }))
-            this.bcsLog.groupData.podId = this.taskgroupList[index].name
-            this.bcsLog.groupData.defaultContainer = this.taskgroupList[index].containerList[0]?.name
+            this.bcsLog.podId = this.taskgroupList[index].name
+            this.bcsLog.defaultContainer = this.taskgroupList[index].containerList[0]?.name
             this.bcsLog.loading = false
         },
 

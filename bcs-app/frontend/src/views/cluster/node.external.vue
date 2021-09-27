@@ -121,8 +121,7 @@
                                 </bk-tooltip>
                             </span>
                         </div>
-
-                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading, opacity: 1 }">
+                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading, opacity: 1, zIndex: 500 }">
                             <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
                                 <thead>
                                     <tr>

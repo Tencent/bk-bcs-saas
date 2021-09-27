@@ -125,7 +125,7 @@
                                 </bk-button>
                             </span>
                         </div>
-                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading }">
+                        <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading, zIndex: 500 }">
                             <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
                                 <thead>
                                     <tr>
@@ -632,6 +632,7 @@
             :is-confirming="isCreating"
             :confirm-btn-text="$t('确定，添加节点')"
             :cancel-btn-text="$t('我再想想')"
+            :confirm-loading="nodeNoticeLoading"
             :confirm-callback="saveNode">
         </tip-dialog>
 
