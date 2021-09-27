@@ -15,8 +15,6 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import Dict
 
-from cachetools import LRUCache, cached
-from cachetools.keys import hashkey
 from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
@@ -26,14 +24,7 @@ from backend.components.utils import http_get
 
 logger = logging.getLogger(__name__)
 
-# 获取cluster context使用的缓存策略
-cluster_context_cache_policy = LRUCache(maxsize=128)
 
-
-@cached(
-    cache=cluster_context_cache_policy,
-    key=lambda url_prefix, access_token, project_id, cluster_id: hashkey(url_prefix, project_id, cluster_id),
-)
 def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cluster_id: str) -> Dict:
     """组装集群的Context"""
     # 获取bcs api的集群信息
@@ -70,8 +61,6 @@ class K8SAPIClient(BCSClientBase):
             configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
         except Exception as e:
             logger.exception("make cluster context error, %s", e)
-            # 当出现异常时，需要清空缓存
-            cluster_context_cache_policy.clear()
             raise
         api_client = client.ApiClient(configure)
         return api_client
