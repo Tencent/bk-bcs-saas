@@ -421,9 +421,9 @@
 
 <script>
     import yamljs from 'js-yaml'
-    import applyPerm from '@open/mixins/apply-perm'
+    import applyPerm from '@/mixins/apply-perm'
     import base64 from 'base-64'
-    import { isObject } from '@open/common/util'
+    import { isObject } from '@/common/util'
     import shlex from 'shlex'
 
     export default {

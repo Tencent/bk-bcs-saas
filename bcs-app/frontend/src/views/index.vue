@@ -10,8 +10,8 @@
 
 <script>
     import SideNav from './side-nav'
-    import SideTerminal from '@open/components/terminal'
-    import { getProjectByCode } from '@open/common/util'
+    import SideTerminal from '@/components/terminal'
+    import { getProjectByCode } from '@/common/util'
 
     export default {
         components: {

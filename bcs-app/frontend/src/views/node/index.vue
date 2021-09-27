@@ -289,7 +289,7 @@
 <script>
     import axios from 'axios'
     import Clipboard from 'clipboard'
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler } from '@/common/util'
     import LoadingCell from '../cluster/loading-cell'
     import nodeSearcher from '../cluster/searcher'
     import TaintContent from './taint.vue'

@@ -3,7 +3,7 @@ import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 import { locale, lang } from 'bk-magic-vue'
 import cookie from 'cookie'
-import langMap from '@open/common/lang'
+import langMap from '@/common/lang'
 
 Vue.use(VueI18n)
 // 加载全部语言包

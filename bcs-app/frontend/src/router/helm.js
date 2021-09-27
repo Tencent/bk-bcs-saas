@@ -3,19 +3,19 @@
  */
 
 // Helm应用列表
-const helms = () => import(/* webpackChunkName: 'helm' */'@open/views/helm')
+const helms = () => import(/* webpackChunkName: 'helm' */'@/views/helm')
 
 // Helm模板列表
-const helmTplList = () => import(/* webpackChunkName: 'helm' */'@open/views/helm/tpl-list.vue')
+const helmTplList = () => import(/* webpackChunkName: 'helm' */'@/views/helm/tpl-list.vue')
 
 // Helm模板详情
-const helmTplDetail = () => import(/* webpackChunkName: 'helm' */'@open/views/helm/tpl-detail.vue')
+const helmTplDetail = () => import(/* webpackChunkName: 'helm' */'@/views/helm/tpl-detail.vue')
 
 // Helm实例化
-const helmTplInstance = () => import(/* webpackChunkName: 'helm' */'@open/views/helm/tpl-instance.vue')
+const helmTplInstance = () => import(/* webpackChunkName: 'helm' */'@/views/helm/tpl-instance.vue')
 
 // Helm app详情
-const helmAppDetail = () => import(/* webpackChunkName: 'helm' */'@open/views/helm/app-detail.vue')
+const helmAppDetail = () => import(/* webpackChunkName: 'helm' */'@/views/helm/app-detail.vue')
 
 const childRoutes = [
     {

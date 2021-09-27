@@ -269,10 +269,10 @@
 </template>
 
 <script>
-    import bkIPSearcher from '@open/components/ip-searcher'
-    import applyPerm from '@open/mixins/apply-perm'
-    import tipDialog from '@open/components/tip-dialog'
-    import { bus } from '@open/common/bus'
+    import bkIPSearcher from '@/components/ip-searcher'
+    import applyPerm from '@/mixins/apply-perm'
+    import tipDialog from '@/components/tip-dialog'
+    import { bus } from '@/common/bus'
 
     export default {
         components: {

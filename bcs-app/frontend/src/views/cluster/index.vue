@@ -543,9 +543,9 @@
 </template>
 
 <script>
-    import { catchErrorHandler } from '@open/common/util'
-    import applyPerm from '@open/mixins/apply-perm'
-    import tipDialog from '@open/components/tip-dialog'
+    import { catchErrorHandler } from '@/common/util'
+    import applyPerm from '@/mixins/apply-perm'
+    import tipDialog from '@/components/tip-dialog'
 
     import StatusProgress from './status-progress'
     import StatusMarkCorner from './status-mark-corner'

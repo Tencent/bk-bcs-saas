@@ -147,7 +147,7 @@
 </template>
 
 <script>
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler } from '@/common/util'
     import GamedeploymentsSideslider from './gamedeployments-sideslider'
     import GamedeploymentsUpdate from './gamedeployments-update'
     import GamedeploymentsScale from './gamedeployments-scale'

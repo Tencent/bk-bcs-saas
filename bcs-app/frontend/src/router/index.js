@@ -5,14 +5,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
-import http from '@open/api'
-import { bus } from '@open/common/bus'
-import preload from '@open/common/preload'
+import http from '@/api'
+import { bus } from '@/common/bus'
+import preload from '@/common/preload'
 import resourceRoutes from '@/router/resource'
 import nodeRoutes from '@/router/node'
 import mcRoutes from '@/router/mc'
 
-import store from '@open/store'
+import store from '@/store'
 import depotRoutes from './depot'
 import metricRoutes from './metric'
 import clusterRoutes from './cluster'
@@ -28,8 +28,8 @@ import dashboardRoutes from './dashboard'
 Vue.use(VueRouter)
 
 const ContainerServiceEntry = () => import(/* webpackChunkName: 'containerserviceentry' */'@/views')
-const None = () => import(/* webpackChunkName: 'none' */'@open/views/none')
-const ProjectManage = () => import(/* webpackChunkName: 'projectmanage' */'@open/views/project/project.vue')
+const None = () => import(/* webpackChunkName: 'none' */'@/views/none')
+const ProjectManage = () => import(/* webpackChunkName: 'projectmanage' */'@/views/project/project.vue')
 
 const children = clusterRoutes.concat(
     nodeRoutes,

@@ -42,7 +42,7 @@
 </template>
 
 <script>
-    import { isEmpty } from '@open/common/util'
+    import { isEmpty } from '@/common/util'
     const BCS_CLUSTER = 'bcs-cluster'
 
     export default {

@@ -377,9 +377,9 @@
 </template>
 
 <script>
-    import { bus } from '@open/common/bus'
-    import applyPerm from '@open/mixins/apply-perm'
-    import tipDialog from '@open/components/tip-dialog'
+    import { bus } from '@/common/bus'
+    import applyPerm from '@/mixins/apply-perm'
+    import tipDialog from '@/components/tip-dialog'
     import ApplyHost from './apply-host.vue'
     import IpSelector from '@/components/ip-selector/selector-dialog.vue'
 

@@ -123,10 +123,10 @@
 </template>
 
 <script>
-    import bkMenu from '@open/components/menu'
-    import clusterSelector from '@open/components/cluster-selector'
-    import { bus } from '@open/common/bus'
-    import { catchErrorHandler } from '@open/common/util'
+    import bkMenu from '@/components/menu'
+    import clusterSelector from '@/components/cluster-selector'
+    import { bus } from '@/common/bus'
+    import { catchErrorHandler } from '@/common/util'
 
     export default {
         name: 'side-nav',

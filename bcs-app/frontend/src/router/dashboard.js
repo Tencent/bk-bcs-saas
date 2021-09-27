@@ -13,10 +13,10 @@ const DashboardWorkloadPods = () => import(/* webpackChunkName: 'dashboard-workl
 const DashboardWorkloadDetail = () => import(/* webpackChunkName: 'dashboard-workload-detail' */'@/views/dashboard/workload/detail/index.vue')
 
 // 自定义资源
-const DashboardCRD = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/crd.vue')
-const DashboardGameStatefulSets = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/gamestatefulsets.vue')
-const DashboardGameDeployments = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/gamedeployments.vue')
-const DashboardCustomObjects = () => import(/* webpackChunkName: 'dashboard-custom' */'@open/views/dashboard/custom/customobjects.vue')
+const DashboardCRD = () => import(/* webpackChunkName: 'dashboard-custom' */'@/views/dashboard/custom/crd.vue')
+const DashboardGameStatefulSets = () => import(/* webpackChunkName: 'dashboard-custom' */'@/views/dashboard/custom/gamestatefulsets.vue')
+const DashboardGameDeployments = () => import(/* webpackChunkName: 'dashboard-custom' */'@/views/dashboard/custom/gamedeployments.vue')
+const DashboardCustomObjects = () => import(/* webpackChunkName: 'dashboard-custom' */'@/views/dashboard/custom/customobjects.vue')
 
 // network
 const DashboardNetworkIngress = () => import(/* webpackChunkName: 'dashboard-network' */'@/views/dashboard/network/ingress.vue')

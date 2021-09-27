@@ -103,7 +103,7 @@
 </template>
 
 <script>
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler } from '@/common/util'
 
     import GamestatefulsetSideslider from './gamestatefulset-sideslider'
 

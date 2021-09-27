@@ -567,7 +567,7 @@
 
 <script>
     import mixin from './mixin'
-    import { catchErrorHandler, formatDate } from '@open/common/util'
+    import { catchErrorHandler, formatDate } from '@/common/util'
 
     export default {
         mixins: [mixin],

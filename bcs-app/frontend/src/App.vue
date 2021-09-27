@@ -23,10 +23,10 @@
 </template>
 <script>
     /* eslint-disable camelcase */
-    import { bus } from '@open/common/bus'
-    import { getProjectByCode } from '@open/common/util'
+    import { bus } from '@/common/bus'
+    import { getProjectByCode } from '@/common/util'
     import Img403 from '@/images/403.png'
-    import BcsUnregistry from '@open/components/bcs-unregistry/unregistry.vue'
+    import BcsUnregistry from '@/components/bcs-unregistry/unregistry.vue'
 
     export default {
         name: 'app',

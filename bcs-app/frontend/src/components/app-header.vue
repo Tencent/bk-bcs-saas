@@ -3,8 +3,8 @@
 </template>
 
 <script>
-    import { bus } from '@open/common/bus'
-    import { getProjectById } from '@open/common/util'
+    import { bus } from '@/common/bus'
+    import { getProjectById } from '@/common/util'
 
     export default {
         data () {

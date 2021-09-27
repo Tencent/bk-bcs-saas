@@ -53,7 +53,7 @@
     </section>
 </template>
 <script>
-    import { isEmpty } from '@open/common/util'
+    import { isEmpty } from '@/common/util'
     export default {
         name: 'bcs-unregistry',
         props: {

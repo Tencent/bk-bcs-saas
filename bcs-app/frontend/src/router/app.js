@@ -2,7 +2,7 @@
  * @file app router 配置
  */
 
-const App = () => import(/* webpackChunkName: 'app-entry' */'@open/views/app')
+const App = () => import(/* webpackChunkName: 'app-entry' */'@/views/app')
 
 const childRoutes = [
     // domain/bcs/projectId/app 应用页面

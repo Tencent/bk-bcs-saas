@@ -135,7 +135,7 @@
     import { copyText } from '@/common/util'
     import yamljs from 'js-yaml'
     import EditorStatus from './editor-status.vue'
-    import BcsMd from '@open/components/bcs-md/index.vue'
+    import BcsMd from '@/components/bcs-md/index.vue'
 
     export default defineComponent({
         name: 'ResourceUpdate',

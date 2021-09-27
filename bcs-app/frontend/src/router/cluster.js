@@ -3,19 +3,19 @@
  */
 
 // 集群首页
-const Cluster = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster')
+const Cluster = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster')
 // 创建集群
-const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create')
+const ClusterCreate = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/create')
 // 外部版创建集群
-const ClusterCreateExternal = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/create.external')
+const ClusterCreateExternal = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/create.external')
 // 集群总览
-const ClusterOverview = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/overview')
+const ClusterOverview = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/overview')
 // 节点详情
-const ClusterNode = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/node')
+const ClusterNode = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/node')
 // 集群信息
-const ClusterInfo = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/info')
-const ClusterNodeOverview = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/node-overview')
-const ContainerDetailForNode = () => import(/* webpackChunkName: 'cluster' */'@open/views/cluster/container')
+const ClusterInfo = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/info')
+const ClusterNodeOverview = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/node-overview')
+const ContainerDetailForNode = () => import(/* webpackChunkName: 'cluster' */'@/views/cluster/container')
 
 const childRoutes = [
     {
