@@ -261,7 +261,7 @@ def get_service_account_token(k8s_client) -> Optional[str]:
         if not item.metadata.name.startswith(token_prefix):
             continue
 
-        return base64.b64decode(item.data["token"]).decode('utf-8')
+        return smart_str(base64.b64decode(item.data["token"]))
 
 
 def create_service_account_rbac(k8s_client, ctx):
