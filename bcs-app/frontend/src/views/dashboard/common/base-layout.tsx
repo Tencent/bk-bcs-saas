@@ -319,13 +319,13 @@ export default defineComponent({
             $router.push({
                 name: 'dashboardResourceUpdate',
                 params: {
-                    crd: currentCrd.value,
                     defaultShowExample: (type.value !== 'crd') as any
                 },
                 query: {
                     type: type.value,
                     category: category.value,
-                    kind: kind.value
+                    kind: kind.value,
+                    crd: currentCrd.value
                 }
             })
         }
@@ -336,13 +336,13 @@ export default defineComponent({
                 name: 'dashboardResourceUpdate',
                 params: {
                     namespace,
-                    name,
-                    crd: currentCrd.value
+                    name
                 },
                 query: {
                     type: type.value,
                     category: category.value,
-                    kind: type.value === 'crd' ? kind.value : row.kind
+                    kind: type.value === 'crd' ? kind.value : row.kind,
+                    crd: currentCrd.value
                 }
             })
         }
