@@ -78,11 +78,11 @@ class WebConsoleSession(views.APIView):
             pod = pod_life_cycle.ensure_pod(ctx)
             logger.debug("get pod %s", pod)
         except pod_life_cycle.PodLifeError as error:
-            logger.error("kubetctl apply error: %s", error)
+            logger.error("apply error: %s", error)
             utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, False, "%s" % error)
             raise error_codes.APIError("%s" % error)
         except Exception as error:
-            logger.exception("kubetctl apply error: %s", error)
+            logger.exception("apply error: %s", error)
             utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
             raise error_codes.APIError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
