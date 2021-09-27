@@ -660,7 +660,7 @@
                         clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
                     })
                     const cpu = res.data.cpu_usage || {}
-                    const mem = res.data.mem_usage || {}
+                    const mem = res.data.memory_usage || {}
                     const cpuTotal = cpu.total || 0
                     const memTotal = formatBytes(mem.total_bytes) || 0
 
