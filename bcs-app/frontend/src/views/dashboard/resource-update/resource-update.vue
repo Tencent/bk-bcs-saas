@@ -654,9 +654,6 @@
                     opacity: 0;
                 }
             }
-            /* .status-wrapper {
-                width: calc(100% - 14px)
-            } */
         }
         .code-example {
             flex: 1;
@@ -753,9 +750,6 @@
         .main-btn {
             min-width: 100px;
         }
-    }
-    /deep/ .bk-resize-layout .bk-resize-layout-aside {
-        /* height: 0% !important; */
     }
 }
 </style>
