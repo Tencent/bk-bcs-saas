@@ -39,7 +39,7 @@ class AppQueryService:
         username: str,
         fields: List = None,
         condition: Dict = None,
-        bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT,
+        bk_supplier_account: str = settings.BKCC_DEFAULT_SUPPLIER_ACCOUNT,
     ):
         """
         :param username: 查询者用户名

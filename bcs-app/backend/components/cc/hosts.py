@@ -16,6 +16,7 @@ import functools
 import logging
 from typing import Dict, List
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components.base import CompParseBkCommonResponseError
@@ -37,7 +38,7 @@ class HostQueryService:
         bk_set_ids: List = None,
         bk_module_ids: List = None,
         host_property_filter: Dict = None,
-        bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT,
+        bk_supplier_account: str = settings.BKCC_DEFAULT_SUPPLIER_ACCOUNT,
     ):
         """
         :param username: 查询者用户名
