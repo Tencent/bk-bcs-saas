@@ -28,15 +28,26 @@
                             </span>
                         </span>
                     </div>
-                    <ResourceEditor
-                        v-model="detail"
-                        :height="fullScreen ? '100%' : height"
-                        ref="editorRef"
-                        key="editor"
-                        v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
-                        @error="handleEditorErr">
-                    </ResourceEditor>
-                    <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
+                    <bcs-resize-layout
+                        placement="bottom"
+                        :auto-minimize="true"
+                        :initial-divide="0"
+                        :max="300"
+                        :style="{ 'height': fullScreen ? '100%' : height + 'px' }">>
+                        <div slot="aside">
+                            <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
+                        </div>
+                        <div slot="main">
+                            <ResourceEditor
+                                v-model="detail"
+                                :height="fullScreen ? '100%' : height"
+                                ref="editorRef"
+                                key="editor"
+                                v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
+                                @error="handleEditorErr">
+                            </ResourceEditor>
+                        </div>
+                    </bcs-resize-layout>
                 </div>
                 <div class="code-example" ref="exampleWrapperRef" v-if="showExample">
                     <div class="top-operate">
@@ -343,6 +354,17 @@
                     descWrapperHeight.value = showDesc.value ? descWrapperRef.value?.getBoundingClientRect()?.height || 0 : 0
                 }, 0)
             })
+
+            watch(() => editorErr, (newVal) => {
+                const { message } = newVal.value
+                const resizeAsideDom = document.getElementsByClassName('bk-resize-layout-aside')[0]
+                if (message) {
+                    resizeAsideDom.style.height = '100px'
+                } else {
+                    resizeAsideDom.style.height = '0'
+                }
+            }, { deep: true })
+
             const handleGetExample = async () => { // 获取示例模板
                 // if (!showExample.value) return
 
@@ -632,9 +654,9 @@
                     opacity: 0;
                 }
             }
-            .status-wrapper {
+            /* .status-wrapper {
                 width: calc(100% - 14px)
-            }
+            } */
         }
         .code-example {
             flex: 1;
@@ -731,6 +753,9 @@
         .main-btn {
             min-width: 100px;
         }
+    }
+    /deep/ .bk-resize-layout .bk-resize-layout-aside {
+        /* height: 0% !important; */
     }
 }
 </style>
