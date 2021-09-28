@@ -19,7 +19,6 @@ import logging
 import re
 from typing import Dict, List
 
-from attr import dataclass
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
@@ -32,23 +31,26 @@ from backend.utils.async_run import AsyncRunException, async_run
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class AppQueryService:
-    """
-    业务查询相关服务
+    """ 业务查询相关服务 """
 
-    :param username: 查询者用户名
-    :param condition: 查询条件
-    :param bk_supplier_account: 供应商
-    """
-
-    username: str
-    fields: List = None
-    condition: Dict = None
-    bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT
-
-    def __attrs_post_init__(self):
-        self.cc_client = BkCCClient(self.username)
+    def __init__(
+        self,
+        username: str,
+        fields: List = None,
+        condition: Dict = None,
+        bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT,
+    ):
+        """
+        :param username: 查询者用户名
+        :param fields: 指定字段
+        :param condition: 查询条件
+        :param bk_supplier_account: 供应商
+        """
+        self.cc_client = BkCCClient(username)
+        self.fields = fields
+        self.condition = condition
+        self.bk_supplier_account = bk_supplier_account
 
     def _fetch_count(self) -> int:
         """ 查询指定条件下业务数量，用于后续并发查询用 """

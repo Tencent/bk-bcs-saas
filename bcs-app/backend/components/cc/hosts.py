@@ -16,7 +16,6 @@ import functools
 import logging
 from typing import Dict, List
 
-from attr import dataclass
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components.base import CompParseBkCommonResponseError
@@ -28,30 +27,36 @@ from backend.utils.async_run import AsyncRunException, async_run
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class HostQueryService:
-    """
-    主机查询相关服务
+    """ 主机查询相关服务 """
 
-    :param username: 查询者用户名
-    :param bk_biz_id: 业务 ID
-    :param bk_set_ids: 集群 ID 列表
-    :parma bk_module_ids: 模块 ID 列表
-    :param host_property_filter: 主机属性组合查询条件
-    :param bk_supplier_account: 供应商
-    """
-
-    username: str
-    bk_biz_id: int
-    bk_set_ids: List = None
-    bk_module_ids: List = None
-    host_property_filter: Dict = None
-    bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT
+    def __init__(
+        self,
+        username: str,
+        bk_biz_id: int,
+        bk_set_ids: List = None,
+        bk_module_ids: List = None,
+        host_property_filter: Dict = None,
+        bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT,
+    ):
+        """
+        :param username: 查询者用户名
+        :param bk_biz_id: 业务 ID
+        :param bk_set_ids: 集群 ID 列表
+        :parma bk_module_ids: 模块 ID 列表
+        :param host_property_filter: 主机属性组合查询条件
+        :param bk_supplier_account: 供应商
+        """
+        self.cc_client = BkCCClient(username)
+        self.bk_biz_id = bk_biz_id
+        self.bk_set_ids = bk_set_ids
+        self.bk_module_ids = bk_module_ids
+        self.host_property_filter = host_property_filter
+        self.bk_supplier_account = bk_supplier_account
 
     def _fetch_count(self) -> int:
         """ 查询指定条件下主机数量 """
-        cc_client = BkCCClient(self.username)
-        resp_data = cc_client.list_biz_hosts(
+        resp_data = self.cc_client.list_biz_hosts(
             self.bk_biz_id,
             PageData(start=constants.DEFAULT_START_AT, limit=constants.LIMIT_FOR_COUNT),
             self.bk_set_ids,
@@ -69,13 +74,12 @@ class HostQueryService:
         :return: 主机列表
         """
         total = self._fetch_count()
-        cc_client = BkCCClient(self.username)
         tasks = []
         for start in range(constants.DEFAULT_START_AT, total, constants.CMDB_LIST_HOSTS_MAX_LIMIT):
             # 组装并行任务配置信息
             tasks.append(
                 functools.partial(
-                    cc_client.list_biz_hosts,
+                    self.cc_client.list_biz_hosts,
                     self.bk_biz_id,
                     PageData(
                         start=start,
@@ -98,16 +102,16 @@ class HostQueryService:
         return [host for r in results for host in r.ret['info']]
 
 
-@dataclass
 class BizTopoQueryService:
-    """
-    业务拓扑信息查询
+    """ 业务拓扑信息查询 """
 
-    :param bk_biz_id: 业务 ID
-    """
-
-    username: str
-    bk_biz_id: int
+    def __init__(self, username: str, bk_biz_id: int):
+        """
+        :param username: 用户名
+        :param bk_biz_id: 业务 ID
+        """
+        self.cc_client = BkCCClient(username)
+        self.bk_biz_id = bk_biz_id
 
     def _fetch_biz_inst_topo(self) -> List:
         """
@@ -115,7 +119,7 @@ class BizTopoQueryService:
 
         :return: 业务，集群，模块拓扑信息
         """
-        return BkCCClient(self.username).search_biz_inst_topo(self.bk_biz_id)
+        return self.cc_client.search_biz_inst_topo(self.bk_biz_id)
 
     def _fetch_biz_internal_module(self) -> Dict:
         """
@@ -123,7 +127,7 @@ class BizTopoQueryService:
 
         :return: 业务的空闲机/故障机/待回收模块
         """
-        return BkCCClient(self.username).get_biz_internal_module(self.bk_biz_id)
+        return self.cc_client.get_biz_internal_module(self.bk_biz_id)
 
     def fetch(self) -> List:
         """
