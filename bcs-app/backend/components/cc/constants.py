@@ -12,9 +12,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-# 默认开发商账号
-DEFAULT_SUPPLIER_ACCOUNT = None
-
 # 默认查询主机字段
 DEFAULT_HOST_FIELDS = [
     'bk_bak_operator',

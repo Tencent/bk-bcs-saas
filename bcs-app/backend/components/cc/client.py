@@ -39,7 +39,7 @@ class BkCCConfig:
     def __init__(self, host: str):
         # 请求域名
         self.host = host
-        self.prefix_path = '/api/c/compapi/v2/cc'
+        self.prefix_path = 'api/c/compapi/v2/cc'
 
         # 请求地址
         # 查询业务信息
@@ -55,7 +55,7 @@ class BkCCConfig:
 class BkCCAuth(AuthBase):
     """用于蓝鲸配置平台接口的鉴权校验"""
 
-    def __init__(self, username: str, bk_supplier_account: Optional[str] = constants.DEFAULT_SUPPLIER_ACCOUNT):
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = settings.BKCC_DEFAULT_SUPPLIER_ACCOUNT):
         self.bk_app_code = settings.BCS_APP_CODE
         self.bk_app_secret = settings.BCS_APP_SECRET
         self.operator = username
@@ -78,7 +78,7 @@ class BkCCAuth(AuthBase):
 class BkCCClient(BkApiClient):
     """ CMDB API SDK """
 
-    def __init__(self, username: str, bk_supplier_account: Optional[str] = constants.DEFAULT_SUPPLIER_ACCOUNT):
+    def __init__(self, username: str, bk_supplier_account: Optional[str] = settings.BKCC_DEFAULT_SUPPLIER_ACCOUNT):
         self._config = BkCCConfig(host=settings.COMPONENT_HOST)
         self._client = BaseHttpClient(BkCCAuth(username, bk_supplier_account=bk_supplier_account))
 
