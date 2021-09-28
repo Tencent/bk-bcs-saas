@@ -231,8 +231,8 @@ class BkCommonResponseHandler:
     :param func: 调用的函数
     """
 
-    def __init__(self, default_data: Optional[Any] = None, func: Callable = None):
-        self.default_data = default_data
+    def __init__(self, default: Optional[Any] = None, func: Callable = None):
+        self.default = default
         self.func = func
 
     def __get__(self, instance, cls):
@@ -244,12 +244,16 @@ class BkCommonResponseHandler:
     def __call__(self, *args, **kwargs) -> Any:
         resp = self.func(*args, **kwargs)
         if resp.get("code") == 0 or resp.get("result") is True:
-            return resp.get("data") or self.default_data
+            return resp.get("data") or self._get_default()
         raise CompParseBkCommonResponseError(resp, resp.get("message"))
+
+    def _get_default(self):
+        """ 参考 drf Serializer Field get_default 方法，兼容可调用对象，如 dict, list """
+        return self.default() if callable(self.default) else self.default
 
     def raw_request(self, *args, **kwargs) -> Any:
         return self.func(*args, **kwargs)
 
 
-def response_handler(default_data: Optional[Any] = None):
-    return functools.partial(BkCommonResponseHandler, default_data)
+def response_handler(default: Optional[Any] = None):
+    return functools.partial(BkCommonResponseHandler, default)

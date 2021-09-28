@@ -12,21 +12,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from requests_mock import ANY
-
-from backend.components.cc import BkCCClient, PageData
-
-fake_biz_id = 1
-fake_bs2_id = 1
+from .base import BaseCompError
 
 
-class TestBkCCClient:
-    def test_search_biz(self, request_user, requests_mock):
-        requests_mock.post(
-            ANY, json={"code": 0, "data": {"count": 1, "info": [{"bs2_name_id": fake_bs2_id, "default": 0}]}}
-        )
-        page = PageData()
-        client = BkCCClient(request_user.username)
-        data = client.search_biz(page, ["bs2_name_id"], {"bk_biz_id": fake_biz_id})
-        assert data["info"][0]["bs2_name_id"] == fake_bs2_id
-        assert requests_mock.called
+class BaseCompUtilError(BaseCompError):
+    """ Component 工具类基础异常类 """
+
+    message = 'Component util exception'
+
+    def __init__(self, message=None):
+        """ 初始化异常类，若无参数则使用默认值 """
+        if message:
+            self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+class ResourceNotFoundError(BaseCompUtilError):
+    """ 资源不存在 """
+
+    message = 'Resource Not Found'

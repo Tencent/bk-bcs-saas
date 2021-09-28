@@ -71,7 +71,7 @@ class SopsClient(BkApiClient):
         self._config = SopsConfig(host=settings.SOPS_API_HOST)
         self._client = BaseHttpClient(SopsAuth())
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def create_task(self, bk_biz_id: str, template_id: str, data: CreateTaskParams) -> Dict:
         """通过业务流程创建任务
 
@@ -83,7 +83,7 @@ class SopsClient(BkApiClient):
         url = self._config.create_task_url.format(template_id=template_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("POST", url, json=asdict(data))
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
         """启动任务
 
@@ -94,7 +94,7 @@ class SopsClient(BkApiClient):
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("POST", url)
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
         """获取任务状态
 
@@ -105,7 +105,7 @@ class SopsClient(BkApiClient):
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("GET", url)
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def get_task_node_data(self, bk_biz_id: str, task_id: str, node_id: str) -> Dict:
         """获取任务步骤的详情
 
