@@ -32,12 +32,8 @@ def backend_create_depot_path(request, project_id, pre_cc_app_id):
         logger.error("创建项目仓库路径失败，详细信息: %s" % err)
 
 
-def get_application_name(request):
-    return cc.get_application_name(request.user.username, request.project.cc_app_id)
-
-
-def get_app_by_user_role(request):
-    return cc.get_app_by_user_role(request.user.username)
+def fetch_has_maintain_perm_apps(request):
+    return cc.fetch_has_maintain_perm_apps(request.user.username)
 
 
 def update_bcs_service_for_project(request, project_id, data):

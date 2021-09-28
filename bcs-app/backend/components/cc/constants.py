@@ -12,24 +12,41 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import re
-from typing import List
+# 默认查询主机字段
+DEFAULT_HOST_FIELDS = [
+    'bk_bak_operator',
+    'classify_level_name',
+    'svr_device_class',
+    'bk_svr_type_id',
+    'svr_type_name',
+    'hard_memo',
+    'bk_host_id',
+    'bk_host_name',
+    'idc_name',
+    'bk_idc_area',
+    'bk_idc_area_id',
+    'idc_id',
+    'idc_unit_name',
+    'idc_unit_id',
+    'bk_host_innerip',
+    'bk_comment',
+    'module_name',
+    'operator',
+    'bk_os_name',
+    'bk_os_version',
+    'bk_host_outerip',
+    'rack',
+    'bk_cloud_id',
+]
 
-from backend.components.cc import get_has_perm_hosts
+# 默认从 0 开始查询
+DEFAULT_START_AT = 0
 
+# 用于查询 count 的 Limit，最小为 1
+LIMIT_FOR_COUNT = 1
 
-def can_use_hosts(bk_biz_id: int, username: str, host_ip_list: List) -> bool:
-    """校验用户是否有使用主机的权限"""
-    has_perm_hosts = get_has_perm_hosts(bk_biz_id, username)
-    ip_list = []
-    for info in has_perm_hosts:
-        inner_ip = info.get("bk_host_innerip", "")
-        # 因为有多网卡的主机，因此需要拆分，便于后续的判断是否包含
-        inner_ip_list = re.findall(r'[^;,]+', inner_ip)
-        ip_list.extend(inner_ip_list)
+# CMDB 通用的最大 Limit 限制
+CMDB_MAX_LIMIT = 200
 
-    # 判断申请使用的主机是否全包含在有权限的主机列表中
-    if set(host_ip_list) - set(ip_list):
-        return False
-
-    return True
+# CMDB 请求主机列表最大 Limit 限制
+CMDB_LIST_HOSTS_MAX_LIMIT = 500

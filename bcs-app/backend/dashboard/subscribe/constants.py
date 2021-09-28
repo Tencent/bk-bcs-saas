@@ -32,8 +32,12 @@ from backend.resources.workloads.job import Job
 from backend.resources.workloads.pod import Pod
 from backend.resources.workloads.statefulset import StatefulSet
 
-# 超时时间为负数，表示不需要持续监听，获取数据后立即结束
-DEFAULT_SUBSCRIBE_TIMEOUT = -1
+# 默认监听时间：1s，参考以下文档可知，timeout 指定的是监听的持续时间，推荐的做法是设置长的 Timeout，使用 长连接/websocket 持续获取事件
+# https://github.com/kubernetes-client/python/blob/master/examples/watch/timeout-settings.md#sever-side-timeout-kwargstimeout_seconds--n  # noqa
+# 参考 kubernetes 源码对 timeout 参数使用可知，当 timeout 为 0，会被设置成 minRequestTimeout * 1.x，即默认 30 ~ 60 min
+# timeout 设置成负值效果未知，但从表现来看会导致事件推送延迟变大，因此这里设置 timeout 为最小的正整数 1
+# https://github.com/kubernetes/apiserver/blob/release-1.20/pkg/endpoints/handlers/get.go#L254
+DEFAULT_SUBSCRIBE_TIMEOUT = 1
 
 # k8s API Gone 状态码，一般出现在使用过期的 resourceVersion 进行 watch 的情况
 # ref: https://kubernetes.io/docs/reference/using-api/api-concepts/#410-gone-responses

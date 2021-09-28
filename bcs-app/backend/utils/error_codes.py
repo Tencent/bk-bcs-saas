@@ -48,6 +48,7 @@ class ErrorCodes:
     JSONParseError = ErrorCode(_("解析异常"))
     DBOperError = ErrorCode(_("DB操作异常"))
 
+    # TODO 禁用 APIError，该 ErrorCode 定义过于模糊，容易误用，考虑后续去除
     APIError = ErrorCode(_('请求失败'), code_num=40001)
     NoBCSService = ErrorCode(_('该项目没有使用蓝鲸容器服务'), code_num=416)
     ValidateError = ErrorCode(_('参数不正确'), code_num=40002)

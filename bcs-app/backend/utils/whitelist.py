@@ -12,21 +12,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from requests_mock import ANY
-
-from backend.components.cc import BkCCClient, PageData
-
-fake_biz_id = 1
-fake_bs2_id = 1
+from backend.utils.func_controller import get_func_controller
 
 
-class TestBkCCClient:
-    def test_search_biz(self, request_user, requests_mock):
-        requests_mock.post(
-            ANY, json={"code": 0, "data": {"count": 1, "info": [{"bs2_name_id": fake_bs2_id, "default": 0}]}}
-        )
-        page = PageData()
-        client = BkCCClient(request_user.username)
-        data = client.search_biz(page, ["bs2_name_id"], {"bk_biz_id": fake_biz_id})
-        assert data["info"][0]["bs2_name_id"] == fake_bs2_id
-        assert requests_mock.called
+def check_app_access_webconsole_enable(app_code: str, project_id_or_code: str) -> bool:
+    """APP是否可以访问webconsole接口
+    NOTE：存储内容包含app_code和project信息(包含project_code和project_id)，格式app_code:project_id_or_code
+    """
+    func_code = "APP_ACCESS_WEBCONSOLE"
+    enabled, wlist = get_func_controller(func_code)
+    if enabled or f"{app_code}:{project_id_or_code}" in wlist:
+        return True
+    return False
