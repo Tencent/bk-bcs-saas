@@ -36,12 +36,12 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/api': {
-                target: '', // 接口域名
+                target: 'http://dev.bcs.devops.oa.com/backend', // 接口域名
                 changeOrigin: true, // 是否跨域
                 secure: false,
                 toProxy: true,
                 headers: {
-                  referer: ''
+                  referer: 'http://dev.bcs.devops.oa.com'
                 }
             },
         },

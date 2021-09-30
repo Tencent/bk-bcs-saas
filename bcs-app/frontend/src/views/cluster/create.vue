@@ -696,8 +696,7 @@
             }
         },
         async created () {
-            const projectList = this.onlineProjectList || window.$projectList
-            this.curProject = Object.assign({}, projectList.filter(p => p.project_id === this.projectId)[0] || {})
+            this.curProject = Object.assign({}, this.onlineProjectList.filter(p => p.project_id === this.projectId)[0] || {})
 
             if (this.curProject.kind === PROJECT_MESOS) {
                 this.coes = 'mesos'

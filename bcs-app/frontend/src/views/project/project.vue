@@ -1,9 +1,8 @@
 <template>
-    <div class="project-manage" v-bkloading="{ isLoading: basicLoading, zIndex: 10 }">
+    <div class="project-manage">
         <div class="title mb20">
             {{$t('项目管理')}}
         </div>
-        <!-- <bk-alert class="mb20" type="info" :title="$t('项目管理')"></bk-alert> -->
         <div class="operate mb15">
             <bk-button class="create-btn" theme="primary" icon="plus"
                 @click="handleCreateProject">{{$t('创建项目')}}</bk-button>
@@ -15,7 +14,7 @@
                 v-model="keyword">
             </bk-input>
         </div>
-        <bk-table :data="filterList" size="medium">
+        <bk-table :data="filterList" :pagination="pagination" size="medium" @page-change="handlePageChange" @page-limit-change="handleLimitChange">
             <bk-table-column :label="$t('项目名称')" prop="project_name">
                 <template #default="{ row }">
                     <div class="row-name">
@@ -30,7 +29,11 @@
                 </template>
             </bk-table-column>
             <bk-table-column :label="$t('项目英文名')" prop="english_name"></bk-table-column>
-            <bk-table-column :label="$t('项目说明')" prop="description"></bk-table-column>
+            <bk-table-column :label="$t('项目说明')" prop="description">
+                <template #default="{ row }">
+                    {{ row.description || '--' }}
+                </template>
+            </bk-table-column>
             <bk-table-column :label="$t('创建者')" prop="creator"></bk-table-column>
             <bk-table-column label="操作" width="120">
                 <template #default="{ row }">
@@ -43,7 +46,7 @@
     </div>
 </template>
 <script lang="ts">
-    import { defineComponent, ref, onMounted, computed } from '@vue/composition-api'
+    import { defineComponent, ref, computed, watch } from '@vue/composition-api'
     import ProjectCreate from './project-create.vue'
     export default defineComponent({
         name: "ProjectManagement",
@@ -52,16 +55,27 @@
         },
         setup: (props, ctx) => {
             const { $store, $router } = ctx.root
-            const projectList = ref<any[]>([])
-            const filterList = computed(() => {
-                return projectList.value.filter(item => item.project_name.indexOf(keyword.value) > -1)
+            const pagination = ref({
+                current: 1,
+                count: 0,
+                limit: 20
             })
+            const projectList = computed(() => {
+                return $store.state.sideMenu.onlineProjectList || []
+            })
+            const filterList = computed(() => {
+                return projectList.value
+                    .filter(item => item.project_name.indexOf(keyword.value) > -1)
+                    .slice(pagination.value.limit * (pagination.value.current - 1), pagination.value.limit * pagination.value.current)
+            })
+            watch(projectList, () => {
+                pagination.value.count = projectList.value.length
+            }, { immediate: true })
+
             const keyword = ref('')
-            const basicLoading = ref(false)
             const showCreateDialog = ref(false)
             const curProjectData = ref(null)
             const handleGotoProject = (row) => {
-                window.$currentProjectId = row.project_code
                 $router.push({
                     name: 'clusterMain',
                     params: {
@@ -69,8 +83,6 @@
                         projectId: row.project_id
                     }
                 })
-                const event = new CustomEvent('change::$currentProjectId', { detail: { currentProjectId: row.project_code } })
-                window.dispatchEvent(event)
             }
             const handleEditProject = (row) => {
                 curProjectData.value = row
@@ -80,16 +92,15 @@
                 curProjectData.value = null
                 showCreateDialog.value = true
             }
-
-            onMounted(async () => {
-                basicLoading.value = true
-                const data = await $store.dispatch('getProjectList').catch(() => ([]))
-                projectList.value = data
-                basicLoading.value = false
-            })
+            const handlePageChange = (page) => {
+                pagination.value.current = page
+            }
+            const handleLimitChange = (limit) => {
+                pagination.value.limit = limit
+            }
 
             return {
-                basicLoading,
+                pagination,
                 keyword,
                 projectList,
                 filterList,
@@ -97,7 +108,9 @@
                 curProjectData,
                 handleGotoProject,
                 handleEditProject,
-                handleCreateProject
+                handleCreateProject,
+                handlePageChange,
+                handleLimitChange
             }
         }
     })

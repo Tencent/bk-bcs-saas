@@ -65,7 +65,7 @@ const store = new Vuex.Store({
     },
     // 公共 store
     state: {
-        curProject: null,
+        curProject: {},
         curProjectCode: '', // 项目代码
         curProjectId: '', // 项目ID
         curClusterId: null,
@@ -96,7 +96,8 @@ const store = new Vuex.Store({
         featureFlag: {},
         // 当前一级导航路由名称
         curNavName: '',
-        viewMode: ''
+        viewMode: '',
+        curMenuId: ''
     },
     // 公共 getters
     getters: {
@@ -143,15 +144,8 @@ const store = new Vuex.Store({
          * @param {Object} state store state
          * @param {String} projectId
          */
-        updateCurProject (state, projectCode) {
-            const project = state.sideMenu.onlineProjectList.find(project => project.project_code === projectCode)
-            if (project) {
-                state.curProject = Object.assign({}, project)
-                state.sideMenu.k8sMenuList = k8sMenuList
-                state.sideMenu.menuList = menuList
-                state.sideMenu.clusterk8sMenuList = clusterk8sMenuList
-                state.sideMenu.dashboardMenuList = dashboardMenuList
-            }
+        updateCurProject (state, project) {
+            state.curProject = project || {}
         },
 
         /**
@@ -241,6 +235,9 @@ const store = new Vuex.Store({
         },
         updateViewMode (state, mode) {
             state.viewMode = mode
+        },
+        updateCurMenuId (state, id) {
+            state.curMenuId = id
         }
     },
     actions: {
@@ -286,28 +283,9 @@ const store = new Vuex.Store({
          */
         getProjectList (context, params, config = {}) {
             return http.get(DEVOPS_BCS_API_URL + '/api/projects/', params, config).then(response => {
-                let list = []
-                const online = []
-                const offline = []
-                const adminList = []
-                if (response.data && response.data.length) {
-                    list = response.data
-                }
-                list.forEach(item => {
-                    if (item.is_offlined) {
-                        offline.push(item)
-                    } else {
-                        if (item.permissions && item.permissions['modify:project:btn'] === 0) {
-                            adminList.push(item)
-                        }
-                        // 通过审批
-                        if (item.approval_status === 2) {
-                            online.push(item)
-                        }
-                    }
-                })
-                context.commit('forceUpdateOnlineProjectList', online)
-                return list
+                const data = response.data || []
+                context.commit('forceUpdateOnlineProjectList', data)
+                return data
             })
         },
 

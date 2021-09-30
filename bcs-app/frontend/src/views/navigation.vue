@@ -6,14 +6,15 @@
         <template #header>
             <div class="bcs-navigation-header">
                 <div class="nav-left">
-                    <bcs-select ref="projectSelectRef" class="header-select" :clearable="false" searchable :value="curProjectCode"
+                    <bcs-select ref="projectSelectRef" class="header-select" :clearable="false" searchable
+                        :value="curProjectCode"
                         v-show="$route.name !== 'projectManage'"
-                        @selected="handleProjectSelected">
-                        <bk-option v-for="option in onlineProjectList"
+                        @change="handleProjectChange">
+                        <bcs-option v-for="option in onlineProjectList"
                             :key="option.project_code"
                             :id="option.project_code"
                             :name="option.project_name">
-                        </bk-option>
+                        </bcs-option>
                         <template #extension>
                             <div class="extension-item" @click="handleCreateProject"><i class="bk-icon icon-plus-circle mr5"></i>{{$t('新建项目')}}</div>
                             <div class="extension-item" @click="handleGotoProjectManage"><i class="bcs-icon bcs-icon-apps mr5"></i>{{$t('项目管理')}}</div>
@@ -41,20 +42,13 @@
             </div>
         </template>
         <template #default>
-            <App />
-            <ProjectCreate v-model="showCreateProject"></ProjectCreate>
+            <slot></slot>
         </template>
     </bcs-navigation>
 </template>
 <script>
-    import App from '@/App.vue'
-    import ProjectCreate from '@/views/project/project-create.vue'
     export default {
         name: "Navigation",
-        components: {
-            App,
-            ProjectCreate
-        },
         data () {
             return {
                 userItems: [
@@ -70,71 +64,39 @@
                         id: 'exit',
                         name: this.$t('退出')
                     }
-                ],
-                showCreateProject: false
+                ]
             }
         },
         computed: {
             user () {
                 return this.$store.state.user
             },
-            curProjectCode () {
-                return this.$route.params.projectCode
-            },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
             }
-        },
-        watch: {
-            curProjectCode (code) {
-                if (code) {
-                    window.$currentProjectId = code
-                    this.init(code)
-                }
-            }
-        },
-        async created () {
-            if (!window.$syncUrl) {
-                window.$syncUrl = (path, flag = false) => {
-                    const resolve = this.$router.resolve({ path: `${SITE_URL}${path}` })
-                    if (this.$route.name === resolve?.route?.name || !flag) return
-
-                    window.location.href = `${SITE_URL}${path}`
-                    // console.log(curPath, path)
-                    // this.$router.push({
-                    //     path: `${SITE_URL}${path}`
-                    // })
-                }
-            }
-            const list = []
-            list.push(this.$store.dispatch('getProjectList').catch(() => ([])))
-            list.push(this.$store.dispatch('userInfo').catch(e => console.log(e)))
-            const [projectList, userInfo] = await Promise.all(list)
-            window.$projectList = projectList
-            window.$userInfo = userInfo
         },
         methods: {
-            init (code) {
-                const event = new CustomEvent('change::$currentProjectId', { detail: { currentProjectId: code } })
-                window.dispatchEvent(event)
-            },
-            async handleProjectSelected (code) {
-                window.$currentProjectId = code
+            async handleProjectChange (code) {
+                // 解决组件初始化时触发change事件问题
+                if (code === this.curProjectCode) return
+
                 const item = this.onlineProjectList.find(item => item.project_code === code)
                 this.$router.push({
-                    name: this.$route.name,
+                    name: 'clusterMain',
                     params: {
                         projectCode: code,
                         // eslint-disable-next-line camelcase
                         projectId: item?.project_id
                     }
                 })
-                this.init(code)
             },
             handleGotoProjectManage () {
                 this.$refs.projectSelectRef && this.$refs.projectSelectRef.close()
                 if (this.$route.name === 'projectManage') return
-                this.$router.replace({
+                this.$router.push({
                     name: 'projectManage'
                 })
             },
@@ -152,7 +114,7 @@
             },
             handleCreateProject () {
                 this.$refs.projectSelectRef && this.$refs.projectSelectRef.close()
-                this.showCreateProject = true
+                this.$emit('create-project')
             },
             handleGotoHelp () {
                 window.open(window.BCS_CONFIG?.doc?.help)
@@ -163,6 +125,9 @@
 <style lang="postcss" scoped>
 /deep/ .bk-navigation-wrapper .container-content {
     padding: 0;
+}
+/deep/ .bk-select .bk-tooltip.bk-select-dropdown {
+    background: transparent;
 }
 .bcs-navigation-admin {
     display:flex;

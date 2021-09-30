@@ -455,8 +455,7 @@
             }
         },
         mounted () {
-            const projectList = this.onlineProjectList || window.$projectList
-            this.curProject = Object.assign({}, projectList.filter(p => p.project_id === this.projectId)[0] || {})
+            this.curProject = Object.assign({}, this.onlineProjectList.filter(p => p.project_id === this.projectId)[0] || {})
             // k8s
             this.isK8sProject = this.curProject.kind === PROJECT_K8S
         },

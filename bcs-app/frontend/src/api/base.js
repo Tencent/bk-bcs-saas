@@ -81,8 +81,7 @@ export default {
     customResourceUpdate,
     customResourceDelete,
     reschedulePod,
-    logLinks
-    customResourceDelete,
+    logLinks,
     editProject,
     fetchBizTopo,
     fetchBizHosts
