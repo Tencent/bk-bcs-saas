@@ -1,0 +1,17 @@
+version: v1.0.0
+location: Local
+debug: false
+available_environment_flags:
+    - stag
+    - debug
+confcenter:
+  host: 0.0.0.0
+  port: 5000
+logging:
+  level: info
+  file: "./bcs-cc.log"
+  stderr: true
+authhost: "http://authapi-test.open.oa.com"
+interval: 300
+currenv: "test"
+disable_encrypt: True

@@ -1,7 +1,6 @@
 package gorm
 
 import (
-	"bytes"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -23,8 +22,11 @@ var NowFunc = func() time.Time {
 }
 
 // Copied from golint
-var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
+var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UID", "UI", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
 var commonInitialismsReplacer *strings.Replacer
+
+var goSrcRegexp = regexp.MustCompile(`jinzhu/gorm(@.*)?/.*.go`)
+var goTestRegexp = regexp.MustCompile(`jinzhu/gorm(@.*)?/.*test.go`)
 
 func init() {
 	var commonInitialismsForReplacer []string
@@ -55,71 +57,16 @@ func newSafeMap() *safeMap {
 	return &safeMap{l: new(sync.RWMutex), m: make(map[string]string)}
 }
 
-var smap = newSafeMap()
-
-type strCase bool
-
-const (
-	lower strCase = false
-	upper strCase = true
-)
-
-// ToDBName convert string to db name
-func ToDBName(name string) string {
-	if v := smap.Get(name); v != "" {
-		return v
-	}
-
-	if name == "" {
-		return ""
-	}
-
-	var (
-		value                        = commonInitialismsReplacer.Replace(name)
-		buf                          = bytes.NewBufferString("")
-		lastCase, currCase, nextCase strCase
-	)
-
-	for i, v := range value[:len(value)-1] {
-		nextCase = strCase(value[i+1] >= 'A' && value[i+1] <= 'Z')
-		if i > 0 {
-			if currCase == upper {
-				if lastCase == upper && nextCase == upper {
-					buf.WriteRune(v)
-				} else {
-					if value[i-1] != '_' && value[i+1] != '_' {
-						buf.WriteRune('_')
-					}
-					buf.WriteRune(v)
-				}
-			} else {
-				buf.WriteRune(v)
-			}
-		} else {
-			currCase = upper
-			buf.WriteRune(v)
-		}
-		lastCase = currCase
-		currCase = nextCase
-	}
-
-	buf.WriteByte(value[len(value)-1])
-
-	s := strings.ToLower(buf.String())
-	smap.Set(name, s)
-	return s
-}
-
 // SQL expression
-type expr struct {
+type SqlExpr struct {
 	expr string
 	args []interface{}
 }
 
 // Expr generate raw SQL expression, for example:
 //     DB.Model(&product).Update("price", gorm.Expr("price * ? + ?", 2, 100))
-func Expr(expression string, args ...interface{}) *expr {
-	return &expr{expr: expression, args: args}
+func Expr(expression string, args ...interface{}) *SqlExpr {
+	return &SqlExpr{expr: expression, args: args}
 }
 
 func indirect(reflectValue reflect.Value) reflect.Value {
@@ -171,7 +118,7 @@ func toQueryValues(values [][]interface{}) (results []interface{}) {
 func fileWithLineNum() string {
 	for i := 2; i < 15; i++ {
 		_, file, line, ok := runtime.Caller(i)
-		if ok && (!regexp.MustCompile(`jinzhu/gorm/.*.go`).MatchString(file) || regexp.MustCompile(`jinzhu/gorm/.*test.go`).MatchString(file)) {
+		if ok && (!goSrcRegexp.MatchString(file) || goTestRegexp.MatchString(file)) {
 			return fmt.Sprintf("%v:%v", file, line)
 		}
 	}
@@ -179,6 +126,21 @@ func fileWithLineNum() string {
 }
 
 func isBlank(value reflect.Value) bool {
+	switch value.Kind() {
+	case reflect.String:
+		return value.Len() == 0
+	case reflect.Bool:
+		return !value.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return value.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return value.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return value.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return value.IsNil()
+	}
+
 	return reflect.DeepEqual(value.Interface(), reflect.Zero(value.Type()).Interface())
 }
 
@@ -244,7 +206,7 @@ func getValueFromFields(value reflect.Value, fieldNames []string) (results []int
 	// as FieldByName could panic
 	if indirectValue := reflect.Indirect(value); indirectValue.IsValid() {
 		for _, fieldName := range fieldNames {
-			if fieldValue := indirectValue.FieldByName(fieldName); fieldValue.IsValid() {
+			if fieldValue := reflect.Indirect(indirectValue.FieldByName(fieldName)); fieldValue.IsValid() {
 				result := fieldValue.Interface()
 				if r, ok := result.(driver.Valuer); ok {
 					result, _ = r.Value()

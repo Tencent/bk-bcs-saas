@@ -579,8 +579,8 @@ store.dispatch = function (_type, _payload, config = {}) {
         return
     }
 
-    store._actionSubscribers.forEach(sub => {
-        return sub(action, store.state)
+    store._actionSubscribers.slice().filter(sub => sub.before).forEach(sub => {
+        return sub.before(action, store.state)
     })
 
     return entry.length > 1

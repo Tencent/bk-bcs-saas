@@ -12,8 +12,8 @@
 package tests
 
 import (
-	"bcs_cc/confcenter/apis"
-	"bcs_cc/utils"
+	"bcs-cc/confcenter/apis"
+	"bcs-cc/utils"
 	"testing"
 
 	"github.com/stretchr/testify/suite"

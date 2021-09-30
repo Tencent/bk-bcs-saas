@@ -14,7 +14,7 @@ package models
 import (
 	"time"
 
-	"bcs_cc/storage"
+	"bcs-cc/storage"
 )
 
 // ClusterHistoryData : save the cluster history resource info

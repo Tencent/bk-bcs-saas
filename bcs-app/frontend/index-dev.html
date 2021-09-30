@@ -40,7 +40,7 @@
     var RELEASE_VERSION = 'bcs_dev'
 
     // 说明当前网页不是用 iframe 加载的，那么应该跳转到项目主域 DEVOPS_HOST
-    if (window.self === window.top) {
+    if (window.self === window.top && window.REGION === 'ieod') {
         window.location.href = DEVOPS_HOST + '/console/'
     }
 

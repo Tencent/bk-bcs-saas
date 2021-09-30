@@ -50,7 +50,7 @@
                 enableBtn: false, // 提交按钮是否可用
                 projectId: '',
                 projectCode: '',
-                isLoading: true
+                isLoading: true // 需要等蓝盾触发 change::$currentProjectId 方法后才能显示路由界面
             }
         },
         computed: {
@@ -180,7 +180,6 @@
             // 初始化BCS基本数据（有先后顺序，请勿乱动）
             async initBcsBaseData (projectCode) {
                 this.isLoading = true
-                this.initProjectId(projectCode)
                 // 清空集群列表
                 this.$store.commit('cluster/forceUpdateClusterList', [])
                 // 切换不同项目时清空单集群信息
@@ -192,6 +191,7 @@
                     window.location.href = `${window.location.origin}${SITE_URL}/${projectCode}`
                 }
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
+                this.initProjectId(projectCode)
                 // 检查是否开启容器服务
                 await this.checkProject()
                 if (!this.isUserBKService) {
@@ -284,8 +284,8 @@
              * 初始化时，将通过 projectCode 值获取 projectId 并存储在路由中
              */
             initProjectId (projectCode = window.$currentProjectId || this.$route.params.projectCode) {
-                if (window.$currentProjectId) {
-                    this.projectCode = window.$currentProjectId
+                if (projectCode) {
+                    this.projectCode = projectCode
                     this.$route.params.projectCode = this.projectCode
                     const project = getProjectByCode(this.projectCode)
                     const projectId = project.project_id

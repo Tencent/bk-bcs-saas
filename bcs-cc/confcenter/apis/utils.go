@@ -12,8 +12,8 @@
 package apis
 
 import (
-	"bcs_cc/logging"
-	"bcs_cc/storage/models"
+	"bcs-cc/logging"
+	"bcs-cc/storage/models"
 	"errors"
 	"strings"
 

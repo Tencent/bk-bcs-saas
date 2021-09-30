@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"time"
 
-	"bcs_cc/config"
-	"bcs_cc/logging"
-	"bcs_cc/storage/models"
-	"bcs_cc/utils"
+	"bcs-cc/config"
+	"bcs-cc/logging"
+	"bcs-cc/storage/models"
+	"bcs-cc/utils"
 
 	"github.com/mitchellh/mapstructure"
 )

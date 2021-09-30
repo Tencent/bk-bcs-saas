@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
-	"bcs_cc/bkcrypt"
-	"bcs_cc/config"
+	"bcs-cc/bkcrypt"
+	"bcs-cc/config"
 
 	"github.com/go-redis/redis"
 )

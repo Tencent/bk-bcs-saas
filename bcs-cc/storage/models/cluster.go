@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"bcs_cc/config"
-	"bcs_cc/storage"
-	"bcs_cc/utils"
+	"bcs-cc/config"
+	"bcs-cc/storage"
+	"bcs-cc/utils"
 
 	"github.com/jinzhu/gorm"
 )

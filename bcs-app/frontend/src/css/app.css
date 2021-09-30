@@ -2624,3 +2624,9 @@ div::-webkit-scrollbar-thumb {
         padding: 5px 0;
     }
 }
+.navigation-message-theme {
+    padding: 0 !important;
+}
+.bk-select-extension:hover {
+    background-color: unset;
+}

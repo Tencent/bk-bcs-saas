@@ -1,0 +1,132 @@
+spec_version: 2
+app_version: "1.0"
+app:
+  region: default
+  bk_app_code: "bcs-saas-s-mart"
+  bk_app_name: "容器服务SaaS-Smart"
+  market:
+    category: "运维工具"
+    introduction: "应用简介"
+    description: "应用描述"
+    display_options:
+      width: 800
+      height: 600
+modules:
+  bcs-app-web:
+    language: Python
+    is_default: True
+    source_dir: bcs-app
+    services:
+      - name: mysql
+      - name: rabbitmq
+      - name: redis
+        specs:
+          type: "独占实例"
+    env_variables:
+      - key: BKAPP_K8S_VERSION
+        value: v1.12.3
+        description: "初始化 K8S 版本"
+      - key: MESOS_VERSION
+        value: 1.7.2
+        description: "初始化 Mesos 版本"
+      - key: BKAPP_SUPPORT_MESOS
+        value: "false"
+        description: "是否支持 Mesos 集群"
+      - key: HELM_BASE_DIR
+        value: /app/
+        description: "Helm 相关配置存放目录"
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings.v3.prod
+        description: "Django 配置文件"
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: "PIP 版本"
+    processes:
+      web:
+        command: gunicorn wsgi -b :5000 --access-logfile - --error-logfile -
+        plan: 4C1G5R
+        replicas: 2
+      celery:
+        command: celery -A backend.celery_app worker -l info
+        plan: 4C1G5R
+        replicas: 1
+      celery-beat:
+        command: celery -A backend.celery_app beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
+        plan: 4C1G5R
+        replicas: 1
+  bcs-app-channel:
+    language: Python
+    is_default: False
+    source_dir: bcs-app
+    services:
+      - name: mysql
+        shared_from: bcs-app-web
+      - name: redis
+        shared_from: bcs-app-web
+    processes:
+      channel:
+        command: gunicorn backend.asgi -b :5000 -w 4 -k uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
+        plan: 4C1G5R
+        replicas: 1
+    env_variables:
+      - key: BKAPP_K8S_VERSION
+        value: v1.12.3
+        description: "初始化 K8S 版本"
+      - key: MESOS_VERSION
+        value: 1.7.2
+        description: "初始化 Mesos 版本"
+      - key: BKAPP_SUPPORT_MESOS
+        value: "false"
+        description: "是否支持 Mesos 集群"
+      - key: HELM_BASE_DIR
+        value: /app/
+        description: "Helm 相关配置存放目录"
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings.v3.prod
+        description: "Django 配置文件"
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: "PIP 版本"
+  bcs-app-console:
+    language: Python
+    is_default: False
+    source_dir: bcs-app
+    services:
+      - name: mysql
+        shared_from: bcs-app-web
+      - name: redis
+        shared_from: bcs-app-web
+    processes:
+      console:
+        command: python -m backend.web_console
+        plan: 4C1G5R
+        replicas: 1
+    env_variables:
+      - key: BKAPP_K8S_VERSION
+        value: v1.12.3
+        description: "初始化 K8S 版本"
+      - key: MESOS_VERSION
+        value: 1.7.2
+        description: "初始化 Mesos 版本"
+      - key: BKAPP_SUPPORT_MESOS
+        value: "false"
+        description: "是否支持 Mesos 集群"
+      - key: HELM_BASE_DIR
+        value: /app/
+        description: "Helm 相关配置存放目录"
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings.v3.prod
+        description: "Django 配置文件"
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: "PIP 版本"
+  bcs-cc:
+    language: Go
+    is_default: False
+    source_dir: bcs-cc
+    services:
+      - name: mysql
+    processes:
+      bcs-cc: 
+        command: bcs-cc cc -c etc/prod.yaml
+        replicas: 1

@@ -12,7 +12,7 @@
 package utils
 
 import (
-	"bcs_cc/config"
+	"bcs-cc/config"
 	"errors"
 	"fmt"
 	"io/ioutil"

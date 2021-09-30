@@ -34,7 +34,7 @@
     var SNIPER_HOST = '{{ SNIPER_HOST }}'
     var MIRROR_HOST = '{{ MIRROR_HOST }}'
 
-    if (window.self === window.top) {
+    if (window.self === window.top && window.REGION === 'ieod') {
         window.location.href = DEVOPS_HOST + '/console/'
     }
 

@@ -485,36 +485,27 @@
             },
 
             goDashboard () {
-                // 从 metric 管理 router 跳转过来时，url 有 cluster_id 的 query
-                const newQuery = JSON.parse(JSON.stringify(this.$route.query))
-                delete newQuery.cluster_id
-                this.$router.replace({ query: newQuery })
-
-                setTimeout(() => {
-                    const routerUrl = this.$router.resolve({
-                        name: 'dashboard',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode
-                        }
-                    })
-                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
-                    sessionStorage.removeItem('bcs-selected-menu-data')
-                }, 0)
+                const routerUrl = this.$router.resolve({
+                    name: 'dashboard',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode
+                    }
+                })
+                window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                sessionStorage.removeItem('bcs-selected-menu-data')
             },
 
             goCluster () {
-                setTimeout(() => {
-                    const routerUrl = this.$router.resolve({
-                        name: 'clusterMain',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode
-                        }
-                    })
-                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
-                    sessionStorage.removeItem('bcs-selected-menu-data')
-                }, 0)
+                const routerUrl = this.$router.resolve({
+                    name: 'clusterMain',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode
+                    }
+                })
+                window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                sessionStorage.removeItem('bcs-selected-menu-data')
             }
         }
     }
