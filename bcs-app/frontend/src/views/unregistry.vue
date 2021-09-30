@@ -138,8 +138,48 @@
             handleCmdbChange (value, oldvalue) {
                 this.$emit('cc-change', value, oldvalue)
             },
-            updateProject () {
-                this.$emit('update-project')
+            /**
+             * 启用容器服务 更新项目
+             */
+            async updateProject () {
+                try {
+                    this.isLoading = true
+                    await this.$store.dispatch('editProject', Object.assign({}, this.curProject, {
+                        // deploy_type 值固定，就是原来页面上的：部署类型：容器部署
+                        deploy_type: [2],
+                        // kind 业务编排类型
+                        kind: parseInt(this.kind, 10),
+                        // use_bk 值固定，就是原来页面上的：使用蓝鲸部署服务
+                        use_bk: true,
+                        cc_app_id: this.ccKey
+                    }))
+
+                    // await this.$store.dispatch('getProjectList')
+
+                    this.$nextTick(() => {
+                        window.location.reload()
+                        // 这里不需要设置 isLoading 为 false，页面刷新后，isLoading 的值会重置为 true
+                        // 如果设置了后，页面会闪烁一下
+                        // this.isLoading = false
+                    })
+                } catch (e) {
+                    console.error(e)
+                    this.isLoading = false
+                }
+            },
+            /**
+             * 获取关联 CC 的数据
+             */
+            async fetchCCList () {
+                try {
+                    const res = await this.$store.dispatch('getCCList', {
+                        project_kind: this.kind,
+                        project_id: this.curProject.project_id
+                    })
+                    this.ccList = [...(res.data || [])]
+                } catch (e) {
+                    this.kind = this.prevKind
+                }
             }
         }
     }
