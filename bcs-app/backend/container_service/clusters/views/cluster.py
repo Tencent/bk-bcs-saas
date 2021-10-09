@@ -414,9 +414,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
             ],
         }
         username = settings.ADMIN_USERNAME
-        cluster_masters = get_cmdb_hosts(
-            username, [request.project.cc_app_id, settings.BCS_APP_ID], host_property_filter
-        )
+        cluster_masters = get_cmdb_hosts(username, request.project.cc_app_id, host_property_filter)
 
         return response.Response(cluster_masters)
 

@@ -388,9 +388,6 @@ COMMON_CUSTOMER_SUPPORT_MSG = _("联系管理员解决")
 # 灰度功能提示消息
 GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名单"
 
-# APIGW APP权限控制
-BK_APP_WHITELIST = {}
-
 # 平台组件部署到的命名空间
 BCS_SYSTEM_NAMESPACE = "bcs-system"
 

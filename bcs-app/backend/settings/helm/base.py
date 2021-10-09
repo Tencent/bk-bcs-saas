@@ -267,24 +267,9 @@ CACHES = {
 # CELERY 配置
 IS_USE_CELERY = True
 
-# BROKER_URL 统一使用 V3 提供的增强服务（RabbitMQ）
-RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST')
-RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
-RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
-RABBITMQ_USER = os.getenv('RABBITMQ_USER')
-RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
-
-# 设置为 celery 后端消息队列
-BROKER_URL = 'amqp://{user}:{password}@{host}:{port}/{vhost}'.format(
-    user=RABBITMQ_USER,
-    password=RABBITMQ_PASSWORD,
-    host=RABBITMQ_HOST,
-    port=RABBITMQ_PORT,
-    vhost=RABBITMQ_VHOST,
-)
 # 较高版本（>=4.0）的 celery 使用 CELERY_BROKER_URL
 # ref: https://docs.celeryproject.org/en/latest/history/whatsnew-4.0.html#lowercase-setting-names
-CELERY_BROKER_URL = BROKER_URL
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', REDIS_URL)
 
 if IS_USE_CELERY:
     try:
