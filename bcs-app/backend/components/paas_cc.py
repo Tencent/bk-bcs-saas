@@ -20,10 +20,10 @@ from typing import Dict, List, Union
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.bcs_web.iam import permissions
 from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.container_service.clusters.models import CommonStatus
+from backend.iam import legacy_perms as permissions
 from backend.utils.basic import getitems
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
@@ -523,6 +523,7 @@ class PaaSCCConfig:
 
         # PaaSCC 系统接口地址
         self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+        self.get_cluster_by_id_url = f"{host}/clusters/{{cluster_id}}/"
         self.get_project_url = f"{host}/projects/{{project_id}}/"
         self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
@@ -550,6 +551,12 @@ class PaaSCCClient(BkApiClient):
     def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json('GET', url)
+
+    @response_handler()
+    def get_cluster_by_id(self, cluster_id: str) -> Dict:
+        """根据集群ID获取集群信息"""
+        url = self._config.get_cluster_by_id_url.format(cluster_id=cluster_id)
         return self._client.request_json('GET', url)
 
     @parse_response_data()

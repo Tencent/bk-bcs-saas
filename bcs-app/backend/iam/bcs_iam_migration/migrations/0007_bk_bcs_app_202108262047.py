@@ -12,20 +12,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework.response import Response
+import codecs
+import json
+import os
 
-from backend.bcs_web.apis.authentication import JWTAuthentication
-from backend.bcs_web.apis.permissions import AccessTokenPermission
-from backend.container_service.projects.base import list_projects
-from backend.container_service.projects.views import NavProjectPermissionViewSet
-from backend.utils.renderers import BKAPIRenderer
+from django.conf import settings
+from django.db import migrations
+from iam.contrib.iam_migration.migrator import IAMMigrator
 
 
-class ProjectsViewSet(NavProjectPermissionViewSet):
-    authentication_classes = (JWTAuthentication,)
-    renderer_classes = (BKAPIRenderer,)
-    permission_classes = (AccessTokenPermission,)
+def forward_func(apps, schema_editor):
 
-    def list_projects(self, request):
-        projects = list_projects(request.user.token.access_token)
-        return Response(projects)
+    migrator = IAMMigrator(Migration.migration_json)
+    migrator.migrate()
+
+
+class Migration(migrations.Migration):
+    migration_json = "0007_resource_creator_actions.json"
+
+    dependencies = [('bcs_iam_migration', '0006_bk_bcs_app_202108181525')]
+
+    operations = [migrations.RunPython(forward_func)]

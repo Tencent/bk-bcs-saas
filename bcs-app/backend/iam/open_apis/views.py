@@ -5,9 +5,7 @@ Edition) available.
 Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://opensource.org/licenses/MIT
-
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
@@ -18,11 +16,13 @@ from rest_framework.views import APIView
 from backend.utils.renderers import BKAPIRenderer
 
 from .authentication import IamBasicAuthentication
-from .resources.provider import BCSResourceProvider
+from .provider.resource import ResourceProvider
 from .serializers import QueryResourceSLZ
 
 
 class ResourceAPIView(APIView):
+    """统一入口: 提供给权限中心拉取各类资源"""
+
     renderer_classes = (BKAPIRenderer,)
     authentication_classes = (IamBasicAuthentication,)
     permission_classes = ()
@@ -40,6 +40,6 @@ class ResourceAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        provider = BCSResourceProvider(resource_type=validated_data["type"])
-        resp = provider.provide(validated_data, **self._get_options(request))
+        provider = ResourceProvider(resource_type=validated_data["type"])
+        resp = provider.provide(method=validated_data['method'], data=validated_data, **self._get_options(request))
         return Response(resp)
