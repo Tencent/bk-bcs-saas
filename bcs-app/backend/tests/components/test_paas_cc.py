@@ -28,7 +28,7 @@ class TestPaaSCCClient:
         assert requests_mock.called
 
     def test_get_cluster_by_id(self, cluster_id, requests_mock):
-        requests_mock.get(ANY, json={'cluster_id': cluster_id})
+        requests_mock.get(ANY, json={'code': 0, 'data': {'cluster_id': cluster_id}})
 
         client = PaaSCCClient(ComponentAuth('token'))
         resp = client.get_cluster_by_id(cluster_id)
