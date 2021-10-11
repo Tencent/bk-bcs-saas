@@ -31,6 +31,19 @@
         setup (props, ctx) {
             // 项目和集群的清空已经赋值操作有时序关系，请勿随意调整顺序
             const { $store, $route, $router, $bkMessage } = ctx.root
+            const handleSetClusterStorageInfo = (curCluster?) => {
+                if (curCluster) {
+                    localStorage.setItem('bcs-cluster', curCluster.cluster_id)
+                    sessionStorage.setItem('bcs-cluster', curCluster.cluster_id)
+                    $store.commit('updateCurClusterId', curCluster.cluster_id)
+                    $store.commit('cluster/forceUpdateCurCluster', curCluster)
+                } else {
+                    localStorage.removeItem('bcs-cluster')
+                    sessionStorage.removeItem('bcs-cluster')
+                    $store.commit('updateCurClusterId', '')
+                    $store.commit('cluster/forceUpdateCurCluster', {})
+                }
+            }
             const projectList = computed(() => {
                 return $store.state.sideMenu.onlineProjectList
             })
@@ -44,10 +57,7 @@
 
             // 切换不同项目时清空单集群信息
             if (localStorage.getItem('curProjectCode') !== projectCode) {
-                localStorage.removeItem('bcs-cluster')
-                sessionStorage.removeItem('bcs-cluster')
-                $store.commit('updateCurClusterId', '')
-                $store.commit('cluster/forceUpdateCurCluster', {})
+                handleSetClusterStorageInfo()
             }
 
             // 缓存当前项目信息
@@ -64,7 +74,7 @@
             $store.commit('cluster/forceUpdateClusterList', [])
 
             // 设置当前视图类型（集群管理 or 资源视图）
-            $store.commit('updateViewMode', $route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster')
+            $store.commit('updateViewMode', $route.meta?.isDashboard ? 'dashboard' : 'cluster')
 
             // 项目未开启容器服务跳转未注册界面
             const isUserBKService = ref(true)
@@ -77,10 +87,7 @@
             onBeforeMount(async () => {
                 // 获取项目的集群列表和菜单配置信息
                 isLoading.value = true
-                await Promise.all([
-                    $store.dispatch('cluster/getClusterList', curProject.project_id),
-                    $store.dispatch('getFeatureFlag')
-                ]).catch(err => {
+                await $store.dispatch('cluster/getClusterList', curProject.project_id).catch(err => {
                     $bkMessage({
                         theme: 'error',
                         message: err
@@ -101,17 +108,30 @@
                 const curCluster = stateClusterList?.find(cluster => cluster.cluster_id === curClusterId)
                 if (curCluster) {
                     // 缓存单集群信息
-                    localStorage.setItem('bcs-cluster', curClusterId)
-                    sessionStorage.setItem('bcs-cluster', curClusterId)
-                    $store.commit('updateCurClusterId', curClusterId)
-                    $store.commit('cluster/forceUpdateCurCluster', curCluster)
+                    handleSetClusterStorageInfo(curCluster)
+                    $route.params.clusterId = curClusterId
+                } else {
+                    handleSetClusterStorageInfo()
                 }
-                // else if ($route.name !== 'clusterMain') {
-                //     // todo: url路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
-                //     $router.replace({
-                //         name: 'clusterMain'
-                //     })
-                // }
+
+                if ($route.name !== 'clusterMain' && $route.params.clusterId && !curCluster) {
+                    // path路径中存在集群ID，但是该集群ID不在集群列表中时跳转首页
+                    $router.replace({
+                        name: 'clusterMain'
+                    })
+                } else if ($route.name === 'clusterMain' && curCluster) {
+                    // 集群ID存在，但是当前处于全部集群首页时需要跳回单集群概览页
+                    $router.replace({
+                        name: 'clusterOverview'
+                    })
+                }
+
+                await $store.dispatch('getFeatureFlag').catch(err => {
+                    $bkMessage({
+                        theme: 'error',
+                        message: err
+                    })
+                })
                 isLoading.value = false
             })
 

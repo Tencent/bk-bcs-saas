@@ -26,8 +26,7 @@ import log from '@/store/modules/log'
 import hpa from '@/store/modules/hpa'
 import storage from '@/store/modules/storage'
 import dashboard from '@/store/modules/dashboard'
-
-import menuConfig from './menu-config'
+import menuConfig from '@/store/menu'
 import { projectFeatureFlag } from '@/api/base'
 
 Vue.use(Vuex)
@@ -39,8 +38,6 @@ if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn'].indexOf(lang) > -1) {
 } else {
     lang = 'en-US'
 }
-
-const { menuList, k8sMenuList, clusterk8sMenuList, dashboardMenuList, clusterMenuList } = menuConfig(lang)
 
 const store = new Vuex.Store({
     // 模块
@@ -75,13 +72,7 @@ const store = new Vuex.Store({
         // 左侧导航
         sideMenu: {
             // 在线的 project
-            onlineProjectList: [],
-            // 左侧导航 menu 集合
-            menuList: menuList,
-            k8sMenuList: k8sMenuList,
-            clusterk8sMenuList: clusterk8sMenuList,
-            clusterMenuList: clusterMenuList,
-            dashboardMenuList: dashboardMenuList
+            onlineProjectList: []
         },
 
         // 当前语言环境
@@ -94,8 +85,6 @@ const store = new Vuex.Store({
         crdInstanceList: [],
         // 功能开关
         featureFlag: {},
-        // 当前一级导航路由名称
-        curNavName: '',
         viewMode: '',
         curMenuId: ''
     },
@@ -105,7 +94,22 @@ const store = new Vuex.Store({
         user: state => state.user,
         lang: state => state.lang,
         featureFlag: state => state.featureFlag,
-        curNavName: state => state.curNavName,
+        curNavName: state => {
+            let navName = ''
+            const menuList = state.viewMode === 'dashboard' ? menuConfig.dashboardMenuList : menuConfig.k8sMenuList
+            menuList.find(menu => {
+                if (menu?.id === state.curMenuId) {
+                    navName = menu?.routeName
+                    return true
+                } else if (menu.children) {
+                    const child = menu.children.find(child => child.id === state.curMenuId)
+                    navName = child?.routeName
+                    return !!navName
+                }
+                return false
+            })
+            return navName
+        },
         curProjectCode: state => state.curProjectCode,
         curProjectId: state => state.curProjectId,
         curClusterId: state => state.curClusterId
@@ -225,14 +229,6 @@ const store = new Vuex.Store({
         setFeatureFlag (state, data) {
             state.featureFlag = data || {}
         },
-        /**
-         * 更新当前一级导航路由名称
-         * @param {*} state
-         * @param {*} data
-         */
-        updateCurNavName (state, data) {
-            state.curNavName = data
-        },
         updateViewMode (state, mode) {
             state.viewMode = mode
         },
@@ -300,92 +296,6 @@ const store = new Vuex.Store({
          */
         getProjectPerm (context, { projectCode }, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectCode}/`)
-        },
-
-        /**
-         * 根据 pathName 来判断 menuList 中的哪一个 menu 应该被选中
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数
-         *
-         * @return {Promise} promise 对象
-         */
-        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard, kind }) {
-            return new Promise((resolve, reject) => {
-                const list = []
-                const tmp = []
-                let invokeStr = ''
-                switch (idx) {
-                    case 'devops':
-                        tmp.splice(0, 0, ...context.state.sideMenu.devOpsMenuList)
-                        invokeStr = 'forceUpdateDevOpsMenuList'
-                        break
-                    case 'bcs':
-                        if (isDashboard) {
-                            tmp.splice(0, 0, ...context.state.sideMenu.dashboardMenuList)
-                        } else if ((Boolean(context.state.curClusterId) && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE))) {
-                            tmp.splice(0, 0, ...context.state.sideMenu.clusterk8sMenuList)
-                        } else if ((context.state.curProject && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE)) || projectType === 'k8s') {
-                            tmp.splice(0, 0, ...context.state.sideMenu.k8sMenuList)
-                        } else {
-                            tmp.splice(0, 0, ...context.state.sideMenu.menuList)
-                        }
-                        invokeStr = 'forceUpdateMenuList'
-                        break
-                    default:
-                }
-
-                // 清掉 menuList 里的选中
-                tmp.forEach(m => {
-                    m.isSelected = false
-                    m.isOpen = false
-                    if (m.children) {
-                        m.isChildSelected = false
-                        m.children.forEach(childItem => {
-                            childItem.isSelected = false
-                        })
-                    }
-                })
-                list.splice(0, 0, ...tmp)
-
-                let continueLoop = true
-
-                const len = list.length
-                for (let i = len - 1; i >= 0; i--) {
-                    if (!continueLoop) {
-                        break
-                    }
-                    const menu = list[i]
-                    if ((menu.pathName || []).indexOf(pathName) > -1 || (menu.pathName || []).indexOf(kind) > -1) {
-                        // clearMenuListSelected(list)
-                        menu.isSelected = true
-                        continueLoop = false
-                        context.commit('updateCurNavName', menu.pathName[0])
-                        break
-                    }
-                    if (menu.children) {
-                        const childrenLen = menu.children.length
-                        for (let j = childrenLen - 1; j >= 0; j--) {
-                            const tmpPathName = menu.children[j].pathName || []
-                            // 资源视图工作负载详情路由刷新界面后无法选中父级的问题
-                            const dashboardWorkloadDetail = isDashboard && tmpPathName.includes(kind)
-                            if ((tmpPathName.indexOf(pathName) > -1) || dashboardWorkloadDetail) {
-                                // clearMenuListSelected(list)
-                                menu.isOpen = true
-                                menu.isChildSelected = true
-                                menu.children[j].isSelected = true
-                                continueLoop = false
-                                context.commit('updateCurNavName', tmpPathName[0])
-                                break
-                            }
-                        }
-                    }
-                }
-                context.commit(invokeStr, {
-                    list,
-                    isDashboard
-                })
-            })
         },
 
         /**

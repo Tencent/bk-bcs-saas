@@ -29,7 +29,7 @@
         <div class="resouce-toggle" v-if="curCluster">
             <span v-for="item in viewList"
                 :key="item.id"
-                :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
+                :class="['tab bcs-ellipsis', { active: viewMode === item.id }]"
                 @click="handleChangeView(item)">
                 {{item.name}}
             </span>
@@ -46,7 +46,7 @@
     import { defineComponent, computed, ref } from '@vue/composition-api'
     import SideMenu from '@/components/menu/index.vue'
     import clusterSelector from '@/components/cluster-selector/index.vue'
-    import menuConfig, { IMenuItem } from '@/store/menu'
+    import menuConfig, { IMenuItem, ISpecialMenuItem } from '@/store/menu'
 
     export default defineComponent({
         name: 'SideNav',
@@ -55,7 +55,8 @@
             clusterSelector
         },
         setup (props, ctx) {
-            const { $store, $i18n, $route, $router } = ctx.root
+            const { $store, $i18n, $router } = ctx.root
+            const featureCluster = ref(!localStorage.getItem('FEATURE_CLUSTER'))
             const curCluster = computed(() => {
                 const cluster = $store.state.cluster.curCluster
                 return cluster && Object.keys(cluster).length ? cluster : null
@@ -67,22 +68,35 @@
             }
             // 切换单集群
             const handleChangeCluster = (cluster) => {
-                if (!cluster.cluster_id) {
-                    $router.push({ name: 'clusterMain' })
-                    // $store.commit('updateCurMenuId', 'CLUSTER')
+                localStorage.setItem('FEATURE_CLUSTER', 'done')
+                if (viewMode.value === 'dashboard') {
+                    $router.replace({
+                        name: 'dashboard',
+                        params: {
+                            clusterId: cluster.cluster_id
+                        }
+                    })
+                } else if (!cluster.cluster_id) {
+                    $router.replace({
+                        name: 'clusterMain',
+                        params: {
+                            clusterId: cluster.cluster_id
+                        }
+                    })
                 } else {
-                    $router.push({
+                    $router.replace({
                         name: 'clusterOverview',
                         params: {
                             clusterId: cluster.cluster_id
                         }
                     })
-                    // $store.commit('updateCurMenuId', 'OVERVIEW')
                 }
             }
 
             // 视图类型
-            const curViewType = ref<'dashboard' | 'cluster'>($route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster')
+            const viewMode = computed<'dashboard' | 'cluster'>(() => {
+                return $store.state.viewMode
+            })
             const viewList = ref([
                 {
                     id: 'cluster',
@@ -95,50 +109,43 @@
             ])
             // 视图切换
             const handleChangeView = (item) => {
-                if (curViewType.value === item.id) return
+                if (viewMode.value === item.id) return
 
-                curViewType.value = item.id
-                if (curViewType.value === 'dashboard') {
+                $store.commit('updateViewMode', item.id)
+                if (viewMode.value === 'dashboard') {
                     $router.push({ name: 'dashboard' })
                 } else {
-                    $router.push({ name: 'clusterMain' })
+                    $router.push({ name: 'clusterOverview' })
                 }
             }
 
             // 菜单列表
+            const featureFlag = computed(() => {
+                return $store.getters.featureFlag || {}
+            })
             const { k8sMenuList, dashboardMenuList } = menuConfig
             const menuList = computed(() => {
-                if (curViewType.value === 'dashboard') {
-                    return dashboardMenuList
-                } else {
-                    return curCluster.value
-                        ? k8sMenuList.filter(item => item.id !== 'CLUSTER')
-                        : k8sMenuList.filter(item => item.id !== 'OVERVIEW')
-                }
+                const menuList = viewMode.value === 'dashboard' ? dashboardMenuList : k8sMenuList
+                return menuList.reduce<(IMenuItem | ISpecialMenuItem)[]>((pre, item) => {
+                    if (item.id && featureFlag.value[item.id]) {
+                        pre.push(item)
+                    } else if (!item.id) {
+                        pre.push(item)
+                    }
+                    return pre
+                }, [])
             })
-            // 根据当前路由名称初始化默认选中的菜单项
-            // const handleInitSelected = () => {
-            //     const initSelected = menuList.value.reduce((pre, item) => {
-            //         const menu = item as IMenuItem
-            //         if (pre) return pre
-
-            //         if (menu?.routeName === $route.name) {
-            //             return menu?.id
-            //         } else if (menu.children) {
-            //             const child = menu.children.find(child => child.routeName === $route.name)
-            //             return child ? child.id : ''
-            //         }
-            //         return ''
-            //     }, '')
-            //     $store.commit('updateCurMenuId', initSelected)
-            // }
 
             const selected = computed(() => {
+                // 当前选择菜单在全局导航守卫中设置的
+                // eslint-disable-next-line camelcase
+                if ($store.state.curMenuId === 'OVERVIEW' && !curCluster.value?.cluster_id) { // 全部集群时预览界面是归属于集群菜单的
+                    return 'CLUSTER'
+                }
                 return $store.state.curMenuId
             })
             // 菜单切换
             const handleMenuChange = (item: IMenuItem) => {
-                // $store.commit('updateCurMenuId', item.id)
                 // 直接取$route会存在缓存，需要重新从root上获取最新路由信息
                 if (ctx.root.$route.name === item.routeName) return
 
@@ -151,14 +158,11 @@
                 })
             }
 
-            // onMounted(() => {
-            //     handleInitSelected()
-            // })
-
             return {
+                featureCluster,
                 curCluster,
                 isShowClusterSelector,
-                curViewType,
+                viewMode,
                 viewList,
                 menuList,
                 selected,

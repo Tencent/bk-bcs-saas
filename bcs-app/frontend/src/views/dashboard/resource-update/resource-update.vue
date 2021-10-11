@@ -547,7 +547,7 @@
 <style lang="postcss" scoped>
 .resource-content {
     padding-bottom: 0;
-    height: 100%;
+    height: calc(100vh - 52px);
     .icon-back {
         font-size: 16px;
         font-weight: bold;

@@ -22,7 +22,7 @@ export default {
     '当前账号没有管理员权限，不可编辑，': ['Current account has no administrator rights and cannot be edited. '],
     '请': ['Please'],
     '点击申请权限': [' Apply permission'],
-    '该项目下已有集群信息，如需更改编排类型和绑定业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change the arrange type and bind the service information, delete the existing cluster first.'],
+    '该项目下已有集群信息，如需更改绑定业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change bind service information, delete the existing cluster first.'],
     '当前账号在蓝鲸配置平台无业务，请联系运维在蓝鲸配置平台关联业务，': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to associate business. '],
     '点击查看业务和运维信息': ['View Business and Operations information'],
     '当前账号在蓝鲸CMDB无业务运维权限，请联系要关联的CMDB业务的运维开启容器服务': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to open BCS Service.'],
@@ -1971,7 +1971,9 @@ export default {
     '本页全选': [''],
     '跨页全选': [''],
     '成功复制IP {number} 个': [''],
-    '查无数据': ['']
+    '查无数据': [''],
+    '集群网络': [''],
+    '加载中': ['']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

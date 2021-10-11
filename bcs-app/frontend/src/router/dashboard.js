@@ -146,7 +146,20 @@ const childRoutes = [
         name: 'dashboardWorkloadDetail',
         props: (route) => ({ ...route.params, kind: route.query.kind }),
         component: DashboardWorkloadDetail,
-        meta: { isDashboard: true }
+        meta: { isDashboard: true },
+        beforeEnter: (to, from, next) => {
+            // 设置当前详情的父级菜单
+            const menuIdMap = {
+                CronJob: 'dashboardWorkloadCronJobs',
+                Deployment: 'dashboardWorkloadDeployments',
+                DaemonSet: 'dashboardWorkloadDaemonSets',
+                Job: 'dashboardWorkloadJobs',
+                Pod: 'dashboardWorkloadPods',
+                StatefulSet: 'dashboardWorkloadStatefulSets'
+            }
+            to.meta.menuId = menuIdMap[to.query.kind]
+            next()
+        }
     },
     // network
     {
@@ -253,7 +266,33 @@ const childRoutes = [
         name: 'dashboardResourceUpdate',
         props: (route) => ({ ...route.params, ...route.query }),
         component: DashboardResourceUpdate,
-        meta: { isDashboard: true }
+        meta: { isDashboard: true },
+        beforeEnter: (to, from, next) => {
+            // 设置当前详情的父级菜单
+            const menuIdMap = {
+                CronJob: 'dashboardWorkloadCronJobs',
+                Deployment: 'dashboardWorkloadDeployments',
+                DaemonSet: 'dashboardWorkloadDaemonSets',
+                Job: 'dashboardWorkloadJobs',
+                Pod: 'dashboardWorkloadPods',
+                StatefulSet: 'dashboardWorkloadStatefulSets',
+                Ingress: 'dashboardNetworkIngress',
+                Service: 'dashboardNetworkService',
+                Endpoints: 'dashboardNetworkEndpoints',
+                ConfigMap: 'dashboardConfigsConfigMaps',
+                Secret: 'dashboardConfigsSecrets',
+                PersistentVolumeClaim: 'dashboardStoragePersistentVolumesClaims',
+                ServiceAccount: 'dashboardRbacServiceAccounts',
+                PersistentVolume: 'dashboardStoragePersistentVolumes',
+                StorageClass: 'dashboardStorageStorageClass',
+                HorizontalPodAutoscaler: 'HPA',
+                GameStatefulSet: 'dashboardGameStatefulSets',
+                GameDeployment: 'dashboardGameDeployments',
+                CustomObject: 'dashboardCustomObjects'
+            }
+            to.meta.menuId = menuIdMap[to.query.kind]
+            next()
+        }
     },
     // hpa
     {

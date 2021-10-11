@@ -181,7 +181,11 @@ function handleReject (error, config) {
         const { status, data, code, request_id } = error.response
         let message = error?.message
         if (status === 401) {
-            window.loginModal && window.loginModal.show()
+            // 登录弹窗
+            // eslint-disable-next-line camelcase
+            window.$loginModal.loginUrl = data.data.login_url.simple
+            window.$loginModal && window.$loginModal.show()
+            return
         } else if (status === 500) {
             message = window.i18n.t('系统出现异常')
         } else if (status === 403) {

@@ -539,6 +539,8 @@
             :cancel-btn-text="$t('取消')"
             :confirm-callback="deleteCluster">
         </tip-dialog>
+
+        <ProjectConfig v-model="isProjectConfDialogShow"></ProjectConfig>
     </div>
 </template>
 
@@ -551,13 +553,15 @@
     import StatusMarkCorner from './status-mark-corner'
     import statusHoc from './status-hoc'
     import ApplyHost from './apply-host'
+    import ProjectConfig from '@/views/project/project-config.vue'
 
     export default {
         components: {
             tipDialog,
             StatusProgress: statusHoc(StatusProgress),
             StatusMarkCorner: statusHoc(StatusMarkCorner),
-            ApplyHost
+            ApplyHost,
+            ProjectConfig
         },
         mixins: [applyPerm],
         data () {
@@ -614,7 +618,8 @@
                 reUpgradeDialog: {
                     isShow: false,
                     cluster: {}
-                }
+                },
+                isProjectConfDialogShow: false
             }
         },
         computed: {
@@ -687,6 +692,7 @@
                     } else if (data.kind === 1) {
                         this.arrangeType = 'K8S'
                     }
+                    this.$store.commit('updateCurProject', data)
                 } catch (e) {
                     console.log(e)
                 }
@@ -1310,9 +1316,7 @@
             },
 
             showProjectConfDialog () {
-                if (window.bus) {
-                    window.bus.$emit('showProjectConfDialog')
-                }
+                this.isProjectConfDialogShow = true
             }
         }
     }

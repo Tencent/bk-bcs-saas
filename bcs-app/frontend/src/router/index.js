@@ -20,7 +20,7 @@ import HPARoutes from './hpa'
 import crdController from './crdcontroller.js'
 import storageRoutes from './storage'
 import dashboardRoutes from './dashboard'
-// import menuConfig from '@/store/menu'
+import menuConfig from '@/store/menu'
 
 Vue.use(VueRouter)
 
@@ -73,16 +73,17 @@ const cancelRequest = async () => {
 }
 
 router.beforeEach(async (to, from, next) => {
+    // 设置必填路由参数
     if (!to.params.projectId && store.state.curProjectId) {
         to.params.projectId = store.state.curProjectId
     }
     if (!to.params.projectCode && store.state.curProjectCode) {
         to.params.projectCode = store.state.curProjectCode
     }
-    console.log(to)
-    // const menuList = to.path.indexOf('dashboard') > -1 ? menuConfig.dashboardMenuList : menuConfig.k8sMenuList
-    // const activeMenuId = menuList.find()
-    // store.commit('updateCurMenuId', activeMenuId)
+    if (!to.params.clusterId && store.state.cluster.curCluster) {
+        to.params.clusterId = store.state.cluster.curCluster.cluster_id
+    }
+
     await cancelRequest()
     next()
 })
@@ -94,6 +95,29 @@ router.afterEach((to, from) => {
     }
     if (containerEle && containerEle[0] && containerEle[0].scrollTop !== 0) {
         containerEle[0].scrollTop = 0
+    }
+
+    // 设置左侧菜单栏选中项
+    let activeMenuId = to.meta?.menuId // 1. 是否指定了菜单ID
+    if (!activeMenuId) { // 2. 在菜单配置中查找当前路由对应的菜单ID
+        const menuList = to.meta.isDashboard ? menuConfig.dashboardMenuList : menuConfig.k8sMenuList
+        menuList.find(menu => {
+            if (menu?.routeName === to.name) {
+                activeMenuId = menu?.id
+                return true
+            } else if (menu.children) {
+                const child = menu.children.find(child => child.routeName === to.name)
+                activeMenuId = child?.id
+                return !!activeMenuId
+            }
+            return false
+        })
+    }
+    if (activeMenuId) {
+        console.log(activeMenuId)
+        store.commit('updateCurMenuId', activeMenuId)
+    } else {
+        console.warn('找不到当前路由对应的菜单项，请检查', to)
     }
 })
 

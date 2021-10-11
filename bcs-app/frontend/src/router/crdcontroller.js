@@ -48,7 +48,10 @@ const childRoutes = [
     {
         path: ':projectCode/cluster/:clusterId/crdcontroller/:name/instances/:id',
         name: 'crdcontrollerInstanceDetail',
-        component: Detail
+        component: Detail,
+        meta: {
+            menuId: 'COMPONENTS'
+        }
     }
 ]
 
