@@ -1362,7 +1362,7 @@
                     name: 'clusterNodeOverview',
                     params: {
                         projectId: node.project_id,
-                        projectCode: node.project_code,
+                        projectCode: this.$route.params.projectCode,
                         nodeId: node.inner_ip,
                         clusterId: node.cluster_id,
                         backTarget: 'nodeMain'

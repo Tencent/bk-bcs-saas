@@ -5,13 +5,13 @@
         <main class="main">
             <div class="form-item">
                 <div class="form-item-label">{{ $t('业务编排类型') }}</div>
-                <div class="form-item-content">
+                <div class="form-item-content kind">
                     <div v-for="item in kindList"
                         :class="['kind-panel', { active: kind === item.id, disabled: item.disabled }]"
                         :key="item.id"
                         v-bk-tooltips="{
                             disabled: !item.disabled && !item.tips,
-                            html: item.tips
+                            content: item.tips
                         }"
                         @click="handleKindChange(item)">
                         <div class="kind-panel-title">{{ item.name }}</div>
@@ -23,18 +23,16 @@
             <div class="form-item mt30">
                 <div class="form-item-label">{{ $t('关联CMDB业务') }}</div>
                 <div class="form-item-content cc-list">
-                    <bk-select class="cc-selector"
+                    <bcs-select class="cc-selector"
                         :placeholder="$t('请选择关联业务')"
                         v-model="ccKey"
-                        :disabled="!ccList.length"
-                        searchable
-                        @change="handleCmdbChange">
-                        <bk-option v-for="item in ccList"
+                        searchable>
+                        <bcs-option v-for="item in ccList"
                             :key="item.id"
                             :id="item.id"
                             :name="item.name">
-                        </bk-option>
-                    </bk-select>
+                        </bcs-option>
+                    </bcs-select>
                 </div>
                 <div class="form-item-tips" v-if="!ccList.length && $INTERNAL">
                     {{ $t('请联系需要关联的CMDB业务的运维') }}
@@ -64,27 +62,21 @@
     import { isEmpty } from '@open/common/util'
     export default {
         name: 'bcs-unregistry',
-        props: {
-            ccList: {
-                type: Array,
-                default: () => []
-            },
-            defaultKind: {
-                type: Number,
-                default: 1
-            }
-        },
         data () {
             return {
                 kindList: [],
                 guideList: [],
-                kind: this.defaultKind,
+                kind: 1,
+                ccList: [],
                 ccKey: ''
             }
         },
         computed: {
             enableBtn () {
                 return !isEmpty(this.ccKey)
+            },
+            curProject () {
+                return this.$store.state.curProject
             }
         },
         created () {
@@ -128,15 +120,14 @@
                 }
             ]
         },
+        mounted () {
+            this.fetchCCList()
+        },
         methods: {
             handleKindChange (item) {
                 if (item.disabled) return
 
-                this.$emit('kind-change', item.id, this.kind)
                 this.kind = item.id
-            },
-            handleCmdbChange (value, oldvalue) {
-                this.$emit('cc-change', value, oldvalue)
             },
             /**
              * 启用容器服务 更新项目
@@ -153,14 +144,10 @@
                         use_bk: true,
                         cc_app_id: this.ccKey
                     }))
-
-                    // await this.$store.dispatch('getProjectList')
+                    this.isLoading = false
 
                     this.$nextTick(() => {
                         window.location.reload()
-                        // 这里不需要设置 isLoading 为 false，页面刷新后，isLoading 的值会重置为 true
-                        // 如果设置了后，页面会闪烁一下
-                        // this.isLoading = false
                     })
                 } catch (e) {
                     console.error(e)
@@ -171,15 +158,11 @@
              * 获取关联 CC 的数据
              */
             async fetchCCList () {
-                try {
-                    const res = await this.$store.dispatch('getCCList', {
-                        project_kind: this.kind,
-                        project_id: this.curProject.project_id
-                    })
-                    this.ccList = [...(res.data || [])]
-                } catch (e) {
-                    this.kind = this.prevKind
-                }
+                const res = await this.$store.dispatch('getCCList', {
+                    project_kind: this.kind,
+                    project_id: this.curProject.project_id
+                }).catch(() => ({ data: [] }))
+                this.ccList = [...(res.data || [])]
             }
         }
     }

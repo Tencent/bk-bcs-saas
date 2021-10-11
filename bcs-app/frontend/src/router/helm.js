@@ -31,17 +31,26 @@ const childRoutes = [
     {
         path: 'helm/tpl/:tplId',
         name: 'helmTplDetail',
-        component: helmTplDetail
+        component: helmTplDetail,
+        meta: {
+            menuId: 'helmTplList'
+        }
     },
     {
         path: 'helm/instance/:tplId',
         name: 'helmTplInstance',
-        component: helmTplInstance
+        component: helmTplInstance,
+        meta: {
+            menuId: 'helmTplList'
+        }
     },
     {
         path: 'helm/app/:appId',
         name: 'helmAppDetail',
-        component: helmAppDetail
+        component: helmAppDetail,
+        meta: {
+            menuId: 'helms'
+        }
     }
 ]
 

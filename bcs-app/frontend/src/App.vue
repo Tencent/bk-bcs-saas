@@ -8,15 +8,17 @@
         <!-- 权限弹窗 -->
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
         <!-- 登录弹窗 -->
+        <BkPaaSLogin ref="login"></BkPaaSLogin>
     </div>
 </template>
 <script>
     import Navigation from '@/views/navigation.vue'
     import ProjectCreate from '@/views/project/project-create.vue'
+    import BkPaaSLogin from '@blueking/paas-login'
 
     export default {
         name: 'app',
-        components: { Navigation, ProjectCreate },
+        components: { Navigation, ProjectCreate, BkPaaSLogin },
         data () {
             return {
                 isLoading: false,
@@ -30,7 +32,8 @@
                 return this.$store.state.isEn ? `${cls} english` : cls
             },
             routerKey () {
-                return this.$route.params.projectCode
+                const { projectCode = '' } = this.$route.params
+                return `${projectCode}-${this.$route.meta.isDashboard}`
             }
         },
         created () {
@@ -38,6 +41,7 @@
         },
         mounted () {
             document.title = this.$t('容器服务')
+            window.$loginModal = this.$refs.login
         },
         methods: {
             // 初始化BCS基本数据
@@ -46,7 +50,7 @@
                 await Promise.all([
                     this.$store.dispatch('userInfo'),
                     this.$store.dispatch('getProjectList')
-                ])
+                ]).catch((err) => console.log(err))
                 this.isLoading = false
             },
             handleCreateProject () {

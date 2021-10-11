@@ -94,7 +94,10 @@ const childRoutes = [
             {
                 path: 'templateset/:templateId/instantiation',
                 name: 'instantiation',
-                component: Instantiation
+                component: Instantiation,
+                meta: {
+                    menuId: "TEMPLATESET"
+                }
             },
             {
                 path: 'mesos',
@@ -147,7 +150,10 @@ const childRoutes = [
                     {
                         path: 'templateset/deployment/:templateId',
                         name: 'k8sTemplatesetDeployment',
-                        component: K8sCreateDeployment
+                        component: K8sCreateDeployment,
+                        meta: {
+                            menuId: "TEMPLATESET"
+                        }
                     },
                     {
                         path: 'templateset/service/:templateId',
@@ -192,7 +198,10 @@ const childRoutes = [
                     {
                         path: 'yaml-templateset/:templateId',
                         name: 'K8sYamlTemplateset',
-                        component: K8sYamlTemplateset
+                        component: K8sYamlTemplateset,
+                        meta: {
+                            menuId: "TEMPLATESET"
+                        }
                     }
                 ]
             },

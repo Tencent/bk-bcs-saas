@@ -35,7 +35,10 @@ const childRoutes = [
     {
         path: 'cluster/create',
         name: 'clusterCreate',
-        component: global.REGION === 'ieod' ? ClusterCreate : ClusterCreateExternal
+        component: global.REGION === 'ieod' ? ClusterCreate : ClusterCreateExternal,
+        meta: {
+            menuId: 'CLUSTER'
+        }
     },
     // 集群总览
     {
@@ -48,25 +51,37 @@ const childRoutes = [
     {
         path: 'cluster/:clusterId/node',
         name: 'clusterNode',
-        component: ClusterNode
+        component: ClusterNode,
+        meta: {
+            menuId: 'OVERVIEW'
+        }
     },
     // 集群里的集群信息
     {
         path: 'cluster/:clusterId/info',
         name: 'clusterInfo',
-        component: ClusterInfo
+        component: ClusterInfo,
+        meta: {
+            menuId: 'OVERVIEW'
+        }
     },
     // 集群里的具体节点
     {
         path: 'cluster/:clusterId/node/:nodeId',
         name: 'clusterNodeOverview',
-        component: ClusterNodeOverview
+        component: ClusterNodeOverview,
+        meta: {
+            menuId: 'OVERVIEW'
+        }
     },
     // 节点详情页面跳转的容器详情页面
     {
         path: 'cluster/:clusterId/node/:nodeId/container/:containerId',
         name: 'containerDetailForNode',
-        component: ContainerDetailForNode
+        component: ContainerDetailForNode,
+        meta: {
+            menuId: 'OVERVIEW'
+        }
     }
 ]
 

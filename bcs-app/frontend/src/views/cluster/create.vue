@@ -595,17 +595,13 @@
 </template>
 
 <script>
-    import { bus } from '@open/common/bus'
-
-    import bkIPSearcher from '@open/components/ip-searcher'
-    import applyPerm from '@open/mixins/apply-perm'
-    import tipDialog from '@open/components/tip-dialog'
-    import ClusterGuide from './guide'
+    // import { bus } from '@/common/bus'
+    import applyPerm from '@/mixins/apply-perm'
+    import tipDialog from '@/components/tip-dialog'
     import ApplyHost from './apply-host.vue'
 
     export default {
         components: {
-            ClusterGuide,
             tipDialog,
             'bk-ip-searcher': bkIPSearcher,
             ApplyHost
@@ -1011,18 +1007,18 @@
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
-                    if (!this.permissions.create) {
-                        const url = this.createApplyPermUrl({
-                            policy: 'create',
-                            projectCode: this.projectCode,
-                            idx: 'cluster_test,cluster_prod'
-                        })
-                        bus.$emit('show-apply-perm', {
-                            data: {
-                                apply_url: url
-                            }
-                        })
-                    }
+                    // if (!this.permissions.create) {
+                    //     const url = this.createApplyPermUrl({
+                    //         policy: 'create',
+                    //         projectCode: this.projectCode,
+                    //         idx: 'cluster_test,cluster_prod'
+                    //     })
+                    //     bus.$emit('show-apply-perm', {
+                    //         data: {
+                    //             apply_url: url
+                    //         }
+                    //     })
+                    // }
                 } catch (e) {
                     console.warn(e)
                 }

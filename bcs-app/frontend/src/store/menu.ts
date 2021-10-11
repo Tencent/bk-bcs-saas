@@ -26,20 +26,20 @@ const customResource = window.i18n.t('自定义资源')
 export interface IMenuItem {
     name: string; // 菜单中文名称
     icon?: string; // 菜单ICON
-    id: string; // 菜单ID（和feature_flags接口的菜单ID匹配，用于控制是否显示以及选中时的唯一标识）
-    routeName?: string; // 菜单对应的路由名称（用于路由跳转）
+    id: string; // 菜单ID（和feature_flags接口的菜单ID匹配，用于判断菜单显示和选中的唯一标识）,注意：ID和routeName有时是不一样的
+    routeName?: string; // 菜单对应的路由名称（用于路由跳转），注意：routeName不能作为唯一ID
     disable?: boolean;
     children?: IMenuItem[]; // 子菜单
 }
-export interface SpecialMenuItem {
+export interface ISpecialMenuItem {
     type: 'line'; // 特殊意义的菜单项
     id?: string;
 }
 export interface IMenu {
-    dashboardMenuList: (IMenuItem | SpecialMenuItem)[];
-    k8sMenuList: (IMenuItem | SpecialMenuItem)[];
+    dashboardMenuList: (IMenuItem | ISpecialMenuItem)[];
+    k8sMenuList: (IMenuItem | ISpecialMenuItem)[];
 }
-
+// 左侧菜单配置
 const menu: IMenu = {
     dashboardMenuList: [
         {
