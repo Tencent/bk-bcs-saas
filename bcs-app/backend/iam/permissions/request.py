@@ -12,6 +12,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from abc import ABC
 from collections import namedtuple
 from typing import Dict, List, Optional, Union
 
@@ -20,7 +21,7 @@ from iam import Resource
 from iam.apply import models
 
 
-class ResourceRequest:
+class ResourceRequest(ABC):
     resource_type: str = ''
     attr: Optional[Dict] = None
 

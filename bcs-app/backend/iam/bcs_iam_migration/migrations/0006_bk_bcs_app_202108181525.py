@@ -28,7 +28,7 @@ def forward_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    migration_json = "0006_action_group.json"
+    migration_json = "0006_action_groups.json"
 
     dependencies = [('bcs_iam_migration', '0005_bk_bcs_app_202108181525')]
 

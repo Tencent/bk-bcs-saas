@@ -37,7 +37,7 @@ class ResourceAPIView(APIView):
             request.LANGUAGE_CODE = "en"
         return {"language": language}
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = QueryResourceSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
 

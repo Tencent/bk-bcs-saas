@@ -16,7 +16,8 @@ from django.conf.urls import url
 
 from .. import views
 
+resource_types = 'projects|namespaces'
+
 urlpatterns = [
-    url(r'^projects/', views.ResourceAPIView.as_view()),
-    url(r'^namespaces/', views.ResourceAPIView.as_view()),
+    url(r'^(?P<resource_type>{})/'.format(resource_types), views.ResourceAPIView.as_view()),
 ]
