@@ -751,5 +751,8 @@
             min-width: 100px;
         }
     }
+    /deep/ .bk-resize-layout {
+        border: none;
+    }
 }
 </style>
