@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 针对k8s的应用列表部分
 TODO: 状态流转需要明确
 """
-import base64
 import json
 import logging
 from datetime import datetime
@@ -24,23 +23,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs.k8s import K8SClient
-from backend.templatesets.legacy_apps.configuration.models import (
-    MODULE_DICT,
-    Application,
-    Deplpyment,
-    ShowVersion,
-    Template,
-    VersionedEntity,
-)
+from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT
 from backend.templatesets.legacy_apps.instance.constants import InsState
-from backend.templatesets.legacy_apps.instance.models import (
-    InstanceConfig,
-    InstanceEvent,
-    MetricConfig,
-    VersionInstance,
-)
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import ErrorCode as ErrorCodeCls
 from backend.utils.error_codes import error_codes
 
 from .. import constants as app_constants

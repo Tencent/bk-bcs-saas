@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="right">{{extraClusterId}}</div>
                             </div>
-                            <div class="row" v-if="curClusterInPage.type !== 'mesos'">
+                            <div class="row">
                                 <div class="left">
                                     <p>{{$t('集群版本')}}</p>
                                 </div>
@@ -298,9 +298,11 @@
                                     <th style="width: 160px; padding-left: 30px;">{{$t('主机名称')}}</th>
                                     <th style="width: 220px;">{{$t('内网IP')}}</th>
                                     <th style="width: 120px;">{{$t('Agent状态')}}</th>
-                                    <th style="width: 170px;">{{$t('机房')}}</th>
-                                    <th style="width: 150px;">{{$t('机架')}}</th>
-                                    <th style="width: 100px;">{{$t('机型')}}</th>
+                                    <template v-if="$INTERNAL">
+                                        <th style="width: 170px;">{{$t('机房')}}</th>
+                                        <th style="width: 150px;">{{$t('机架')}}</th>
+                                        <th style="width: 100px;">{{$t('机型')}}</th>
+                                    </template>
                                 </tr>
                             </thead>
                             <tbody>
@@ -344,30 +346,32 @@
                                                 {{$t('错误')}}
                                             </span>
                                         </td>
-                                        <td>
-                                            <bcs-popover placement="top">
-                                                <div class="idcunit vm">{{host.idc || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.idc || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
-                                        <td>
-                                            <bcs-popover placement="top">
-                                                <div class="server-rack vm">{{host.server_rack || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.server_rack || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
-                                        <td>
-                                            <bcs-popover placement="top">
-                                                <div class="device-class vm">{{host.device_class || '--'}}</div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.device_class || '--'}}</p>
-                                                </template>
-                                            </bcs-popover>
-                                        </td>
+                                        <template v-if="$INTERNAL">
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="idcunit vm">{{host.idc || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.idc || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="server-rack vm">{{host.server_rack || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.server_rack || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                            <td>
+                                                <bcs-popover placement="top">
+                                                    <div class="device-class vm">{{host.device_class || '--'}}</div>
+                                                    <template slot="content">
+                                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{host.device_class || '--'}}</p>
+                                                    </template>
+                                                </bcs-popover>
+                                            </td>
+                                        </template>
                                     </tr>
                                 </template>
                                 <template v-if="!curPageData.length && !dialogConf.loading">
@@ -512,8 +516,11 @@
             clusterId () {
                 return this.$route.params.clusterId
             },
+            clusterList () {
+                return this.$store.state.cluster.clusterList
+            },
             curCluster () {
-                const data = this.$store.state.cluster.clusterList.find(item => item.cluster_id === this.clusterId) || {}
+                const data = this.clusterList.find(item => item.cluster_id === this.clusterId) || {}
                 this.curClusterInPage = Object.assign({}, data)
                 return JSON.parse(JSON.stringify(data))
             },
@@ -628,16 +635,14 @@
                     this.coes = data.type === 'k8s' ? 'BCS-K8S' : data.type.toUpperCase()
 
                     this.fetchClusterOverview()
-                    if (this.curClusterInPage.type !== 'mesos') {
-                        this.extraClusterId = data.extra_cluster_id || '--'
-                        this.version = data.version || '--'
-                        this.maxPodNum = data.max_pod_num || '--'
-                        this.clusterCidr = data.cluster_cidr || '--'
-                        this.maxServiceNum = data.max_service_num || '--'
-                        this.maxNodePodNum = data.max_node_pod_num || '--'
-                        this.vpcId = data.vpc_id || '--'
-                        this.kubeProxy = data.kube_proxy || '--'
-                    }
+                    this.extraClusterId = data.extra_cluster_id || '--'
+                    this.version = data.version || '--'
+                    this.maxPodNum = data.max_pod_num || '--'
+                    this.clusterCidr = data.cluster_cidr || '--'
+                    this.maxServiceNum = data.max_service_num || '--'
+                    this.maxNodePodNum = data.max_node_pod_num || '--'
+                    this.vpcId = data.vpc_id || '--'
+                    this.kubeProxy = data.kube_proxy || '--'
 
                     this.fetchVariableInfo()
                 } catch (e) {
@@ -655,7 +660,7 @@
                         clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
                     })
                     const cpu = res.data.cpu_usage || {}
-                    const mem = res.data.mem_usage || {}
+                    const mem = res.data.memory_usage || {}
                     const cpuTotal = cpu.total || 0
                     const memTotal = formatBytes(mem.total_bytes) || 0
 
@@ -921,6 +926,19 @@
                         message: res.message || res.data.msg || res.statusText
                     })
                 })
+                // 更新集群信息
+                const curClusterList = this.clusterList.map(item => {
+                    if (item.cluster_id === clusterId) {
+                        item.name = this.clusterEditName
+                    }
+                    return item
+                })
+                const storeCluster = this.$store.state.cluster.curCluster || {}
+                const newStoreCluster = curClusterList.find(item => item.cluster_id === storeCluster.cluster_id)
+                if (newStoreCluster) {
+                    this.$store.commit('cluster/forceUpdateCurCluster', newStoreCluster)
+                }
+                this.$store.commit('cluster/forceUpdateClusterList', curClusterList)
             },
 
             updateClusterDesc () {

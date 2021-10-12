@@ -16,7 +16,7 @@
                             <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新增变量')}}</span>
                         </bk-button>
-                        
+
                         <bk-button class="bk-button bk-default import-btn">
                             <span @click="handleFileImport">{{$t('文件导入')}}</span>
                         </bk-button>
@@ -64,7 +64,7 @@
                                 </template>
 
                                 <template v-if="row.category === 'sys'">
-                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled" v-bk-tooltips.left="row.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')">{{$t('删除')}}</a>
+                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled" v-bk-tooltips.left="row.category === 'sys' ? $t('系统内置变量，不能删除') : $t('已经被引用，不能删除')">{{$t('删除')}}</a>
                                 </template>
                                 <template v-else>
                                     <a href="javascript:void(0);" class="ml10 bk-text-button" @click="removeVar(row)">{{$t('删除')}}</a>
@@ -167,7 +167,7 @@
                 </div>
             </template>
         </bk-dialog>
-        
+
         <bk-dialog
             :is-show.sync="varDialogConfig.isShow"
             :width="varDialogConfig.width"
@@ -510,7 +510,7 @@
                             })
                             return false
                         }
-                        
+
                         if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
                             varList.forEach(varItem => {
                                 this.batchVarList.forEach(matchItem => {
@@ -536,7 +536,7 @@
                         return false
                     }
                 }
-                
+
                 if (this.curBatchVar.scope === 'namespace') {
                     data = {
                         ns_vars: {}
@@ -1000,15 +1000,6 @@
                         }
 
                         routeName = k8sRoutes[type]
-                    } else if (this.curProjectData.projectKind === 2) {
-                        const mesosRoutes = {
-                            'application': 'mesosTemplatesetApplication',
-                            'deployment': 'mesosTemplatesetDeployment',
-                            'service': 'mesosTemplatesetService',
-                            'configmap': 'mesosTemplatesetConfigmap',
-                            'secret': 'mesosTemplatesetSecret'
-                        }
-                        routeName = mesosRoutes[type]
                     }
                     if (routeName) {
                         this.$router.push({
@@ -1026,12 +1017,12 @@
             hideQuoteDialog () {
                 this.quoteDialogConf.isShow = false
             },
-            
+
             handleFileImport () {
                 this.$refs.fileInput.click()
             },
 
-            handleFileInput () {
+            handleFileInput (e) {
                 const fileInput = this.$refs.fileInput
                 const self = this
                 if (fileInput.files && fileInput.files.length) {
@@ -1054,16 +1045,13 @@
                                     })
                                     self.refresh()
                                 }).catch((e) => {
-                                    self.$bkMessage({
-                                        theme: 'error',
-                                        message: e.message
-                                    })
                                 })
                             }
                         }
                         reader.readAsText(file)
                     }
                 }
+                e.target.value = ''
             },
 
             handleShowVarExample () {

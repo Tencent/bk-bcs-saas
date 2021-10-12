@@ -675,4 +675,7 @@
         width: calc(100% - 15px);
         font-size: 12px;
     }
+    .bk-selector-input {
+        padding-right: 20px;
+    }
 </style>

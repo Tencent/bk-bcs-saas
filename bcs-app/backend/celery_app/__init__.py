@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 from typing import Dict, Optional
 
@@ -55,8 +56,7 @@ class CeleryConfig(AppConfig):
         from backend.accounts.bcs_perm import tasks as bcs_tasks  # noqa
         from backend.container_service.clusters import node_tasks  # noqa
         from backend.container_service.clusters import tasks as cluster_tasks  # noqa
-        from backend.container_service.infras.hosts.terraform import tasks as host_tasks
-        from backend.container_service.observability.metric_mesos import tasks as metric_tasks  # noqa
+        from backend.container_service.infras.hosts.terraform import tasks as host_tasks  # noqa
         from backend.helm.app import tasks as helm_app_tasks  # noqa
         from backend.helm.helm import tasks as helm_chart_tasks  # noqa
         from backend.packages.blue_krill.async_utils import poll_task  # noqa

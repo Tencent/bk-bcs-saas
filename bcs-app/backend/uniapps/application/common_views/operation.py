@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 
@@ -20,9 +21,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client
-from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -189,10 +188,6 @@ class ReschedulePodsViewSet(InstanceAPI, viewsets.ViewSet):
         NOTE: 这里需要注意，因为前端触发，用户需要在前端展示调用成功后，确定任务都已经下发了
         因此，这里采用同步操作
         """
-        # TODO: 先仅允许类型为k8s
-        if request.project.kind == ProjectKind.MESOS.value:
-            raise ValidationError(_("仅允许非mesos类型操作"))
-
         # 获取请求参数
         data_slz = ReschedulePodsSLZ(data=request.data)
         data_slz.is_valid(raise_exception=True)

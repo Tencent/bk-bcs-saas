@@ -163,7 +163,7 @@ function handleResponse ({ config, response, resolve, reject }) {
     } else {
         const code = response.code
         if (code !== 0 && config.globalError) {
-            reject({ message: response.message, code: code, data: response.data })
+            reject({ message: response.message, code: code, data: response.data, request_id: response.request_id })
         } else {
             resolve(config.originalResponse ? response : response.data, config)
         }
@@ -172,7 +172,7 @@ function handleResponse ({ config, response, resolve, reject }) {
 }
 
 // 不弹tips的特殊状态码
-export const CUSTOM_HANDLE_CODE = [4005, 4003, 4005002, 4005003]
+export const CUSTOM_HANDLE_CODE = [4005, 4003, 4005002, 4005003, 4005005]
 /**
  * 处理 http 请求失败结果
  *
@@ -241,7 +241,9 @@ function handleReject (error, config) {
         }
 
         error.message = message
-        !CUSTOM_HANDLE_CODE.includes(code) && messageError(message)
+        // eslint-disable-next-line camelcase
+        const errorMessage = (code === 500 && error?.request_id) ? `${message}( ${error?.request_id.slice(0, 8)} )` : message
+        !CUSTOM_HANDLE_CODE.includes(code) && messageError(errorMessage)
         return Promise.reject(error)
     }
     messageError(error.message)

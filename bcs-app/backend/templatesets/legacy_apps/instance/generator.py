@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 生成配置文件
 DONE:
 - 配置文件中 添加 namespace 相关的变量
@@ -34,11 +34,10 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.constants import ClusterType
 from backend.apps.ticket.models import TlsCert
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
-from backend.container_service.observability.metric_mesos.models import Metric
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.resources.constants import K8sServiceTypes
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.utils.basic import getitems
@@ -57,9 +56,6 @@ from .constants import (
     ANNOTATIONS_WEB_CACHE,
     API_VERSION,
     APPLICATION_ID_SEPARATOR,
-    APPLICATION_SYS_CONFIG,
-    CONFIGMAP_SYS_CONFIG,
-    DEPLPYMENT_SYS_CONFIG,
     INGRESS_ID_SEPARATOR,
     K8S_CONFIGMAP_SYS_CONFIG,
     K8S_CUSTOM_LOG_ENV_KEY,
@@ -77,19 +73,11 @@ from .constants import (
     K8S_STATEFULSET_SYS_CONFIG,
     LABEL_MONITOR_LEVEL,
     LABEL_MONITOR_LEVEL_DEFAULT,
-    LABEL_SERVICE_NAME,
     LABLE_CONTAINER_SELECTOR_LABEL,
-    LABLE_METRIC_SELECTOR_LABEL,
     LOG_CONFIG_MAP_APP_LABEL,
     LOG_CONFIG_MAP_KEY_SUFFIX,
     LOG_CONFIG_MAP_PATH_PRFIX,
     LOG_CONFIG_MAP_SUFFIX,
-    MESOS_CUSTOM_LOG_LABEL_KEY,
-    MESOS_IMAGE_SECRET,
-    MESOS_MODULE_NAME,
-    SECRET_SYS_CONFIG,
-    SEVICE_SYS_CONFIG,
-    SEVICE_WEIGHT_LABEL_PREFIX,
 )
 from .funutils import render_mako_context, update_nested_dict
 from .resources.utils import handle_number_var
@@ -102,7 +90,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
-mesos_res_mapping = OrderedDict()
 k8s_res_mapping = OrderedDict()
 
 
@@ -175,19 +162,9 @@ class ProfileGenerator:
         return db_config
 
     def get_db_config(self):
-        # metric 单独处理
-        if self.resource_name == "metric":
-            name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
-            application_id = name_list[0]
-            metric_id = name_list[1]
-            resource_kind = name_list[2]
-            self.metric_id = metric_id
-            return self.handle_db_config(
-                {"application_id": application_id, "metric_id": metric_id, "resource_kind": resource_kind}
-            )
         # Application 中非标准日志采集时默认的 configmap
         is_non_standard_log = True if str(self.resource_id).find(APPLICATION_ID_SEPARATOR) >= 0 else False
-        if self.resource_name in ["configmap", "K8sConfigMap"] and is_non_standard_log:
+        if self.resource_name == "K8sConfigMap" and is_non_standard_log:
             name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
             application_id = name_list[0]
             container_name = name_list[1]
@@ -396,23 +373,6 @@ class ProfileGenerator:
         }
         return srt_config
 
-    def get_metric_lables(self, db_config):
-        """应用中需要写入关联metric的信息
-        metric 才能通过selector 关联到应用
-        """
-        web_cache = db_config.get("webCache") or {}
-        is_metric = web_cache.get("isMetric") or False
-        metric_id_list = web_cache.get("metricIdList") or []
-
-        metric_lables = {}
-        if is_metric and metric_id_list:
-            metric_list = Metric.objects.filter(id__in=metric_id_list, is_deleted=False)
-            metric_name_list = metric_list.values_list("name", flat=True)
-            for _m_name in metric_name_list:
-                _m_key = "%s.%s" % (LABLE_METRIC_SELECTOR_LABEL, _m_name)
-                metric_lables[_m_key] = _m_name
-        return metric_lables
-
     def inject_labels_for_monitor(self, labels, resource_kind, name):
         # labels
         labels["io.tencent.bcs.controller.type"] = resource_kind
@@ -484,447 +444,6 @@ class K8sProfileGenerator(ProfileGenerator):
         return CATE_SHOW_NAME.get(self.resource_name, self.resource_name)
 
 
-class MesosProfileGenerator(ProfileGenerator):
-    def __init__(self, resource_id, namespace_id, is_validate=True, **params):
-        super().__init__(resource_id, namespace_id, is_validate, **params)
-
-        global mesos_res_mapping
-        from backend.templatesets.legacy_apps.instance.resources import BCSResource
-
-        for res in BCSResource:
-            if MESOS_MODULE_NAME not in res.__module__:
-                continue
-
-            name = str(res.__name__).lower()
-            component = name + "s"  # make plural
-            if component in mesos_res_mapping:
-                continue
-
-            mesos_res_mapping[component] = ""
-            mesos_res_mapping[component] = res()
-            mesos_res_mapping[name] = component
-
-    def __getattr__(self, name):
-        global mesos_res_mapping
-        if name in mesos_res_mapping:
-            component = mesos_res_mapping[name]
-            if type(component) is not str:
-                return component
-
-            return mesos_res_mapping[component]
-
-        return object.__getattribute__(self, name)
-
-
-class ApplicationProfileGenerator(MesosProfileGenerator):
-    resource_name = "application"
-    resource_sys_config = APPLICATION_SYS_CONFIG
-
-    def check_image_secret(self):
-        """是否使用secret中账号信息
-        1. cluster_id 是否在开启的白名单中
-        2. 命名空间的 has_image_secret 为 True
-        """
-        cluster_id = self.context["SYS_CLUSTER_ID"]
-        enabled, wlist = get_func_controller("HAS_IMAGE_SECRET")
-        if not enabled and (cluster_id not in wlist):
-            return False
-        return self.has_image_secret
-
-    def handle_db_config(self, db_config):
-        """添加选取到与关联的Application 的label"""
-        # 删除前端多余的字段
-        # 0. 处理自定义网络模式
-        db_config = handel_custom_network_mode(db_config)
-        # 1.1 处理调度约束
-        intersection_item = db_config.get("constraint", {}).get("intersectionItem", [])
-        new_intersection_item = handle_intersection_item(intersection_item)
-        db_config["constraint"]["intersectionItem"] = new_intersection_item
-        # 1.3 kill 策略
-        kill_p = db_config["killPolicy"]
-        kill_p["gracePeriod"] = handle_number_var(
-            kill_p["gracePeriod"],
-            "Application[%s]gracePeriod" % self.resource_show_name,
-            self.is_preview,
-            self.is_validate,
-        )
-        # 1.4 Restart
-        re_p = db_config["restartPolicy"]
-        re_p["interval"] = handle_number_var(
-            re_p["interval"], "Application[%s]interval" % self.resource_show_name, self.is_preview, self.is_validate
-        )
-        re_p["backoff"] = handle_number_var(
-            re_p["backoff"], "Application[%s]backoff" % self.resource_show_name, self.is_preview, self.is_validate
-        )
-        re_p["maxtimes"] = handle_number_var(
-            re_p["maxtimes"], "Application[%s]maxtimes" % self.resource_show_name, self.is_preview, self.is_validate
-        )
-        # 1.5 实例数
-        db_config["spec"]["instance"] = handle_number_var(
-            db_config["spec"]["instance"],
-            "Application[%s]instance" % self.resource_show_name,
-            self.is_preview,
-            self.is_validate,
-        )
-
-        # 2. 处理 containers 中的字段
-        is_custom_log_path = False
-        containers = getitems(db_config, ["spec", "template", "spec", "containers"], [])
-        for _c in containers:
-            # 命令参数解析
-            args_text = _c.get("args_text", "")
-            args_list = shlex.split(args_text)
-            _c["args"] = args_list
-
-            remove_key(_c, "desc")
-            remove_key(_c, "args_text")
-            remove_key(_c, "parameter_list")
-            remove_key(_c, "imageName")
-            remove_key(_c, "imageVersion")
-            # 是否添加账号信息
-            if self.check_image_secret():
-                _c["imagePullUser"] = _c.get("imagePullUser") or f"secret::{MESOS_IMAGE_SECRET}||user"
-                _c["imagePullPasswd"] = _c.get("imagePullPasswd") or f"secret::{MESOS_IMAGE_SECRET}||pwd"
-            _c["image"] = generate_image_str(
-                _c.get("image"), self.context["SYS_JFROG_DOMAIN"], self.context["SYS_IMAGE_REGISTRY_LIST"]
-            )
-
-            # 2.1 处理 ports 中的字段
-            ports = _c.get("ports")
-            for _p in ports:
-                if not all([_p.get("name"), _p.get("containerPort"), _p.get("protocol")]):
-                    ports.remove(_p)
-                else:
-                    # TODO NUM
-                    # _p['containerPort'] = int(_p.get('containerPort'))
-                    # _p['hostPort'] = int(_p.get('hostPort'))
-                    _p["containerPort"] = handle_number_var(
-                        _p["containerPort"],
-                        "Application[%s]containerPort" % self.resource_show_name,
-                        self.is_preview,
-                        self.is_validate,
-                    )
-                    _p["hostPort"] = handle_number_var(
-                        _p["hostPort"],
-                        "Application[%s]hostPort" % self.resource_show_name,
-                        self.is_preview,
-                        self.is_validate,
-                    )
-                    remove_key(_p, "isDisabled")
-                    remove_key(_p, "isLink")
-
-            # 2.2 处理 healthChecks 中的字段
-            self.pod.set_health_checks(
-                _c.get("healthChecks"), self.resource_show_name, self.is_preview, self.is_validate
-            )
-
-            # 2.3 处理 resources 资源限制
-            self.pod.set_resources(_c.get("resources", {}))
-
-            # 2.4 处理 volumes 中的字段
-            volumes = _c.get("volumes")
-            config_map_dict = {}
-            secret_dict = {}
-            handle_volumes(
-                _c["name"],
-                volumes,
-                db_config.get("webCache", {}).get("volumeUsers", {}),
-                config_map_dict,
-                secret_dict,
-                self.template_id,
-            )
-
-            # 2.5 处理 环境变量
-            env_list = _c.get("env_list")
-            env = []
-            handle_mesos_env(env_list, env, config_map_dict, secret_dict)
-            _c["env"] = env
-            remove_key(_c, "env_list")
-
-            # 2.6 添加 secrets & configmaps
-            _c["secrets"] = [{"secretName": _secret, "items": secret_dict[_secret]} for _secret in secret_dict]
-            _c["configmaps"] = [{"name": _conf, "items": config_map_dict[_conf]} for _conf in config_map_dict]
-
-            # 2.7 定义了非标准日志采集，则需要添加额外的挂载卷
-            log_path_list = _c.get("logPathList") or []
-            remove_key(_c, "logListCache")
-            if log_path_list:
-                is_custom_log_path = True
-
-                _c_name = _c.get("name")
-                _config_name = "%s-%s-%s" % (self.resource_show_name, _c_name, LOG_CONFIG_MAP_SUFFIX)
-                _config_data_key = "%s%s" % (self.resource_show_name, LOG_CONFIG_MAP_KEY_SUFFIX)
-                log_config_map = {
-                    "name": _config_name,
-                    "items": [
-                        {
-                            "type": "file",
-                            "dataKey": _config_data_key,
-                            "dataKeyAlias": _config_data_key,
-                            "KeyOrPath": "%s%s" % (LOG_CONFIG_MAP_PATH_PRFIX, _config_data_key),
-                            "readOnly": False,
-                            "user": "root",
-                        }
-                    ],
-                }
-                _c["configmaps"].append(log_config_map)
-
-        # 1.2. Application 打上标识的label
-        labels = db_config["metadata"]["labels"]
-        app_label_key = "%s.%s" % (LABEL_SERVICE_NAME, self.resource_show_name)
-        labels[app_label_key] = self.resource_show_name
-        if is_custom_log_path:
-            labels[LOG_CONFIG_MAP_APP_LABEL] = "%s%s%s" % (
-                LOG_CONFIG_MAP_PATH_PRFIX,
-                self.resource_show_name,
-                LOG_CONFIG_MAP_KEY_SUFFIX,
-            )
-
-        # 1.2.1 打上关联metric的label
-        metric_lables = self.get_metric_lables(db_config)
-        if metric_lables:
-            labels.update(metric_lables)
-
-        # 1.3 添加监控的标签
-        self.inject_labels_for_monitor(labels, self.resource_name, self.resource_show_name)
-        self.inject_annotations_for_monitor(
-            db_config["metadata"]["annotations"], self.resource_name, self.resource_show_name
-        )
-
-        # 1.4 添加监控需要的重要级别
-        labels[LABEL_MONITOR_LEVEL] = db_config.get("monitorLevel", LABEL_MONITOR_LEVEL_DEFAULT)
-        remove_key(db_config, "monitorLevel")
-
-        # 1.5 附加日志标签
-        custom_log_label = db_config.get("customLogLabel")
-        if not isinstance(custom_log_label, dict):
-            custom_log_label = {}
-        custom_log_label = json.dumps(custom_log_label)
-        labels[MESOS_CUSTOM_LOG_LABEL_KEY] = custom_log_label
-        remove_key(db_config, "customLogLabel")
-        return db_config
-
-
-class DeploymentProfileGenerator(ProfileGenerator):
-    resource_name = "deployment"
-    resource_sys_config = DEPLPYMENT_SYS_CONFIG
-
-    def get_resource_config(self):
-        deployment_extra_config = copy.deepcopy(self.resource_sys_config)
-        db_config = self.get_db_config()
-        deployment_extra_config["spec"]["strategy"] = db_config.get("strategy")
-
-        # 处理数字类型的参数
-        rolling = deployment_extra_config["spec"]["strategy"]["rollingupdate"]
-        rolling["maxUnavilable"] = handle_number_var(
-            rolling["maxUnavilable"],
-            "Deployment[%s]maxUnavilable" % self.resource_show_name,
-            self.is_preview,
-            self.is_validate,
-        )
-        rolling["maxSurge"] = handle_number_var(
-            rolling["maxSurge"], "Deployment[%s]maxSurge" % self.resource_show_name, self.is_preview, self.is_validate
-        )
-        rolling["upgradeDuration"] = handle_number_var(
-            rolling["upgradeDuration"],
-            "Deployment[%s]upgradeDuration" % self.resource_show_name,
-            self.is_preview,
-            self.is_validate,
-        )
-
-        # 查询 Deployment 关联的 Application
-        version_id = self.params.get("version_id")
-        deployment_app = VersionedEntity.get_application_by_deployment_id(version_id, self.resource_id)
-        app_config = ApplicationProfileGenerator(
-            deployment_app.id, self.namespace_id, **self.params
-        ).get_resource_config()
-
-        new_config = update_nested_dict(app_config, deployment_extra_config)
-        # 将名称修改为模板中 Deployment 的名称
-        new_config["metadata"]["name"] = self.resource_show_name
-        # 添加监控的标签
-        self.inject_labels_for_monitor(new_config["metadata"]["labels"], self.resource_name, self.resource_show_name)
-        self.inject_annotations_for_monitor(
-            new_config["metadata"]["annotations"], self.resource_name, self.resource_show_name
-        )
-
-        return new_config
-
-
-class ServiceProfileGenerator(ProfileGenerator):
-    resource_name = "service"
-    resource_sys_config = SEVICE_SYS_CONFIG
-
-    def handle_db_config(self, db_config):
-        """添加选取到与关联的Application 的约束条件"""
-        # service 关联的 App，添加 selector 信息
-        service_app_list = VersionedEntity.get_related_apps_by_service(self.version_id, self.resource_id)
-        app_weight = self.resource.get_app_weight()
-        service_name = db_config.get("metadata", {}).get("name")
-        lb_name = self.lb_info.get(self.namespace_id, {}).get(service_name) or "external"
-        db_config = handel_service_db_config(
-            db_config, service_app_list, app_weight, lb_name, self.version_id, self.is_preview, self.is_validate
-        )
-        # 注入monitor需要信息
-        self.inject_labels_for_monitor(db_config["metadata"]["labels"], self.resource_name, self.resource_show_name)
-        self.inject_annotations_for_monitor(
-            db_config["metadata"]["annotations"], self.resource_name, self.resource_show_name
-        )
-
-        return db_config
-
-
-class ConfigMapProfileGenerator(ProfileGenerator):
-    resource_name = "configmap"
-    resource_sys_config = CONFIGMAP_SYS_CONFIG
-
-    def handle_db_config(self, db_config):
-        """文件类型时，需要 base64"""
-        datas = db_config["datas"]
-        for _key in datas:
-            _type = datas[_key].get("type")
-            if _type == "file":
-                _c = datas[_key]["content"]
-                datas[_key]["content"] = base64.b64encode(_c.encode(encoding="utf-8")).decode()
-        return db_config
-
-
-class SecretProfileGenerator(ProfileGenerator):
-    resource_name = "secret"
-    resource_sys_config = SECRET_SYS_CONFIG
-
-    def handle_db_config(self, db_config):
-        """数据内容需要 base64"""
-        datas = db_config["datas"]
-        for _key in datas:
-            _c = datas[_key]["content"]
-            datas[_key]["content"] = base64.b64encode(_c.encode(encoding="utf-8")).decode()
-        return db_config
-
-
-class HPAProfileGenerator(ProfileGenerator):
-    resource_name = "hpa"
-    resource_sys_config = instance_constants.HPA_SYS_CONFIG
-
-
-class IngressProfileGenerator(ProfileGenerator):
-    resource_name = "ingress"
-    resource_sys_config = instance_constants.INGRESS_SYS_CONFIG
-
-    def handle_db_config(self, db_config):
-        """针对ingress下的service配置添加namespace"""
-        spec = db_config["spec"]
-        # kind: 包含 tcp/udp/http/https/statefulset
-        # format: {
-        #  "spec": {
-        #     "tcp": [],
-        #     "udp": [],
-        #     "http": [],
-        #     "https": [],
-        #     "statefulset": {
-        #           "tcp": [],
-        #           "udp": [],
-        #           "http": [],
-        #           "https": []
-        #     }
-        # }
-        for kind in spec:
-            if isinstance(spec[kind], dict):
-                for conf_list in spec[kind].values():
-                    for conf in conf_list:
-                        conf["namespace"] = self.context["SYS_NAMESPACE"]
-            else:
-                for conf in spec[kind]:
-                    conf["namespace"] = self.context["SYS_NAMESPACE"]
-        db_config["spec"] = spec
-        return db_config
-
-
-class MetricProfileGenerator(ProfileGenerator):
-    resource_name = "metric"
-    resource_sys_config = {}
-
-    def handle_db_config(self, db_config):
-        """组装 metric 的配置文件"""
-        application_id = db_config.get("application_id")
-        metric_id = db_config.get("metric_id")
-        resource_kind = db_config.get("resource_kind") or "application"
-
-        try:
-            met = Metric.objects.get(id=metric_id)
-        except Exception:
-            raise ValidationError("Metric[id:{}]:{}".format(metric_id, _("不存在")))
-        self.resource_show_name = met.name
-        api_json = met.to_api_json()
-        api_json["namespace"] = self.context["SYS_NAMESPACE"]
-        api_json["clusterID"] = self.context["SYS_CLUSTER_ID"]
-        # 添加集群对应的仓库域名
-        api_json["imageBase"] = self.context["SYS_JFROG_DOMAIN"]
-        # 添加k8s的账号信息
-        api_json["imagePullSecrets"] = [{"name": "%s%s" % (K8S_IMAGE_SECRET_PRFIX, self.context["SYS_NAMESPACE"])}]
-
-        try:
-            application = MODULE_DICT.get(resource_kind).objects.get(id=application_id)
-        except Exception:
-            raise ValidationError("{}[id:{}]:{}".format(_("应用"), application_id, _("不存在")))
-        if resource_kind == "application":
-            app_config = application.get_config()
-            app_config_new = handel_custom_network_mode(app_config)
-            app_spec = app_config_new.get("spec", {}).get("template", {}).get("spec", {})
-            api_json["networkMode"] = app_spec.get("networkMode")
-            api_json["networkType"] = app_spec.get("networkType")
-        else:
-            pod_config = application.get_config()
-            pod_spec = pod_config.get("spec", {}).get("template", {}).get("spec", {})
-            # 1.1. hostNetwork 0/1 转换为 false/true
-            host_network = pod_spec.get("hostNetwork")
-            dns_policy = pod_spec.get("dnsPolicy")
-            host_network = True if host_network else False
-            api_json["dnsPolicy"] = dns_policy
-            api_json["hostNetwork"] = host_network
-            # k8s 相关的资源网络信息用默认值
-            api_json["networkMode"] = "BRIDGE"
-            api_json["networkType"] = "cnm"
-        # 获取metric的唯一标识
-        metric_label_key = "%s.%s" % (LABLE_METRIC_SELECTOR_LABEL, self.resource_show_name)
-
-        api_json["selector"] = {metric_label_key: self.resource_show_name}
-        return api_json
-
-
-def handel_custom_network_mode(db_config):
-    """处理自定义网络模式"""
-    spec = db_config.get("spec", {}).get("template", {}).get("spec", {})
-    network_mode = spec.get("networkMode")
-    if network_mode == "CUSTOM":
-        spec["networkMode"] = spec.get("custom_value")
-    remove_key(spec, "custom_value")
-    return db_config
-
-
-# TODO 这部分逻辑前端可以根据type字段直接处理，不需要bcs-app再做中间转换
-def handle_intersection_item(intersection_item):
-    """处理前端的存储的调度约束"""
-    new_intersection_item = []
-    for _intersection in intersection_item:
-        union_data = _intersection.get("unionData")[0]
-
-        # InnerIP 替换
-        name = union_data.get("name")
-        if name == "InnerIp":
-            union_data["name"] = "InnerIP"
-
-        # operate = union_data.get('operate')
-        arg_value = union_data.get("arg_value")
-
-        _type = union_data.get("type")
-        # arg_value是为了方便前端处理中间变量，mesos后台实际不需要
-        if _type not in [3, 4] or arg_value:
-            remove_key(union_data, "arg_value")
-            new_intersection_item.append({"unionData": [union_data]})
-    return new_intersection_item
-
-
 def handle_volumes(container_name, volumes, volume_users, config_map_dict, sercret_dict, template_id):
     for _v in range(len(volumes) - 1, -1, -1):
         _v_value = volumes[_v]
@@ -981,102 +500,6 @@ def handle_volumes(container_name, volumes, volume_users, config_map_dict, sercr
             remove_key(_v_value, "type")
 
 
-def handle_mesos_env(env_list, env, config_map_dict, secret_dict):
-    """处理前端的环境变量：自定义&configmap&secret"""
-    for _env in env_list:
-        _type = _env.get("type")
-        _key = _env.get("key")
-        _value = _env.get("value")
-        if not all([_type, _key, _value]):
-            continue
-        if _type == "custom":
-            env.append({"name": _key, "value": _value})
-        elif _type == "valueFrom":
-            env.append({"name": _key, "valueFrom": {"resourceFieldRef": {"resource": _value}}})
-        else:
-            _name = _value.split(".")[0]
-            _prefix_len = len(_name) + 1
-            _data_key = _value[_prefix_len:]
-
-            # 实例化后的名称与模板中的名称保持一致
-            _real_name = _name
-            if _type == "configmap":
-                _item_list = config_map_dict.get(_real_name, [])
-                _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
-                config_map_dict[_real_name] = _item_list
-            else:
-                _item_list = secret_dict.get(_real_name, [])
-                _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
-                secret_dict[_real_name] = _item_list
-
-
-def handel_service_db_config(
-    db_config, service_app_list, app_weight, lb_name, version_id, is_preview=False, is_validate=True
-):
-    """处理service的配置数据"""
-    # service 关联的 App，添加 selector 信息
-    if service_app_list:
-        selector = {}
-        # 给关联的应用设置权重
-        for _app in service_app_list:
-            app_key = "%s.%s" % (LABEL_SERVICE_NAME, _app.name)
-            selector[app_key] = _app.name
-            _weight = app_weight.get(_app.app_id)
-            _weight_key = "%s%s" % (SEVICE_WEIGHT_LABEL_PREFIX, _app.name)
-            db_config["metadata"]["labels"][_weight_key] = str(_weight)
-        db_config["spec"]["selector"] = selector
-
-    # 删除前端多余的字段
-    is_link_lb = db_config.get("isLinkLoadBalance")
-    # 1. 处理负载均衡算法
-    if is_link_lb:
-        lb_algorithm = db_config.get("metadata", {}).get("lb_labels", {}).get("BCSBALANCE")
-        db_config["metadata"]["labels"]["BCSBALANCE"] = lb_algorithm or "roundrobin"
-        # 删除多余的 label
-        remove_key(db_config["metadata"], "lb_labels")
-        # 1.1 添加绑定的 lb name 到 label 中
-        # bcs - loadbalance模块的集群ID，默认值external
-        db_config["metadata"]["labels"]["BCSGROUP"] = lb_name
-    remove_key(db_config, "isLinkLoadBalance")
-
-    # 2.type 为 None 时，删除 clusterIP 项
-    _type = db_config["spec"]["type"]
-    if _type == "None":
-        remove_key(db_config["spec"], "clusterIP")
-
-    # 3.port 为整数
-    ports = db_config["spec"]["ports"]
-
-    app_id_list = service_app_list.values_list("app_id", flat=True)
-    version = VersionedEntity.objects.get(id=version_id)
-    app_ports = version.get_version_ports(app_id_list)
-    ports_dict = {i["id"]: {"name": i["name"], "protocol": i["protocol"]} for i in app_ports}
-
-    for _p in ports:
-        if not all([_p.get("name"), _p.get("servicePort"), _p.get("protocol")]):
-            ports.remove(_p)
-        else:
-            _p["servicePort"] = handle_number_var(
-                _p["servicePort"], f"Service[{db_config['metadata']['name']}]service port", is_preview, is_validate
-            )
-            remove_key(_p, "targetPort")
-            # 端口名称 和 协议 根据 id 从 Application 中获取
-            _id = _p.get("id")
-            if _id:
-                _app_ports_data = ports_dict.get(_id)
-                if _app_ports_data:
-                    _p["name"] = _app_ports_data["name"]
-                    _p["protocol"] = _app_ports_data["protocol"]
-    # 前端缓存数据存储到 annocation 中
-    web_cache = db_config.get("webCache", {})
-    if web_cache:
-        if "annotations" in db_config["metadata"]:
-            db_config["metadata"]["annotations"][ANNOTATIONS_WEB_CACHE] = json.dumps(web_cache)
-        else:
-            db_config["metadata"]["annotations"] = {ANNOTATIONS_WEB_CACHE: json.dumps(web_cache)}
-    return db_config
-
-
 def handle_webcache_config(resource_config):
     """将前端的缓存的数据存储到备注中"""
     web_cache = resource_config.get("webCache", {})
@@ -1099,7 +522,7 @@ def get_bcs_context(access_token, project_id):
     project = project.get("data") or {}
     context["SYS_CC_APP_ID"] = project.get("cc_app_id")
     # TODO  以下变量未初始化到变量表中
-    context["SYS_PROJECT_KIND"] = ClusterType.get(project.get("kind"), "")
+    context["SYS_PROJECT_KIND"] = ProjectKindName
     context["SYS_PROJECT_CODE"] = project.get("english_name")
 
     # 获取标准日志采集的dataid
@@ -1314,12 +737,6 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
 
         # 1.2.2 添加监控相关
         self.inject_labels_for_monitor(pod_lables, self.get_controller_type(), self.resource_show_name)
-
-        # 添加关联的metric的label
-        metric_lables = self.get_metric_lables(db_config)
-        if metric_lables:
-            db_config["metadata"]["labels"].update(metric_lables)
-            pod_lables.update(metric_lables)
 
         # 1.3 处理空数据
         if not pod_spec.get("nodeSelector"):
@@ -1667,14 +1084,6 @@ class K8sHPAGenerator(K8sProfileGenerator):
 
 
 GENERATOR_DICT = {
-    "application": ApplicationProfileGenerator,
-    "deployment": DeploymentProfileGenerator,
-    "service": ServiceProfileGenerator,
-    "configmap": ConfigMapProfileGenerator,
-    "secret": SecretProfileGenerator,
-    "metric": MetricProfileGenerator,
-    "hpa": HPAProfileGenerator,
-    "ingress": IngressProfileGenerator,
     # k8s 相关资源
     "K8sSecret": K8sSecretGenerator,
     "K8sConfigMap": K8sConfigMapGenerator,

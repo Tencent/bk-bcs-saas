@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-from backend.apps.constants import ProjectKind
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from backend.components import paas_cc
 from backend.helm.app.models import App
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
@@ -19,14 +19,14 @@ from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-from . import k8s, mesos
+from . import k8s
 
 
 class Namespace:
     def __init__(self, access_token, project_id, project_kind):
         self.access_token = access_token
         self.project_id = project_id
-        self.client = mesos if project_kind == ProjectKind.MESOS.value else k8s
+        self.client = k8s
 
     def delete(self, namespace_id):
         # namespace exist

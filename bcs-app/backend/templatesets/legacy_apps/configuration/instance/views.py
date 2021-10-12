@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 DONE：
 - 所有 Model 相关的查询都需要查询是否属于：project_id （没有存储外键关系，需要手动处理相应逻辑）
 - service 实例化：添加关联 application 的name 到 selector
@@ -24,7 +24,6 @@ DONE：
 
 TODO:
 - 实例化失败，再次实例化时，应该更新而不是创建数据
-- mesos/k8s 创建分开调用底层API
 """
 import logging
 
@@ -48,7 +47,6 @@ from backend.templatesets.legacy_apps.instance.utils import (
     handle_all_config,
     preview_config_json,
     validate_instance_entity,
-    validate_lb_info_by_version_id,
     validate_ns_by_tempalte_id,
     validate_template_id,
     validate_version_id,
@@ -57,7 +55,7 @@ from backend.uniapps.application.base_views import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from ..auditor import TemplatesetAuditor
-from ..constants import K8sResourceName, MesosResourceName
+from ..constants import K8sResourceName
 from ..models import CATE_SHOW_NAME, MODULE_DICT
 from ..tasks import check_instance_status
 
@@ -207,11 +205,6 @@ class VersionInstanceView(viewsets.ViewSet):
         lb_info = slz_data.get('lb_info', {})
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = instance_entity.get('service') or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, [namespace], lb_info, service_id_list
-        )
-        if not v_res:
-            return Response({"code": 400, "message": err_msg, "data": err_list})
 
         # 查询当前命名空间的变量信息
         variable_dict = slz_data.get('variable_info', {}).get(namespace) or {}
@@ -283,11 +276,6 @@ class VersionInstanceView(viewsets.ViewSet):
 
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = self.instance_entity.get('service') or []
-        v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, ns_list, slz_data.get('lb_info', {}), service_id_list
-        )
-        if not v_res:
-            return Response({"code": 400, "message": err_msg, "data": err_list})
 
         # 判断 template 下 前台传过来的 namespace 是否已经实例化过
         res, ns_name_list, namespace_dict = validate_ns_by_tempalte_id(
@@ -423,7 +411,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
             ns_id = int(inst_config.namespace)
 
             # HPA只通过模板集管理，可以重试实例化(apply操作)
-            if inst_config.category in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
+            if inst_config.category == K8sResourceName.K8sHPA.value:
                 continue
 
             if ns_id not in ns_resources:

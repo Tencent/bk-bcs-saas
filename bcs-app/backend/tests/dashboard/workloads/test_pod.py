@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+import time
+
+import mock
 import pytest
 
 from backend.dashboard.examples.utils import load_demo_manifest
@@ -65,3 +69,29 @@ class TestPod:
         """ 测试获取单个资源接口 """
         response = api_client.get(f'{self.detail_url}secrets/')
         assert response.json()['code'] == 0
+
+    @mock.patch('backend.dashboard.workloads.views.pod.validate_cluster_perm', new=lambda *args, **kwargs: True)
+    def test_reschedule(self, api_client):
+        """
+        测试重新调度 Pod
+        TODO 可考虑 mock 掉下发集群操作，仅验证接口功能
+        """
+        # 创建有父级资源的 Pod，测试重新调度
+        deploy_manifest = load_demo_manifest('workloads/simple_deployment')
+        deploy_name = deploy_manifest['metadata']['name']
+        api_client.post(f'{DAU_PREFIX}/workloads/deployments/', data={'manifest': deploy_manifest})
+        # 等待 Deployment 下属 Pod 创建
+        time.sleep(3)
+        # 找到 Deployment 下属的 第一个 Pod Name
+        resp = api_client.get(
+            f'{DAU_PREFIX}/namespaces/{TEST_NAMESPACE}/workloads/pods/',
+            data={'label_selector': 'app=nginx', 'owner_kind': 'Deployment', 'owner_name': deploy_name},
+        )
+        pods = getitems(resp.json(), 'data.manifest.items', [])
+        pod_name = getitems(pods[0], 'metadata.name')
+        resp = api_client.put(f'{DAU_PREFIX}/namespaces/{TEST_NAMESPACE}/workloads/pods/{pod_name}/reschedule/')
+        assert resp.json()['code'] == 0
+        assert getitems(resp.json(), 'data.metadata.name') == pod_name
+        # 清理测试用的资源
+        resp = api_client.delete(f'{DAU_PREFIX}/namespaces/{TEST_NAMESPACE}/workloads/deployments/{deploy_name}/')
+        assert resp.json()['code'] == 0

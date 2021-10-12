@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import os
 from urllib import parse
 
@@ -139,7 +140,6 @@ DEVOPS_BCS_HOST = f"{BK_PAAS_HOST}/o/{APP_ID}"
 DEVOPS_BCS_API_URL = f"{BK_PAAS_HOST}/o/{APP_ID}"
 DEVOPS_ARTIFACTORY_HOST = os.environ.get("BKAPP_ARTIFACTORY_HOST")
 
-##################### TODO 确认变量 ###########################
 # 企业版/社区版 helm没有平台k8s集群时，无法为项目分配chart repo服务
 # 为解决该问题，容器服务会绑定一个chart repo服务使用，所有项目公用这个chart repo
 HELM_MERELY_REPO_URL = os.environ.get("BKAPP_HARBOR_CHARTS_DOMAIN")
@@ -168,6 +168,5 @@ DEFAULT_METRIC_SOURCE_PROM_WLIST = []
 
 WEB_CONSOLE_MODE = "internal"
 
-# 初始化时渲染K8S/MESOS版本
+# 初始化时渲染K8S版本
 K8S_VERSION = os.environ.get("BKAPP_K8S_VERSION")
-MESOS_VERSION = os.environ.get("BKAPP_MESOS_VERSION")

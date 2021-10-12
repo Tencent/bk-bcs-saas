@@ -1,19 +1,19 @@
 <template>
     <BaseLayout title="DaemonSets" kind="DaemonSet" category="daemonsets" type="workloads">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, gotoDetail, handleSortChange,handleUpdateResource,handleDeleteResource }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, gotoDetail, handleSortChange,handleUpdateResource,handleDeleteResource, pagePerms }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" min-width="100" sortable :resizable="false">
+                <bk-table-column :label="$t('名称')" prop="metadata.name" min-width="100" sortable>
                     <template #default="{ row }">
                         <bk-button class="bcs-button-ellipsis" text @click="gotoDetail(row)">{{ row.metadata.name }}</bk-button>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" min-width="100" sortable :resizable="false"></bk-table-column>
-                <bk-table-column :label="$t('镜像')" min-width="280" :resizable="false" :show-overflow-tooltip="false">
+                <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" min-width="100" sortable></bk-table-column>
+                <bk-table-column :label="$t('镜像')" min-width="280" :show-overflow-tooltip="false">
                     <template slot-scope="{ row }">
                         <span v-bk-tooltips.top="(handleGetExtData(row.metadata.uid, 'images') || []).join('<br />')">
                             {{ (handleGetExtData(row.metadata.uid, 'images') || []).join(', ') }}
@@ -42,8 +42,10 @@
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :resizable="false" width="150">
                     <template #default="{ row }">
-                        <bk-button text @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
-                        <bk-button class="ml10" text @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
+                        <bk-button text v-authority="{ clickable: pagePerms.update.clickable, content: pagePerms.update.tip }"
+                            @click="handleUpdateResource(row)">{{ $t('更新') }}</bk-button>
+                        <bk-button class="ml10" text v-authority="{ clickable: pagePerms.delete.clickable, content: pagePerms.delete.tip }"
+                            @click="handleDeleteResource(row)">{{ $t('删除') }}</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>

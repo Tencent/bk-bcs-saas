@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 from django.conf.urls import include, url
 
@@ -43,11 +44,6 @@ urlpatterns = [
         name="api.application.update_new",
     ),
     url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_update/$",  # noqa
-        views.UpdateApplication.as_view(),
-        name="api.application.application_update",
-    ),
-    url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/scale/$",  # noqa
         views.ScaleInstance.as_view(),
         name="api.application.scale",
@@ -56,11 +52,6 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/cancel/$",  # noqa
         views.CancelUpdateInstance.as_view(),
         name="api.application.cancel",
-    ),
-    url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_cancel/$",  # noqa
-        views.RollbackApplication.as_view(),
-        name="api.application.application_cancel",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/pause/$",  # noqa
@@ -129,10 +120,6 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/versions/$",  # noqa
         instance_views.GetVersionList.as_view(),
         name="api.application.version_list",
-    ),
-    url(
-        r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>\d+)/metric/",
-        instance_views.GetMetricInfo.as_view(),
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/batch/",
@@ -248,12 +235,5 @@ urlpatterns = [
     url(
         r'^api/projects/(?P<project_id>\w{32})/pods/reschedule/$',
         operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'}),
-    ),
-]
-
-urlpatterns += [
-    url(
-        r"^api/app/mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.uniapps.application.mesos.urls"),
     ),
 ]

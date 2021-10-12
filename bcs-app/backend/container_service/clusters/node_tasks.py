@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 
 from celery import shared_task
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps import constants
 from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
+from backend.components.bcs import k8s
 from backend.container_service.clusters import models
 from backend.container_service.clusters.constants import K8S_SKIP_NS_LIST
 from backend.utils.errcodes import ErrorCode
@@ -29,16 +29,13 @@ def reschedule_node_pods(access_token, project_id, project_kind, cluster_id, dat
     log = models.NodeUpdateLog.objects.filter(id=log_id).first()
     if not log:
         update_node(access_token, project_id, data["id"], status=models.CommonStatus.ScheduleFailed)
-    if str(project_kind) == "2":
-        pod_taskgroup = get_taskgroup_info(access_token, project_id, cluster_id, data, log)
-    else:
-        pod_taskgroup = get_pod_info(access_token, project_id, cluster_id, data, log)
+    pod_taskgroup = get_pod_info(access_token, project_id, cluster_id, data, log)
     if not pod_taskgroup:
         resp = update_node(access_token, project_id, data["id"], status=models.CommonStatus.ScheduleFailed)
         if resp.get("code") != ErrorCode.NoError:
             update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
         return
-    ok = reschedule_pod_taskgroup(access_token, project_id, pod_taskgroup, project_kind, log)
+    ok = reschedule_pod_taskgroup(access_token, project_id, pod_taskgroup, log)
     if not ok:
         status = models.CommonStatus.ScheduleFailed
     else:
@@ -53,33 +50,6 @@ def update_node(access_token, project_id, node_id, status=None):
         status = models.CommonStatus.Scheduling
     resp = paas_cc.update_node(access_token, project_id, node_id, {"status": status})
     return resp
-
-
-def get_taskgroup_info(access_token, project_id, cluster_id, data, log):
-    """获取taskgroup下容器数量"""
-    # host_ip 下container为空，如果为空，则设置status为removable
-    client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-    rsp_bcs = client.get_taskgroup(
-        [data["inner_ip"]],
-        fields="namespace,resourceName,clusterId,data.rcname",
-    )
-    if rsp_bcs.get("code") != ErrorCode.NoError:
-        update_log_info(log, models.CommonStatus.ScheduleFailed, rsp_bcs.get("message"))
-        return None
-
-    cluster_ns_taskgroup_data = {}
-    for i in rsp_bcs["data"]:
-        cluster_id = i.get("clusterId")
-        item = {
-            "namespace": i.get("namespace"),
-            "app_name": i.get("data", {}).get("rcname"),
-            "taskgroup_name": i.get("resourceName"),
-        }
-        if cluster_id in cluster_ns_taskgroup_data:
-            cluster_ns_taskgroup_data[cluster_id].append(item)
-        else:
-            cluster_ns_taskgroup_data[cluster_id] = [item]
-    return cluster_ns_taskgroup_data
 
 
 def get_pod_info(access_token, project_id, cluster_id, data, log):
@@ -103,25 +73,15 @@ def get_pod_info(access_token, project_id, cluster_id, data, log):
     return cluster_ns_pod_data
 
 
-def reschedule_pod_taskgroup(access_token, project_id, data, kind, log):
+def reschedule_pod_taskgroup(access_token, project_id, data, log):
     """重新调度pod or taskgroup"""
-    if kind == 2:
-        for cluster_id, taskgroup_info in data.items():
-            client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-            for info in taskgroup_info:
-                resp = client.rescheduler_mesos_taskgroup(info["namespace"], info["app_name"], info["taskgroup_name"])
-                # 如果删除失败，直接报错
-                if resp.get("code") != ErrorCode.NoError:
-                    update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
-                    return False
-    else:
-        for cluster_id, pod_info in data.items():
-            client = k8s.K8SClient(access_token, project_id, cluster_id, None)
-            for info in pod_info:
-                resp = client.delete_pod(info["namespace"], info["pod_name"])
-                if resp.get("code") != ErrorCode.NoError:
-                    update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
-                    return False
+    for cluster_id, pod_info in data.items():
+        client = k8s.K8SClient(access_token, project_id, cluster_id, None)
+        for info in pod_info:
+            resp = client.delete_pod(info["namespace"], info["pod_name"])
+            if resp.get("code") != ErrorCode.NoError:
+                update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
+                return False
     update_log_info(log, models.CommonStatus.Normal, _("调度结束!"))
     return True
 

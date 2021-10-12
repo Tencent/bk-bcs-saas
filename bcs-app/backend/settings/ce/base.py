@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import sys
 
 from ..base import *  # noqa
@@ -35,7 +36,7 @@ INSTALLED_APPS += [
     "backend.uniapps.apis",
     "backend.bcs_web.apis.apps.APIConfig",
     "iam.contrib.iam_migration",
-    "backend.bcs_web.iam.bcs_iam_migration.apps.BcsIamMigrationConfig",
+    "backend.iam.bcs_iam_migration.apps.BcsIamMigrationConfig",
 ]
 
 # 统一登录页面
@@ -78,7 +79,7 @@ BK_JFROG_ACCOUNT_AUTH = ""
 IS_TEMPLATE_VALIDATE = True
 IS_CUP_LIMIT = False
 
-# mesos 不同集群对应的apigw环境, 正式环境暂时没有
+# 不同集群对应的apigw环境, 正式环境暂时没有
 # key 是 cc 中的environment变量, value 是bcs API 环境
 BCS_API_ENV = {
     "stag": "uat",
@@ -254,9 +255,6 @@ BK_IAM_INNER_HOST = BK_IAM_HOST
 _URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
 URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 
-# 项目功能白名单Code
-PROJECT_FUNC_CODES = ["ServiceMonitor"]
-
 # 覆盖上层base中的DIRECT_ON_FUNC_CODE: 直接开启的功能开关，不需要在db中配置
 DIRECT_ON_FUNC_CODE = ["HAS_IMAGE_SECRET", "ServiceMonitor"]
 
@@ -268,5 +266,14 @@ ADMIN_USERNAME = "admin"
 # BCS 默认业务
 BCS_APP_ID = 1
 
-# 集群及节点metric功能白名单
-CLUSTER_FUNC_CODES = ["MesosResource"]
+# 社区版特殊配置
+BCS_APP_CODE = APP_CODE
+BCS_APP_SECRET = SECRET_KEY
+
+# REPO 相关配置
+HELM_REPO_DOMAIN = os.environ.get('HELM_REPO_DOMAIN')
+HELM_MERELY_REPO_URL = HELM_REPO_DOMAIN
+BK_REPO_URL_PREFIX = os.environ.get('BK_REPO_URL_PREFIX')
+
+# 默认 BKCC 设备供应方
+BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', None)

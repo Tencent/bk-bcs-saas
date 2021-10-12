@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import datetime
 import json
 import subprocess
@@ -19,6 +20,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
+from ruamel.yaml.error import YAMLFutureWarning
 
 from backend.components import paas_cc
 from backend.helm.helm.bcs_variable import collect_system_variable, get_valuefile_with_bcs_variable_injected
@@ -923,7 +925,13 @@ class SyncDict2YamlToolSLZ(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
+        """转换数据
+        NOTE: 兼容老版本处理，并且不允许重复KEY；当处理yaml出现异常时，抛出异常
+        """
+        try:
+            content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
+        except YAMLFutureWarning as e:
+            raise serializers.ValidationError(e)
         return {"yaml": content, "dict": validated_data["dict"]}
 
     class Meta:

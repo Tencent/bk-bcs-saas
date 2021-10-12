@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
 """
 import json
 import logging
@@ -22,16 +21,15 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.constants import ALL_LIMIT
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-from ..configuration.constants import K8sResourceName, MesosResourceName
+from ..configuration.constants import K8sResourceName
 from ..configuration.models import CATE_ABBR_NAME, ShowVersion, Template, VersionedEntity
 from .constants import InsState
 from .drivers import get_scheduler_driver
@@ -113,42 +111,9 @@ def validate_version_id(
     return True
 
 
-def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_list, lb_info, service_id_list):
-    """检查预览/实例化 service 时，关联lb情况下，lb 是否都已经选中"""
-    # 1. 判断是否需要关联lb
-    lb_services = version_entity.get_lb_services_by_ids(service_id_list)
-    if not lb_services:
-        return True, [], ''
-
-    service_name_list = [i['name'] for i in lb_services]
-    err_list = []
-    # 2. 依次判断每个 ns 下每个 关联的 service 下是否都有 可用的lb
-    for ns_id in ns_list:
-        # 2.1 先判断该命名空间是否有lb信息
-        if ns_id not in lb_info.keys():
-            for _s in service_name_list:
-                err_list.append({'ns_id': ns_id, 'service': _s})
-            continue
-        # 判断每一个 service 是否都有值
-        lb_data = lb_info[ns_id]
-        lb_data_skey = lb_data.keys()
-        for _s in service_name_list:
-            if _s not in lb_data_skey:
-                err_list.append({'ns_id': ns_id, 'service': _s})
-    if not err_list:
-        return True, [], ''
-
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
-    namespace = namespace.get('data', {}).get('results') or []
-    namespace_dict = {str(i['id']): i['name'] for i in namespace}
-    err_list = ["namespace[%s]:%s" % (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
-    err_msg = _('请选择 service 关联的 LoadBalance: {}').format(' '.join(err_list))
-    return False, err_list, err_msg
-
-
 def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, instance_entity={}):
     """实例化，参数 ns_list 不能与 db 中已经实例化过的 ns 重复"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
@@ -165,7 +130,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
         # HPA 编辑以模板集为准, 可以重复实例化
-        if cate in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
+        if cate == K8sResourceName.K8sHPA.value:
             continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
@@ -178,7 +143,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
     # hpa白名单控制
     cluster_id_list = list(set([i['cluster_id'] for i in namespace if str(i['id']) in new_ns_list]))
-    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
+    if K8sResourceName.K8sHPA.value in instance_entity:
         if not enabled_hpa_feature(cluster_id_list):
             raise error_codes.APIError(_("当前实例化包含HPA资源，{}").format(settings.GRAYSCALE_FEATURE_MSG))
 
@@ -194,7 +159,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
 def validate_update_ns_by_tempalte_id(template_id, ns_list, access_token, project_id):
     """更新，参数 ns_list 必须全部为 db 中已经实例化过的 ns"""
-    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
@@ -270,6 +235,10 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
         item_id_list = instance_entity[item]
         item_config = []
         for item_id in item_id_list:
+            # TODO 忽略metric, 后续从db中清理
+            if item == 'metric':
+                continue
+
             generator = GENERATOR_DICT.get(item)(item_id, namespace_id, is_validate, **params)
             file_content = generator.get_config_profile()
             file_name = generator.resource_show_name
@@ -302,20 +271,14 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
                     "ins_state": InsState.NO_INS.value,
                 }
                 is_update_save_kwargs = False
-                if item == 'metric':
-                    # 获取 Metric ID
-                    metric_id = generator.metric_id
-                    save_kwargs['ref_id'] = metric_id
-                    obj_module = MetricConfig
-                else:
-                    save_kwargs.update(
-                        {
-                            "oper_type": "create",
-                            "status": "Running",
-                            "last_config": "",
-                        }
-                    )
-                    obj_module = InstanceConfig
+                save_kwargs.update(
+                    {
+                        "oper_type": "create",
+                        "status": "Running",
+                        "last_config": "",
+                    }
+                )
+                obj_module = InstanceConfig
                 # 判断db中是否已经有记录，有则做更新操作
                 _exist_ins_confg = obj_module.objects.filter(name=file_name, namespace=namespace_id, category=item)
                 if _exist_ins_confg.exists():
@@ -442,43 +405,12 @@ def get_k8s_app_status(access_token, project_id, cluster_id, instance_name, name
     return resp.get("data") or []
 
 
-def get_mesos_app_status(access_token, project_id, cluster_id, instance_name, namespace, category):
-    client = MesosClient(access_token, project_id, cluster_id, None)
-    field = [
-        "data.metadata.name",
-        "data.metadata.namespace",
-    ]
-    if category == "application":
-        resp = client.get_application_with_post(
-            name=instance_name,
-            field=",".join(field),
-            namespace=namespace,
-        )
-    else:
-        resp = client.get_deployment_with_post(
-            name=instance_name,
-            field=",".join(field),
-            namespace=namespace,
-        )
-    if resp.get("code") != ErrorCode.NoError:
-        return []
-    return resp.get("data") or []
-
-
 def get_app_status(access_token, project_id, project_kind, cluster_id, instance_name, namespace, category):
     ret_data_dict = {}
-    if project_kind == 1:
-        data = get_k8s_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
-        for info in data:
-            key = (info.get("resourceName"), info.get("namespace"), category)
-            ret_data_dict[key] = True
-    else:
-        data = get_mesos_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
-        for info in data:
-            item = info.get("data") or {}
-            metadata = item.get("metadata") or {}
-            key = (metadata.get("name"), metadata.get("namespace"), category)
-            ret_data_dict[key] = True
+    data = get_k8s_app_status(access_token, project_id, cluster_id, instance_name, namespace, category)
+    for info in data:
+        key = (info.get("resourceName"), info.get("namespace"), category)
+        ret_data_dict[key] = True
     return ret_data_dict
 
 

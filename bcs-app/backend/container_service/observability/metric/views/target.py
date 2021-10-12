@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import itertools
 import logging
 from urllib import parse
@@ -37,7 +38,9 @@ class TargetsViewSet(SystemViewSet):
         targets = self._filter_targets(result, params['show_discovered'])
 
         targets_dict = {}
-        for instance_id, targets in itertools.groupby(sorted(targets, key=lambda x: x['instance_id'])):
+        for instance_id, targets in itertools.groupby(
+            sorted(targets, key=lambda x: x['instance_id']), key=lambda y: y['instance_id']
+        ):
             targets = list(targets)
             jobs = {t['job'] for t in targets}
             graph_url = self._gen_graph_url(project_id, cluster_id, jobs) if jobs else None
@@ -54,8 +57,6 @@ class TargetsViewSet(SystemViewSet):
         按 Job 名称格式过滤符合条件的 Targets
 
         :param raw_targets: 原始 Target 信息
-        :param namespace: 命名空间
-        :param name: 名称
         :param show_discovered: 是否展示 Discovered
         :return: 符合条件的 Targets
         """

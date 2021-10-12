@@ -151,12 +151,12 @@
 }
 
 .namespace-th {
-    width: 400px;
+    min-width: 300px;
     padding: 0 10px;
 }
 
 .namespace {
-    width: 400px;
+    min-width: 300px;
     padding: 0 10px;
 }
 
@@ -171,11 +171,11 @@
 }
 
 .opera_record-th {
-    width: auto;
+    min-width: 220px;
 }
 
 .opera_record {
-    width: auto;
+    min-width: 220px;
     .updated {
         margin-top: 5px;
     }
@@ -279,6 +279,7 @@
 }
 
 .biz-templateset-table {
+    min-width: 1200px;
     border-bottom: none;
 
     &.bk-table>thead>tr>th {
@@ -506,6 +507,12 @@
 
 .biz-namespace {
     padding: 0 20px;
+    overflow-x: auto;
+}
+.col-cluster {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
 }
 
 /* 自适应 */
@@ -521,12 +528,12 @@
     }
 
     .namespace-th {
-        width: 300px;
+        min-width: 300px;
         padding: 0 10px;
     }
 
     .namespace {
-        width: 300px;
+        min-width: 300px;
         padding: 0 10px;
     }
 
@@ -566,12 +573,12 @@
     }
 
     .namespace-th {
-        width: 230px;
+        min-width: 230px;
         padding: 0 10px;
     }
 
     .namespace {
-        width: 230px;
+        min-width: 230px;
         padding: 0 10px;
     }
 
@@ -594,4 +601,11 @@
         width: 200px;
         padding: 0 10px;
     }
+}
+/deep/ .bk-table-body tr td .cell {
+    -webkit-line-clamp: 2;
+}
+
+/deep/ .bk-table-body tr td {
+    height: 54px;
 }

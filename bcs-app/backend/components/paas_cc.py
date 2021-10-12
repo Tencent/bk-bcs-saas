@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 from dataclasses import asdict, dataclass
@@ -19,10 +20,10 @@ from typing import Dict, List, Union
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.bcs_web.iam import permissions
 from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.container_service.clusters.models import CommonStatus
+from backend.iam import legacy_perms as permissions
 from backend.utils.basic import getitems
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
@@ -471,11 +472,19 @@ def save_cluster_snapshot(access_token, data):
     return http_post(url, json=data, headers=headers)
 
 
-def get_project_cluster_resource(access_token):
+def _get_project_cluster_resource(access_token):
     """获取所有项目、集群信息"""
     url = f"{BCS_CC_API_PRE_URL}/v1/projects/resource/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
     return http_get(url, headers=headers)
+
+
+def get_project_cluster_resource(access_token):
+    """ 获取所有项目 & 集群信息，异常情况 raise_exception """
+    resp = _get_project_cluster_resource(access_token)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(resp.get('message'))
+    return resp.get('data') or []
 
 
 def update_master(access_token, project_id, cluster_id, data):
@@ -514,6 +523,7 @@ class PaaSCCConfig:
 
         # PaaSCC 系统接口地址
         self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+        self.get_cluster_by_id_url = f"{host}/clusters/{{cluster_id}}/"
         self.get_project_url = f"{host}/projects/{{project_id}}/"
         self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
@@ -541,6 +551,12 @@ class PaaSCCClient(BkApiClient):
     def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json('GET', url)
+
+    @response_handler()
+    def get_cluster_by_id(self, cluster_id: str) -> Dict:
+        """根据集群ID获取集群信息"""
+        url = self._config.get_cluster_by_id_url.format(cluster_id=cluster_id)
         return self._client.request_json('GET', url)
 
     @parse_response_data()

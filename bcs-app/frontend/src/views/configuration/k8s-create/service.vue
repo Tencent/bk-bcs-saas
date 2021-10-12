@@ -79,8 +79,8 @@
                                     </bk-sideslider>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('名称')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bkbcs-input
                                                 type="text"
                                                 :placeholder="$t('请输入64个以内的字符')"
@@ -96,8 +96,8 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('关联应用')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('关联应用')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
                                                 <bk-selector
                                                     :placeholder="$t('请选择要关联的应用')"
@@ -115,8 +115,8 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('关联标签')}}：</label>
-                                        <div class="bk-form-content key-tip-wrapper" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('关联标签')}}：</label>
+                                        <div class="bk-form-content key-tip-wrapper" style="margin-left: 140px;">
                                             <template v-if="appLabels.length && !isLabelsLoading">
                                                 <ul class="key-list">
                                                     <li v-for="(label,index) in appLabels" @click="selectLabel(label)" :key="index">
@@ -134,8 +134,8 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('Service类型')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('Service类型')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <bk-selector
                                                     :placeholder="$t('请选择')"
@@ -148,16 +148,16 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort' && curService.config.spec.type !== 'LoadBalancer'">
-                                        <label class="bk-label" style="width: 130px;">ClusterIP：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort'">
+                                        <label class="bk-label" style="width: 140px;">ClusterIP：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bkbcs-input :placeholder="$t('请输入ClusterIP')" style="width: 310px;" v-model="curService.config.spec.clusterIP" />
-                                            <p class="biz-tip mt5">{{$t('不填或None')}}</p>
+                                            <!-- <p class="biz-tip mt5">{{$t('不填或None')}}</p> -->
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('端口映射')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('端口映射')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="biz-keys-list mb10">
                                                 <template v-if="curService.deploy_tag_list.length">
                                                     <template v-if="appPortList.length && curService.config.spec.ports.length">
@@ -266,14 +266,14 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('标签管理')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('标签管理')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bk-keyer :key-list.sync="curLabelList" ref="labelKeyer" @change="updateLabelList" :var-list="varList"></bk-keyer>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('注解管理')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('注解管理')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer" @change="updateApplicationRemark"></bk-keyer>
                                         </div>
                                     </div>
@@ -555,6 +555,11 @@
                     this.curService.config.spec.ports.forEach(port => {
                         port.nodePort = ''
                     })
+                }
+                if (index === 'NodePort') {
+                    delete this.curService.config.spec.clusterIP
+                } else {
+                    this.$set(this.curService.config.spec, 'clusterIP', '')
                 }
             },
             async initResource (data) {

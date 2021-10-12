@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import base64
 import json
 import logging
@@ -48,7 +49,7 @@ from backend.helm.helm.serializers import ChartVersionSLZ
 from backend.helm.permissions import check_cluster_perm
 from backend.helm.toolkit.diff import parser
 from backend.kube_core.toolkit.dashboard_cli.exceptions import DashboardError, DashboardExecutionError
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.utils import client as bcs_utils_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.views import AccessTokenMixin, ActionSerializerMixin, AppMixin, ProjectMixin, with_code_wrapper
@@ -143,7 +144,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
         app_list = []
         for item in data:
             # 过滤掉k8s系统和bcs平台命名空间下的release
-            if item["namespace"] in K8S_SYS_PLAT_NAMESPACES:
+            if item["namespace"] in K8S_PLAT_NAMESPACE:
                 continue
             cluster_info = project_cluster.get(item['cluster_id']) or {'name': item['cluster_id']}
             item['cluster_name'] = cluster_info['name']
@@ -254,7 +255,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         filter_ns_list = []
         for i in results:
             # 过滤掉k8s系统和bcs平台使用的命名空间
-            if i["name"] in K8S_SYS_PLAT_NAMESPACES:
+            if i["name"] in K8S_PLAT_NAMESPACE:
                 continue
             # ns_vars = NameSpaceVariable.get_ns_vars(i['id'], project_id)
             i['ns_vars'] = []

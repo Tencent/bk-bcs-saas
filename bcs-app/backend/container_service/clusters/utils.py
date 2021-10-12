@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
-from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
@@ -30,28 +30,10 @@ from backend.utils.funutils import convert_mappings
 
 from .constants import CCHostKeyMappings
 
-DEFAULT_PAGE_LIMIT = 5
 RoleNodeTag = 'N'
 RoleMasterTag = 'M'
 # 1表示gse agent正常
 AGENT_NORMAL_STATUS = 1
-
-
-def custom_paginator(raw_data, offset, limit=None):
-    """使用django paginator进行分页处理"""
-    limit = limit or DEFAULT_PAGE_LIMIT
-    page_cls = Paginator(raw_data, limit)
-    curr_page = 1
-    if offset or offset == 0:
-        curr_page = (offset // limit) + 1
-    # 如果当前页大于总页数，返回为空
-    count = page_cls.count
-    if curr_page > page_cls.num_pages:
-        return {"count": count, "results": []}
-    # 获取当前页的数据
-    curr_page_info = page_cls.page(curr_page)
-    curr_page_list = curr_page_info.object_list
-    return {"count": count, "results": curr_page_list}
 
 
 def delete_node_labels_record(LabelModel, node_id_list, username):
@@ -107,20 +89,17 @@ def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
         raise PermissionDeniedError(_("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), "")
 
 
-def get_cmdb_hosts(username, cc_app_id_list, host_property_filter):
+def get_cmdb_hosts(username: str, cc_app_id: int, host_property_filter: Dict) -> List:
+    """
+    根据指定条件获取 CMDB 主机信息，包含字段映射等转换
+    """
     hosts = []
-    for app_id in cc_app_id_list:
-        resp = cc.list_biz_hosts(username, int(app_id), host_property_filter=host_property_filter)
-        if resp.get("data"):
-            hosts = resp["data"]
-            break
-    cluster_masters = []
-    for info in hosts:
+    for info in cc.HostQueryService(username, cc_app_id, host_property_filter=host_property_filter).fetch_all():
         convert_host = convert_mappings(CCHostKeyMappings, info)
         convert_host["agent"] = AGENT_NORMAL_STATUS
-        cluster_masters.append(convert_host)
+        hosts.append(convert_host)
 
-    return cluster_masters
+    return hosts
 
 
 def use_tke(coes=None, access_token=None, project_id=None, cluster_id=None):

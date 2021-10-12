@@ -62,7 +62,6 @@
             if (createRoutes.join(',').indexOf(routeName) < 0) {
                 this.clearData()
             }
-            this.checkProjectType()
             this.getExistConfigmap()
 
             window.addEventListener('change::$currentProjectId', async e => {
@@ -112,19 +111,6 @@
                     }
                 }
                 return kind
-            },
-
-            /**
-             * 查看项目类型
-             */
-            async checkProjectType () {
-                const projectKind = await this.getProjectKind(this.projectId)
-                
-                if (projectKind === PROJECT_MESOS) {
-                    this.isK8sCreate = false
-                } else {
-                    this.isK8sCreate = true
-                }
             },
 
             /**

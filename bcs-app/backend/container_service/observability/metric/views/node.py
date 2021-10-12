@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from typing import Callable, Dict
 
 from django.utils.translation import ugettext_lazy as _
@@ -23,13 +24,14 @@ from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.observability.metric import constants
 from backend.container_service.observability.metric.serializers import BaseMetricSLZ, FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
+from backend.utils.url_slug import IPV4_REGEX
 
 
 class NodeMetricViewSet(SystemViewSet):
 
     lookup_field = 'node_ip'
     # 指定匹配 IPV4 地址
-    lookup_value_regex = constants.IPV4_REGEX_EXP
+    lookup_value_regex = IPV4_REGEX
 
     @action(methods=['POST'], url_path='overview', detail=True)
     def overview(self, request, project_id, cluster_id, node_ip):

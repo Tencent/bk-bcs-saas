@@ -52,7 +52,7 @@ export default {
                 }
                 return item
             })
-            state.clusterList.splice(0, clusterList.length, ...clusterList)
+            state.clusterList.splice(0, state.clusterList.length, ...clusterList)
             state.isClusterDataReady = true
         },
 
@@ -420,23 +420,6 @@ export default {
         },
 
         /**
-         * 获取mesos集群节点列表标签搜索key/value
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosNodeLabels (context, params, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/cluster_mgr/projects/${params.projectId}/nodes/labels/?cluster_id=${params.clusterId === 'all' ? '' : params.clusterId}`,
-                params,
-                config
-            )
-        },
-
-        /**
          * 集群 节点列表 pods/taskgroups 迁移
          *
          * @param {Object} context store 上下文对象
@@ -783,48 +766,6 @@ export default {
         },
 
         /**
-         * mesos查询单个或多个节点的标签
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         * @return {Promise} promise 对象
-         */
-        getMesosNodeLabel (context, params, config = {}) {
-            const projectId = params.projectId
-            delete params.projectId
-            return http.post(`${DEVOPS_BCS_API_URL}/api/cluster_mgr/projects/${projectId}/nodes/-/labels/detail/`, params, config)
-        },
-
-        /**
-         * mesos 创建或更新节点标签
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        updateMesosNodeLabel (context, params, config = {}) {
-            const projectId = params.projectId
-            delete params.projectId
-            return http.post(`${DEVOPS_BCS_API_URL}/api/cluster_mgr/projects/${projectId}/nodes/-/labels/`, params, config)
-        },
-
-        /**
-         * mesos节点页面获取所有节点
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getMesosNodeList (context, { projectId, clusterId = '' }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/cluster_mgr/projects/${projectId}/nodes/-/labels/?cluster_id=${clusterId}`, {}, config)
-        },
-
-        /**
          * 获取集群信息
          *
          * @param {Object} context store 上下文对象
@@ -988,7 +929,7 @@ export default {
 
         /**
          * 集群使用率概览
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/overview/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/overview/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -996,9 +937,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        clusterOverview (context, { projectId, clusterId, data = {} }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/overview/?${json2Query(data)}`,
+        clusterOverview (context, { projectId, clusterId }, config = {}) {
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/overview/`,
                 {},
                 config
             )
@@ -1006,7 +947,7 @@ export default {
 
         /**
          * 集群CPU使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/cpu_usage/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/cpu_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1016,7 +957,7 @@ export default {
          */
         clusterCpuUsage (context, { projectId, clusterId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/cpu_usage/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/cpu_usage/`,
                 {},
                 config
             )
@@ -1024,7 +965,7 @@ export default {
 
         /**
          * 集群内存使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/memory_usage/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/memory_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1034,7 +975,7 @@ export default {
          */
         clusterMemUsage (context, { projectId, clusterId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/memory_usage/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/memory_usage/`,
                 {},
                 config
             )
@@ -1042,7 +983,7 @@ export default {
 
         /**
          * 集群磁盘使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/disk_usage/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/disk_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1052,7 +993,7 @@ export default {
          */
         clusterDiskUsage (context, { projectId, clusterId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/disk_usage/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/disk_usage/`,
                 {},
                 config
             )
@@ -1060,7 +1001,7 @@ export default {
 
         /**
          * 集群 节点列表 节点概览
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/overview/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/node/overview/
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
@@ -1070,16 +1011,16 @@ export default {
          * @return {Promise} promise 对象
          */
         getNodeOverview (context, { projectId, clusterId, nodeIp, data = {} }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/overview/?res_id=${nodeIp}&${json2Query(data)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${nodeIp}/overview/`,
+                data,
                 config
             )
         },
 
         /**
          * node CPU使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/cpu_usage/
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/cpu_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1108,7 +1049,7 @@ export default {
             }
 
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/cpu_usage/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${params.res_id}/cpu_usage/?${json2Query(params)}`,
                 {},
                 config
             )
@@ -1116,7 +1057,7 @@ export default {
 
         /**
          * node mem使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/memory_usage/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/memory_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1145,7 +1086,7 @@ export default {
             }
 
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/memory_usage/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${params.res_id}/memory_usage/?${json2Query(params)}`,
                 {},
                 config
             )
@@ -1153,7 +1094,7 @@ export default {
 
         /**
          * node diskio 使用率
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/diskio_usage/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/diskio_usage/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1182,7 +1123,7 @@ export default {
             }
 
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/diskio_usage/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${params.res_id}/diskio_usage/?${json2Query(params)}`,
                 {},
                 config
             )
@@ -1190,7 +1131,7 @@ export default {
 
         /**
          * node net 入流量
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/network_receive/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_receive/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1219,7 +1160,7 @@ export default {
             }
 
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/network_receive/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${params.res_id}/network_receive/?${json2Query(params)}`,
                 {},
                 config
             )
@@ -1227,7 +1168,7 @@ export default {
 
         /**
          * node net 出流量
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/network_transmit/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/network_transmit/
          *
          * @param {Object} context store 上下文对象
          * @param {Object} params 参数
@@ -1256,7 +1197,7 @@ export default {
             }
 
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/network_transmit/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${params.res_id}/network_transmit/?${json2Query(params)}`,
                 {},
                 config
             )
@@ -1264,7 +1205,7 @@ export default {
 
         /**
          * 集群 节点详情 上方数据，prometheus 获取
-         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/info/?res_id={ip}
+         * /api/metrics/projects/{project_id}/clusters/{cluster_id}/nodes/{node_ip}/info/
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
@@ -1276,26 +1217,7 @@ export default {
          */
         nodeInfo (context, { projectId, clusterId, nodeId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/info/?res_id=${nodeId}`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * mesos 集群 首页获取 ip 数据
-         * /api/projects/{project_id}/clusters/{cluster_id}}/ippools/
-         *
-         * @param {Object} context store 上下文对象
-         * @param {string} projectId 项目 id
-         * @param {string} clusterId 集群 id
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        getIpPools (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/ippools/`,
+                `${DEVOPS_BCS_API_URL}/api/metrics/projects/${projectId}/clusters/${clusterId}/nodes/${nodeId}/info/`,
                 {},
                 config
             )
@@ -1349,108 +1271,6 @@ export default {
         getNodeList4Copy (context, params, config = {}) {
             return http.get(
                 `${DEVOPS_BCS_API_URL}/api/projects/${params.projectId}/clusters/${params.clusterId}/nodes/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群 CPU 剩余(单位核)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosCpuResourceRemain (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_cpu_resource_remain/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群 CPU 使用
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosCpuResourceUsed (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_cpu_resource_used/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群 CPU 总量(单位核)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosCpuResourceTotal (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_cpu_resource_total/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群内存剩余(单位MB)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosMemoryResourceRemain (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_memory_resource_remain/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群内存使用
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosMemoryResourceUsed (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_memory_resource_used/`,
-                {},
-                config
-            )
-        },
-
-        /**
-         * 集群内存总量(单位MB)
-         *
-         * @param {Object} context store 上下文对象
-         * @param {Object} params 参数
-         * @param {Object} config 请求的配置
-         *
-         * @return {Promise} promise 对象
-         */
-        mesosMemoryResourceTotal (context, { projectId, clusterId }, config = {}) {
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/mesos_memory_resource_total/`,
                 {},
                 config
             )

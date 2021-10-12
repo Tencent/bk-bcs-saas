@@ -62,7 +62,7 @@ export default defineComponent({
 
         // 订阅事件
         const { initParams, handleSubscribe } = useSubscribe(namespaceData, ctx)
-        const { start } = useInterval(handleSubscribe, 5000)
+        const { start, stop } = useInterval(handleSubscribe, 5000)
 
         watch(resourceVersion, (newVersion, oldVersion) => {
             if (newVersion && newVersion !== oldVersion) {

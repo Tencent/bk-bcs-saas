@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 import time
@@ -21,12 +22,9 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ClusterType
-from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
 from backend.utils.basic import RequestClass
 
 from .fixture.template_k8s import K8S_TEMPLATE
-from .fixture.template_mesos import MESOS_TEMPLATE
 from .models import MODULE_DICT, ShowVersion, Template, VersionedEntity, get_default_version
 
 logger = logging.getLogger(__name__)
@@ -54,7 +52,7 @@ def _delete_old_init_templates(template_qsets, project_id, project_code, access_
 
 @shared_task
 @transaction.atomic
-def init_template(project_id, project_code, project_kind, access_token, username):
+def init_template(project_id, project_code, access_token, username):
     """创建项目时，初始化示例模板集
     request.project.english_name
     """
@@ -63,13 +61,9 @@ def init_template(project_id, project_code, project_kind, access_token, username
     if exit_templates.exists():
         _delete_old_init_templates(exit_templates, project_id, project_code, access_token, username)
 
-    template_data = {}
-    if project_kind == K8S_KIND:
-        template_data = K8S_TEMPLATE.get('data', {})
-    elif project_kind == MESOS_KIND:
-        template_data = MESOS_TEMPLATE.get('data', {})
+    template_data = K8S_TEMPLATE.get('data', {})
 
-    logger.info(f'init_template [begin] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
+    logger.info(f'init_template [begin] project_id: {project_id}')
     # 新建模板集
     init_template = Template.objects.create(
         project_id=project_id,
@@ -119,5 +113,4 @@ def init_template(project_id, project_code, project_kind, access_token, username
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
     perm.register(str(init_template.id), str(init_template.name))
 
-    logger.info(f'init_template [end] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
-    return
+    logger.info(f'init_template [end] project_id: {project_id}')

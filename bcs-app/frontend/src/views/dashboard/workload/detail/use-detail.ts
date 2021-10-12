@@ -5,6 +5,7 @@ import yamljs from 'js-yaml'
 export interface IWorkloadDetail {
     manifest: any;
     manifest_ext: any;
+    web_annotations?: any;
 }
 
 export interface IDetailOptions {
@@ -46,6 +47,15 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const yaml = computed(() => {
         return yamljs.dump(detail.value?.manifest || {})
     })
+    const webAnnotations = ref<any>({})
+    // 界面权限
+    const pagePerms = computed(() => {
+        return {
+            create: webAnnotations.value?.perms?.page?.create_btn || {},
+            delete: webAnnotations.value?.perms?.page?.delete_btn || {},
+            update: webAnnotations.value?.perms?.page?.update_btn || {}
+        }
+    })
 
     const handleTabChange = (item) => {
         activePanel.value = item.name
@@ -55,12 +65,14 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         const { namespace, category, name, type } = options
         // workload详情
         isLoading.value = true
-        detail.value = await $store.dispatch('dashboard/getResourceDetail', {
+        const res = await $store.dispatch('dashboard/getResourceDetail', {
             $namespaceId: namespace,
             $category: category,
             $name: name,
             $type: type
         })
+        detail.value = res.data
+        webAnnotations.value = res.web_annotations
         isLoading.value = false
         return detail.value
     }
@@ -68,7 +80,7 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const handleShowYamlPanel = () => {
         showYamlPanel.value = true
     }
-            
+
     // 更新资源
     const handleUpdateResource = () => {
         const kind = detail.value?.manifest?.kind
@@ -77,11 +89,11 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
             name: 'dashboardResourceUpdate',
             params: {
                 namespace,
-                type,
-                category,
                 name
             },
             query: {
+                type,
+                category,
                 kind
             }
         })
@@ -123,6 +135,7 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         manifestExt,
         yaml,
         showYamlPanel,
+        pagePerms,
         handleShowYamlPanel,
         handleTabChange,
         handleGetDetail,

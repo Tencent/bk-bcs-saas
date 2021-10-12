@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 this is the operations for helm cli
 
 required: helm 2.9.1+
@@ -27,7 +27,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import asdict
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -183,9 +183,7 @@ class KubeHelmClient:
                 template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
                 # 添加命名行参数
-                if kwargs.get("cmd_flags"):
-                    cmd_flags = [f"--{flag}" for flag in kwargs["cmd_flags"]]
-                    template_cmd_args += cmd_flags
+                template_cmd_args = self._compose_cmd_args(template_cmd_args, cmd_flags=kwargs.get("cmd_flags"))
 
                 template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
                 # NOTE: 现阶段不需要helm notes输出
@@ -208,28 +206,6 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _compose_cmd_args(
-        self, cmd_args: List[str], chart_path: str, values_path: str, ytt_config_path: str, cmd_flags: List[str]
-    ) -> List[str]:
-        """组装helm命令参数"""
-        cmd_args += [
-            chart_path,
-            "--post-renderer",
-            f"{ytt_config_path}/{YTT_RENDERER_NAME}",
-        ]
-        # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
-        # --values在其它flag前面，保证可以被后续的文件或key=val覆盖
-        flags_list = [flag if flag.startswith("--") else f"--{flag}" for flag in cmd_flags]
-        if "--reuse-values" not in flags_list:
-            cmd_args += [
-                "--values",
-                values_path,
-            ]
-        # 添加flags
-        cmd_args += flags_list
-
-        return cmd_args
-
     def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data, **kwargs):
         try:
             with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):
@@ -239,7 +215,7 @@ class KubeHelmClient:
                     f.write(chart_values)
                 # 组装命令行参数
                 cmd_args = self._compose_cmd_args(
-                    cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags") or []
+                    cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags")
                 )
 
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
@@ -344,6 +320,36 @@ class KubeHelmClient:
         except Exception as err:
             logger.exception("Unable to run helm command")
             raise HelmError("run helm command failed: {}".format(err))
+
+    def _compose_cmd_args(
+        self,
+        cmd_args: List[str],
+        chart_path: str = None,
+        values_path: str = None,
+        ytt_config_path: str = None,
+        cmd_flags: List[Dict] = None,
+    ):
+        """组装下发的helm命令
+        这里需要兼容已经存在的helm的操作
+        NOTE: 当用户输入的选项中包含能覆盖values内容的选项，如--set、--set-string等，--values选项必须放在用户输入选项前面
+        """
+        # 初始的 helm 命令参数
+        init_opts = Options(cmd_args)
+        if chart_path:
+            init_opts.add(chart_path)
+        if ytt_config_path:
+            init_opts.add({"--post-renderer": f"{ytt_config_path}/{YTT_RENDERER_NAME}"})
+
+        # 用户输入的配置选项
+        opts = Options(cmd_flags)
+        options = opts.options()
+        # 当--reuse-values不存在并且values内容存在时，添加--values选项
+        if "--reuse-values" not in options and values_path:
+            init_opts.add({"--values": values_path})
+
+        cmd_args = init_opts.options()
+        cmd_args.extend(options)
+        return cmd_args
 
 
 @contextlib.contextmanager

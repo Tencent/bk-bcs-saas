@@ -20,9 +20,9 @@
                             <div slot="title">
                                 <div>
                                     {{$t('HPA (Horizontal Pod Autoscaler) 是k8s自动扩缩容服务，利用HPA，k8s能够根据监测到的 cpu, memory 利用率, 自动的扩缩容 Deployment 中 Pod 的数量')}}，
-                                    <a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sHpa" target="_blank">{{$t('详情查看文档')}}</a>
+                                    <a v-if="$INTERNAL" class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sHpa" target="_blank">{{$t('详情查看文档')}}</a>
                                 </div>
-                                <div class="mt5">
+                                <div class="mt5" v-if="$INTERNAL">
                                     {{$t('注意：功能灰度测试中，请联系')}}<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">【{{$t('蓝鲸容器助手')}}】</a>{{$t('添加白名单')}}
                                 </div>
                             </div>
@@ -83,8 +83,8 @@
                                     </bk-sideslider>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('名称')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('hpaName') }]" :placeholder="$t('请输入64个以内的字符')" style="width: 310px;" maxlength="64" v-model="curHPA.config.metadata.name" name="hpaName" v-validate="{ required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/ }">
                                             <div class="bk-form-tip" v-if="errors.has('hpaName')">
                                                 <p class="bk-tip-text">{{$t('名称必填，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)')}}</p>
@@ -93,8 +93,8 @@
                                     </div>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('关联应用')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('关联应用')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <bk-selector
                                                     :placeholder="$t('请选择要关联的应用')"
@@ -111,8 +111,8 @@
                                     </div>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">{{$t('实例数范围')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;">{{$t('实例数范围')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <div class="bk-form-input-group is-addon-left mr10">
                                                 <span class="input-group-addon prefix" style="display: inline-block;">
                                                     {{$t('最小')}}
@@ -147,8 +147,8 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;"></label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 140px;"></label>
+                                        <div class="bk-form-content" style="margin-left: 140px;">
                                             <table class="biz-simple-table">
                                                 <thead>
                                                     <tr>

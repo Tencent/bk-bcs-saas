@@ -255,7 +255,6 @@
                 </div>
             </div>
         </bk-dialog>
-        <cluster-guide ref="clusterGuide" @status-change="toggleGuide"></cluster-guide>
         <tip-dialog
             ref="clusterNoticeDialog"
             icon="bcs-icon bcs-icon-exclamation-triangle"
@@ -274,11 +273,9 @@
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
     import { bus } from '@open/common/bus'
-    import ClusterGuide from './guide'
 
     export default {
         components: {
-            ClusterGuide,
             tipDialog,
             'bk-ip-searcher': bkIPSearcher
         },
@@ -576,7 +573,7 @@
              * 弹层表格全选
              */
             toogleCheckCurPage () {
-                this.$nextTick(() => {
+                setTimeout(() => {
                     const isChecked = this.isCheckCurPageAll
                     this.candidateHostList.forEach(host => {
                         if (!host.is_used && String(host.agent) === '1') {
@@ -594,8 +591,7 @@
                 if (!hosts.length) {
                     return
                 }
-
-                this.$nextTick(() => {
+                setTimeout(() => {
                     const illegalLen = hosts.filter(host => host.is_used || String(host.agent) !== '1').length
                     const selectedHosts = hosts.filter(host =>
                         host.isChecked === true && !host.is_used && String(host.agent) === '1'

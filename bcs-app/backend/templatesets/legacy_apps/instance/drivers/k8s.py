@@ -1,26 +1,27 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-"""K8S底层调用
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+K8S底层调用
 """
 import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.resources.hpa import hpa as hpa_client
+from backend.resources.constants import DEFAULT_HPA_API_VERSION
+from backend.resources.hpa.client import HPA
 from backend.utils.exceptions import ComponentError, ConfigError, Rollback
 
 from .base import SchedulerBase
@@ -215,30 +216,13 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
-    # ########### metric  可以跟 k8s 共用
-    def handler_metric(self, ns, cluster_id, spec):
-        """绑定metric"""
-        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
-        result = client.set_metrics(data=spec, cluster_type='k8s')
-        if result.get('code') != 0:
-            logger.warning('set metric failed, %s, will try rollback.', result)
-            raise Rollback(result)
-
-    def rollback_metric(self, ns, cluster_id, spec):
-        """回滚metric"""
-        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
-        name = spec['name']
-        result = client.delete_metrics(namespace=ns, metric_name=name, cluster_type='k8s')
-        if result.get('code') != 0:
-            raise ComponentError(result.get('message', ''))
-
     def handler_k8shpa(self, ns, cluster_id, spec):
         """下发HPA配置"""
         ctx_cluster = CtxCluster.create(token=self.access_token, project_id=self.project_id, id=cluster_id)
-        client = hpa_client.HPA(ctx_cluster)
+        client = HPA(ctx_cluster)
 
         name = spec["metadata"]["name"]
-        spec['apiVersion'] = hpa_client.PREFERRED_API_VERSION
+        spec['apiVersion'] = DEFAULT_HPA_API_VERSION
 
         try:
             result = client.update_or_create(spec, name, ns)

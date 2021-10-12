@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 from typing import Callable, Dict, List
 
@@ -19,11 +20,11 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log import client as activity_client
 from backend.bcs_web.audit_log.constants import ActivityStatus, ActivityType, ResourceType
 from backend.components import paas_cc
 from backend.container_service.observability.metric import constants
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.utils.basic import getitems
 from backend.utils.datetime import get_duration_seconds
 from backend.utils.error_codes import error_codes
@@ -149,7 +150,7 @@ class ServiceMonitorMixin:
         :param project_id: 项目 ID
         :return: {(cluster_id, name): id}
         """
-        resp = paas_cc.get_namespace_list(self.request.user.token.access_token, project_id, limit=ALL_LIMIT)
+        resp = paas_cc.get_namespace_list(self.request.user.token.access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
         namespaces = getitems(resp, 'data.results', [])
         return {(i['cluster_id'], i['name']): i['id'] for i in namespaces}
 

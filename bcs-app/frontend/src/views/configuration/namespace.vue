@@ -97,7 +97,7 @@
                                 <template slot-scope="{ row }">
                                     <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
                                     <a class="bk-text-button ml10" v-if="!row.permissions.use" @click="applyUsePermission(row)">{{$t('申请使用权限')}}</a>
-                                    <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2 && $INTERNAL">
+                                    <bcs-popover :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
                                         <a href="javascript:void(0);" class="bk-text-button">
                                             {{$t('配额管理')}}
                                         </a>
@@ -294,7 +294,7 @@
                             </div>
                         </div>
                         <template v-if="editNamespaceConf.variableList && editNamespaceConf.variableList.length">
-                            <div class="bk-form-item flex-item">
+                            <div class="bk-form-item flex-item" style="margin-top: 20px;">
                                 <div class="left">
                                     <label class="bk-label label">
                                         {{$t('变量：')}}
@@ -342,15 +342,15 @@
             :quick-close="false"
             class="biz-cluster-set-variable-sideslider"
             @hidden="hideEditQuota">
-            <div slot="content">
+            <div slot="content" v-bkloading="{ isLoading: editQuotaConf.initLoading }">
                 <div class="wrapper" style="position: relative;">
                     <div class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">{{$t('名称：')}}</label>
+                                <label class="bk-label label">{{$t('名称')}}</label>
                             </div>
                             <div class="right" style="margin-left: 20px;">
-                                <label class="bk-label label">{{$t('所属集群：')}}</label>
+                                <label class="bk-label label">{{$t('所属集群')}}</label>
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
@@ -373,7 +373,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bk-form-item flex-item" style="margin-top: 20px;">
+                        <div class="bk-form-item flex-item" style="margin: 10px 0;">
                             <div class="left">
                                 <label class="bk-label label">
                                     {{$t('配额')}}
@@ -383,7 +383,7 @@
                         </div>
                         <div class="bk-form-item" style="margin-top: 18px;">
                             <div class="quota-label-tip">
-                                <span class="title">CPU（核）</span>
+                                <span class="title">CPU(核)</span>
                             </div>
                             <div class="bk-form-content">
                                 <div class="biz-key-value-wrapper mb10">
@@ -412,7 +412,7 @@
                         </div>
                         <div class="bk-form-item" style="margin-top: 32px;">
                             <div class="quota-label-tip">
-                                <span class="title">内存（Gi）</span>
+                                <span class="title">内存(Gi)</span>
                             </div>
                             <div class="bk-form-content">
                                 <div class="biz-key-value-wrapper mb10">
@@ -482,50 +482,6 @@
                         {{$t('取消')}}
                     </bk-button>
                 </div>
-            </div>
-        </bk-dialog>
-
-        <bk-dialog
-            :title="$t('删除命名空间')"
-            :is-show.sync="delMesosNamespaceDialogConf.isShow"
-            :width="delMesosNamespaceDialogConf.width"
-            :close-icon="delMesosNamespaceDialogConf.closeIcon"
-            :ext-cls="'biz-namespace-mesos-del-dialog'"
-            :has-header="false"
-            :has-footer="delMesosNamespaceDialogConf.hasFooter"
-            :quick-close="false"
-            @cancel="delMesosNamespaceCancel">
-            <template slot="content" style="padding: 0 20px;">
-                <div v-bkloading="{ isLoading: delMesosNamespaceDialogConf.loading, opacity: 1 }">
-                    <div v-if="delMesosNamespaceDialogConf.list.length">
-                        <div style="color: red;">
-                            {{$t('命名空间包含以下资源，请先删除资源，然后再删除命名空间')}}
-                        </div>
-                        <div class="res-list-container" :key="index" v-for="(item, index) in delMesosNamespaceDialogConf.list">
-                            <div class="res-list-key">{{item.key}}</div>
-                            <ul class="res-list">
-                                <li :title="valItem" v-for="(valItem, valItemIndex) in item.val" :key="valItemIndex">{{valItem}}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <template v-else>
-                        <div class="info">
-                            {{$t('您确定要删除Namespace: {name}吗？', { name: delNamespaceDialogConf.ns.name })}}
-                        </div>
-                    </template>
-                </div>
-            </template>
-            <div slot="footer">
-                <div class="bk-dialog-outer" v-if="!delMesosNamespaceDialogConf.list.length">
-                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                        @click="delMesosNamespaceConfirm">
-                        {{$t('删除')}}
-                    </bk-button>
-                    <bk-button class="bk-dialog-btn bk-dialog-btn-cancel" @click="delMesosNamespaceCancel">
-                        {{$t('取消')}}
-                    </bk-button>
-                </div>
-                <div class="bk-dialog-outer" v-else></div>
             </div>
         </bk-dialog>
 
@@ -631,16 +587,6 @@
                     ns: {}
                 },
                 showSyncBtn: false,
-                delMesosNamespaceDialogConf: {
-                    isShow: false,
-                    width: 650,
-                    title: '',
-                    closeIcon: true,
-                    ns: {},
-                    loading: false,
-                    list: [],
-                    hasFooter: false
-                },
                 showQuota: false,
                 editQuotaConf: {
                     isShow: false,
@@ -648,7 +594,8 @@
                     width: 680,
                     namespaceName: '',
                     ns: {},
-                    loading: false
+                    loading: false,
+                    initLoading: false
                 },
                 quotaData: {
                     limitsCpu: '400',
@@ -1302,7 +1249,8 @@
                     })
                 }
                 this.editQuotaConf.isShow = true
-                // this.editQuotaConf.loading = true
+                this.editQuotaConf.loading = true
+                this.editQuotaConf.initLoading = true
                 this.editQuotaConf.namespaceName = ns.name
                 this.editQuotaConf.title = this.$t('配额管理：{nsName}', {
                     nsName: ns.name
@@ -1326,9 +1274,8 @@
                 } catch (e) {
                     console.error(e)
                 } finally {
-                    setTimeout(() => {
-                        this.editQuotaConf.loading = false
-                    }, 300)
+                    this.editQuotaConf.initLoading = false
+                    this.editQuotaConf.loading = false
                 }
             },
 
@@ -1501,15 +1448,8 @@
              * @param {number} index 当前 namespace 对象的索引
              */
             async showDelNamespace (ns, index) {
-                if (this.curProject.kind === 1 || this.curProject.kind === 3) {
-                    this.delNamespaceDialogConf.isShow = true
-                    this.delNamespaceDialogConf.ns = Object.assign({}, ns)
-                } else {
-                    this.delMesosNamespaceDialogConf.isShow = true
-                    this.delMesosNamespaceDialogConf.loading = true
-                    this.delMesosNamespaceDialogConf.ns = Object.assign({}, ns)
-                    await this.fetchMesosNamespaceRes()
-                }
+                this.delNamespaceDialogConf.isShow = true
+                this.delNamespaceDialogConf.ns = Object.assign({}, ns)
             },
 
             /**
@@ -1552,92 +1492,6 @@
             },
 
             /**
-             * 获取 mesos 命名空间里的资源
-             */
-            async fetchMesosNamespaceRes () {
-                try {
-                    const res = await this.$store.dispatch('configuration/getMesosNamespaceRes', {
-                        projectId: this.projectId,
-                        namespaceId: this.delMesosNamespaceDialogConf.ns.id
-                    })
-                    // const res = {
-                    //     code: 0,
-                    //     data: {
-                    //         secret: [],
-                    //         deployment: [],
-                    //         application: [
-                    //             // 'test323-test',
-                    //             // 'test12312application-1'
-                    //         ],
-                    //         configmap: [
-                    //             // 'configmap-1'
-                    //         ],
-                    //         service: []
-                    //     },
-                    //     request_id: 'ea80406250934f0ea6b70e61fce042ed'
-                    // }
-
-                    const data = res.data
-                    const list = []
-                    Object.keys(data).forEach(k => {
-                        if (data[k].length) {
-                            list.push({
-                                key: k,
-                                val: data[k],
-                                str: data[k].join(';')
-                            })
-                        }
-                    })
-                    this.delMesosNamespaceDialogConf.list.splice(0, this.delMesosNamespaceDialogConf.list.length, ...list)
-                    this.delMesosNamespaceDialogConf.hasFooter = !this.delMesosNamespaceDialogConf.list.length
-
-                    setTimeout(() => {
-                        this.delMesosNamespaceDialogConf.loading = false
-                    }, 100)
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                }
-            },
-
-            /**
-             * 删除当前 namespace mesos
-             *
-             * @param {Object} ns 当前 namespace 对象
-             * @param {number} index 当前 namespace 对象的索引
-             */
-            async delMesosNamespaceConfirm () {
-                try {
-                    this.isPageLoading = true
-                    this.delMesosNamespaceCancel()
-                    await this.$store.dispatch('configuration/deleteMesosNamespace', {
-                        projectId: this.projectId,
-                        namespaceId: this.delMesosNamespaceDialogConf.ns.id
-                    })
-                    this.search = ''
-                    this.refresh()
-                    this.bkMessageInstance && this.bkMessageInstance.close()
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'success',
-                        message: this.$t('删除Namespace成功')
-                    })
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                }
-            },
-
-            /**
-             * 取消删除当前 namespace mesos
-             */
-            delMesosNamespaceCancel () {
-                this.delMesosNamespaceDialogConf.isShow = false
-                setTimeout(() => {
-                    this.delMesosNamespaceDialogConf.ns = Object.assign({}, {})
-                    this.delMesosNamespaceDialogConf.list.splice(0, this.delMesosNamespaceDialogConf.list.length, ...[])
-                    this.delMesosNamespaceDialogConf.hasFooter = false
-                }, 300)
-            },
-
-            /**
              * 搜索事件
              */
             handleSearch () {
@@ -1651,12 +1505,12 @@
                 }
 
                 const results = list.filter(ns => {
+                    // const envType = String(ns.env_type || '').toLowerCase()
+                    // || envType.indexOf(search) > -1
                     const name = String(ns.name || '').toLowerCase()
-                    const envType = String(ns.env_type || '').toLowerCase()
                     const clusterName = String(ns.cluster_name || '').toLowerCase()
 
                     return name.indexOf(search) > -1
-                        || envType.indexOf(search) > -1
                         || clusterName.indexOf(search) > -1
                 })
                 // const beforeLen = this.namespaceListTmp.length

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 import time
@@ -20,36 +21,16 @@ from celery import shared_task
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.bcs import k8s, mesos
+from backend.components.bcs import k8s
 from backend.templatesets.legacy_apps.instance.constants import EventType, InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
-from backend.uniapps.application.constants import FUNC_MAP, MESOS_FUNC_MAP
+from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 
 DEFAULT_RESPONSE = {"code": 0}
 POLLING_INTERVAL_SECONDS = getattr(settings, "POLLING_INTERVAL_SECONDS", 5)
 POLLING_TIMEOUT = timedelta(seconds=getattr(settings, "POLLING_TIMEOUT_SECONDS", 600))
 logger = logging.getLogger(__name__)
-
-
-def get_mesos_application_deploy_status(
-    access_token, cluster_id, instance_name, project_id=None, category="application", field=None, namespace=None
-):
-    """查询mesos下application和deployment的状态"""
-    mesos_client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-    if category == "application":
-        resp = mesos_client.get_mesos_app_instances(
-            app_name=instance_name,
-            field=field or "data.status",
-            namespace=namespace,
-        )
-    else:
-        resp = mesos_client.get_deployment(
-            name=instance_name,
-            field=field or "data.status",
-            namespace=namespace,
-        )
-    return resp
 
 
 def get_k8s_category_status(
@@ -70,17 +51,10 @@ def get_k8s_category_status(
 
 def create_instance(access_token, cluster_id, ns, data, project_id=None, category="application", kind=2):
     """创建实例"""
-    if kind == 2:
-        mesos_client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-        if category == "application":
-            resp = mesos_client.create_application(ns, data)
-        else:
-            resp = mesos_client.create_deployment(ns, data)
-    else:
-        client = k8s.K8SClient(access_token, project_id, cluster_id, None)
-        curr_func = getattr(client, FUNC_MAP[category] % "create")
-        resp = curr_func(ns, data)
-        resp = DEFAULT_RESPONSE
+    client = k8s.K8SClient(access_token, project_id, cluster_id, None)
+    curr_func = getattr(client, FUNC_MAP[category] % "create")
+    resp = curr_func(ns, data)
+    resp = DEFAULT_RESPONSE
     return resp
 
 
@@ -99,14 +73,9 @@ def application_polling_task(
     """轮训任务状态，并启动创建任务"""
     is_polling = True
     while is_polling:
-        if kind == 2:
-            result = get_mesos_application_deploy_status(
-                access_token, cluster_id, instance_name, category=category, namespace=ns_name, project_id=project_id
-            )
-        else:
-            result = get_k8s_category_status(
-                access_token, cluster_id, instance_name, category=category, namespace=ns_name, project_id=project_id
-            )
+        result = get_k8s_category_status(
+            access_token, cluster_id, instance_name, category=category, namespace=ns_name, project_id=project_id
+        )
         if result.get("code") == 0 and not result.get("data"):
             is_polling = False
         time.sleep(POLLING_INTERVAL_SECONDS)
@@ -144,16 +113,6 @@ def application_polling_task(
 
 
 @shared_task
-def instance_polling_task(access_token, inst_id, cluster_id, category=None, kind=2, ns_name=None):
-    """针对实例的轮训
-    1. 实例化后直接触发轮训任务
-    2. 执行某个操作后，触发针对当前操作的轮训任务
-    3. 返回状态通过查询db获取
-    """
-    pass
-
-
-@shared_task
 def delete_instance_task(access_token, inst_id_list, project_kind):
     """后台更新删除实例是否被删除成功"""
     # 通过instance id获取到相应的记录，然后查询mesos/k8s的实例状态
@@ -174,18 +133,9 @@ def delete_instance_task(access_token, inst_id_list, project_kind):
             category = info.category
             name = metadata.get("name")
             # 根据类型获取查询
-            if project_kind == 1:
-                client = k8s.K8SClient(access_token, project_id, cluster_id, None)
-                curr_func = getattr(client, FUNC_MAP[category] % "get")
-                resp = curr_func({"name": name, "namespace": namespace})
-            else:
-                client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-                curr_func = getattr(client, MESOS_FUNC_MAP[category])
-                if category == "deployment":
-                    name_key = "name"
-                else:
-                    name_key = "app_name"
-                resp = curr_func(**{"%s" % name_key: name, "namespace": namespace})
+            client = k8s.K8SClient(access_token, project_id, cluster_id, None)
+            curr_func = getattr(client, FUNC_MAP[category] % "get")
+            resp = curr_func({"name": name, "namespace": namespace})
             if not resp.get("data"):
                 deleted_id_list.append(info.id)
                 # 删除名称+命名空间+类型

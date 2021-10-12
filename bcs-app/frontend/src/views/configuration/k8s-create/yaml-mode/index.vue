@@ -864,16 +864,6 @@
         },
 
         mounted () {
-            if (this.curProject.kind === PROJECT_MESOS) {
-                this.$router.push({
-                    name: 'templateset',
-                    params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode
-                    }
-                })
-                return false
-            }
             this.winHeight = window.innerHeight
 
             const debounce = this.debounce(() => {
@@ -2089,6 +2079,7 @@
                             this.handleToggleTab('default')
                             this.renderYamls(zipFile)
                             this.fileImportIndex++
+                            this.clearPrevContext()
                         }
                     } catch (e) {
                         this.$bkMessage({

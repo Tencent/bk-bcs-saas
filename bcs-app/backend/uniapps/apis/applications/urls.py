@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.conf.urls import url
 
 from backend.uniapps.apis.applications import views
-from backend.uniapps.apis.applications.all_views import instance
 
 urlpatterns = [
     url(
@@ -40,10 +40,6 @@ urlpatterns = [
     url(
         r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/batch_update/$",
         views.BatchUpdateInstance.as_view({"put": "api_put"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/batch_application_update/$",
-        views.BatchUpdateApplicationInstance.as_view({"put": "api_put"}),
     ),
     url(
         r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/scale/$",
@@ -104,21 +100,5 @@ urlpatterns = [
     url(
         r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/namespaces/$",  # noqa
         views.ProjectNamespace.as_view({"post": "post"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/applications/batch_signal/$",  # noqa
-        instance.SendApplicationSignal.as_view({"post": "send_signal"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/deployments/batch_signal/$",  # noqa
-        instance.SendDeploymentSignal.as_view({"post": "send_signal"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/command/$",  # noqa
-        instance.SendCommand.as_view({"post": "send_cmd"}),
-    ),
-    url(
-        r"cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/command/status/$",  # noqa
-        instance.GetCommandStatus.as_view({"get": "status", "delete": "delete_command"}),
     ),
 ]

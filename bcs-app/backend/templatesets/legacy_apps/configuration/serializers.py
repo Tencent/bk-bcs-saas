@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 import re
@@ -55,29 +56,6 @@ def check_resource_name(resource_name, data, name):
         if not result:
             raise ValidationError(_("{}名称:{}已经在项目模板中被占用,请重新填写").format(resource_name, name))
 
-    return data
-
-
-def check_app_id(data, data_app_id):
-    # data_app_id = data['app_id']:
-    if not data["version_id"]:
-        raise ValidationError(_("请先创建 Application ，再创建 Deplpyment"))
-
-    if not data_app_id:
-        raise ValidationError(_("请选择关联的 Application"))
-
-    req_app_id_list = data_app_id.split(",")
-
-    try:
-        version_entity = models.VersionedEntity.objects.get(id=data["version_id"])
-    except Exception:
-        raise ValidationError(_("模板集版本id:{}不存在").format(data["version_id"]))
-
-    app_list = version_entity.get_mesos_apps()
-    app_id_list = [app.get("app_id") for app in app_list]
-
-    if not set(req_app_id_list).issubset(set(app_id_list)):
-        raise ValidationError(_("关联的Application (app_id:{})不合法").format(data_app_id))
     return data
 
 
@@ -212,124 +190,6 @@ class TemplateCreateSLZ(serializers.Serializer):
             detail = {"field": [_("模板集名称[{}]已经存在").format(data["name"])]}
             raise ValidationError(detail=detail)
         return data
-
-
-class ServiceCreateOrUpdateSLZ(serializers.Serializer):
-    app_id = serializers.JSONField(required=True)
-    config = serializers.JSONField(required=True)
-    version_id = serializers.IntegerField(required=False)
-    item_id = serializers.IntegerField(required=False)
-    project_id = serializers.CharField(required=False)
-    # 更新service相关字段
-    lb_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    namespace_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    instance_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    creator = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    create_time = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-
-    def validate_config(self, config):
-        # Service 名称可以支持变量
-        # name = config.get('metadata', {}).get('name') or ""
-        # if not RE_NAME.match(name):
-        #     raise ValidationError(
-        #         u"Service 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
-
-        if settings.IS_TEMPLATE_VALIDATE:
-            try:
-                json_validate(config, SERVICE_SCHEM)
-            except JsonValidationError as e:
-                raise ValidationError(_("Service 配置信息格式错误 {}").format(e.message))
-            except SchemaError as e:
-                raise ValidationError(_("Service 配置信息格式错误{}").format(e))
-
-        return json.dumps(config)
-
-    def validate(self, data):
-        config = json.loads(data["config"])
-        name = config.get("metadata", {}).get("name") or ""
-
-        if not data.get("namespace_id") and not data.get("instance_id"):
-            check_resource_name("service", data, name)
-
-        app_id = data["app_id"]
-        if isinstance(app_id, list):
-            req_app_id = ",".join(app_id)
-            data["app_id"] = req_app_id
-        elif isinstance(app_id, dict):
-            req_app_id = ",".join(app_id.keys())
-            # 验证权重之和是否为 100
-            data_app_values = app_id.values()
-            if sum(data_app_values) != 100:
-                raise ValidationError(_("关联应用的权重之和不为100%"))
-            data["app_id"] = json.dumps(app_id)
-        else:
-            raise ValidationError(_("关联应用参数格式错误"))
-
-        return check_app_id(data, req_app_id)
-
-
-class ConfigMapCreateOrUpdateSLZ(serializers.Serializer):
-    """"""
-
-    config = serializers.JSONField(required=True)
-    version_id = serializers.IntegerField(required=False)
-    item_id = serializers.IntegerField(required=False)
-    project_id = serializers.CharField(required=False)
-
-    namespace_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    instance_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-
-    def validate_config(self, config):
-        name = config.get("metadata", {}).get("name") or ""
-        if not RE_NAME.match(name):
-            raise ValidationError(_("ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"))
-
-        if settings.IS_TEMPLATE_VALIDATE:
-            try:
-                json_validate(config, CONFIGMAP_SCHEM)
-            except JsonValidationError as e:
-                raise ValidationError(_("ConfigMap 配置信息格式错误{}").format(e.message))
-            except SchemaError as e:
-                raise ValidationError(_("ConfigMap 配置信息格式错误{}").format(e))
-
-        return json.dumps(config)
-
-    def validate(self, data):
-        config = json.loads(data["config"])
-        name = config.get("metadata", {}).get("name") or ""
-        return check_resource_name("configmap", data, name)
-
-
-class SecretCreateOrUpdateSLZ(serializers.Serializer):
-    """"""
-
-    config = serializers.JSONField(required=True)
-    version_id = serializers.IntegerField(required=False)
-    item_id = serializers.IntegerField(required=False)
-    project_id = serializers.CharField(required=False)
-
-    namespace_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    instance_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-
-    def validate_config(self, config):
-        name = config.get("metadata", {}).get("name") or ""
-        if not RE_NAME.match(name):
-            raise ValidationError(_("Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"))
-
-        if settings.IS_TEMPLATE_VALIDATE:
-            try:
-                json_validate(config, SECRET_SCHEM)
-            except JsonValidationError as e:
-                raise ValidationError(_("Secret 配置信息格式错误{}").format(e.message))
-            except SchemaError as e:
-                raise ValidationError(_("Secret 配置信息格式错误{}").format(e))
-
-        return json.dumps(config)
-
-    def validate(self, data):
-        config = json.loads(data["config"])
-        name = config.get("metadata", {}).get("name") or ""
-        return check_resource_name("secret", data, name)
 
 
 # ############################## k8s 相关资源

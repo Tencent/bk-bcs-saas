@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 ConfigMaps
-                <span class="biz-tip ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建ConfigMap') : $t('请通过模板集或Helm创建ConfigMap')}}</span>
+                <span class="biz-tip ml10">{{$t('请通过模板集或Helm创建ConfigMap')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -212,18 +212,9 @@
                             </div>
                         </div>
                         <template v-if="curKeyParams">
-                            <div class="bk-form-item" style="margin-top: 0;" v-if="currentView === 'mesosService'">
-                                <label class="bk-label">{{$t('值来源')}}：</label>
-                                <div class="bk-form-content" style="margin-left: 105px;">
-                                    <bk-radio-group v-model="curKeyParams.type">
-                                        <bk-radio value="file">{{$t('在线编辑')}}</bk-radio>
-                                        <bk-radio value="http">{{$t('仓库获取')}}</bk-radio>
-                                    </bk-radio-group>
-                                </div>
-                            </div>
                             <div class="bk-form-item" style="margin-top: 13px;">
                                 <label class="bk-label">{{$t('值')}}：</label>
-                                <div class="bk-form-content" style="margin-left: 105px;" v-if="currentView === 'k8sService'">
+                                <div class="bk-form-content" style="margin-left: 105px;" v-if="curProject.kind === PROJECT_K8S">
                                     <textarea class="bk-form-textarea"
                                         style="height: 200px;"
                                         v-model="curKeyParams.content"
@@ -246,7 +237,6 @@
                                         v-else>
                                     </textarea>
                                 </div>
-                                <p class="biz-tip mt5" style="margin-left: 105px; " v-if="currentView === 'mesosService' && curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
                             </div>
                         </template>
                         <div class="action-inner" style="margin-top: 20px; margin-left: 105px;">
@@ -335,7 +325,6 @@
                 isUpdateLoading: false,
                 configmapTimer: null,
                 curProject: {},
-                currentView: 'k8sService',
                 isBatchRemoving: false,
                 curSelectedData: [],
                 alreadySelectedNums: 0,
@@ -436,7 +425,6 @@
         },
         mounted () {
             this.curProject = this.initCurProject()
-            this.setComponent()
         },
         methods: {
             /**
@@ -548,17 +536,6 @@
                         me.isPageLoading = false
                     }
                     catchErrorHandler(e, this)
-                }
-            },
-
-            /**
-             * 根据当前项目调用k8s/mesos
-             */
-            setComponent () {
-                if (this.curProject.kind === PROJECT_MESOS) {
-                    this.currentView = 'mesosService'
-                } else if (this.curProject.kind === PROJECT_K8S) {
-                    this.currentView = 'k8sService'
                 }
             },
 
@@ -677,48 +654,24 @@
                 const keyList = []
                 const oKey = {}
 
-                if (this.currentView === 'k8sService') {
-                    const k8sList = this.configmapKeyList
-                    const k8sLength = k8sList.length
-                    for (let i = 0; i < k8sLength; i++) {
-                        const item = k8sList[i]
-                        keyList.push(item.key)
-                        oKey[item.key] = item.content
-                    }
-                    const aKey = keyList.sort()
-                    for (let i = 0; i < aKey.length; i++) {
-                        if (aKey[i] === aKey[i + 1]) {
-                            this.bkMessageInstance = this.$bkMessage({
-                                theme: 'error',
-                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
-                            })
-                            return
-                        }
-                    }
-                    enity.config['data'] = oKey
-                } else {
-                    const mesosList = this.configmapKeyList
-                    const mesosLength = mesosList.length
-                    for (let i = 0; i < mesosLength; i++) {
-                        const item = mesosList[i]
-                        keyList.push(item.key)
-                        oKey[item.key] = {
-                            type: item.type,
-                            content: item.content
-                        }
-                    }
-                    const aKey = keyList.sort()
-                    for (let i = 0; i < aKey.length; i++) {
-                        if (aKey[i] === aKey[i + 1]) {
-                            this.bkMessageInstance = this.$bkMessage({
-                                theme: 'error',
-                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
-                            })
-                            return
-                        }
-                    }
-                    enity.config['datas'] = oKey
+                const k8sList = this.configmapKeyList
+                const k8sLength = k8sList.length
+                for (let i = 0; i < k8sLength; i++) {
+                    const item = k8sList[i]
+                    keyList.push(item.key)
+                    oKey[item.key] = item.content
                 }
+                const aKey = keyList.sort()
+                for (let i = 0; i < aKey.length; i++) {
+                    if (aKey[i] === aKey[i + 1]) {
+                        this.bkMessageInstance = this.$bkMessage({
+                            theme: 'error',
+                            message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
+                        })
+                        return
+                    }
+                }
+                enity.config['data'] = oKey
 
                 try {
                     await this.$store.dispatch('resource/updateSingleConfigmap', {
@@ -764,20 +717,11 @@
              */
             addKey () {
                 const index = this.configmapKeyList.length + 1
-                if (this.currentView === 'k8sService') {
-                    this.configmapKeyList.push({
-                        key: 'key-' + index,
-                        isEdit: false,
-                        content: ''
-                    })
-                } else {
-                    this.configmapKeyList.push({
-                        key: 'key-' + index,
-                        isEdit: false,
-                        type: 'file',
-                        content: ''
-                    })
-                }
+                this.configmapKeyList.push({
+                    key: 'key-' + index,
+                    isEdit: false,
+                    content: ''
+                })
                 this.curKeyParams = this.configmapKeyList[index - 1]
                 this.curKeyIndex = index - 1
                 this.$refs.keyTooltip.visible = false
@@ -870,25 +814,13 @@
              */
             initKeyList (configmap) {
                 const list = []
-                if (this.currentView === 'k8sService') {
-                    const k8sConfigmapData = configmap.data.data
-                    for (const [key, value] of Object.entries(k8sConfigmapData)) {
-                        list.push({
-                            key: key,
-                            isEdit: false,
-                            content: value
-                        })
-                    }
-                } else {
-                    const mesosConfigmapData = configmap.data.datas
-                    for (const [key, value] of Object.entries(mesosConfigmapData)) {
-                        list.push({
-                            key: key,
-                            isEdit: false,
-                            content: value.content,
-                            type: value.type
-                        })
-                    }
+                const k8sConfigmapData = configmap.data.data
+                for (const [key, value] of Object.entries(k8sConfigmapData)) {
+                    list.push({
+                        key: key,
+                        isEdit: false,
+                        content: value
+                    })
                 }
                 this.curKeyIndex = 0
                 if (list.length) {
@@ -925,31 +857,17 @@
             updateConfigmapKeyList () {
                 if (this.curConfigmap) {
                     const results = []
-                    let data = {}
 
-                    if (this.currentView === 'k8sService') {
-                        data = this.curConfigmap.data.data || {}
+                    const data = this.curConfigmap.data.data || {}
 
-                        const keys = Object.keys(data)
-                        keys.forEach(item => {
-                            results.push({
-                                isExpanded: false,
-                                key: item,
-                                value: data[item]
-                            })
+                    const keys = Object.keys(data)
+                    keys.forEach(item => {
+                        results.push({
+                            isExpanded: false,
+                            key: item,
+                            value: data[item]
                         })
-                    } else {
-                        data = this.curConfigmap.data.datas || {}
-
-                        const keys = Object.keys(data)
-                        keys.forEach(item => {
-                            results.push({
-                                isExpanded: false,
-                                key: item,
-                                value: data[item].content
-                            })
-                        })
-                    }
+                    })
 
                     this.curConfigmapKeyList = results
                 } else {

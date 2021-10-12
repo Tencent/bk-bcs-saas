@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import base64
 import json
 import logging
@@ -23,32 +24,26 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
-from backend.apps.constants import ClusterType, ProjectKind
-from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
 from backend.bcs_web.audit_log.audit.decorators import log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
 from backend.resources import namespace as ns_resource
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.resources.namespace.utils import get_namespace_by_id
-from backend.templatesets.legacy_apps.instance.constants import (
-    K8S_IMAGE_SECRET_PRFIX,
-    MESOS_IMAGE_SECRET,
-    OLD_MESOS_IMAGE_SECRET,
-)
+from backend.templatesets.legacy_apps.configuration.constants import EnvType
+from backend.templatesets.legacy_apps.configuration.utils import get_cluster_env_name
+from backend.templatesets.legacy_apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import APIResult
 
-from ..constants import MesosResourceName
 from . import serializers as slz
 from .auditor import NamespaceAuditor
 from .resources import Namespace
@@ -131,47 +126,6 @@ class NamespaceBase:
             client = ns_resource.NamespaceQuota(access_token, project_id, data["cluster_id"])
             client.create_namespace_quota(name, data["quota"])
 
-    def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
-        """检查命名空间下是否已经有secret文件"""
-        params = {"namespace": ns_name, "name": MESOS_IMAGE_SECRET, "decode": "1", "field": "namespace,resourceName"}
-        resp = client.get_secrets(params)
-        # 能够在storage上查询到则说明存在
-        data = resp.get('data') or []
-        if data:
-            return True
-        return False
-
-    def init_mesos_ns_by_bcs(self, access_token, project_id, project_code, cluster_id, ns_name):
-        """新建包含仓库账号信息的sercret配置文件并下发"""
-        # 获取镜像仓库地址
-        jfrog_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
-        # 按项目申请仓库的账号信息
-
-        # 判断是否为研发仓库，正式环境分为：研发仓库、生产仓库，这2个仓库的账号要分开申请
-        if jfrog_domain.startswith(settings.BK_JFROG_ACCOUNT_DOMAIN):
-            is_bk_jfrog = True
-        else:
-            is_bk_jfrog = False
-        jfrog_account = get_jfrog_account(access_token, project_code, project_id, is_bk_jfrog)
-        _user = jfrog_account.get('user', '')
-        _pwd = jfrog_account.get('password', '')
-        jfrog_config = {
-            "kind": "secret",
-            "metadata": {"name": MESOS_IMAGE_SECRET, "namespace": ns_name},
-            "datas": {
-                "user": {"content": base64.b64encode(_user.encode(encoding="utf-8")).decode()},
-                "pwd": {"content": base64.b64encode(_pwd.encode(encoding="utf-8")).decode()},
-            },
-            "apiVersion": "v4",
-        }
-
-        # 下发secret配置文件
-        client = MesosClient(access_token, project_id, cluster_id, env=None)
-        result = client.create_secret(ns_name, jfrog_config)
-        if result.get('code') != 0:
-            client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
-            raise error_codes.ComponentError.f(_("创建registry secret失败，{}").format(result.get('message')))
-
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -183,9 +137,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         return response.Response(ns_info)
 
     def get_clusters_without_ns(self, clusters, cluster_ids_with_ns):
-        """获取不带有ns的集群
-        TODO: 后续相关的namespace的功能，可以通过K8S/Mesos API获取
-        """
+        """获取不带有ns的集群"""
         clusters_without_ns = []
         for cluster_id in clusters:
             if cluster_id in cluster_ids_with_ns:
@@ -203,7 +155,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
     def _ignore_ns_for_k8s(self, ns_list):
         """针对k8s集群，过滤掉系统和平台命名空间"""
-        return [ns for ns in ns_list if ns["name"] not in K8S_SYS_PLAT_NAMESPACES]
+        return [ns for ns in ns_list if ns["name"] not in K8S_PLAT_NAMESPACE]
 
     def list(self, request, project_id):
         """命名空间列表
@@ -224,14 +176,13 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             perm_can_use = False
 
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=constants.ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=with_lb, limit=LIMIT_FOR_ALL_DATA)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
         results = result["data"]["results"] or []
-        # 针对k8s集群过滤掉系统和平台命名空间
-        if request.project.kind == ProjectKind.K8S.value:
-            results = self._ignore_ns_for_k8s(results)
+        # 针对k8s集群过滤掉平台命名空间
+        results = self._ignore_ns_for_k8s(results)
 
         # 是否有创建权限
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
@@ -286,7 +237,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 for k, v in groupby(sorted(results, key=lambda x: x[group_by]), key=lambda x: x[group_by])
             ]
             if group_by == 'env_type':
-                ordering = [i.value for i in constants.EnvType]
+                ordering = [i.value for i in EnvType]
                 results = sorted(results, key=lambda x: ordering.index(x['name']))
             else:
                 results = sorted(results, key=lambda x: x['name'], reverse=True)
@@ -310,24 +261,15 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         return APIResult(results, 'success', permissions=permissions)
 
-    def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
-        client = MesosClient(access_token, project_id, cluster_id, env=None)
-        client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
-
     def create_flow(self, request, project_id, data, perm):
         access_token = request.user.token.access_token
-        project_kind = request.project.kind
         project_code = request.project.english_name
         ns_name = data['name']
         cluster_id = data['cluster_id']
 
-        if ClusterType.get(project_kind) == 'Kubernetes':
-            # k8s 集群需要调用 bcs api 初始化数据
-            self.init_namespace_by_bcs(access_token, project_id, project_code, data)
-            has_image_secret = None
-        else:
-            self.init_mesos_ns_by_bcs(access_token, project_id, project_code, cluster_id, ns_name)
-            has_image_secret = True
+        # k8s 集群需要调用 bcs api 初始化数据
+        self.init_namespace_by_bcs(access_token, project_id, project_code, data)
+        has_image_secret = None
 
         result = paas_cc.create_namespace(
             access_token,
@@ -340,8 +282,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             has_image_secret,
         )
         if result.get('code') != 0:
-            if ClusterType.get(project_kind) != 'Kubernetes':
-                self.delete_secret_for_mesos(access_token, project_id, cluster_id, ns_name)
             if 'Duplicate entry' in result.get('message', ''):
                 message = _("创建失败，namespace名称已经在其他项目存在")
             else:
@@ -366,7 +306,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
     def create(self, request, project_id, is_validate_perm=True):
         """新建命名空间
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
-        mesos流程：新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
         """
         serializer = slz.CreateNamespaceSLZ(data=request.data, context={'request': request, 'project_id': project_id})
         serializer.is_valid(raise_exception=True)
@@ -406,66 +345,8 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(namespace_id, project_id)
         return response.Response(result)
 
-    def _compose_res_names(self, res_data):
-        res_names = {}
-        # 针对secret忽略平台创建的secret，单独处理
-        secret_data = res_data.pop(MesosResourceName.secret.value, [])
-        res_names[MesosResourceName.secret.value] = [
-            info["resourceName"]
-            for info in secret_data
-            if info.get("resourceName") and info["resourceName"] not in [MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET]
-        ]
-
-        for res, data in res_data.items():
-            res_names[res] = [info["resourceName"] for info in data if info.get("resourceName")]
-        return res_names
-
-    def _get_resources(self, request, project_id, namespace_id):
-        access_token = request.user.token.access_token
-        # 查询namespace
-        ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
-        client = MesosClient(access_token, project_id, ns_info["cluster_id"], env=None)
-        # 根据类型查询资源，如果有接口调用失败，先忽略
-        res_names = {}
-        ns_name = ns_info["name"]
-        # 请求bcs api，获取数据
-        deployment_resp = client.get_deployment(namespace=ns_name)
-        application_resp = client.get_mesos_app_instances(namespace=ns_name)
-        configmap_resp = client.get_configmaps(params={"namespace": ns_name})
-        service_resp = client.get_services(params={"namespace": ns_name})
-        secret_resp = client.get_secrets(params={"namespace": ns_name})
-
-        res_data = {
-            MesosResourceName.deployment.value: deployment_resp["data"],
-            MesosResourceName.application.value: application_resp["data"],
-            MesosResourceName.configmap.value: configmap_resp["data"],
-            MesosResourceName.service.value: service_resp["data"],
-            MesosResourceName.secret.value: secret_resp["data"],
-        }
-        res_names = self._compose_res_names(res_data)
-        return res_names
-
-    def get_ns_resources(self, request, project_id, namespace_id):
-        """针对mesos检查命名空间下的资源，主要包含
-        - deployment
-        - application
-        - configmap
-        - service
-        - secret
-        """
-        if request.project.kind != ProjectKind.MESOS.value:
-            raise ValidationError(_("仅支持mesos类型"))
-        res_names = self._get_resources(request, project_id, namespace_id)
-        return response.Response(res_names)
-
     def delete(self, request, project_id, namespace_id, is_validate_perm=True):
         access_token = request.user.token.access_token
-
-        # 针对mesos，需要删除完对应的资源才允许操作
-        if request.project.kind == ProjectKind.MESOS.value:
-            res_names = self._get_resources(request, project_id, namespace_id)
-            if [name for name_list in res_names.values() for name in name_list]:
-                raise error_codes.CheckFailed(_("请先删除命名空间下的资源"))
 
         # perm
         perm = bcs_perm.Namespace(request, project_id, namespace_id)

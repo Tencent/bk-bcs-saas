@@ -1,17 +1,9 @@
 <template>
     <div id="app" class="biz-app" :class="systemCls">
         <app-header ref="appHeader" @reloadCurPage="reloadCurPage"></app-header>
+        <!-- 这里的v-if不要去掉，为了解决项目初始化问题，todo：后续优化!!! -->
         <div style="height: 100%;" v-if="isLoading">
-            <div class="bk-loading" style="background-color: rgba(255, 255, 255, 1)">
-                <div class="bk-loading-wrapper">
-                    <div class="bk-dot-loading" style="height: 20px;">
-                        <div class="point point1"></div>
-                        <div class="point point2"></div>
-                        <div class="point point3"></div>
-                        <div class="point point4"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="bk-loading" v-bkloading="{ isLoading }"></div>
         </div>
         <template v-else>
             <div class="app-container" :style="{ minHeight: minHeight + 'px' }" v-if="isUserBKService">
@@ -132,7 +124,7 @@
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
                     + `<p class="f14">${self.$t('Sorry，您的权限不足，请去')}`
-                    + `<a class="bk-text-button" href="${data.data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
+                    + `<a class="bk-text-button" href="${data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
@@ -196,6 +188,8 @@
                     localStorage.removeItem('bcs-cluster')
                     sessionStorage.removeItem('bcs-cluster')
                     this.$store.commit('updateCurClusterId', '')
+                    localStorage.setItem('curProjectCode', projectCode)
+                    window.location.href = `${window.location.origin}${SITE_URL}/${projectCode}`
                 }
                 const projectList = await this.$store.dispatch('getProjectList').catch(() => ([]))
                 // 检查是否开启容器服务
@@ -225,6 +219,8 @@
                 }
 
                 this.handleSetClusterInfo(curClusterId)
+                // 获取当前视图类型
+                this.$store.commit('updateViewMode', this.$route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster')
                 // 获取菜单配置信息
                 await this.$store.dispatch('getFeatureFlag')
                 // 更新菜单
@@ -257,14 +253,9 @@
                             this.isUserBKService = project.kind !== 0
                             if (!this.isUserBKService) {
                                 this.checkUser()
-                                // IEG 项目，只有内部版才判断是否是 IEG 项目
-                                if (String(project.bg_id) !== '956') {
-                                    this.isIEGProject = false
-                                } else {
-                                    await this.fetchCCList()
-                                    if (project.cc_app_id !== 0) {
-                                        this.ccKey = project.cc_app_id
-                                    }
+                                await this.fetchCCList()
+                                if (project.cc_app_id !== 0) {
+                                    this.ccKey = project.cc_app_id
                                 }
                             }
                         }
@@ -329,7 +320,7 @@
                     await this.$store.dispatch('editProject', Object.assign({}, this.curProject, {
                         // deploy_type 值固定，就是原来页面上的：部署类型：容器部署
                         deploy_type: [2],
-                        // kind 业务编排类型：1 Kubernetes, 2 Mesos
+                        // kind 业务编排类型
                         kind: parseInt(this.kind, 10),
                         // use_bk 值固定，就是原来页面上的：使用蓝鲸部署服务
                         use_bk: true,

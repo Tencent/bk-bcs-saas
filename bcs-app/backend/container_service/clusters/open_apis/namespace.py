@@ -1,45 +1,37 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from typing import Dict
+
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.bcs_web.viewsets import UserViewSet
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
-from backend.container_service.projects.base.constants import ProjectKind
+from backend.resources.namespace import Namespace
 from backend.resources.namespace import utils as ns_utils
-from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
-from backend.utils.error_codes import error_codes
 
 
-class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
+class NamespaceViewSet(UserViewSet):
     def list_by_cluster_id(self, request, project_id_or_code, cluster_id):
         namespaces = ns_utils.get_namespaces_by_cluster_id(
             request.user.token.access_token, request.project.project_id, cluster_id
         )
         return Response(namespaces)
-
-    def create_mesos_namespace(self, access_token, username, project_id, cluster_id, ns_name):
-        """创建mesos命名空间
-        注意: mesos中namespace只是一个概念，不是一个资源；因此，不需要在mesos集群创建
-        """
-        namespace = ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
-        # TODO: 现阶段不向权限中心注入
-        return namespace
-
-    def create_k8s_namespace(self, access_token, username, project_id, cluster_id, ns_name):
-        raise error_codes.NotOpen()
 
     def create_namespace(self, request, project_id_or_code, cluster_id):
         project_id = request.project.project_id
@@ -49,16 +41,17 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
 
         access_token = request.user.token.access_token
         username = request.user.username
-        project_id = request.project.project_id
 
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        namespace = getattr(self, f"create_{project_kind_name.lower()}_namespace")(
-            access_token, username, project_id, cluster_id, data["name"]
-        )
+        namespace = self._create_kubernetes_namespace(access_token, username, project_id, cluster_id, data["name"])
         # 创建命名空间下的变量值
-        ns_id = namespace["id"]
+        ns_id = namespace.get("namespace_id") or namespace.get("id")
+        namespace["id"] = ns_id
         NameSpaceVariable.batch_save(ns_id, data["variables"])
         namespace["variables"] = data["variables"]
+
+        # 命名空间权限Client
+        ns_perm_client = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
+        ns_perm_client.register(namespace["id"], f"{namespace['name']}({cluster_id})")
 
         return Response(namespace)
 
@@ -76,9 +69,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         namespaces = ns_utils.get_k8s_namespaces(access_token, project_id, cluster_id)
         # NOTE: 忽略k8s系统和平台自身的namespace
         namespace_name_list = [
-            info["resourceName"]
-            for info in namespaces
-            if info["resourceName"] not in K8S_SYS_NAMESPACE and info["resourceName"] not in K8S_PLAT_NAMESPACE
+            info["resourceName"] for info in namespaces if info["resourceName"] not in K8S_PLAT_NAMESPACE
         ]
         if not (cc_namespaces and namespaces):
             return Response()
@@ -88,7 +79,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         delete_ns_id_list = [cc_namespace_name_id[name] for name in delete_ns_name_list]
         self.delete_cc_ns(request, project_id, cluster_id, delete_ns_id_list)
 
-        # 添加命名空间
+        # 向V0权限中心注册命名空间数据
         add_ns_name_list = set(namespace_name_list) - set(cc_namespace_name_id.keys())
         self.add_cc_ns(request, project_id, cluster_id, add_ns_name_list)
 
@@ -108,3 +99,16 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
             perm = bcs_perm.Namespace(request, project_id, ns_id)
             perm.delete()
             ns_utils.delete_cc_namespace(request.user.token.access_token, project_id, cluster_id, ns_id)
+
+    def _create_kubernetes_namespace(
+        self,
+        access_token: str,
+        username: str,
+        project_id: str,
+        cluster_id: str,
+        ns_name: str,
+    ) -> Dict:
+        # TODO: 需要注意需要迁移到权限中心V3，通过注册到V0权限中心的命名空间ID，反查命名空间名称、集群ID及项目ID
+        # 连接集群创建命名空间
+        ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
+        return Namespace(ctx_cluster).get_or_create_cc_namespace(ns_name, username)

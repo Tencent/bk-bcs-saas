@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import re
 import time
@@ -25,21 +26,16 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps import constants
-from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
 from backend.bcs_web.audit_log.constants import ActivityType
 from backend.components import paas_cc
-from backend.container_service.observability.metric_mesos.models import Metric
-from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
+from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
-from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR
-from backend.templatesets.legacy_apps.instance.utils import validate_version_id
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.views import FinalizeResponseMixin
 
-from ..legacy_apps.instance.generator import handel_custom_network_mode
 from ..legacy_apps.instance.serializers import VariableNamespaceSLZ
 from . import serializers
 from .auditor import VariableAuditor
@@ -129,30 +125,7 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
 
 
 class ResourceVariableView(FinalizeResponseMixin, views.APIView):
-    def get_metric_confg(self, resource_id):
-        name_list = str(resource_id).split(APPLICATION_ID_SEPARATOR)
-        application_id = name_list[0]
-        metric_id = name_list[1]
-        resourse_type = name_list[2]
-        try:
-            met = Metric.objects.get(id=metric_id)
-        except Exception:
-            raise ValidationError(_('Metric[id:{}]:不存在').format(metric_id))
-        api_json = met.to_api_json()
-        if resourse_type == 'application':
-            try:
-                application = MODULE_DICT.get(resourse_type).objects.get(id=application_id)
-            except Exception:
-                raise ValidationError(_('应用[id:{}]:不存在').format(application_id))
-            app_config = application.get_config()
-            app_config_new = handel_custom_network_mode(app_config)
-            app_spec = app_config_new.get('spec', {}).get('template', {}).get('spec', {})
-            api_json['networkMode'] = app_spec.get('networkMode')
-            api_json['networkType'] = app_spec.get('networkType')
-        return json.dumps(api_json)
-
     def post(self, request, project_id, version_id):
-        version_entity = validate_version_id(project_id, version_id, is_version_entity_retrun=True)
 
         project_kind = request.project.kind
         self.slz = VariableNamespaceSLZ(data=request.data, context={'project_kind': project_kind})
@@ -170,26 +143,15 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
             cate_id_list = [i.get('id') for i in cate_data if i.get('id')]
             # 查询这些配置文件的变量名
             for _id in cate_id_list:
-                if cate in ['metric']:
-                    config = self.get_metric_confg(_id)
-                else:
-                    try:
-                        resource = MODULE_DICT.get(cate).objects.get(id=_id)
-                    except Exception:
-                        continue
-                    config = resource.config
+                if cate == 'metric':
+                    continue
+                try:
+                    resource = MODULE_DICT.get(cate).objects.get(id=_id)
+                except Exception:
+                    continue
+                config = resource.config
                 search_list = check_var_by_config(config)
                 key_list.extend(search_list)
-                # mesos Deployment 需要再查询 Application 的配置文件
-                if cate in ['deployment']:
-                    deployment_app = VersionedEntity.get_application_by_deployment_id(version_id, _id)
-                    deployment_app_config = deployment_app.config
-                    _search_list = check_var_by_config(deployment_app_config)
-                    key_list.extend(_search_list)
-
-            # mesos service 查询需要lb的列表
-            if project_kind == 2 and cate == 'service':
-                lb_services = version_entity.get_lb_services_by_ids(cate_id_list)
 
         key_list = list(set(key_list))
         variable_dict = {}
@@ -199,7 +161,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
             var_objects = Variable.objects.filter(Q(project_id=project_id) | Q(project_id=0))
 
             access_token = request.user.token.access_token
-            namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
+            namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
             namespace_data = namespace_res.get('data', {}).get('results') or []
             namespace_dict = {str(i['id']): i['cluster_id'] for i in namespace_data}
 
@@ -336,7 +298,7 @@ class NameSpaceVariableView(viewsets.ViewSet):
         """获取用户所有有使用权限的命名空间"""
         access_token = request.user.token.access_token
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=0, limit=constants.ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=0, limit=LIMIT_FOR_ALL_DATA)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 

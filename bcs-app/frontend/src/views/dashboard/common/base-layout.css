@@ -23,7 +23,7 @@
             }
             .search-wapper {
                 display: flex;
-                .namespace-select {
+                .dashboard-select {
                     margin-right: 5px;
                     background: #fff;
                     width: 250px;

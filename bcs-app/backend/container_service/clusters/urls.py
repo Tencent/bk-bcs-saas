@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.conf.urls import url
+from django.urls import include
 
 from . import views
+from .cc_host.urls import cc_router
 from .featureflag.views import ClusterFeatureFlagViewSet
 from .views.cluster import UpgradeClusterViewSet
-from .views.node_views import labels, nodes, taints
+from .views.node_views import nodes
 
 urlpatterns = [
     url(
@@ -76,11 +79,6 @@ urlpatterns = [
         views.NodeUpdateLogView.as_view({'get': 'get'}),
         name='api.projects.node_update_log',
     ),
-    # 单个节点docker版本信息
-    url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/info/',
-        views.NodeInfo.as_view({'get': 'info'}),
-    ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/containers/',
         views.NodeContainers.as_view({'get': 'list'}),
@@ -96,11 +94,6 @@ urlpatterns = [
             {'get': 'retrieve', 'put': 'update', 'delete': 'delete', 'post': 'reinstall'}
         ),
         name='api.projects.node',
-    ),
-    url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cc_host_info/?$',
-        views.CCHostListViewSet.as_view({'post': 'post'}),
-        name='api.projects.cc_host_info',
     ),
     # 监控信息
     url(
@@ -154,10 +147,6 @@ urlpatterns = [
         name='api.projects.node.pod_taskgroup.reschedule',
     ),
     url(
-        r"^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/ippools/$",
-        views.MesosIPPoolViewSet.as_view({"get": "get"}),
-    ),
-    url(
         r"^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/upgradeable_versions/$",
         UpgradeClusterViewSet.as_view({"get": "get_upgradeable_versions"}),
     ),
@@ -165,6 +154,11 @@ urlpatterns = [
         r"^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/version/$",
         UpgradeClusterViewSet.as_view({"put": "upgrade"}),
     ),
+]
+
+# 新版 CC Host 相关接口
+urlpatterns += [
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/cc/', include(cc_router.urls)),
 ]
 
 # batch operation
@@ -194,14 +188,6 @@ urlpatterns += [
         views.ClusterVersionViewSet.as_view({'get': 'versions'}),
     ),
     url(r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$', views.ExportNodes.as_view({'post': 'export'})),
-    url(
-        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
-        views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"}),
-    ),
-    url(
-        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/labels/$",
-        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"}),
-    ),
 ]
 
 # operation api
@@ -209,10 +195,6 @@ urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
         views.DeleteNodeRecordViewSet.as_view({'delete': 'delete'}),
-    ),
-    url(
-        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",
-        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"}),
     ),
 ]
 
@@ -227,7 +209,7 @@ urlpatterns += [
 urlpatterns += [
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/taints/$",
-        taints.NodeTaintsViewSet.as_view({"post": "query_taints", "put": "set_taints"}),
+        nodes.NodeViewSets.as_view({"post": "query_taints", "put": "set_taints"}),
     )
 ]
 
@@ -235,7 +217,7 @@ urlpatterns += [
 urlpatterns += [
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/labels/$",
-        labels.NodeLabelsViewSet.as_view({"post": "query_labels", "put": "set_labels"}),
+        nodes.NodeViewSets.as_view({"post": "query_labels", "put": "set_labels"}),
     )
 ]
 
@@ -245,7 +227,6 @@ urlpatterns += [
         ClusterFeatureFlagViewSet.as_view({'get': 'get_cluster_feature_flags'}),
     )
 ]
-
 
 # 导入版本特定urls
 try:

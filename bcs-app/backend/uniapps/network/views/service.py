@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import copy
 import datetime
 import json
@@ -22,24 +23,18 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps import utils as app_utils
-from backend.apps.constants import ProjectKind
 from backend.bcs_web.audit_log import client as activity_client
-from backend.components.bcs import k8s, mesos
+from backend.components.bcs import k8s
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
 from backend.templatesets.legacy_apps.configuration.constants import TemplateEditMode
 from backend.templatesets.legacy_apps.configuration.models import (
-    Application,
     K8sService,
     Service,
     ShowVersion,
     Template,
     VersionedEntity,
 )
-from backend.templatesets.legacy_apps.configuration.serializers import (
-    K8sServiceCreateOrUpdateSLZ,
-    ServiceCreateOrUpdateSLZ,
-)
+from backend.templatesets.legacy_apps.configuration.serializers import K8sServiceCreateOrUpdateSLZ
 from backend.templatesets.legacy_apps.instance.constants import (
     ANNOTATIONS_CREATE_TIME,
     ANNOTATIONS_CREATOR,
@@ -51,7 +46,6 @@ from backend.templatesets.legacy_apps.instance.constants import (
     LABLE_TEMPLATE_ID,
     PUBLIC_ANNOTATIONS,
     PUBLIC_LABELS,
-    SEVICE_SYS_CONFIG,
     SOURCE_TYPE_LABEL_KEY,
 )
 from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
@@ -59,13 +53,13 @@ from backend.templatesets.legacy_apps.instance.funutils import render_mako_conte
 from backend.templatesets.legacy_apps.instance.generator import (
     get_bcs_context,
     handel_k8s_service_db_config,
-    handel_service_db_config,
     handle_k8s_api_version,
     handle_webcache_config,
     remove_key,
 )
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.templatesets.legacy_apps.instance.utils_pub import get_cluster_version
+from backend.uniapps import utils as app_utils
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
 from backend.uniapps.application.utils import APIResponse
@@ -77,7 +71,6 @@ from backend.utils.exceptions import ComponentError
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
-MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class Services(viewsets.ViewSet, BaseAPI):
@@ -85,15 +78,11 @@ class Services(viewsets.ViewSet, BaseAPI):
         """获取模板的最新可见版本"""
         pass
 
-    def get_services_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
+    def get_services_by_cluster_id(self, request, params, project_id, cluster_id):
         """查询services"""
         access_token = request.user.token.access_token
-        if project_kind == MESOS_VALUE:
-            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_services(params)
-        else:
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_service(params)
+        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        resp = client.get_service(params)
 
         if resp.get("code") != ErrorCode.NoError:
             logger.error(u"bcs_api error: %s" % resp.get("message", ""))
@@ -103,24 +92,16 @@ class Services(viewsets.ViewSet, BaseAPI):
 
     def get_service_info(self, request, project_id, cluster_id, namespace, name):  # noqa
         """获取单个 service 的信息"""
-        project_kind = request.project.kind
         access_token = request.user.token.access_token
         params = {
-            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
+            "env": "k8s",
             "namespace": namespace,
             "name": name,
         }
-        if project_kind == MESOS_VALUE:
-            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_services(params)
-            # 跳转到模板集页面需要的参数
-            template_cate = 'mesos'
-            relate_app_cate = 'application'
-        else:
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_service(params)
-            template_cate = 'k8s'
-            relate_app_cate = 'deployment'
+        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        resp = client.get_service(params)
+        template_cate = 'k8s'
+        relate_app_cate = 'deployment'
 
         if resp.get("code") != ErrorCode.NoError:
             raise ComponentError(resp.get("message"))
@@ -171,7 +152,7 @@ class Services(viewsets.ViewSet, BaseAPI):
 
         web_cache = annotations.get(ANNOTATIONS_WEB_CACHE)
         if not web_cache:
-            # 备注中无，则从模板中获取，兼容mesos之前实例化过的模板数据
+            # 备注中无，则从模板中获取
             _services = entity.get('service') if entity else None
             _services_id_list = _services.split(',') if _services else []
             _s = Service.objects.filter(id__in=_services_id_list, name=name).first()
@@ -188,29 +169,13 @@ class Services(viewsets.ViewSet, BaseAPI):
         deploy_tag_list = web_cache.get('deploy_tag_list') or []
 
         app_weight = {}
-        if project_kind == MESOS_VALUE:
-            # 处理 mesos 中Service的关联数据
-            apps = entity.get('application') if entity else None
-            application_id_list = apps.split(',') if apps else []
-
-            apps = Application.objects.filter(id__in=application_id_list)
-            if apps:
-                # 关联应用的权重
-                for key in labels:
-                    if key.startswith('BCS-WEIGHT-'):
-                        app_name = key[11:]
-                        _app = apps.filter(name=app_name).first()
-                        if _app:
-                            weight = int(labels[key])
-                            app_weight[_app.app_id] = weight
-        else:
-            # 处理 k8s 中Service的关联数据
-            if not deploy_tag_list:
-                _servs = entity.get('K8sService') if entity else None
-                _serv_id_list = _servs.split(',') if _servs else []
-                _k8s_s = K8sService.objects.filter(id__in=_serv_id_list, name=name).first()
-                if _k8s_s:
-                    deploy_tag_list = _k8s_s.get_deploy_tag_list()
+        # 处理 k8s 中Service的关联数据
+        if not deploy_tag_list:
+            _servs = entity.get('K8sService') if entity else None
+            _serv_id_list = _servs.split(',') if _servs else []
+            _k8s_s = K8sService.objects.filter(id__in=_serv_id_list, name=name).first()
+            if _k8s_s:
+                deploy_tag_list = _k8s_s.get_deploy_tag_list()
 
         # 标签 和 备注 去除后台自动添加的
         or_annotations = s_data.get('metadata', {}).get('annotations', {})
@@ -263,7 +228,7 @@ class Services(viewsets.ViewSet, BaseAPI):
 
         project_kind = request.project.kind
         params = dict(request.GET.items())
-        params['env'] = 'mesos' if project_kind == MESOS_VALUE else 'k8s'
+        params['env'] = 'k8s'
 
         # 获取命名空间的id
         namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
@@ -282,9 +247,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             if params.get('cluster_id') and params['cluster_id'] != cluster_id:
                 continue
             cluster_name = cluster_info.get('name')
-            code, cluster_services = self.get_services_by_cluster_id(
-                request, params, project_id, cluster_id, project_kind=project_kind
-            )
+            code, cluster_services = self.get_services_by_cluster_id(request, params, project_id, cluster_id)
             if code != ErrorCode.NoError:
                 continue
             for _s in cluster_services:
@@ -314,12 +277,10 @@ class Services(viewsets.ViewSet, BaseAPI):
                 if not source_type:
                     source_type = "template" if template_id else "other"
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
-
-                if project_kind == ProjectKind.K8S.value:
-                    extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
-                    _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
+                extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
+                _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
                 # 处理 k8s 的系统命名空间的数据
-                if project_kind == ProjectKind.K8S.value and _s['namespace'] in skip_namespace_list:
+                if _s['namespace'] in skip_namespace_list:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
                     continue
@@ -347,21 +308,16 @@ class Services(viewsets.ViewSet, BaseAPI):
         username = request.user.username
         access_token = request.user.token.access_token
 
-        if project_kind == MESOS_VALUE:
-            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-            resp = client.delete_service(namespace, name)
-            s_cate = 'service'
-        else:
-            if namespace in K8S_SYS_NAMESPACE:
-                return {
-                    "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
-                }
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            resp = client.delete_service(namespace, name)
-            s_cate = 'K8sService'
+        if namespace in K8S_SYS_NAMESPACE:
+            return {
+                "code": 400,
+                "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
+            }
+        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        resp = client.delete_service(namespace, name)
+        s_cate = 'K8sService'
 
-            delete_svc_extended_routes(request, project_id, cluster_id, namespace, name)
+        delete_svc_extended_routes(request, project_id, cluster_id, namespace, name)
 
         if resp.get("code") == ErrorCode.NoError:
             # 删除成功则更新状态
@@ -503,20 +459,14 @@ class Services(viewsets.ViewSet, BaseAPI):
         if not flag:
             return project_kind
 
-        if project_kind == MESOS_VALUE:
-            # mesos 相关数据
-            slz_class = ServiceCreateOrUpdateSLZ
-            s_sys_con = SEVICE_SYS_CONFIG
-            s_cate = 'service'
-        else:
-            if namespace in K8S_SYS_NAMESPACE:
-                return Response(
-                    {"code": 400, "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)), "data": {}}
-                )
-            # k8s 相关数据
-            slz_class = K8sServiceCreateOrUpdateSLZ
-            s_sys_con = K8S_SEVICE_SYS_CONFIG
-            s_cate = 'K8sService'
+        if namespace in K8S_SYS_NAMESPACE:
+            return Response(
+                {"code": 400, "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)), "data": {}}
+            )
+        # k8s 相关数据
+        slz_class = K8sServiceCreateOrUpdateSLZ
+        s_sys_con = K8S_SEVICE_SYS_CONFIG
+        s_cate = 'K8sService'
 
         request_data = request.data or {}
         request_data['version_id'] = request_data['version']
@@ -537,26 +487,13 @@ class Services(viewsets.ViewSet, BaseAPI):
         #  获取关联的应用列表
         version_id = data['version_id']
         version_entity = VersionedEntity.objects.get(id=version_id)
-        entity = version_entity.get_entity()
 
-        # 实例化时后台需要做的处理
-        if project_kind == MESOS_VALUE:
-            app_weight = json.loads(data['app_id'])
-            apps = entity.get('application') if entity else None
-            application_id_list = apps.split(',') if apps else []
-
-            app_id_list = app_weight.keys()
-            service_app_list = Application.objects.filter(id__in=application_id_list, app_id__in=app_id_list)
-
-            lb_name = data.get('lb_name', '')
-            handel_service_db_config(config, service_app_list, app_weight, lb_name, version_id)
-        else:
-            logger.exception(f"deploy_tag_list {type(data['deploy_tag_list'])}")
-            handel_k8s_service_db_config(config, data['deploy_tag_list'], version_id, is_upadte=True)
-            resource_version = data['resource_version']
-            config['metadata']['resourceVersion'] = resource_version
-            cluster_version = get_cluster_version(access_token, project_id, cluster_id)
-            config = handle_k8s_api_version(config, cluster_id, cluster_version, 'Service')
+        logger.exception(f"deploy_tag_list {type(data['deploy_tag_list'])}")
+        handel_k8s_service_db_config(config, data['deploy_tag_list'], version_id, is_upadte=True)
+        resource_version = data['resource_version']
+        config['metadata']['resourceVersion'] = resource_version
+        cluster_version = get_cluster_version(access_token, project_id, cluster_id)
+        config = handle_k8s_api_version(config, cluster_id, cluster_version, 'Service')
         # 前端的缓存数据储存到备注中
         config = handle_webcache_config(config)
 

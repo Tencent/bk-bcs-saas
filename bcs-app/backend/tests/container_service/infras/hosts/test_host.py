@@ -1,44 +1,44 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import patch
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-import pytest
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from unittest.mock import patch
 
 from backend.container_service.infras.hosts import host
 from backend.container_service.infras.hosts.perms import can_use_hosts
 from backend.container_service.infras.hosts.terraform.engines import sops
 from backend.tests.bcs_mocks.fake_sops import FakeSopsMod, sops_json
 
-fake_cc_host_ok_results = {
-    "result": True,
-    "data": [{"bk_host_innerip": "127.0.0.1,127.0.0.3"}, {"bk_host_innerip": "127.0.0.2"}],
-}
-fake_cc_host_null_results = {"result": False}
-fake_cc_host_not_match_results = {"results": True, "data": [{"bk_host_innerip": "127.0.0.1"}]}
+fake_cc_host_ok_results = [{"bk_host_innerip": "127.0.0.1,127.0.0.3"}, {"bk_host_innerip": "127.0.0.2"}]
+fake_cc_host_null_results = []
+fake_cc_host_not_match_results = [{"bk_host_innerip": "127.0.0.1"}]
 expect_used_ip_list = ["127.0.0.1", "127.0.0.2"]
 
 
 class TestCheckUseHost:
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_ok_results)
+    @patch("backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_ok_results)
     def test_ok(self, biz_id, username):
         assert can_use_hosts(biz_id, username, expect_used_ip_list)
 
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_null_results)
+    @patch("backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_null_results)
     def test_null_resp_failed(self, biz_id, username):
         assert not can_use_hosts(biz_id, username, expect_used_ip_list)
 
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_not_match_results)
+    @patch(
+        "backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_not_match_results
+    )
     def test_not_match_failed(self, biz_id, username):
         assert not can_use_hosts(biz_id, username, expect_used_ip_list)
-
-
-class TestGetCCHosts:
-    @patch("backend.container_service.infras.hosts.host.cc.get_app_hosts", return_value={"result": False})
-    def test_get_null_hosts(self, mock_get_app_hosts, biz_id, username):
-        assert host.get_cc_hosts(username, biz_id) == []
-
-    @patch("backend.container_service.infras.hosts.host.cc.get_app_hosts", return_value=fake_cc_host_ok_results)
-    def test_get_hosts(self, mock_get_app_hosts, biz_id, username):
-        assert host.get_cc_hosts(username, biz_id) == fake_cc_host_ok_results["data"]
 
 
 class TestGetAgentStatus:

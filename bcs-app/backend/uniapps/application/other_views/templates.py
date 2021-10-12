@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-"""针对模板集的操作
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+针对模板集的操作
 """
 import json
 import logging
@@ -21,14 +22,13 @@ from itertools import groupby
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
-from backend.accounts import bcs_perm
-from backend.apps import constants
 from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
-from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, Template, VersionedEntity
+from backend.container_service.projects.base.constants import LIMIT_FOR_ALL_DATA
+from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, Template
 from backend.templatesets.legacy_apps.configuration.utils import to_bcs_res_name
-from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR, InsState
-from backend.templatesets.legacy_apps.instance.models import InstanceConfig, MetricConfig, VersionInstance
+from backend.templatesets.legacy_apps.instance.constants import InsState
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.utils.errcodes import ErrorCode
 
 from .. import constants as app_constants
@@ -76,7 +76,7 @@ class TemplateNamespace(BaseAPI):
 
     def get_ns_info(self, request, project_id, ns_id_list):
         """获取ns信息"""
-        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, limit=constants.ALL_LIMIT)
+        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, limit=LIMIT_FOR_ALL_DATA)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
         results = (resp.get("data") or {}).get("results") or []

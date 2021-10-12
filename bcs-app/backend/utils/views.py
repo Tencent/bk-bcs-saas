@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 import os
 
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic.base import TemplateView
 from rest_framework.exceptions import (
     AuthenticationFailed,
     MethodNotAllowed,
@@ -27,10 +27,11 @@ from rest_framework.exceptions import (
     PermissionDenied,
     ValidationError,
 )
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
-from rest_framework.views import exception_handler, set_rollback
+from rest_framework.views import APIView, exception_handler, set_rollback
 
+from backend.components import paas_cc
 from backend.components.base import (
     BaseCompError,
     CompInternalError,
@@ -38,8 +39,10 @@ from backend.components.base import (
     CompRequestError,
     CompResponseError,
 )
+from backend.container_service.projects.base.constants import ProjectKindID
 from backend.dashboard.exceptions import DashboardBaseError
 from backend.packages.blue_krill.web.std_error import APIError
+from backend.utils import cache
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
 from backend.utils.error_codes import error_codes
@@ -188,7 +191,7 @@ class FinalizeResponseMixin:
 
 
 class ProjectMixin:
-    """ 从 url 中提取 project_id，使用该 mixin 前请确保 url 参数中有 project_id 这个 key """
+    """从 url 中提取 project_id，使用该 mixin 前请确保 url 参数中有 project_id 这个 key"""
 
     @property
     def project_id(self):
@@ -204,7 +207,7 @@ class FilterByProjectMixin(ProjectMixin):
 
 
 class AppMixin:
-    """ 从 url 中提取 app_id，使用该 mixin 前请确保 url 参数中有 app_id 这个 key """
+    """从 url 中提取 app_id，使用该 mixin 前请确保 url 参数中有 app_id 这个 key"""
 
     @property
     def app_id(self):
@@ -212,7 +215,7 @@ class AppMixin:
 
 
 class AccessTokenMixin:
-    """ 从 url 中获取 access_token """
+    """从 url 中获取 access_token"""
 
     @property
     def access_token(self):
@@ -272,11 +275,91 @@ def with_code_wrapper(func):
     return func
 
 
-class VueTemplateView(TemplateView):
+class VueTemplateView(APIView):
     template_name = f"{settings.REGION}/index.html"
 
+    container_orchestration = ""
+    request_url_suffix = ""
+    renderer_classes = [TemplateHTMLRenderer]
+    # 去掉权限控制
+    permission_classes = ()
+
+    def initial(self, request, *args, **kwargs):
+        """
+        获取去除后 project_code, mesos 的路径
+        """
+        request_paths = self.request.get_full_path_info().lstrip('/').split("/")
+
+        if self.container_orchestration == "mesos":
+            paths = request_paths[2:]
+        else:
+            paths = request_paths[1:]
+
+        self.request_url_suffix = '/'.join(paths)
+
+        super().initial(request, *args, **kwargs)
+
+    def is_orchestration_match(self, kind: str) -> bool:
+        """是否应该跳转"""
+        # URL和项目类型匹配
+        if self.container_orchestration == kind:
+            return True
+
+        # 未开启BCS, 且当前是不带 mesos 的连接
+        if not kind and self.container_orchestration == "k8s":
+            return True
+
+        # 未开启, mesos链接, 需要跳转
+        # 2个不匹配，需要跳转
+        return False
+
+    def make_redirect_url(self, project_code: str, kind: str) -> str:
+        """跳转连接"""
+
+        if kind == "mesos":
+            redirect_url = os.path.join(
+                settings.DEVOPS_BCS_HOST, settings.SITE_URL, project_code, "mesos", self.request_url_suffix
+            )
+        else:
+            redirect_url = os.path.join(
+                settings.DEVOPS_BCS_HOST, settings.SITE_URL, project_code, self.request_url_suffix
+            )
+
+        logger.info(
+            "vue page orchestration: %s, kind: %s, request_url: %s, redirect_url: %s",
+            self.container_orchestration,
+            kind,
+            self.request.get_full_path_info(),
+            redirect_url,
+        )
+
+        return redirect_url
+
     @xframe_options_exempt
-    def get(self, request):
+    def get(self, request, project_code: str):
+
+        # 缓存 项目类型
+        @cache.region.cache_on_arguments(expiration_time=60 * 60)
+        def cached_project_kind(project_code):
+            """缓存项目类型"""
+            result = paas_cc.get_project(request.user.token.access_token, project_code)
+            if result['code'] != 0:
+                return ""
+
+            # 未开启容器服务
+            if result['data']['kind'] == 0:
+                return ""
+            # mesos
+            if result['data']['kind'] != ProjectKindID:
+                return "mesos"
+            # 包含 k8s, tke
+            return "k8s"
+
+        kind = cached_project_kind(project_code)
+
+        if not self.is_orchestration_match(kind):
+            return HttpResponseRedirect(redirect_to=self.make_redirect_url(project_code, kind))
+
         context = {
             "DEVOPS_HOST": settings.DEVOPS_HOST,
             "DEVOPS_BCS_HOST": settings.DEVOPS_BCS_HOST,
@@ -292,15 +375,23 @@ class VueTemplateView(TemplateView):
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
             "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false")),
+            "CONTAINER_ORCHESTRATION": "",  # 前端路由, 默认地址不变
         }
+
+        # mesos 需要修改 API 和静态资源路径
+        if kind == "mesos":
+            context["DEVOPS_BCS_API_URL"] = os.path.join(context["DEVOPS_BCS_API_URL"], "mesos")
+            context["STATIC_URL"] = os.path.join(context["STATIC_URL"], "mesos")
+            context["CONTAINER_ORCHESTRATION"] = kind
 
         # 增加扩展的字段渲染前端页面，用于多版本
         ext_context = getattr(settings, 'EXT_CONTEXT', {})
         if ext_context:
             context.update(ext_context)
 
-        response = super(VueTemplateView, self).get(request, **context)
-        return response
+        headers = {"X-Container-Orchestration": kind.upper()}
+
+        return Response(context, headers=headers)
 
 
 class LoginSuccessView(VueTemplateView):

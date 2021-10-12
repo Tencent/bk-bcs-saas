@@ -1,22 +1,53 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+import logging
+from typing import Dict
+
+from cachetools import LRUCache, cached
+from cachetools.keys import hashkey
 from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
 
 from backend.components.bcs import BCSClientBase, resources
 from backend.components.utils import http_get
+
+logger = logging.getLogger(__name__)
+
+# 获取cluster context使用的缓存策略
+cluster_context_cache_policy = LRUCache(maxsize=128)
+
+
+@cached(
+    cache=cluster_context_cache_policy,
+    key=lambda url_prefix, access_token, project_id, cluster_id: hashkey(url_prefix, project_id, cluster_id),
+)
+def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cluster_id: str) -> Dict:
+    """组装集群的Context"""
+    # 获取bcs api的集群信息
+    url = f"{url_prefix}/bcs/query_by_id/"
+    params = {"access_token": access_token, "project_id": project_id, "cluster_id": cluster_id}
+    headers = {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
+    context = http_get(url, params=params, raise_for_status=False, headers=headers)
+    # 获取集群的credential
+    url = f"{url_prefix}/{context['id']}/client_credentials"
+    params = {"access_token": access_token}
+    credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
+    context.update(credentials)
+
+    return context
 
 
 class K8SAPIClient(BCSClientBase):
@@ -28,32 +59,20 @@ class K8SAPIClient(BCSClientBase):
     def _headers_for_bcs_agent_api(self):
         return {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
 
-    def query_cluster(self):
-        url = f"{self.rest_host}/bcs/query_by_id/"
-        params = {"access_token": self.access_token, "project_id": self.project_id, "cluster_id": self.cluster_id}
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
-
-    def get_client_credentials(self, bke_cluster_id):
-        """获取证书, user_token, server_address_path"""
-        url = f"{self.rest_host}/{bke_cluster_id}/client_credentials"
-        params = {"access_token": self.access_token}
-        result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
-        return result
-
     @cached_property
     def api_client(self):
-        context = {}
-        cluster_info = self.query_cluster()
-        context.update(cluster_info)
-
-        credentials = self.get_client_credentials(cluster_info["id"])
-        context.update(credentials)
-
         configure = client.Configuration()
         configure.verify_ssl = False
-        configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
-        configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
+        # 获取集群context，如果调用接口或者其它异常导致失败，需要主动使缓存失效
+        try:
+            context = make_cluster_context(self.rest_host, self.access_token, self.project_id, self.cluster_id)
+            configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
+            configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
+        except Exception as e:
+            logger.exception("make cluster context error, %s", e)
+            # 当出现异常时，需要清空缓存
+            cluster_context_cache_policy.clear()
+            raise
         api_client = client.ApiClient(configure)
         return api_client
 

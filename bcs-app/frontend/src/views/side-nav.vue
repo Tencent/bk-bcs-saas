@@ -1,42 +1,36 @@
 <template>
     <div>
-        <p class="biz-side-title" v-if="kind === 2">
-            <img src="@/images/bcs2.svg" class="all-icon">
-            <span style="font-size: 16px;">{{$t('容器服务')}}</span>
-            <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;" v-bk-tooltips.bottom="$t('项目信息')" @click="showProjectConfDialog"></i>
-        </p>
-        <div v-else>
-            <div class="biz-side-title cluster-selector">
-                <!-- 全部集群 -->
-                <template v-if="!curClusterInfo.cluster_id">
-                    <img src="@/images/bcs2.svg" class="all-icon">
-                    <span class="cluster-name-all">{{$t('全部集群')}}</span>
-                </template>
-                <!-- 单集群 -->
-                <template v-else-if="curClusterInfo.cluster_id && curClusterInfo.name">
-                    <span class="icon">{{ curClusterInfo.name[0] }}</span>
-                    <span>
-                        <span class="cluster-name" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
-                        <br>
-                        <span class="cluster-id">{{ curClusterInfo.cluster_id }}</span>
-                    </span>
-                </template>
-                <!-- 异常情况 -->
-                <template v-else>
-                    <img src="@/images/bcs2.svg" class="all-icon">
-                    <span class="cluster-name-all">{{$t('容器服务')}}</span>
-                </template>
-                <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
-                <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
-            </div>
-            <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
-                <span v-for="item in viewList"
-                    :key="item.id"
-                    :class="['tab', { active: curViewType === item.id }]"
-                    @click="handleChangeView(item)">
-                    {{item.name}}
+        <div class="biz-side-title cluster-selector">
+            <!-- 全部集群 -->
+            <template v-if="!curClusterInfo.cluster_id">
+                <img src="@/images/bcs2.svg" class="all-icon">
+                <span class="cluster-name-all">{{$t('全部集群')}}</span>
+            </template>
+            <!-- 单集群 -->
+            <template v-else-if="curClusterInfo.cluster_id && curClusterInfo.name">
+                <span class="icon">{{ curClusterInfo.name[0] }}</span>
+                <span>
+                    <span class="cluster-name" :title="curClusterInfo.name">{{ curClusterInfo.name }}</span>
+                    <br>
+                    <span class="cluster-id">{{ curClusterInfo.cluster_id }}</span>
                 </span>
-            </div>
+            </template>
+            <!-- 异常情况 -->
+            <template v-else>
+                <img src="@/images/bcs2.svg" class="all-icon">
+                <span class="cluster-name-all">{{$t('容器服务')}}</span>
+            </template>
+            <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="showClusterSelector"></i>
+            <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
+            <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
+        </div>
+        <div class="resouce-toggle" v-if="curClusterInfo.cluster_id || curViewType === 'dashboard'">
+            <span v-for="item in viewList"
+                :key="item.id"
+                :class="['tab bcs-ellipsis', { active: curViewType === item.id }]"
+                @click="handleChangeView(item)">
+                {{item.name}}
+            </span>
         </div>
         <div class="side-nav">
             <bk-menu :list="menuList" :menu-change-handler="menuSelected"></bk-menu>
@@ -61,18 +55,7 @@
                     <div class="bk-form-item is-required">
                         <label class="bk-label" style="width:160px;">{{$t('编排类型')}}：</label>
                         <div class="bk-form-content" style="margin-left:160px;">
-                            <bk-radio-group v-model="kind" @change="changeKind" :key="kind" style="display: inline-block; width: 155px; vertical-align: center;">
-                                <bk-radio :value="1" :disabled="!canFormEdit">K8S</bk-radio>
-                                <bk-radio :value="2" disabled>Mesos</bk-radio>
-                            </bk-radio-group>
-                            <bcs-popover :delay="500" placement="top" :key="kind" style="vertical-align: center;">
-                                <i class="bcs-icon bcs-icon-info-circle" style="position: relative; top: 2px;"></i>
-                                <template slot="content">
-                                    <p style="width: 230px;text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">
-                                        {{$t('如需使用，请联系')}}<a :href="PROJECT_CONFIG.doc.contact" target="" class="bk-text-button">【{{$t('蓝鲸容器助手')}}】</a>
-                                    </p>
-                                </template>
-                            </bcs-popover>
+                            <bk-radio :checked="kind === 1" disabled>K8S</bk-radio>
                         </div>
                     </div>
 
@@ -155,35 +138,6 @@
             return {
                 isLoading: false,
                 isShowClusterSelector: false,
-                clusterRouters: [
-                    'clusterMain',
-                    'clusterCreate',
-                    'clusterOverview',
-                    'clusterInfo',
-                    'clusterNode',
-                    'clusterNodeOverview',
-                    'containerDetailForNode'
-                ],
-                configurationRouters: [
-                    'mesosTemplatesetApplication',
-                    'mesosTemplatesetDeployment',
-                    'mesosTemplatesetService',
-                    'mesosTemplatesetConfigmap',
-                    'mesosTemplatesetSecret',
-                    'mesosTemplatesetIngress',
-                    'mesosTemplatesetHPA',
-
-                    'k8sTemplatesetDeployment',
-                    'k8sTemplatesetService',
-                    'k8sTemplatesetSecret',
-                    'k8sTemplatesetConfigmap',
-                    'k8sTemplatesetDaemonset',
-                    'k8sTemplatesetJob',
-                    'k8sTemplatesetStatefulset',
-                    'k8sTemplatesetIngress',
-                    'k8sTemplatesetHPA',
-                    'K8sYamlTemplateset'
-                ],
                 projectIdTimer: null,
                 projectConfDialog: {
                     isShow: false,
@@ -214,7 +168,8 @@
                         id: 'dashboard',
                         name: this.$t('资源视图')
                     }
-                ]
+                ],
+                featureCluster: !localStorage.getItem('FEATURE_CLUSTER')
             }
         },
         computed: {
@@ -254,14 +209,8 @@
                 if (this.$route.meta.isDashboard) {
                     return this.$store.state.sideMenu.dashboardMenuList
                 }
-                if (this.curProject && this.curClusterInfo.cluster_id && this.curProject.kind === PROJECT_MESOS) {
-                    return this.$store.state.sideMenu.clusterMenuList
-                }
                 if (this.curProject && this.curClusterInfo.cluster_id) {
                     return this.$store.state.sideMenu.clusterk8sMenuList
-                }
-                if (this.curProject && this.curProject.kind === PROJECT_MESOS) {
-                    return this.$store.state.sideMenu.menuList
                 }
                 return this.$store.state.sideMenu.k8sMenuList
             },
@@ -325,42 +274,12 @@
             }
             bus.$off('cluster-change')
             bus.$on('cluster-change', (data) => {
-                // if (sessionStorage['bcs-selected-menu-data']) {
-                //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
-                //     this.menuSelected(menuData)
-                // } else {
-                //     this.menuSelected(data)
-                // }
                 this.menuSelected(data)
             })
 
-            // this.$nextTick(() => {
-            //     if (this.$route.name === 'clusterMain' && this.curClusterInfo.cluster_id) {
-            //         // if (sessionStorage['bcs-selected-menu-data']) {
-            //         //     const menuData = JSON.parse(sessionStorage['bcs-selected-menu-data'])
-            //         //     this.menuSelected(menuData)
-            //         // } else {
-            //         //     this.menuSelected(this.selectorMenuData)
-            //         // }
-            //         this.menuSelected(this.selectorMenuData)
-            //     }
-            // })
             await this.getProject()
         },
         methods: {
-            /**
-             * 切换编排类型
-             */
-            changeKind () {
-                // 如果换成其它类型
-                if (String(this.kind) !== String(this.curProject.kind)) {
-                    this.ccKey = ''
-                } else {
-                    this.ccKey = this.curProject.cc_app_id
-                }
-                this.fetchCCList()
-            },
-
             /**
              * 显示项目配置窗口
              */
@@ -462,7 +381,7 @@
                     await this.$store.dispatch('editProject', Object.assign({}, this.curProject, {
                         // deploy_type 值固定，就是原来页面上的：部署类型：容器部署
                         deploy_type: [2],
-                        // kind 业务编排类型：1 Kubernetes, 2 Mesos
+                        // kind 业务编排类型：1 Kubernetes
                         kind: parseInt(this.kind, 10),
                         // use_bk 值固定，就是原来页面上的：使用蓝鲸部署服务
                         use_bk: true,
@@ -511,6 +430,7 @@
              * 集群切换
              */
             handleChangeCluster (cluster) {
+                localStorage.setItem('FEATURE_CLUSTER', true)
                 if (!cluster.cluster_id) {
                     sessionStorage.removeItem('bcs-selected-menu-data')
                     if (this.$route.meta.isDashboard) {
@@ -560,7 +480,7 @@
 
             handleChangeView (item) {
                 if (item.id === this.curViewType) return
-
+                this.$store.commit('updateViewMode', item.id)
                 item.id === 'dashboard' ? this.goDashboard() : this.goCluster()
             },
 
@@ -623,6 +543,7 @@
             height: 24px;
             padding: 0 26px;
             cursor: pointer;
+            white-space: nowrap;
             &.active {
                 background: #fff;
                 color: #3a84ff;
@@ -648,6 +569,7 @@
         height: 30px;
         text-align: center;
         line-height: 30px;
+        z-index: 100;
     }
     .biz-footer {
         text-align: right;
@@ -663,5 +585,15 @@
     }
     .cluster-name-all {
         font-size: 16px;
+    }
+    .dot {
+        position: absolute;
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        top: 16px;
+        right: 4px;
+        z-index: 1;
+        padding: 2px;
     }
 </style>

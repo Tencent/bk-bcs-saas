@@ -12,7 +12,7 @@ import yamljs from 'js-yaml'
 import { Decimal } from 'decimal.js'
 
 import { instanceDetailChart } from '@open/common/chart-option'
-import { randomInt, catchErrorHandler, chartColors, formatBytes } from '@open/common/util'
+import { randomInt, catchErrorHandler, chartColors, formatBytes, copyText } from '@open/common/util'
 import ace from '@open/components/ace-editor'
 import BcsLog from '@open/components/bcs-log/index'
 import { createChartOption } from '../pod-chart-opts'
@@ -154,10 +154,8 @@ export default {
                 show: false,
                 loading: false,
                 containerList: [],
-                groupData: {
-                    podId: '',
-                    defaultContainer: ''
-                }
+                podId: '',
+                defaultContainer: ''
             }
         }
     },
@@ -598,7 +596,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodCpuUsage (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodCpuChart([])
                 return
@@ -608,7 +606,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId
@@ -747,7 +745,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodMemUsage (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodMemChart([])
                 return
@@ -756,7 +754,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId
@@ -888,7 +886,7 @@ export default {
          * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
          */
         async fetchPodNet (range) {
-            const idList = this.taskgroupList.map(item => item.name).join(',')
+            const idList = this.taskgroupList.map(item => item.name)
             if (!idList || !idList.length) {
                 this.renderPodNetChart([], [])
                 return
@@ -897,7 +895,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     data: {
-                        res_id_list: idList,
+                        pod_name_list: idList,
                         end_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     },
                     clusterId: this.clusterId
@@ -2011,7 +2009,8 @@ export default {
                 let containerList = res.data || []
 
                 const containerIds = containerList.map(container => container.container_id).join(',')
-                if (containerIds) {
+                // 区分企业版和内部版
+                if (containerIds && this.$INTERNAL) {
                     const logParams = {
                         projectId: this.projectId,
                         container_ids: containerIds
@@ -2260,8 +2259,8 @@ export default {
                 id: item.name,
                 name: item.name
             }))
-            this.bcsLog.groupData.podId = this.taskgroupList[index].name
-            this.bcsLog.groupData.defaultContainer = this.taskgroupList[index].containerList[0]?.name
+            this.bcsLog.podId = this.taskgroupList[index].name
+            this.bcsLog.defaultContainer = this.taskgroupList[index].containerList[0]?.name
             this.bcsLog.loading = false
         },
 
@@ -2591,6 +2590,14 @@ export default {
 
         handleShowEditorSearch () {
             this.$refs.yamlEditor && this.$refs.yamlEditor.showSearchBox()
+        },
+
+        handleCopyContent (value) {
+            copyText(value)
+            this.$bkMessage({
+                theme: 'success',
+                message: this.$t('复制成功')
+            })
         }
     }
 }

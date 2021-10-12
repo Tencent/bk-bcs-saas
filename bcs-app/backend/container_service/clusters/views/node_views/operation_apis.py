@@ -1,31 +1,25 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.accounts import bcs_perm
 from backend.bcs_web.audit_log import client
 from backend.container_service.clusters import serializers as node_serializers
-from backend.container_service.clusters.base import utils as node_utils
-from backend.container_service.clusters.models import CommonStatus, NodeStatus, NodeUpdateLog
+from backend.container_service.clusters.models import CommonStatus
 from backend.container_service.clusters.module_apis import get_cluster_node_mod
-from backend.container_service.clusters.utils import cluster_env_transfer
-from backend.container_service.clusters.views.node_views import serializers as node_slz
-from backend.container_service.projects.base.constants import ProjectKind
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from .base import ClusterPerm, Nodes
@@ -92,84 +86,3 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
             node_client.reinstall()
 
         return response.Response()
-
-
-class NodelabelsViewSets(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def set_mesos_node_labels(self, access_token, project_id, node_labels):
-        # {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
-        cluster_node_labels = {}
-        for node_label in node_labels:
-            cluster_id = node_label["cluster_id"]
-            # 组装格式, 注意value必须为string
-            item = {
-                "strings": {key: {"value": str(val)} for label in node_label["labels"] for key, val in label.items()},
-                "innerIP": node_label["inner_ip"],
-            }
-            if cluster_id in cluster_node_labels:
-                cluster_node_labels[cluster_id].append(item)
-            else:
-                cluster_node_labels[cluster_id] = [item]
-
-        node_utils.set_mesos_node_labels(access_token, project_id, cluster_node_labels)
-
-    def set_k8s_node_labels(self, access_token, project_id, labels):
-        pass
-
-    def set_labels(self, request, project_id):
-        slz = node_slz.SetNodeLabelsSLZ(data=request.data)
-        slz.is_valid(raise_exception=True)
-        data = slz.validated_data
-
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        getattr(self, f"set_{project_kind_name.lower()}_node_labels")(
-            request.user.token.access_token, project_id, data["node_labels"]
-        )
-
-        return response.Response()
-
-    def _mesos_node_labels(self, access_token, project_id, nodes):
-        # 组装查询数据
-        # 格式 {"cluster-id1": ["ip1", "ip2"], "cluster-id2": ["ip3", "ip4"]]
-        # 节点ip为空时，查询所有节点的labels，避免每个IP匹配一次
-        cluster_nodes = {node["cluster_id"]: [] for node in nodes}
-        return node_utils.query_mesos_node_labels(access_token, project_id, cluster_nodes)
-
-    def _cluster_id_map(self, access_token, project_id):
-        clusters = node_utils.get_clusters(access_token, project_id)
-        return {
-            cluster["cluster_id"]: {
-                "cluster_env": cluster_env_transfer(cluster["environment"]),
-                "cluster_name": cluster["name"],
-            }
-            for cluster in clusters
-        }
-
-    def compose_node_data(self, nodes, labels, cluster_id_map):
-        """组装node数据，添加label、集群名称"""
-        for node_info in nodes:
-            inner_ip = node_info["inner_ip"]
-            cluster_id = node_info["cluster_id"]
-            node_info["labels"] = labels.get(cluster_id, {}).get(inner_ip, [])
-            node_info.update(cluster_id_map.get(cluster_id, {}))
-
-    def list_labels(self, request, project_id):
-        # TODO: 现阶段仅针对mesos
-        if request.project.kind == ProjectKind.K8S.value:
-            raise error_codes.NotOpen()
-
-        access_token = request.user.token.access_token
-        cluster_id = request.query_params.get("cluster_id")
-        # cluster_id 为None时，查询项目下的所有集群的节点
-        nodes = node_utils.get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=False)
-        # 排除状态为已删除的节点
-        nodes = [node for node in nodes if node["status"] not in [NodeStatus.Removed]]
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        labels = getattr(self, f"_{project_kind_name.lower()}_node_labels")(access_token, project_id, nodes)
-        cluster_id_map = self._cluster_id_map(access_token, project_id)
-        self.compose_node_data(nodes, labels, cluster_id_map)
-        # 添加权限
-        nodes_results = bcs_perm.Cluster.hook_perms(request, project_id, nodes)
-
-        return response.Response({'count': len(nodes_results), 'results': nodes_results})

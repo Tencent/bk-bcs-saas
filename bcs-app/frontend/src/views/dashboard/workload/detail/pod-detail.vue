@@ -22,8 +22,12 @@
                 </div>
                 <div class="btns">
                     <bk-button theme="primary" @click="handleShowYamlPanel">To YAML</bk-button>
-                    <bk-button theme="primary" @click="handleUpdateResource">{{$t('更新')}}</bk-button>
-                    <bk-button theme="danger" @click="handleDeleteResource">{{$t('删除')}}</bk-button>
+                    <bk-button theme="primary"
+                        v-authority="{ clickable: pagePerms.update.clickable, content: pagePerms.update.tip }"
+                        @click="handleUpdateResource">{{$t('更新')}}</bk-button>
+                    <bk-button theme="danger"
+                        v-authority="{ clickable: pagePerms.delete.clickable, content: pagePerms.delete.tip }"
+                        @click="handleDeleteResource">{{$t('删除')}}</bk-button>
                 </div>
             </div>
             <div class="workload-main-info">
@@ -62,7 +66,8 @@
                     :params="params"
                     category="pods"
                     unit="byte"
-                    :colors="['#853cff', '#30d878']">
+                    :colors="['#853cff', '#30d878']"
+                    :suffix="[$t('入流量'), $t('出流量')]">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
@@ -79,6 +84,26 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('镜像')" prop="image"></bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="180" :resizable="false" :show-overflow-tooltip="false">
+                            <template #default="{ row }">
+                                <bk-button text @click="handleShowTerminal(row)">WebConsole</bk-button>
+                                <bk-popover placement="bottom" theme="light dropdown" :arrow="false" v-if="row.container_id && $INTERNAL">
+                                    <bk-button style="cursor: default;" text class="ml10">{{ $t('日志检索') }}</bk-button>
+                                    <div slot="content">
+                                        <ul>
+                                            <a :href="logLinks[row.container_id] && logLinks[row.container_id].std_log_link"
+                                                target="_blank" class="dropdown-item">
+                                                {{ $t('标准输出检索') }}
+                                            </a>
+                                            <a :href="logLinks[row.container_id] && logLinks[row.container_id].file_log_link"
+                                                target="_blank" class="dropdown-item">
+                                                {{ $t('文件日志检索') }}
+                                            </a>
+                                        </ul>
+                                    </div>
+                                </bk-popover>
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="conditions" :label="$t('状态（Conditions）')">
@@ -141,7 +166,7 @@
                                     <span>{{ row.spec.volumeMode || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'pvcs','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'pvcs','age') }}
@@ -159,7 +184,7 @@
                                     <span>{{ handleGetExtData(row.metadata.uid, 'configmaps','data').join(', ') || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'configmaps','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'configmaps','age') }}
@@ -182,7 +207,7 @@
                                     <span>{{ handleGetExtData(row.metadata.uid, 'secrets','data').join(', ') || '--' }}</span>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column label="Age" :resizable="false">
+                            <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                                 <template #default="{ row }">
                                     <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'secrets','createTime') }">
                                         {{ handleGetExtData(row.metadata.uid, 'secrets','age') }}
@@ -208,7 +233,8 @@
         </div>
         <bcs-sideslider quick-close :title="metadata.name" :is-show.sync="showYamlPanel" :width="800">
             <template #content>
-                <Ace width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
+                <Ace v-full-screen="{ tools: ['fullscreen', 'copy'], content: yaml }"
+                    width="100%" height="100%" lang="yaml" read-only :value="yaml"></Ace>
             </template>
         </bcs-sideslider>
     </div>
@@ -222,6 +248,7 @@
     import useDetail from './use-detail'
     import { formatTime } from '@/common/util'
     import Ace from '@/components/ace-editor'
+    import fullScreen from '@open/directives/full-screen'
 
     export interface IDetail {
         manifest: any;
@@ -242,7 +269,8 @@
             Ace
         },
         directives: {
-            bkOverflowTips
+            bkOverflowTips,
+            'full-screen': fullScreen
         },
         props: {
             namespace: {
@@ -258,7 +286,7 @@
             }
         },
         setup (props, ctx) {
-            const { $store } = ctx.root
+            const { $store, $route } = ctx.root
             const {
                 isLoading,
                 detail,
@@ -269,6 +297,7 @@
                 manifestExt,
                 yaml,
                 showYamlPanel,
+                pagePerms,
                 handleGetDetail,
                 handleShowYamlPanel,
                 handleUpdateResource,
@@ -287,13 +316,17 @@
             })
 
             // 容器
-            const container = ref([])
+            const container = ref<any[]>([])
             const containerLoading = ref(false)
+            const logLinks = ref({})
             const handleGetContainer = async () => {
                 containerLoading.value = true
                 container.value = await $store.dispatch('dashboard/listContainers', {
                     $podId: name.value,
                     $namespaceId: namespace.value
+                })
+                logLinks.value = await $store.dispatch('dashboard/logLinks', {
+                    container_ids: container.value.map(item => item.container_id).join(',')
                 })
                 containerLoading.value = false
             }
@@ -363,6 +396,29 @@
                 }
             }
 
+            // 容器操作
+            // 1. 跳转WebConsole
+            const projectId = computed(() => $route.params.projectId)
+            const clusterId = computed(() => $store.state.curClusterId)
+            const terminalWins = new Map()
+            const handleShowTerminal = (row) => {
+                const url = `${window.DEVOPS_BCS_API_URL}/web_console/projects/${projectId.value}/clusters/${clusterId.value}/?container_id=${row.container_id}`
+                if (terminalWins.has(row.container_id)) {
+                    const win = terminalWins.get(row.container_id)
+                    if (!win.closed) {
+                        terminalWins.get(row.container_id).focus()
+                    } else {
+                        const win = window.open(url, '_blank')
+                        terminalWins.set(row.container_id, win)
+                    }
+                } else {
+                    const win = window.open(url, '_blank')
+                    terminalWins.set(row.container_id, win)
+                }
+            }
+            // 2. 日志检索
+            const isDropdownShow = ref(false)
+
             onMounted(async () => {
                 handleGetDetail()
                 handleGetStorage()
@@ -388,6 +444,9 @@
                 containerLoading,
                 yaml,
                 showYamlPanel,
+                pagePerms,
+                isDropdownShow,
+                logLinks,
                 handleShowYamlPanel,
                 handleGetStorage,
                 handleGetContainer,
@@ -396,7 +455,8 @@
                 formatTime,
                 getImagesTips,
                 handleUpdateResource,
-                handleDeleteResource
+                handleDeleteResource,
+                handleShowTerminal
             }
         }
     })
@@ -431,6 +491,21 @@
                 margin-bottom: 8px;
             }
         }
+    }
+}
+>>> .dropdown-item {
+    display: block;
+    height: 32px;
+    line-height: 33px;
+    padding: 0 16px;
+    color: #63656e;
+    font-size: 12px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    &:hover {
+        background-color: #eaf3ff;
+        color: #3a84ff;
     }
 }
 </style>

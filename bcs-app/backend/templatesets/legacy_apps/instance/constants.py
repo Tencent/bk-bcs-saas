@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 实例化需要的后台添加的信息
 使用 Mako 模板做变量替换
 """
@@ -22,7 +22,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import ChoicesEnum
 
-MESOS_MODULE_NAME = 'mesos'
 K8S_MODULE_NAME = 'k8s'
 
 # 所有配置文件的公共 label
@@ -83,7 +82,6 @@ SOURCE_TYPE_LABEL_KEY = 'io.tencent.paas.source_type'
 
 # 自定义日志标签
 K8S_CUSTOM_LOG_ENV_KEY = 'io_tencent_bcs_custom_labels'
-MESOS_CUSTOM_LOG_LABEL_KEY = 'io.tencent.bcs.custom.labels'
 
 PAAS_LABLES = {
     LABLE_TEMPLATE_ID: "{{SYS_TEMPLATE_ID}}",
@@ -114,65 +112,6 @@ PUBLIC_ANNOTATIONS = {
 BCS_ANNOTATIONS = BCS_LABELS.copy()
 PUBLIC_ANNOTATIONS.update(BCS_ANNOTATIONS)
 
-APPLICATION_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "application",
-    "metadata": {"labels": PUBLIC_LABELS, "annotations": PUBLIC_ANNOTATIONS, "namespace": "{{SYS_NAMESPACE}}"},
-}
-
-DEPLPYMENT_SYS_CONFIG = {"apiVersion": "v4", "kind": "deployment", "spec": {"strategy": {}}}
-
-SEVICE_WEIGHT_LABEL_PREFIX = 'BCS-WEIGHT-'
-SEVICE_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "service",
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-    },
-}
-
-CONFIGMAP_SYS_CONFIG = {
-    "operator": "{{SYS_OPERATOR}}",
-    "apiVersion": "v4",
-    "kind": "configmap",
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-    },
-}
-
-SECRET_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "secret",
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-    },
-}
-
-HPA_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "autoscaler",
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-    },
-}
-
-INGRESS_SYS_CONFIG = {
-    "apiVersion": "clb.bmsf.tencent.com/v1",
-    "kind": "ClbIngress",
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-    },
-}
 
 # ############################## k8s 相关资源
 
@@ -278,10 +217,6 @@ K8S_ENV_KEY = {
 # https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 K8S_IMAGE_SECRET_PRFIX = 'paas.image.registry.'
 
-# mesos 镜像仓库Secret名称
-MESOS_IMAGE_SECRET = 'paas-image-secret'
-# 保留先前，用以secret列表展示时，权限的处理
-OLD_MESOS_IMAGE_SECRET = 'paas_image_secret'
 # 负载均衡的配置文件
 """
 service 中添加:
@@ -292,70 +227,6 @@ service 中添加:
 LB_LABLES = copy.deepcopy(BCS_LABELS)
 LB_LABLES["loadbalance"] = "{{SYS_BCSGROUP}}"
 LB_LABLES[LABLE_PROJECT_ID] = "{{SYS_PROJECT_ID}}"
-
-LB_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "deployment",
-    "restartPolicy": {"policy": "Always", "interval": 10},
-    "metadata": {
-        "namespace": "{{SYS_NAMESPACE}}",
-        "labels": LB_LABLES,
-        "annotations": PUBLIC_ANNOTATIONS,
-        "name": "{{SYS_BCSGROUP}}",
-    },
-    "constraint": {},
-    "spec": {
-        "instance": 1,
-        "strategy": {
-            "type": "RollingUpdate",
-            "rollingupdate": {
-                "maxUnavilable": 1,
-                "maxSurge": 1,
-                "upgradeDuration": 60,
-                "rollingOrder": "DeleteFirst",
-                "rollingManually": False,
-            },
-        },
-        "template": {
-            "metadata": {"labels": {}},
-            "spec": {
-                "containers": [
-                    {
-                        "command": "/bcs-lb/start.sh",
-                        "args": [
-                            "{{FORWARD_MODE}}",
-                            "--group",
-                            "{{SYS_BCSGROUP}}",
-                            "--zk",
-                            "{{SYS_CC_ZK}}",  # noqa,分号(;)分隔
-                            "--zkpath",
-                            "/etc/cluster/mesos/{{SYS_CLUSTER_ID}}/exportservice",
-                            "--bcszkaddr",
-                            "{{SYS_BCS_ZK}}",  # noqa,逗号(,)分隔
-                            "--clusterid",
-                            "{{SYS_CLUSTER_ID}}",
-                        ],
-                        "type": "MESOS",
-                        "image": "{{LB_IMAGE_URL}}:{{IMAGE_VERSION}}",
-                        "imagePullPolicy": "Always",
-                        "privileged": True,
-                        "ports": [{"name": "lb-port", "hostPort": 31000, "containerPort": 80, "protocol": "TCP"}],
-                        "env": [
-                            {"name": "LB_NETWORKCARD", "value": "{{ETH_VALUE}}"},
-                            {"name": "LB_HAPROXYMONITORPORT", "value": "{{LB_ADMIN_PORT}}"},
-                        ],
-                        "resources": {"limits": {"cpu": "{{CPU}}", "memory": "{{MEMORY}}"}},
-                    }
-                ],
-                "networkMode": "HOST",
-                "networkType": "cnm",
-            },
-        },
-    },
-}
-# TODO: DEFAUT_LB_JFROG_DOMAIN 这个变量使用，先不调整
-DEFAUT_LB_JFROG_DOMAIN = settings.DEFAUT_MESOS_LB_JFROG_DOMAIN
-DEFAULT_LB_REPO_DOMAIN = settings.DEFAUT_MESOS_LB_JFROG_DOMAIN
 
 METRIC_SYS_CONFIG = [
     {
@@ -486,5 +357,3 @@ API_VERSION = {
         'HorizontalPodAutoscaler': 'autoscaling/v2beta2',
     },
 }
-
-DEFAULT_MESOS_LB_IMAGE_PATH = "/paas/public/mesos/bcs-loadbalance"

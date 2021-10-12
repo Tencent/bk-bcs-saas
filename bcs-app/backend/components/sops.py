@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from dataclasses import asdict, dataclass, field
 from typing import Dict
 
@@ -70,7 +71,7 @@ class SopsClient(BkApiClient):
         self._config = SopsConfig(host=settings.SOPS_API_HOST)
         self._client = BaseHttpClient(SopsAuth())
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def create_task(self, bk_biz_id: str, template_id: str, data: CreateTaskParams) -> Dict:
         """通过业务流程创建任务
 
@@ -82,7 +83,7 @@ class SopsClient(BkApiClient):
         url = self._config.create_task_url.format(template_id=template_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("POST", url, json=asdict(data))
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
         """启动任务
 
@@ -93,7 +94,7 @@ class SopsClient(BkApiClient):
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("POST", url)
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
         """获取任务状态
 
@@ -104,7 +105,7 @@ class SopsClient(BkApiClient):
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._client.request_json("GET", url)
 
-    @response_handler(default_data={})
+    @response_handler(default=dict)
     def get_task_node_data(self, bk_biz_id: str, task_id: str, node_id: str) -> Dict:
         """获取任务步骤的详情
 

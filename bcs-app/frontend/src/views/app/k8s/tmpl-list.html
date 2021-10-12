@@ -385,7 +385,7 @@
                                                                             </a>
                                                                         </template>
 
-                                                                        <template v-if="instance.state.getRet().cancel === 1">
+                                                                        <!-- <template v-if="instance.state.getRet().cancel === 1">
                                                                             <template v-if="instance.state.islock === true">
                                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                     :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
@@ -405,7 +405,7 @@
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
                                                                                 {{$t('取消升级')}}
                                                                             </a>
-                                                                        </template>
+                                                                        </template> -->
 
                                                                         <template v-if="CATEGORY !== 'daemonset'">
                                                                             <template v-if="instance.state.getRet().scale === 1">
@@ -782,7 +782,7 @@
                                                                 </a>
                                                             </template>
 
-                                                            <template v-if="instance.state.getRet().cancel === 1">
+                                                            <!-- <template v-if="instance.state.getRet().cancel === 1">
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                         :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
@@ -802,7 +802,7 @@
                                                                     :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
                                                                     {{$t('取消升级')}}
                                                                 </a>
-                                                            </template>
+                                                            </template> -->
 
                                                             <template v-if="CATEGORY !== 'daemonset'">
                                                                 <template v-if="instance.state.getRet().scale === 1">
@@ -1213,7 +1213,6 @@
                         <bk-number-input
                             :value.sync="instanceNum"
                             :min="0"
-                            :max="1000"
                             :ex-style="{ 'width': '260px' }"
                             :placeholder="$t('请输入')">
                         </bk-number-input>

@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
-from backend.bcs_web.iam import permissions
 from backend.components import paas_auth, paas_cc
+from backend.iam import legacy_perms as permissions
 from backend.utils import FancyDict
 from backend.utils.cache import region
 from backend.utils.error_codes import error_codes
+
+# 跳过路径为projects、projects_pub的namespace的项目校验
+SKIP_REQUEST_NAMESPACE = ["projects", "projects_pub"]
 
 
 class HasProject(BasePermission):
@@ -129,13 +132,11 @@ class ProjectHasBCS(BasePermission):
 
             if request_namespace in SKIP_REQUEST_NAMESPACE:
                 # 如果是SKIP_REQUEST_NAMESPACE，有更新接口，不判断kind
-                if project.get("cc_app_id") != 0 and project.get("kind") in ClusterType:
-                    region.set(cache_key, project)
-
-            elif project.get("kind") in ClusterType:
-                # 如果已经开启容器服务，判断是否cc_app_id再缓存
                 if project.get("cc_app_id") != 0:
                     region.set(cache_key, project)
+
+            elif project.get("cc_app_id") != 0:
+                region.set(cache_key, project)
             else:
                 # 其他抛出没有开启容器服务
                 raise error_codes.NoBCSService()

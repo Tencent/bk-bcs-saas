@@ -26,14 +26,11 @@
                         </li>
                     </ul>
                     <template v-if="canConfirm">
-                        <div class="dialog-action" v-if="!isConfirming">
-                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn" @click="confirm">{{confirmBtnTextRender}}</a>
-                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel">{{cancelBtnTextRender}}</a>
+                        <div class="dialog-action">
+                            <bk-button :disabled="isConfirming" :loading="confirmLoading" class="bk-button bk-primary bk-button-large dialog-btn" @click="confirm">{{confirmBtnTextRender}}</bk-button>
+                            <bk-button :disabled="isConfirming" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel">{{cancelBtnTextRender}}</bk-button>
                         </div>
-                        <div class="dialog-action" v-else>
-                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmingBtnTextRender}}</a>
-                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn disabled">{{cancelingBtnTextRender}}</a>
-                        </div>
+
                     </template>
                     <template v-else>
                         <div class="dialog-action">
@@ -106,13 +103,17 @@
             },
             width: {
                 type: Number
+            },
+            confirmLoading: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             return {
                 tipDialogConf: {
                     isShow: false,
-                    width: this.width || 630
+                    width: this.width || 700
                 },
                 noticeList: [],
                 titleRender: '',

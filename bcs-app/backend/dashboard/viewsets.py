@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.utils.translation import ugettext_lazy as _
 from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.response import Response
@@ -20,11 +21,13 @@ from backend.bcs_web.audit_log.constants import ActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.auditor import DashboardAuditor
 from backend.dashboard.exceptions import CreateResourceError, DeleteResourceError, UpdateResourceError
-from backend.dashboard.permissions import gen_web_annotations, validate_cluster_perm
+from backend.dashboard.permissions import validate_cluster_perm
 from backend.dashboard.serializers import CreateResourceSLZ, ListResourceSLZ, UpdateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
+from backend.dashboard.utils.web import gen_base_web_annotations
 from backend.utils.basic import getitems
 from backend.utils.response import BKAPIResponse
+from backend.utils.url_slug import KUBE_NAME_REGEX
 
 
 class ListAndRetrieveMixin:
@@ -35,14 +38,14 @@ class ListAndRetrieveMixin:
         client = self.resource_client(request.ctx_cluster)
         response_data = ListApiRespBuilder(client, namespace=namespace, **params).build()
         # 补充页面信息注解，包含权限信息
-        web_annotations = gen_web_annotations(request, project_id, cluster_id)
+        web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
         return BKAPIResponse(response_data, web_annotations=web_annotations)
 
     def retrieve(self, request, project_id, cluster_id, namespace, name):
         client = self.resource_client(request.ctx_cluster)
         response_data = RetrieveApiRespBuilder(client, namespace, name).build()
         # 补充页面信息注解，包含权限信息
-        web_annotations = gen_web_annotations(request, project_id, cluster_id)
+        web_annotations = gen_base_web_annotations(request, project_id, cluster_id)
         return BKAPIResponse(response_data, web_annotations=web_annotations)
 
 
@@ -121,3 +124,4 @@ class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, CreateMixin, UpdateMi
     """
 
     lookup_field = 'name'
+    lookup_value_regex = KUBE_NAME_REGEX

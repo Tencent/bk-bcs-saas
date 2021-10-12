@@ -66,17 +66,18 @@
                             :page-params="pageConf"
                             @page-change="handlePageChange"
                             @page-limit-change="handlePageSizeChange">
-                            <bk-table-column v-for="(column, index) in columnList" :label="defaultColumnMap[column] || column" :key="index">
+                            <bk-table-column v-for="(column, index) in columnList" :label="(defaultColumnMap[column] && defaultColumnMap[column].label) || column"
+                                :min-width="defaultColumnMap[column] ? defaultColumnMap[column].minWidth : 'auto'"
+                                :key="index">
                                 <template slot-scope="{ row }">
-                                    <div class="cell">
-                                        <bcs-popover :content="row[column] || ''" placement="top">
-                                            <template v-if="column === 'name'">
-                                                <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
-                                            </template>
-                                            <template v-else>
-                                                {{row[column] || '--'}}
-                                            </template>
-                                        </bcs-popover>
+                                    <div>
+                                        <template v-if="column === 'name'">
+                                            <a href="javascript:void(0);" class="bk-text-button name-col bcs-ellipsis" style="font-weight: 700;"
+                                                @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
+                                        </template>
+                                        <template v-else>
+                                            {{row[column] || '--'}}
+                                        </template>
                                     </div>
                                 </template>
                             </bk-table-column>
@@ -86,51 +87,6 @@
                                 </template>
                             </bk-table-column>
                         </bk-table>
-                        <!-- <table class="bk-table has-table-hover biz-table gamestatefullset-table" :class="curPageData.length ? '' : 'no-data'">
-                            <thead>
-                                <tr>
-                                    <template v-for="(column, index) in columnList">
-                                        <th :key="index">
-                                            <template v-if="column === 'name'">{{$t('名称')}}</template>
-                                            <template v-else-if="column === 'cluster_id'">{{$t('集群')}}</template>
-                                            <template v-else-if="column === 'namespace'">{{$t('命名空间')}}</template>
-                                            <template v-else>{{column}}</template>
-                                        </th>
-                                    </template>
-                                    <th><span>{{$t('操作')}}</span></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="curPageData.length">
-                                    <tr v-for="(item, index) in curPageData" :key="index">
-                                        <template v-for="(column, columnIndex) in columnList">
-                                            <td :key="columnIndex">
-                                                <div class="cell">
-                                                    <bcs-popover :content="item[column] || ''" placement="top">
-                                                        <template v-if="column === 'name'">
-                                                            <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(item[column], item['namespace'])">{{item[column] || '--'}}</a>
-                                                        </template>
-                                                        <template v-else>
-                                                            {{item[column] || '--'}}
-                                                        </template>
-                                                    </bcs-popover>
-                                                </div>
-                                            </td>
-                                        </template>
-                                        <td><a href="javascript:void(0);" class="bk-text-button" @click.stop="del(item, index)">{{$t('删除')}}</a></td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td :colspan="columnList.length + 1">
-                                            <div class="bk-message-box">
-                                                <bcs-exception type="empty" scene="part" v-if="!loading"></bcs-exception>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table> -->
                     </div>
                 </div>
             </template>
@@ -170,9 +126,18 @@
                     show: true
                 },
                 defaultColumnMap: {
-                    'name': this.$t('名称'),
-                    'cluster_id': this.$t('集群'),
-                    'namespace': this.$t('命名空间')
+                    'name': {
+                        label: this.$t('名称'),
+                        minWidth: 150
+                    },
+                    'cluster_id': {
+                        label: this.$t('集群'),
+                        minWidth: 140
+                    },
+                    'namespace': {
+                        label: this.$t('命名空间'),
+                        minWidth: 100
+                    }
                 },
                 bkMessageInstance: null,
                 clusterList: [],

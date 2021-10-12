@@ -31,6 +31,7 @@ export default function menuConfig () {
     const storage = window.i18n.t('存储')
     const workload = window.i18n.t('工作负载')
     const dashboardNamespace = window.i18n.t('命名空间')
+    const customResource = window.i18n.t('自定义资源')
 
     return {
         dashboardMenuList: [
@@ -73,18 +74,6 @@ export default function menuConfig () {
                         name: 'Pods',
                         pathName: ['dashboardWorkloadPods', 'Pod']
                     }
-                    // {
-                    //     name: 'GameStatefulSets',
-                    //     pathName: ['dashboardWorkloadGameStatefulSets']
-                    // },
-                    // {
-                    //     name: 'GameDeployments',
-                    //     pathName: ['dashboardWorkloadGameDeployments']
-                    // },
-                    // {
-                    //     name: 'CustomObjects',
-                    //     pathName: ['dashboardWorkloadCustomObjects']
-                    // }
                 ]
             },
             {
@@ -136,7 +125,7 @@ export default function menuConfig () {
                         pathName: ['dashboardStoragePersistentVolumes', 'PersistentVolume']
                     },
                     {
-                        name: 'PersistentVolumesClaims',
+                        name: 'PersistentVolumeClaims',
                         pathName: ['dashboardStoragePersistentVolumesClaims', 'PersistentVolumeClaim']
                     },
                     {
@@ -158,144 +147,40 @@ export default function menuConfig () {
                     }
                 ],
                 id: 'RBAC'
-            }
-        ],
-        clusterMenuList: [
-            {
-                name: cluster,
-                icon: 'bcs-icon-jq-colony',
-                pathName: [
-                    'clusterMain', 'clusterCreate', 'clusterOverview',
-                    'clusterNode', 'clusterInfo', 'clusterNodeOverview', 'containerDetailForNode'
-                ],
-                roleId: 'cluster:menu',
-                id: 'CLUSTER'
-            },
-            {
-                name: node,
-                isSaveData: true,
-                icon: 'bcs-icon-jd-node',
-                pathName: ['nodeMain'],
-                roleId: 'node:menu',
-                id: 'NODE'
-            },
-            {
-                name: namespace,
-                isSaveData: true,
-                icon: 'bcs-icon-namespace',
-                roleId: 'configuration:menu',
-                pathName: ['namespace'],
-                id: 'NAMESPACE'
-            },
-            { name: 'line' },
-            {
-                name: templateset,
-                isSaveData: true,
-                icon: 'bcs-icon-templateset',
-                roleId: 'configuration:menu',
-                pathName: [
-                    'templateset',
-                    'mesosTemplatesetApplication',
-                    'mesosTemplatesetDeployment',
-                    'mesosTemplatesetService',
-                    'mesosTemplatesetConfigmap',
-                    'mesosTemplatesetSecret',
-                    'mesosTemplatesetIngress',
-                    'mesosTemplatesetHPA',
-                    'instantiation'
-                ],
-                id: 'TEMPLATESET'
-            },
-            {
-                name: variable,
-                isSaveData: true,
-                icon: 'bcs-icon-var',
-                roleId: 'configuration:menu',
-                pathName: ['var'],
-                id: 'VARIABLE'
-            },
-            {
-                name: metric,
-                isSaveData: true,
-                icon: 'bcs-icon-control-center',
-                pathName: ['metricManage'],
-                id: 'METRICS'
-            },
-            { name: 'line' },
-            {
-                name: app,
-                isSaveData: true,
-                icon: 'bcs-icon-yy-apply',
-                pathName: ['mesos', 'instanceDetail', 'instanceDetail2', 'containerDetail', 'containerDetail2', 'mesosInstantiation'],
-                roleId: 'app:menu',
-                id: 'WORKLOAD'
-            },
-            {
-                name: network,
-                isSaveData: true,
-                icon: 'bcs-icon-wl-network',
-                roleId: 'network:menu',
-                children: [
-                    {
-                        name: 'Service',
-                        pathName: ['service']
-                    },
-                    {
-                        name: 'Ingress',
-                        pathName: ['resourceIngress']
-                    },
-                    {
-                        name: 'LoadBalancer',
-                        pathName: ['loadBalance', 'loadBalanceDetail']
-                    },
-                    {
-                        name: 'CloudLoadBalancer',
-                        pathName: ['cloudLoadBalance', 'cloudLoadBalanceDetail']
-                    }
-                ],
-                id: 'NETWORK'
-            },
-            {
-                name: resource,
-                isSaveData: true,
-                icon: 'bcs-icon-zy-resource',
-                roleId: 'resource:menu',
-                children: [
-                    {
-                        name: 'ConfigMaps',
-                        pathName: ['resourceConfigmap']
-                    },
-                    {
-                        name: 'Secrets',
-                        pathName: ['resourceSecret']
-                    }
-                ],
-                id: 'CONFIGURATION'
             },
             {
                 name: 'HPA',
                 isSaveData: true,
                 icon: 'bcs-icon-hpa',
-                roleId: 'configuration:menu',
-                pathName: ['hpa'],
+                roleId: 'HPA:menu',
+                pathName: ['dashboardHPA', 'HorizontalPodAutoscaler'],
                 id: 'HPA'
+
             },
-            { name: 'line' },
             {
-                name: eventQuery,
+                name: customResource,
                 isSaveData: true,
-                icon: 'bcs-icon-event-query',
-                pathName: ['eventQuery'],
-                id: 'EVENT'
-            },
-            { name: 'line' },
-            {
-                name: monitor,
-                isSaveData: true,
-                icon: 'bcs-icon-monitors',
-                externalLink: '/console/monitor/',
-                pathName: [],
-                id: 'MONITOR'
+                icon: 'bcs-icon-customize',
+                roleId: 'custom:menu',
+                children: [
+                    {
+                        name: 'CRD',
+                        pathName: ['dashboardCRD', 'CRD']
+                    },
+                    {
+                        name: 'GameStatefulSets',
+                        pathName: ['dashboardGameStatefulSets', 'GameStatefulSet']
+                    },
+                    {
+                        name: 'GameDeployments',
+                        pathName: ['dashboardGameDeployments', 'GameDeployment']
+                    },
+                    {
+                        name: 'CustomObjects',
+                        pathName: ['dashboardCustomObjects', 'CustomObject']
+                    }
+                ],
+                id: 'CUSTOM_RESOURCE'
             }
         ],
         clusterk8sMenuList: [
@@ -572,13 +457,6 @@ export default function menuConfig () {
                 roleId: 'configuration:menu',
                 pathName: [
                     'templateset',
-                    'mesosTemplatesetApplication',
-                    'mesosTemplatesetDeployment',
-                    'mesosTemplatesetService',
-                    'mesosTemplatesetConfigmap',
-                    'mesosTemplatesetSecret',
-                    'mesosTemplatesetIngress',
-                    'mesosTemplatesetHPA',
                     'instantiation'
                 ],
                 id: 'TEMPLATESET'
@@ -603,7 +481,7 @@ export default function menuConfig () {
                 name: app,
                 isSaveData: true,
                 icon: 'bcs-icon-yy-apply',
-                pathName: ['mesos', 'instanceDetail', 'instanceDetail2', 'containerDetail', 'containerDetail2', 'mesosInstantiation'],
+                pathName: ['instanceDetail', 'instanceDetail2', 'containerDetail', 'containerDetail2'],
                 roleId: 'app:menu',
                 id: 'WORKLOAD'
             },

@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-"""Base utilities for components module"""
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+Base utilities for components module
+"""
 import functools
 import json
 import logging
@@ -229,8 +231,8 @@ class BkCommonResponseHandler:
     :param func: 调用的函数
     """
 
-    def __init__(self, default_data: Optional[Any] = None, func: Callable = None):
-        self.default_data = default_data
+    def __init__(self, default: Optional[Any] = None, func: Callable = None):
+        self.default = default
         self.func = func
 
     def __get__(self, instance, cls):
@@ -242,12 +244,16 @@ class BkCommonResponseHandler:
     def __call__(self, *args, **kwargs) -> Any:
         resp = self.func(*args, **kwargs)
         if resp.get("code") == 0 or resp.get("result") is True:
-            return resp.get("data") or self.default_data
+            return resp.get("data") or self._get_default()
         raise CompParseBkCommonResponseError(resp, resp.get("message"))
+
+    def _get_default(self):
+        """ 参考 drf Serializer Field get_default 方法，兼容可调用对象，如 dict, list """
+        return self.default() if callable(self.default) else self.default
 
     def raw_request(self, *args, **kwargs) -> Any:
         return self.func(*args, **kwargs)
 
 
-def response_handler(default_data: Optional[Any] = None):
-    return functools.partial(BkCommonResponseHandler, default_data)
+def response_handler(default: Optional[Any] = None):
+    return functools.partial(BkCommonResponseHandler, default)

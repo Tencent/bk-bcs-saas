@@ -15,11 +15,14 @@ import focus from '@/directives/focus/index'
 import App from '@/App'
 import router from '@/router'
 import store from '@open/store'
+import Authority from '@/directives/authority'
+import '@icon-cool/bk-icon-bk-bcs'
 
 Vue.config.devtools = NODE_ENV === 'development'
 
 Vue.use(VueCompositionAPI)
 
+Vue.use(Authority)
 Vue.use(focus)
 Vue.use(bkmagic2)
 Vue.use(VeeValidate)

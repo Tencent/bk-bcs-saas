@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
 """
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
 单元测试可用环境变量说明
 值                          说明                          默认值
 TESTING_API_SERVER_URL  	测试环境/本地集群URL           'http://localhost:28180'
@@ -31,13 +31,22 @@ from kubernetes import client
 from rest_framework.test import APIClient
 
 from backend.container_service.clusters.base.models import CtxCluster
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet, FakeUserViewSet
 from backend.utils import FancyDict
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
+
+# 直接全局 patch 掉 SystemViewSet & UserViewSet & get_dynamic_client
+from backend.bcs_web import viewsets  # noqa
+
+viewsets.SystemViewSet = FakeSystemViewSet
+viewsets.UserViewSet = FakeUserViewSet
+
+from backend.resources import resource  # noqa
+
+resource.get_dynamic_client = get_dynamic_client
 
 
 @pytest.fixture
@@ -91,7 +100,6 @@ def bk_user():
     user.token.access_token = generate_random_string(12)
     user.token.expires_soon = lambda: False
 
-    user.project_kind = ProjectKind.K8S.value
     return user
 
 
@@ -116,18 +124,17 @@ def testing_kubernetes_apiclient():
 @pytest.fixture
 def use_fake_k8sclient(cluster_id):
     """替换代码中所有的 k8s.K8SClient() 调用，使其连接用于测试的 apiserver"""
-    fake_cluster_info = {
+    fake_cluster_context = {
         'id': cluster_id,
         'provider': 2,
         'creator_id': 100,
         'identifier': f'{cluster_id}-x',
         'created_at': '2020-01-01T00:00:00',
+        'server_address_path': '',
+        'user_token': 'fake_user_token',
     }
-    fake_credentials = {'server_address_path': '', 'user_token': 'fake_user_token'}
     with mock.patch(
-        'backend.components.bcs.k8s_client.K8SAPIClient.query_cluster', return_value=fake_cluster_info
-    ), mock.patch(
-        'backend.components.bcs.k8s_client.K8SAPIClient.get_client_credentials', return_value=fake_credentials
+        'backend.components.bcs.k8s_client.make_cluster_context', return_value=fake_cluster_context
     ), mock.patch(
         'backend.components.bcs.BCSClientBase._bcs_server_host',
         new_callable=mock.PropertyMock,
@@ -140,24 +147,6 @@ def use_fake_k8sclient(cluster_id):
 TEST_PROJECT_ID = os.environ.get("TEST_PROJECT_ID", generate_random_string(32))
 TEST_CLUSTER_ID = os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
 TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
-
-
-@pytest.fixture
-def patch_system_viewset():
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
-        yield
-
-
-@pytest.fixture(autouse=True)
-def patch_user_viewset():
-    with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
-        yield
-
-
-@pytest.fixture
-def patch_get_dynamic_client():
-    with mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
-        yield
 
 
 @pytest.fixture

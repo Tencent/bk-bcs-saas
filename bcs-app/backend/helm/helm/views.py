@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 from typing import List, Tuple
 
@@ -39,12 +40,14 @@ from .serializers import (
     ChartSLZ,
     ChartVersionSLZ,
     ChartVersionTinySLZ,
+    ChartWithVersionRepoSLZ,
     CreateRepoSLZ,
     MinimalRepoSLZ,
     RepositorySyncSLZ,
     RepoSLZ,
 )
 from .tasks import sync_helm_repo
+from .utils import chart as chart_utils
 from .utils import chart_versions
 from .utils.chart_versions import update_and_delete_chart_versions
 
@@ -71,28 +74,23 @@ class LargeResultsSetPagination(PageNumberPagination):
     max_page_size = 1000000
 
 
-@with_code_wrapper
-class ChartView(ActionSerializerMixin, viewsets.ModelViewSet):
-    queryset = Chart.objects.filter(deleted=False)
-    serializer_class = ChartSLZ
-    # pagination_class = StandardResultsSetPagination
-    pagination_class = None
-    lookup_field = 'pk'
-    lookup_url_kwarg = "chart_id"
+class ChartViewSet(SystemViewSet):
+    def list(self, request, project_id):
+        # NOTE: 因为传递的project id可能是project code的值，而容器服务内部是通过project id流转，
+        # 因此，需要通过request的project中获取project id
+        project_id = request.project.project_id
+        data = chart_utils.ChartList(project_id).get_chart_data()
+        return Response(data)
 
-    action_serializers = {
-        'retrieve': ChartDetailSLZ,
-    }
-
-    def get_queryset(self):
-        project_id = self.request.project.project_id
-        queryset = self.queryset.filter(repository__project_id=project_id).order_by("-changed_at")
-
-        repo_id = self.kwargs.get('repo_id')
-        if repo_id is not None:
-            queryset = queryset.filter(repository__id=repo_id)
-
-        return queryset
+    def retrieve(self, request, project_id, chart_id):
+        project_id = request.project.project_id
+        try:
+            chart = Chart.objects.get(id=chart_id)
+        except Chart.DoesNotExist:
+            logger.error("chart: [%s] not found", chart_id)
+            return Response()
+        slz = ChartWithVersionRepoSLZ(chart)
+        return Response(slz.data)
 
 
 @with_code_wrapper

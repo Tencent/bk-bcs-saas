@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 from datetime import datetime
@@ -23,19 +24,19 @@ from backend.accounts.bcs_perm import Cluster
 from backend.bcs_web.audit_log import client
 from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
-from backend.components.bcs import mesos as bcs_mesos
 from backend.container_service.clusters import constants, serializers
 from backend.container_service.clusters.base import get_cluster
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeOperType, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.utils import can_use_hosts
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
 
-from .configs import k8s, mesos
+from .configs import k8s
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class BaseNode(object):
         return node_info.get('data') or {}
 
     def get_request_config(self, op_type=constants.OpType.ADD_NODE.value):
-        kind_type_map = {'k8s': k8s.NodeConfig, 'mesos': mesos.NodeConfig}
+        kind_type_map = {'k8s': k8s.NodeConfig}
         snapshot_info = self.get_cluster_snapshot()
         snapshot_config = json.loads(snapshot_info.get('configure', '{}'))
         if snapshot_config.get('common'):
@@ -178,7 +179,7 @@ class CreateNode(BaseNode):
         self.username = request.user.username
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def check_data(self):
@@ -288,7 +289,7 @@ class ReinstallNode(BaseNode):
         self.node_id = node_id
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def get_node_ip(self):
@@ -422,7 +423,7 @@ class DeleteNode(DeleteNodeBase):
         self.username = request.user.username
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def k8s_container_num(self):
@@ -438,18 +439,6 @@ class DeleteNode(DeleteNodeBase):
             if namespace in constants.K8S_SKIP_NS_LIST:
                 continue
             count += len(i.get('data', {}).get('status', {}).get('containerStatuses', []))
-        return count
-
-    def mesos_container_num(self):
-        client = bcs_mesos.MesosClient(self.access_token, self.project_id, self.cluster_id, None)
-        host_pod_info = client.get_taskgroup(
-            [self.node_ip], fields=','.join(['data.containerStatuses.containerID', 'data.hostIP'])
-        )
-        if host_pod_info.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(host_pod_info.get('message'))
-        count = 0
-        for i in host_pod_info.get('data', []):
-            count += len(i.get('data', {}).get('containerStatuses', []))
         return count
 
     def check_host_exist_container(self):
@@ -555,7 +544,7 @@ class BatchDeleteNode(DeleteNodeBase):
         self.project_id = project_id
         self.cluster_id = cluster_id
         self.node_list = node_list
-        self.kind_name = constants.ClusterType.get(request.project['kind'])
+        self.kind_name = ProjectKindName
         self.access_token = request.user.token.access_token
 
     def delete_nodes(self):
@@ -580,7 +569,7 @@ class BatchReinstallNodes(BaseNode):
         self.access_token = request.user.token.access_token
         self.username = request.user.username
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info.kind)
+        self.kind_name = ProjectKindName
         self.cc_app_id = self.project_info.cc_app_id
 
     def reinstall(self):

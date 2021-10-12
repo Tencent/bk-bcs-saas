@@ -10,8 +10,7 @@
         <div class="biz-content-wrapper pt0">
             <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
             <div v-else class="biz-configuration-instantiation-wrapper">
-                <div class="biz-tip mt20 mb15" v-if="curProject.kind === PROJECT_MESOS">{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
-                <div class="biz-tip mt20 mb15" v-else>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源YAML文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
+                <div class="biz-tip mt20 mb15">{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源YAML文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
                 <div class="biz-configuration-instantiation-header">
                     <div class="left">
                         <svg style="display: none;">
@@ -1163,6 +1162,7 @@
                         theme: 'error',
                         message: this.$t('请选择命名空间')
                     })
+                    this.dialogConf.isShow = false
                     return
                 }
 
@@ -1873,7 +1873,7 @@
                                 item => item.environment !== 'prod'
                             )[0]
                             me.$router.push({
-                                name: me.curProject.kind === PROJECT_MESOS ? 'mesos' : 'deployments',
+                                name: 'deployments',
                                 params: {
                                     isProdCluster: !hasNoProd,
                                     projectId: me.projectId,
@@ -1986,7 +1986,7 @@
                                 item => item.environment !== 'prod'
                             )[0]
                             me.$router.push({
-                                name: me.curProject.kind === PROJECT_MESOS ? 'mesos' : 'deployments',
+                                name: 'deployments',
                                 params: {
                                     isProdCluster: !hasNoProd,
                                     projectId: me.projectId,

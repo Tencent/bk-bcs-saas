@@ -1,38 +1,22 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Tuple
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-from backend.components import cc, gse, sops
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from dataclasses import asdict, dataclass
+from typing import Dict, List
+
+from backend.components import gse
 from backend.utils.data_types import make_dataclass_from_dict
-
-from .constants import APPLY_HOST_TEMPLATE_ID, SOPS_BIZ_ID
-
-
-def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
-    """获取主机信息
-
-    :param cc_app_id: 业务 ID
-    :param username: 当前请求的用户名
-    :param extra_data: 资源池信息，默认为空
-
-    :returns: 返回列表，列表中包含主机的属性信息，比如IP、所属区域、机房、机架等
-    """
-    resp = cc.get_app_hosts(username, cc_app_id)
-    if not resp.get("result"):
-        return []
-    return resp.get("data") or []
 
 
 @dataclass

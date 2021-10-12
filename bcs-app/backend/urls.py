@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.urls import path, re_path
@@ -41,10 +40,6 @@ urlpatterns = [
     url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
     url(r"^", include("backend.uniapps.resource.urls")),
-    url(
-        r"^api/projects/(?P<project_id>\w{32})/",
-        include("backend.container_service.observability.metric_mesos.urls_new"),
-    ),
     # 配置管理(旧模板集)
     url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
@@ -81,12 +76,6 @@ urlpatterns = [
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.container_service.observability.metric.urls"),
     ),
-    # TODO 旧 metric 相关 URL，仅 Mesos 使用，计划后续废弃
-    url(r"^", include("backend.container_service.observability.metric_mesos.urls")),
-    url(
-        r"^api/projects/(?P<project_id>\w{32})/",
-        include("backend.container_service.observability.metric_mesos.urls_new"),
-    ),
     # 标准日志输出
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
@@ -108,6 +97,6 @@ except ImportError:
 urlpatterns_vue = [
     # fallback to vue view
     url(r"^login_success.html", never_cache(LoginSuccessView.as_view())),
-    url(r"^.*$", never_cache(VueTemplateView.as_view())),
+    url(r"^(?P<project_code>[\w\-]+)", never_cache(VueTemplateView.as_view(container_orchestration="k8s"))),
 ]
 urlpatterns += urlpatterns_vue

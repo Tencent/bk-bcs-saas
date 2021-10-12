@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import uuid
 
 resp_get_project_ok = {
@@ -44,6 +45,78 @@ resp_get_project_ok = {
         "use_bk": False,
         "cc_app_name": "demo-app",
         "can_edit": False,
+    },
+    "code": 0,
+    "message": "OK",
+    "request_id": uuid.uuid4().hex,
+}
+
+resp_filter_projects_ok = {
+    "data": {
+        "results": [
+            {
+                "approval_status": 2,
+                "approval_time": "2020-01-01T00:00:00+08:00",
+                "approver": "",
+                "bg_id": -1,
+                "bg_name": "",
+                "cc_app_id": 100,
+                "center_id": 100,
+                "center_name": "",
+                "created_at": "2020-01-01 00:00:00",
+                "creator": "unknown",
+                "data_id": 0,
+                "deploy_type": "null",
+                "dept_id": -1,
+                "dept_name": "",
+                "description": "",
+                "english_name": "unittest-cluster",
+                "extra": {},
+                "is_offlined": False,
+                "is_secrecy": False,
+                "kind": 1,
+                "logo_addr": "",
+                "project_id": uuid.uuid4().hex,
+                "project_name": "unittest-cluster",
+                "project_type": 1,
+                "remark": "",
+                "updated_at": "2020-01-01 00:00:00",
+                "use_bk": False,
+                "cc_app_name": "demo-app",
+                "can_edit": False,
+            },
+            {
+                "approval_status": 2,
+                "approval_time": "2020-01-01T00:00:00+08:00",
+                "approver": "",
+                "bg_id": -1,
+                "bg_name": "",
+                "cc_app_id": 100,
+                "center_id": 100,
+                "center_name": "",
+                "created_at": "2020-01-01 00:00:00",
+                "creator": "unknown",
+                "data_id": 0,
+                "deploy_type": "null",
+                "dept_id": -1,
+                "dept_name": "",
+                "description": "",
+                "english_name": "unittest-cluster-a",
+                "extra": {},
+                "is_offlined": False,
+                "is_secrecy": False,
+                "kind": 1,
+                "logo_addr": "",
+                "project_id": uuid.uuid4().hex,
+                "project_name": "unittest-cluster-a",
+                "project_type": 1,
+                "remark": "",
+                "updated_at": "2020-01-01 00:00:00",
+                "use_bk": False,
+                "cc_app_name": "demo-app",
+                "can_edit": False,
+            },
+        ]
     },
     "code": 0,
     "message": "OK",

@@ -28,19 +28,31 @@
                             </span>
                         </span>
                     </div>
-                    <ResourceEditor
-                        v-model="detail"
-                        :height="fullScreen ? '100%' : height"
-                        ref="editorRef"
-                        key="editor"
-                        v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
-                        @error="handleEditorErr">
-                    </ResourceEditor>
-                    <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
+                    <bcs-resize-layout
+                        placement="bottom"
+                        :auto-minimize="true"
+                        :initial-divide="0"
+                        :max="300"
+                        :style="{ 'height': fullScreen ? '100%' : height + 'px' }">>
+                        <div slot="aside">
+                            <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
+                        </div>
+                        <div slot="main">
+                            <ResourceEditor
+                                v-model="detail"
+                                :height="fullScreen ? '100%' : height"
+                                ref="editorRef"
+                                key="editor"
+                                v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
+                                @error="handleEditorErr">
+                            </ResourceEditor>
+                        </div>
+                    </bcs-resize-layout>
                 </div>
                 <div class="code-example" ref="exampleWrapperRef" v-if="showExample">
                     <div class="top-operate">
-                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false">
+                        <bk-dropdown-menu trigger="click" @show="isDropdownShow = true" @hide="isDropdownShow = false"
+                            v-if="examples.items && examples.items.length">
                             <div class="dropdown-trigger-text" slot="dropdown-trigger">
                                 <span class="title">{{ activeExample.alias }}</span>
                                 <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
@@ -56,23 +68,36 @@
                                 </li>
                             </ul>
                         </bk-dropdown-menu>
+                        <span v-else><!-- 空元素为了flex布局 --></span>
                         <span class="tools">
                             <span v-bk-tooltips.top="$t('复制代码')" @click="handleCopy"><i class="bcs-icon bcs-icon-copy"></i></span>
-                            <!-- <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i class="bcs-icon bcs-icon-help-2"></i></span> -->
+                            <span v-bk-tooltips.top="$t('帮助')" @click="handleHelp"><i :class="['bcs-icon bcs-icon-help-2', { active: showHelp }]"></i></span>
                             <span v-bk-tooltips.top="$t('关闭')" @click="showExample = false"><i class="bcs-icon bcs-icon-close-5"></i></span>
                         </span>
                     </div>
                     <div class="example-desc" v-if="showDesc" ref="descWrapperRef">{{ activeExample.description }}</div>
-                    <ResourceEditor
-                        :value="activeExample.manifest"
-                        :height="fullScreen ? '100%' : exampleEditorHeight"
-                        :options="{
-                            renderLineHighlight: 'none'
-                        }"
-                        key="example"
-                        readonly
-                        v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
-                    </ResourceEditor>
+                    <bcs-resize-layout :ext-cls="['custom-layout-cls', { 'hide-help': !showHelp }]"
+                        :initial-divide="initialDivide"
+                        :disabled="!showHelp"
+                        :style="{ height: fullScreen ? '100%' : 'auto' }">
+                        <ResourceEditor
+                            slot="aside"
+                            :value="activeExample.manifest"
+                            :height="fullScreen ? '100%' : exampleEditorHeight"
+                            :options="{
+                                renderLineHighlight: 'none'
+                            }"
+                            key="example"
+                            readonly
+                            v-bkloading="{ isLoading: exampleLoading, opacity: 1, color: '#1a1a1a' }">
+                        </ResourceEditor>
+                        <bcs-md v-show="showHelp"
+                            slot="main"
+                            theme="dark"
+                            class="references"
+                            :style="{ height: fullScreen ? '100%' : exampleEditorHeight - 2 + 'px' }"
+                            :code="examples.references" />
+                    </bcs-resize-layout>
                 </div>
             </template>
             <div class="code-diff" v-else>
@@ -121,16 +146,18 @@
     import { copyText } from '@/common/util'
     import yamljs from 'js-yaml'
     import EditorStatus from './editor-status.vue'
+    import BcsMd from '@open/components/bcs-md/index.vue'
 
     export default defineComponent({
         name: 'ResourceUpdate',
         components: {
             ResourceEditor,
             DashboardTopActions,
-            EditorStatus
+            EditorStatus,
+            BcsMd
         },
         props: {
-            // 命名空间（更新的时候需要，创建的时候为空）
+            // 命名空间（更新的时候需要--crd类型编辑是可能没有，创建的时候为空）
             namespace: {
                 type: String,
                 default: ''
@@ -144,8 +171,7 @@
             // 子分类，eg: deployments、ingresses
             category: {
                 type: String,
-                default: '',
-                required: true
+                default: ''
             },
             // 名称（更新的时候需要，创建的时候为空）
             name: {
@@ -155,11 +181,20 @@
             kind: {
                 type: String,
                 default: ''
+            },
+            // type 为crd时，必传
+            crd: {
+                type: String,
+                default: ''
+            },
+            defaultShowExample: {
+                type: Boolean,
+                default: false
             }
         },
         setup (props, ctx) {
             const { $i18n, $store, $bkMessage, $router, $bkInfo } = ctx.root
-            const { namespace, type, category, name, kind } = toRefs(props)
+            const { namespace, type, category, name, kind, crd, defaultShowExample } = toRefs(props)
 
             onMounted(() => {
                 document.addEventListener('keyup', handleExitFullScreen)
@@ -169,7 +204,7 @@
             })
 
             const isEdit = computed(() => { // 编辑态
-                return name.value && namespace.value
+                return name.value
             })
             const title = computed(() => { // 导航title
                 const prefix = isEdit.value ? $i18n.t('更新') : $i18n.t('创建')
@@ -183,7 +218,7 @@
             const isLoading = ref(false)
             const original = ref<any>({})
             const detail = ref<any>({})
-            const showExample = ref(!isEdit.value)
+            const showExample = ref(defaultShowExample.value)
             const fullScreen = ref(false)
             const height = ref(600)
             const editorErr = ref({
@@ -192,6 +227,12 @@
             })
             const subTitle = computed(() => { // 代码编辑器title
                 return detail.value?.metadata?.name || $i18n.t('资源定义')
+            })
+            watch(fullScreen, (value) => {
+                // 退出全屏后隐藏侧栏帮助文档（防止位置错乱）
+                if (!value) {
+                    showHelp.value = false
+                }
             })
             const disabledResourceUpdate = computed(() => { // 禁用当前更新或者创建操作
                 if (editorErr.value.message && editorErr.value.type === 'content') { // 编辑器格式错误
@@ -209,14 +250,24 @@
             const handleGetDetail = async () => { // 获取详情
                 if (!isEdit.value) return null
                 isLoading.value = true
-                const data = await $store.dispatch('dashboard/getResourceDetail', {
-                    $namespaceId: namespace.value,
-                    $category: category.value,
-                    $name: name.value,
-                    $type: type.value
-                })
-                original.value = JSON.parse(JSON.stringify(data?.manifest || {})) // 缓存原始值
-                setDetail(data?.manifest)
+                let res: any = null
+                if (type.value === 'crd') {
+                    res = await $store.dispatch('dashboard/retrieveCustomResourceDetail', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        $name: name.value,
+                        namespace: namespace.value
+                    })
+                } else {
+                    res = await $store.dispatch('dashboard/getResourceDetail', {
+                        $namespaceId: namespace.value,
+                        $category: category.value,
+                        $name: name.value,
+                        $type: type.value
+                    })
+                }
+                original.value = JSON.parse(JSON.stringify(res.data?.manifest || {})) // 缓存原始值
+                setDetail(res.data?.manifest)
                 isLoading.value = false
                 return detail.value
             }
@@ -265,6 +316,10 @@
             }
             const handleFullScreen = () => { // 全屏
                 fullScreen.value = !fullScreen.value
+                fullScreen.value && $bkMessage({
+                    theme: 'primary',
+                    message: $i18n.t('按Esc即可退出全屏模式')
+                })
             }
             const handleExitFullScreen = (event: KeyboardEvent) => { // esc退出全屏
                 if (event.code === 'Escape') {
@@ -286,23 +341,36 @@
             const exampleLoading = ref(false)
             const examples = ref<any>({})
             const showDesc = ref(false)
+            const showHelp = ref(false)
             const exampleWrapperRef = ref<Element|null>(null)
             const descWrapperHeight = ref(0)
             const descWrapperRef = ref<Element|null>(null)
             const exampleEditorHeight = computed(() => { // 代码示例高度
                 return height.value - descWrapperHeight.value
             })
+            const initialDivide = computed(() => showHelp.value ? '50%' : '100%')
             watch(showDesc, () => {
                 setTimeout(() => { // dom更新后获取描述文字的高度
                     descWrapperHeight.value = showDesc.value ? descWrapperRef.value?.getBoundingClientRect()?.height || 0 : 0
                 }, 0)
             })
+
+            watch(() => editorErr, (newVal) => {
+                const { message } = newVal.value
+                const resizeAsideDom = document.getElementsByClassName('bk-resize-layout-aside')[0]
+                if (message) {
+                    resizeAsideDom.style.height = '100px'
+                } else {
+                    resizeAsideDom.style.height = '0'
+                }
+            }, { deep: true })
+
             const handleGetExample = async () => { // 获取示例模板
                 // if (!showExample.value) return
 
                 exampleLoading.value = true
                 examples.value = await $store.dispatch('dashboard/exampleManifests', {
-                    kind: kind.value
+                    kind: type.value === 'crd' ? 'CustomObject' : kind.value // crd类型的模板kind固定为CustomObject
                 })
                 activeExample.value = examples.value?.items?.[0] || {}
                 exampleLoading.value = false
@@ -320,6 +388,7 @@
             }
             const handleHelp = () => {
                 // 帮助文档
+                showHelp.value = !showHelp.value
             }
 
             // 3.====diff编辑器相关逻辑====
@@ -343,15 +412,28 @@
                 showDiff.value = !showDiff.value
             }
             const handleCreateResource = async () => {
-                const result = await $store.dispatch('dashboard/resourceCreate', {
-                    $type: type.value,
-                    $category: category.value,
-                    manifest: detail.value
-                }).catch(err => {
-                    editorErr.value.type = 'http'
-                    editorErr.value.message = err.message
-                    return false
-                })
+                let result = false
+                if (type.value === 'crd') {
+                    result = await $store.dispatch('dashboard/customResourceCreate', {
+                        $crd: crd.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                } else {
+                    result = await $store.dispatch('dashboard/resourceCreate', {
+                        $type: type.value,
+                        $category: category.value,
+                        manifest: detail.value
+                    }).catch(err => {
+                        editorErr.value.type = 'http'
+                        editorErr.value.message = err.message
+                        return false
+                    })
+                }
 
                 if (result) {
                     $bkMessage({
@@ -374,17 +456,31 @@
                     subTitle: $i18n.t('将执行 Replace 操作，若多人同时编辑可能存在冲突'),
                     defaultInfo: true,
                     confirmFn: async () => {
-                        const result = await $store.dispatch('dashboard/resourceUpdate', {
-                            $namespaceId: namespace.value,
-                            $type: type.value,
-                            $category: category.value,
-                            $name: name.value,
-                            manifest: detail.value
-                        }).catch(err => {
-                            editorErr.value.type = 'http'
-                            editorErr.value.message = err.message
-                            return false
-                        })
+                        let result = false
+                        if (type.value === 'crd') {
+                            result = await $store.dispatch('dashboard/customResourceUpdate', {
+                                $crd: crd.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        } else {
+                            result = await $store.dispatch('dashboard/resourceUpdate', {
+                                $namespaceId: namespace.value,
+                                $type: type.value,
+                                $category: category.value,
+                                $name: name.value,
+                                manifest: detail.value
+                            }).catch(err => {
+                                editorErr.value.type = 'http'
+                                editorErr.value.message = err.message
+                                return false
+                            })
+                        }
 
                         if (result) {
                             $bkMessage({
@@ -437,6 +533,8 @@
                 examples,
                 showExample,
                 showDesc,
+                showHelp,
+                initialDivide,
                 fullScreen,
                 height,
                 disabledResourceUpdate,
@@ -471,6 +569,7 @@
 <style lang="postcss" scoped>
 .resource-content {
     padding-bottom: 0;
+    height: 100%;
     .icon-back {
         font-size: 16px;
         font-weight: bold;
@@ -555,9 +654,6 @@
                     opacity: 0;
                 }
             }
-            .status-wrapper {
-                width: calc(100% - 14px)
-            }
         }
         .code-example {
             flex: 1;
@@ -605,6 +701,31 @@
                 font-size: 12px;
                 color: #b0b2b8;
                 padding: 15px;
+            }
+            .custom-layout-cls {
+                border: none;
+                /deep/ {
+                    .bk-resize-layout-aside {
+                        border-color: #292929;
+                        &:after {
+                            right: -6px;
+                        }
+                    }
+                }
+                &.hide-help {
+                    /deep/ .bk-resize-layout-aside:after {
+                        display: none;
+                    }
+                }
+            }
+            /deep/ .bk-resize-layout-main {
+                background-color: #1a1a1a;
+            }
+            .bcs-md-preview {
+                background-color: #2e2e2e !important;
+            }
+            .references {
+                margin: 1px;
             }
         }
         .code-diff {

@@ -15,6 +15,7 @@ const merge = require('webpack-merge')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+// const CircularDependencyPlugin = require('circular-dependency-plugin')
 const threadLoader = require('thread-loader')
 
 const config = require('./config')
@@ -103,6 +104,17 @@ const webpackConfig = merge(baseWebpackConfig, {
         ]
     },
     plugins: [
+        // new CircularDependencyPlugin({
+        //     exclude: /node_modules/,
+        //     include: /src/,
+        //     failOnError: true,
+        //     // allow import cycles that include an asyncronous import,
+        //     // e.g. via import(/* webpackMode: "weak" */ './file.js')
+        //     allowAsyncCycles: false,
+        //     // set the current working directory for displaying module paths
+        //     cwd: process.cwd(),
+
+        // }),
         new webpack.DefinePlugin(config.dev.env),
 
         new webpack.DllReferencePlugin({

@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import base64
 import json
 import logging
 import shlex
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 import yaml
 from django.conf import settings
@@ -249,7 +251,7 @@ def wait_user_pod_ready(ctx, name):
     raise PodLifeError(_("申请pod资源超时，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
 
-def get_service_account_token(k8s_client):
+def get_service_account_token(k8s_client) -> Optional[str]:
     """获取web-console token"""
     if settings.REGION not in ["ee", "ce"]:
         return
@@ -259,7 +261,7 @@ def get_service_account_token(k8s_client):
         if not item.metadata.name.startswith(token_prefix):
             continue
 
-        return base64.b64decode(item.data["token"])
+        return smart_str(base64.b64decode(item.data["token"]))
 
 
 def create_service_account_rbac(k8s_client, ctx):

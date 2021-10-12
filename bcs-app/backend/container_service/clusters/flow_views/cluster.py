@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import copy
 import json
 import logging
@@ -29,6 +30,7 @@ from backend.container_service.clusters.base import utils as cluster_utils
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.container_service.clusters.utils import can_use_hosts
+from backend.container_service.projects.base.constants import ProjectKindName
 from backend.helm.app.models import App
 from backend.templatesets.legacy_apps.instance.models import (
     InstanceConfig,
@@ -36,19 +38,18 @@ from backend.templatesets.legacy_apps.instance.models import (
     MetricConfig,
     VersionInstance,
 )
-from backend.uniapps.network.models import K8SLoadBlance, MesosLoadBlance
+from backend.uniapps.network.models import K8SLoadBlance
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
 
-from .configs import k8s, mesos
+from .configs import k8s
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
 DEFAULT_K8S_VERSION = getattr(settings, 'K8S_VERSION', 'v1.12.3') or 'v1.12.3'
-DEFAULT_MESOS_VERSION = getattr(settings, 'MESOS_VERSION', 'v1') or 'v1'
 NO_RES = "**"
 CLUSTER_ENVIRONMENT = 'prod'
 
@@ -69,10 +70,7 @@ class BaseCluster:
             logger.error('Request paas cc api error, resp: %s' % json.dumps(resp))
 
     def get_request_config(self, cluster_id, version, environment):
-        kind_type_map = {
-            'k8s': k8s.ClusterConfig,
-            'mesos': mesos.ClusterConfig,
-        }
+        kind_type_map = {'k8s': k8s.ClusterConfig}
         self.get_cluster_base_config(cluster_id, version=version, environment=environment)
 
         client = kind_type_map[self.kind_name](self.config, self.area_info, cluster_name=self.cluster_name)
@@ -113,10 +111,7 @@ class BaseCluster:
     ):  # noqa
         """调用bcs接口创建集群"""
         self.cluster_id = cluster_id
-        kind_version_map = {
-            'k8s': DEFAULT_K8S_VERSION,
-            'mesos': DEFAULT_MESOS_VERSION,
-        }
+        kind_version_map = {'k8s': DEFAULT_K8S_VERSION}
         if not config:
             config = self.get_request_config(cluster_id, kind_version_map[self.kind_name], environment)
         # 下发配置时，去除version
@@ -213,7 +208,7 @@ class CreateCluster(BaseCluster):
         self.bk_token = request.COOKIES.get('bk_token')
         self.project_info = request.project
         self.username = request.user.username
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
 
     def check_data(self):
         slz = serializers.CreateClusterSLZ(
@@ -402,7 +397,7 @@ class DeleteCluster(BaseCluster):
         self.access_token = request.user.token.access_token
         self.username = request.user.username
         self.project_info = request.project
-        self.kind_name = constants.ClusterType.get(self.project_info['kind'])
+        self.kind_name = ProjectKindName
         self.cc_app_id = request.project.get('cc_app_id')
 
     def get_cluster_snapshot(self):
@@ -454,8 +449,7 @@ class DeleteCluster(BaseCluster):
         )
 
     def clean_lb(self):
-        model = K8SLoadBlance if self.request.project['kind'] == 1 else MesosLoadBlance
-        model.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).update(
+        K8SLoadBlance.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).update(
             is_deleted=True, deleted_time=datetime.now()
         )
 

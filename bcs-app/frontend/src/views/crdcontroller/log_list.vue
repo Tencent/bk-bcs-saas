@@ -250,7 +250,7 @@
                                     <div class="log-form">
                                         <div class="label">{{$t('标准输出')}}：</div>
                                         <div class="content" style="width: 223px; margin-right: 32px;">
-                                            <bk-checkbox name="cluster-classify-checkbox" v-model="curCrdInstance.default_conf.stdout">
+                                            <bk-checkbox name="cluster-classify-checkbox" v-model="curCrdInstance.default_conf.stdout" true-value="true" false-value="false">
                                                 {{$t('是否采集')}}
                                                 <i class="bcs-icon bcs-icon-question-circle" v-bk-tooltips.right="$t('如果不勾选，将不采集此容器的标准输出')"></i>
                                             </bk-checkbox>
@@ -385,7 +385,7 @@
                                                         <div class="log-form">
                                                             <div class="label">{{$t('标准输出')}}：</div>
                                                             <div class="content" style="width: 223px; margin-right: 32px;">
-                                                                <bk-checkbox name="cluster-classify-checkbox" v-model="containerConf.stdout">
+                                                                <bk-checkbox name="cluster-classify-checkbox" v-model="containerConf.stdout" true-value="true" false-value="false">
                                                                     {{$t('是否采集')}}
                                                                     <i class="bcs-icon bcs-icon-question-circle" v-bk-tooltips.right="$t('如果不勾选，将不采集此容器的标准输出')"></i>
                                                                 </bk-checkbox>
@@ -515,7 +515,7 @@
                                                         <div class="log-form">
                                                             <div class="label">{{$t('标准输出')}}：</div>
                                                             <div class="content" style="width: 223px; margin-right: 32px;">
-                                                                <bk-checkbox name="cluster-classify-checkbox" v-model="curCrdInstance.selector.stdout">
+                                                                <bk-checkbox name="cluster-classify-checkbox" v-model="curCrdInstance.selector.stdout" true-value="true" false-value="false">
                                                                     {{$t('是否采集')}}
                                                                     <i class="bcs-icon bcs-icon-question-circle" v-bk-tooltips.right="$t('如果不勾选，将不采集此容器的标准输出')"></i>
                                                                 </bk-checkbox>
@@ -603,13 +603,13 @@
                                     @change="updateLogLabels">
                                 </bk-keyer>
                                 <div class="mt10 mb10">
-                                    <bk-checkbox class="mr20" v-model="curCrdInstance.auto_add_pod_labels_b" name="cluster-classify-checkbox">
+                                    <bk-checkbox class="mr20" v-model="curCrdInstance.auto_add_pod_labels" name="cluster-classify-checkbox" true-value="true" false-value="false">
                                         {{$t('是否自动添加Pod中的labels')}}
                                     </bk-checkbox>
                                 </div>
 
                                 <div>
-                                    <bk-checkbox v-model="curCrdInstance.package_collection_b" name="cluster-classify-checkbox">
+                                    <bk-checkbox v-model="curCrdInstance.package_collection" name="cluster-classify-checkbox" true-value="true" false-value="false">
                                         {{$t('是否打包上报')}}
                                         <i class="path-tip bcs-icon bcs-icon-question-circle" v-bk-tooltips.right="{ width: 400, content: $t('若单日志文件打印速度超过10条/秒，可以考虑开启日志打包上报功能以节约带宽并在一定程度上降低日志采集组件的资源占用') }"></i>
                                     </bk-checkbox>
@@ -676,7 +676,7 @@
                         <template v-else-if="curCrdInstance.log_source_type === 'all_containers'">
                             <div class="data-item">
                                 <p class="key">{{$t('是否采集')}}：</p>
-                                <p class="value">{{curCrdInstance.default_conf.stdout ? $t('是') : $t('否')}}</p>
+                                <p class="value">{{curCrdInstance.default_conf.stdout === 'true' ? $t('是') : $t('否')}}</p>
                             </div>
                             <div class="data-item">
                                 <p class="key">{{$t('标准采集ID')}}：</p>
@@ -694,7 +694,7 @@
                         <template v-else-if="curCrdInstance.log_source_type === 'selected_labels'">
                             <div class="data-item">
                                 <p class="key">{{$t('是否采集')}}：</p>
-                                <p class="value">{{curCrdInstance.selector.stdout ? $t('是') : $t('否')}}</p>
+                                <p class="value">{{curCrdInstance.selector.stdout === 'true' ? $t('是') : $t('否')}}</p>
                             </div>
                             <div class="data-item">
                                 <p class="key">{{$t('标准采集ID')}}：</p>
@@ -752,7 +752,7 @@
                                     </td>
                                     <td>
                                         {{$t('采集ID')}}：{{containerConf.std_data_id || '--'}} ({{containerConf.is_std_custom ? $t('自定义') : $t('默认')}})<br />
-                                        {{$t('是否采集')}}：{{containerConf.stdout ? $t('是') : $t('否')}}
+                                        {{$t('是否采集')}}：{{containerConf.stdout === 'true' ? $t('是') : $t('否')}}
                                     </td>
                                     <td>
                                         <p>{{$t('采集ID')}}：{{containerConf.file_data_id || '--'}} ({{containerConf.is_file_custom ? $t('自定义') : $t('默认')}})</p>
@@ -871,9 +871,7 @@
                     'app_id': '',
                     'labels': {},
                     'auto_add_pod_labels': 'false',
-                    'auto_add_pod_labels_b': false,
                     'package_collection': 'false',
-                    'package_collection_b': false,
                     'default_conf': {
                         'stdout': 'true',
                         'is_std_custom': false,
@@ -1070,17 +1068,6 @@
             }
         },
         created () {
-            // 如果不是mesos类型的项目，无法访问页面，重定向回集群首页
-            if (this.curProject && this.curProject.kind === PROJECT_MESOS) {
-                this.$router.push({
-                    name: 'clusterMain',
-                    params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode
-                    }
-                })
-                return false
-            }
             this.getCrdInstanceList()
             this.getNameSpaceList()
             this.getLogInfo()
@@ -1131,9 +1118,7 @@
 
                     'labels': {},
                     'auto_add_pod_labels': 'false',
-                    'auto_add_pod_labels_b': false,
                     'package_collection': 'false',
-                    'package_collection_b': false,
                     'default_conf': {
                         'stdout': 'true',
                         'std_data_id': this.defaultStdDataId,
@@ -1245,11 +1230,9 @@
                             // 是否自定义
                             conf.is_std_custom = String(conf.std_data_id) !== String(this.defaultStdDataId)
                             conf.is_file_custom = String(conf.file_data_id) !== String(this.defaultFileDataId)
-                            conf.stdout = conf.stdout === 'true'
                         })
                     } else if (data.log_source_type === 'all_containers') {
                         // 是否自定义
-                        data.default_conf.stdout = data.default_conf.stdout === 'true'
                         data.default_conf.is_std_custom = String(data.default_conf.std_data_id) !== String(this.defaultStdDataId)
                         data.default_conf.is_file_custom = String(data.default_conf.file_data_id) !== String(this.defaultFileDataId)
                         if (data.default_conf.log_paths) {
@@ -1294,8 +1277,6 @@
                             selector.match_expressions = []
                             selector.match_expressions_list = []
                         }
-
-                        selector.stdout = selector.stdout === 'true'
                     }
 
                     if (!data.hasOwnProperty('package_collection')) {
@@ -1306,8 +1287,6 @@
                         data.auto_add_pod_labels = 'false'
                     }
 
-                    data.auto_add_pod_labels_b = data.auto_add_pod_labels === 'true'
-                    data.package_collection_b = data.package_collection === 'true'
                     this.curCrdInstance = data
 
                     if (isReadonly) {
@@ -1683,11 +1662,6 @@
                     }
                 }
 
-                params.auto_add_pod_labels = String(params.auto_add_pod_labels_b)
-                params.package_collection = String(params.package_collection_b)
-                delete params.auto_add_pod_labels_b
-                delete params.package_collection_b
-
                 if (params.log_source_type === 'selected_containers') {
                     params.workload.container_confs.forEach(conf => {
                         const paths = conf.log_paths_str.split(/[;|\n]/).filter(item => {
@@ -1731,9 +1705,6 @@
                     } else {
                         delete params.default_conf.log_paths
                     }
-
-                    // 接口接受'true'、'false'字符类型
-                    params.default_conf.stdout = String(params.default_conf.stdout)
                     delete params.workload
                     delete params.selector
                     delete params.default_conf.log_paths_str
@@ -1747,9 +1718,6 @@
                     })
 
                     params.selector.log_paths = paths
-
-                    // 接口接受'true'、'false'字符类型
-                    params.selector.stdout = String(params.selector.stdout)
                     delete params.std_data_id
                     delete params.is_std_custom
                     delete params.stdout

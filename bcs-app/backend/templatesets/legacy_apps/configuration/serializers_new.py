@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import json
 import logging
 
@@ -22,9 +23,8 @@ from rest_framework.exceptions import ValidationError
 from backend.utils.exceptions import ResNotFoundError
 
 from . import models
-from .constants import RESOURCE_NAMES, MesosResourceName, TemplateEditMode
+from .constants import RESOURCE_NAMES, TemplateEditMode
 from .k8s import serializers as kserializers
-from .mesos import serializers as mserializers
 
 SLZ_CLASS = [
     kserializers.K8sDeploymentSLZ,
@@ -36,13 +36,6 @@ SLZ_CLASS = [
     kserializers.K8sSecretSLZ,
     kserializers.K8sIngressSLZ,
     kserializers.K8sHPASLZ,
-    mserializers.ApplicationSLZ,
-    mserializers.DeploymentSLZ,
-    mserializers.ServiceSLZ,
-    mserializers.ConfigMapSLZ,
-    mserializers.SecretSLZ,
-    mserializers.HPASLZ,
-    mserializers.IngressSLZ,
 ]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
@@ -64,19 +57,6 @@ def can_delete_resource(ventity, resource_name, resource_id):
                     pod_res_name=pod_res_name,
                     msg=_("被以下资源关联，不能删除"),
                     svc_names=','.join(related_svc_names),
-                )
-            )
-
-    # 删除 Application 时，需要先判断 Deployment 和 service 的依赖关系
-    if resource_name == MesosResourceName.application.value:
-        app_name, related_resource_names = models.get_application_related_resource(ventity, resource_id)
-        if related_resource_names:
-            raise ValidationError(
-                '{resource_name}[{app_name}]{msg}:{related_names}'.format(
-                    resource_name=resource_name,
-                    app_name=app_name,
-                    msg=_("被以下资源关联，不能删除"),
-                    related_names=','.join(related_resource_names),
                 )
             )
 

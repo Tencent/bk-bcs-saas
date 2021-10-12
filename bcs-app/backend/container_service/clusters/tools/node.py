@@ -1,78 +1,63 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-import json
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from dataclasses import dataclass
 from typing import Dict, List
+
+from kubernetes.client import ApiException
 
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
 from backend.container_service.clusters import constants as node_constants
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.models import NodeStatus
+from backend.resources.constants import NodeConditionStatus
 from backend.resources.node.client import Node
-from backend.resources.utils.format import ResourceDefaultFormatter
-from backend.utils.basic import getitems
 
 
-def get_node_status(conditions: List) -> str:
-    """获取节点状态
-    ref: https://github.com/kubernetes/dashboard/blob/0de61860f8d24e5a268268b1fbadf327a9bb6013/src/app/backend/resource/node/list.go#L106  # noqa
+def query_cluster_nodes(ctx_cluster: CtxCluster, exclude_master: bool = True) -> Dict:
+    """查询节点数据
+    包含标签、污点、状态等供前端展示数据
     """
-    for condition in conditions:
-        if condition["type"] != node_constants.NodeConditionType.Ready:
-            continue
-        # 正常可用状态
-        if condition["status"] == "True":
-            return node_constants.NodeConditionStatus.Ready
-        # 节点不健康而且不能接收 Pod
-        return node_constants.NodeConditionStatus.NotReady
-    # 节点控制器在最近 node-monitor-grace-period 期间（默认 40 秒）没有收到节点的消息
-    return node_constants.NodeConditionStatus.Unknown
+    # 获取集群中的节点列表
+    node_client = Node(ctx_cluster)
+    try:
+        cluster_node_list = node_client.list(is_format=False)
+    except ApiException:
+        # 查询集群内节点异常，返回空字典
+        return {}
 
-
-def query_cluster_nodes(ctx_cluster: CtxCluster) -> Dict[str, Dict]:
-    # 查询集群下node信息
-    client = Node(ctx_cluster)
-    nodes = client.list()
-    # 根据传入的inner_ip过滤节点信息
-    data = {}
-    for node in nodes:
-        node_data = node.data
-        # 解析数据用于前端展示
-        metadata = node_data.get("metadata", {})
-        labels = metadata.get("labels", {})
-
-        # 过滤掉master
-        if labels.get("node-role.kubernetes.io/master") == "true":
+    nodes = {}
+    for node in cluster_node_list.items:
+        labels = node.labels
+        # 现阶段节点页面展示及操作，需要排除master
+        if exclude_master and labels.get(node_constants.K8S_NODE_ROLE_MASTER) == "true":
             continue
 
-        taints = getitems(node_data, ["spec", "taints"], [])
-
-        # 组装数据，用于展示
-        data[node.inner_ip] = {
+        # 使用inner_ip作为key，主要是方便匹配及获取值
+        nodes[node.inner_ip] = {
             "inner_ip": node.inner_ip,
             "name": node.name,
+            "status": node.node_status,
             "labels": labels,
-            "taints": taints,
-            "status": get_node_status(getitems(node_data, ["status", "conditions"], [])),
-            "unschedulable": getitems(node_data, ["spec", "unschedulable"], False),
+            "taints": node.taints,
+            "unschedulable": node.data.spec.unschedulable or False,
         }
+    return nodes
 
-    return data
 
-
-def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
+def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> Dict:
     """查询bcs cc中的节点数据"""
     client = PaaSCCClient(ComponentAuth(access_token=ctx_cluster.context.auth.access_token))
     node_data = client.get_node_list(ctx_cluster.project_id, ctx_cluster.id)
@@ -86,11 +71,11 @@ def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
 def transform_status(cluster_node_status: str, unschedulable: bool, bcs_cc_node_status: str = None) -> str:
     """转换节点状态"""
     # 如果集群中节点为非正常状态，则返回not_ready
-    if cluster_node_status == node_constants.NodeConditionStatus.NotReady:
+    if cluster_node_status == NodeConditionStatus.NotReady:
         return node_constants.BcsCCNodeStatus.NotReady
 
     # 如果集群中节点为正常状态，根据是否允许调度，转换状态
-    if cluster_node_status == node_constants.NodeConditionStatus.Ready:
+    if cluster_node_status == NodeConditionStatus.Ready:
         if unschedulable:
             if bcs_cc_node_status == node_constants.BcsCCNodeStatus.ToRemoved:
                 return node_constants.BcsCCNodeStatus.ToRemoved
@@ -132,6 +117,7 @@ class NodesData:
             node = self.bcs_cc_nodes[inner_ip]
             if (inner_ip in self.cluster_nodes) or (node["status"] in self._normal_status):
                 continue
+            node["cluster_name"] = self.cluster_name
             node_list.append(node)
         return node_list
 
@@ -139,23 +125,18 @@ class NodesData:
         node_list = []
         # 以集群中数据为准
         for inner_ip, node in self.cluster_nodes.items():
+            # 添加集群名称
+            node["cluster_name"] = self.cluster_name
             # 如果bcs cc中存在节点信息，则从bcs cc获取节点的额外数据
             if inner_ip in self.bcs_cc_nodes:
-                item = self.bcs_cc_nodes[inner_ip].copy()
-                item.update(
-                    node,
-                    **{
-                        "status": transform_status(
-                            node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
-                        ),
-                        "cluster_name": self.cluster_name,
-                    }
+                _node = self.bcs_cc_nodes[inner_ip].copy()
+                _node.update(node)
+                _node["status"] = transform_status(
+                    node["status"], node["unschedulable"], self.bcs_cc_nodes[inner_ip]["status"]
                 )
-                node_list.append(item)
+                node_list.append(_node)
             else:
-                # TODO: 这里先不添加集群名称，以ID展示是否合适
                 node["cluster_id"] = self.cluster_id
-                node["cluster_name"] = self.cluster_name
                 node["status"] = transform_status(node["status"], node["unschedulable"])
                 node_list.append(node)
         return node_list

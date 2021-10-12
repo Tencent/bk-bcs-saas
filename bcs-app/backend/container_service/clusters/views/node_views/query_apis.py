@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 from io import BytesIO
 
 from django.http import HttpResponse
@@ -24,12 +25,9 @@ from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters.base import utils as node_utils
 from backend.container_service.clusters.models import NodeLabel, NodeStatus
 from backend.container_service.clusters.views.node_views import serializers as node_slz
-from backend.container_service.projects.base.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-
-from .utils import get_label_querier
 
 
 class QueryNodeBase:
@@ -131,55 +129,3 @@ class ExportNodes(viewsets.ViewSet):
         response['Content-Disposition'] = f'attachment; filename=export-node-{request.user.username}.xlsx'
 
         return response
-
-
-class ListNodelabelsViewSets(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def query_mesos_node_labels(self, access_token, project_id, data):
-        node_labels = node_utils.query_mesos_node_labels(access_token, project_id, data)
-        return node_labels.values()
-
-    def query_k8s_node_labels(self, access_token, project_id, data):
-        pass
-
-    def list_labels_details(self, request, project_id):
-        slz = node_slz.FilterNodeLabelsSLZ(data=request.data)
-        slz.is_valid(raise_exception=True)
-        data = slz.validated_data
-
-        cluster_nodes = {}
-        for node in data["node_labels"]:
-            if node["cluster_id"] in cluster_nodes:
-                cluster_nodes[node["cluster_id"]].append(node["inner_ip"])
-            else:
-                cluster_nodes[node["cluster_id"]] = [node["inner_ip"]]
-
-        # 查询节点labels
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        labels = getattr(self, f"query_{project_kind_name.lower()}_node_labels")(
-            request.user.token.access_token, project_id, cluster_nodes
-        )
-
-        return response.Response(labels)
-
-
-class QueryNodeLabelsViewSet(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def query_labels(self, request, project_id):
-        """查询节点下的labels
-        NOTE: 允许查询项目下所有集群中的节点的label
-        """
-        access_token = request.user.token.access_token
-        cluster_id = request.query_params.get("cluster_id")
-        if not cluster_id:
-            clusters = node_utils.get_clusters(access_token, project_id)
-            cluster_id_list = [cluster["cluster_id"] for cluster in clusters]
-        else:
-            cluster_id_list = [cluster_id]
-        # 查询label对应的key-val
-        querier = get_label_querier(request.project.kind, access_token, project_id)
-        labels = querier.query_labels(cluster_id_list)
-
-        return response.Response(labels)

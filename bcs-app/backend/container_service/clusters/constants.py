@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-from django.utils.translation import ugettext as _
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+import re
+from collections import OrderedDict
+
+from django.utils.translation import ugettext_lazy as _
 
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
@@ -88,13 +92,6 @@ DEFAULT_SYSTEM_LABEL_KEYS = [
 ]
 
 
-class ProjectKindName(ChoicesEnum):
-    _choices_labels = ((1, 'k8s'), (2, 'mesos'))
-
-
-ClusterType = dict(ProjectKindName._choices_labels.get_choices())
-
-
 # TODO: 第一版只创建两个module: master和node
 CC_MODULE_INFO = {
     "mesos": {
@@ -167,8 +164,9 @@ class ClusterNetworkType(ChoicesEnum):
 
 
 # K8S 系统预留标签的key
-# Kubernetes 预留命名空间 kubernetes.io 用于所有的标签和注解
-K8S_RESERVED_NAMESPACE = "kubernetes.io"
+# Kubernetes 预留关键字 kubernetes.io, 用于系统的标签和注解
+# https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+K8S_RESERVED_KEY_WORDS = ["kubernetes.io"]
 
 
 class BcsCCNodeStatus(str, StructuredEnum):
@@ -187,29 +185,27 @@ class BcsCCNodeStatus(str, StructuredEnum):
     Unknown = EnumField("unknown", label="未知状态")
 
 
-class NodeConditionStatus(str, StructuredEnum):
-    """节点状态"""
-
-    Ready = EnumField("Ready", label="正常状态")
-    NotReady = EnumField("NotReady", label="非正常状态")
-    Unknown = EnumField("Unknown", label="未知状态")
-
-
-class NodeConditionType(str, StructuredEnum):
-    """节点状态类型
-    ref: node condition types
-    """
-
-    Ready = EnumField("Ready", label="kubelet is healthy and ready to accept pods")
-    MemoryPressure = EnumField(
-        "MemoryPressure", label="kubelet is under pressure due to insufficient available memory"
-    )
-    DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
-    PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
-    NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")
-
-
 # Kube-proxy代理模式
 class KubeProxy(str, StructuredEnum):
     IPTABLES = EnumField("iptables")
     IPVS = EnumField("ipvs")
+
+
+# k8s cluster master role
+# 参考rancher中定义nodeRoleMaster="node-role.kubernetes.io/master"
+K8S_NODE_ROLE_MASTER = "node-role.kubernetes.io/master"
+
+
+# docker状态排序
+# default will be 100
+DockerStatusDefaultOrder = 100
+DockerStatusOrdering = {"running": 0, "waiting": 1, "lost": 8, "terminated": 9}
+
+
+# 集群升级版本
+CLUSTER_UPGRADE_VERSION = OrderedDict(
+    {re.compile(r'^\S+[vV]?1\.8\.\S+$'): ["v1.12.6"], re.compile(r'^\S+[vV]?1\.12\.\S+$'): ["v1.14.3-tk8s-v1.1-1"]}
+)
+
+# TODO: 先放到前端传递，后续gcloud版本统一后，支持分支判断再去掉
+UPGRADE_TYPE = {"v1.12.6": "update8to12", "v1.14.3-tk8s-v1.1-1": "update12to14"}

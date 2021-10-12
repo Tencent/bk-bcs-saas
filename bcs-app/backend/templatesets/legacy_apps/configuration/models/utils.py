@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-from ..constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
-from . import base, k8s, mesos
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from ..constants import RESOURCE_NAMES, K8sResourceName
+from . import base, k8s
 
 MODEL_CLASS_LIST = [
     k8s.K8sDeployment,
@@ -24,25 +25,11 @@ MODEL_CLASS_LIST = [
     k8s.K8sSecret,
     k8s.K8sIngress,
     k8s.K8sHPA,
-    mesos.Application,
-    mesos.Deplpyment,
-    mesos.Service,
-    mesos.ConfigMap,
-    mesos.Secret,
-    mesos.HPA,
-    mesos.Ingress,
 ]
 
 RESOURCE_MODEL_MAP = dict(zip(RESOURCE_NAMES, MODEL_CLASS_LIST))
 
 MODULE_DICT = {
-    "application": mesos.Application,
-    "deployment": mesos.Deplpyment,
-    "service": mesos.Service,
-    "configmap": mesos.ConfigMap,
-    "secret": mesos.Secret,
-    "hpa": mesos.HPA,
-    "ingress": mesos.Ingress,
     # k8s 相关资源
     "K8sDeployment": k8s.K8sDeployment,
     "K8sService": k8s.K8sService,
@@ -101,28 +88,6 @@ def get_service_related_statefulset(ventity, service_id):
             related_ss_names.append(ss.name)
 
     return svc.name, related_ss_names
-
-
-def get_application_related_resource(ventity, app_id):
-    application = mesos.Application.objects.get(id=app_id)
-
-    related_deploy_names = []
-    deployment_id_list = ventity.get_resource_id_list(MesosResourceName.deployment.value)
-    if deployment_id_list:
-        deploy_qsets = mesos.Deplpyment.objects.filter(id__in=deployment_id_list, app_id=app_id)
-        related_deploy_names = [f"Deplpyment[{deploy.name}]" for deploy in deploy_qsets]
-
-    service_id_list = ventity.get_resource_id_list(MesosResourceName.application.value)
-    if not service_id_list:
-        return application.name, related_deploy_names
-
-    related_svc_names = []
-    service_qsets = mesos.Service.objects.filter(id__in=service_id_list)
-    for svc in service_qsets:
-        if app_id in svc.get_app_id_list():
-            related_svc_names.append(f"Service[{svc.name}")
-
-    return application.name, related_deploy_names + related_svc_names
 
 
 def _to_resource_tags_map(tag_list):

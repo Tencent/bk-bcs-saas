@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
-#
-# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://opensource.org/licenses/MIT
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://opensource.org/licenses/MIT
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 import logging
 from typing import Dict, List
 
 from kubernetes.client.exceptions import ApiException
 
 from backend.resources.utils.kube_client import get_dynamic_client
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
@@ -50,22 +52,25 @@ class NamespaceQuota:
         :param name: 资源名称，也会用做 namespace
         """
         try:
-            quota = self.api.get(name=name, namespace=name)
-            return {"hard": quota.status.hard, "used": quota.status.used}
+            quota = self.api.get(name=name, namespace=name).to_dict()
+            return {
+                'hard': getitems(quota, 'status.hard'),
+                'used': getitems(quota, 'status.used'),
+            }
         except ApiException as e:
             logger.error("query namespace quota error, namespace: %s, name: %s, error: %s", name, name, e)
             return {}
 
     def list_namespace_quota(self, namespace: str) -> List:
         """获取命名空间下的所有资源配额"""
-        items = self.api.get(namespace=namespace).items
+        quotas = self.api.get(namespace=namespace).to_dict()
         return [
             {
-                "name": i.metadata.name,
-                "namespace": i.metadata.namespace,
-                "quota": {"hard": i.status.hard, "used": i.status.used},
+                'name': getitems(quota, 'metadata.name'),
+                'namespace': getitems(quota, 'metadata.namespace'),
+                'quota': {'hard': getitems(quota, 'status.hard'), 'used': getitems(quota, 'status.used')},
             }
-            for i in items
+            for quota in quotas['items']
         ]
 
     def delete_namespace_quota(self, name: str) -> None:

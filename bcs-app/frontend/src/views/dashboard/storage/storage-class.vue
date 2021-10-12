@@ -7,7 +7,7 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange"
                 @sort-change="handleSortChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable></bk-table-column>
                 <bk-table-column label="Provisioner">
                     <template #default="{ row }">
                         <span>{{ row.provisioner || '--' }}</span>
@@ -28,7 +28,7 @@
                         <span>{{ row.allowVolumeExpansion || 'false' }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column label="Age" :resizable="false">
+                <bk-table-column label="Age" :resizable="false" :show-overflow-tooltip="false">
                     <template #default="{ row }">
                         <span v-bk-tooltips="{ content: handleGetExtData(row.metadata.uid, 'createTime') }">{{ handleGetExtData(row.metadata.uid, 'age') }}</span>
                     </template>

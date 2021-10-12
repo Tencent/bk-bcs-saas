@@ -8,14 +8,9 @@
 #@ updator = "{{ updator }}"
 #@ version = "{{ version }}"
 #@ project_id = "{{ project_id }}"
-#@ app_id = "{{ app_id }}"
 #@ cluster_id = "{{ cluster_id }}"
 #@ namespace = "{{ namespace }}"
-#@ stdlog_data_id = "{{ stdlog_data_id }}"
 #@ image_pull_secret = "{{ image_pull_secret }}"
-#@ coes_kind = "Kubernetes"
-#@ monitor_level = "general"
-#@ base_data_id = "6566"
 #@ deployment_name = "bcs-inject-name"
 #@ daemonset_name = "bcs-inject-name"
 #@ sts_name = "bcs-inject-name"
@@ -39,25 +34,11 @@ metadata:
     #@overlay/match missing_ok=True
     io.tencent.paas.source_type: #@ source_type
     #@overlay/match missing_ok=True
-    io.tencent.paas.version: #@ version
-    #@overlay/match missing_ok=True
     io.tencent.paas.projectid: #@ project_id
-    #@overlay/match missing_ok=True
-    io.tencent.bkdata.baseall.dataid: #@ base_data_id
-    #@overlay/match missing_ok=True
-    io.tencent.bkdata.container.stdlog.dataid: #@ stdlog_data_id
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.app.appid: #@ app_id
-    #@overlay/match missing_ok=True
-    io_tencent_bcs_cluster: #@ cluster_id
     #@overlay/match missing_ok=True
     io.tencent.bcs.clusterid: #@ cluster_id 
     #@overlay/match missing_ok=True
     io.tencent.bcs.namespace: #@ namespace
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.kind: #@ coes_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.monitor.level: #@ monitor_level
   #@overlay/match missing_ok=True
   annotations:
     #@overlay/match missing_ok=True
@@ -65,39 +46,15 @@ metadata:
     #@overlay/match missing_ok=True
     io.tencent.paas.updator: #@ updator
     #@overlay/match missing_ok=True
-    io.tencent.paas.source_type: #@ source_type
-    #@overlay/match missing_ok=True
     io.tencent.paas.version: #@ version
     #@overlay/match missing_ok=True
-    io.tencent.paas.projectid: #@ project_id
-    #@overlay/match missing_ok=True
-    io.tencent.bkdata.baseall.dataid: #@ base_data_id
-    #@overlay/match missing_ok=True
-    io.tencent.bkdata.container.stdlog.dataid: #@ stdlog_data_id
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.app.appid: #@ app_id
-    #@overlay/match missing_ok=True
-    io_tencent_bcs_cluster: #@ cluster_id
-    #@overlay/match missing_ok=True
     io.tencent.bcs.clusterid: #@ cluster_id 
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.namespace: #@ namespace
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.kind: #@ coes_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.monitor.level: #@ monitor_level
 
 #@overlay/match by=overlay.subset({"kind": "Service"}),expects="0+"
 ---
 metadata:
   #@overlay/match missing_ok=True
   labels:
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.type: #@ service_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.name: #@ service_name
-  #@overlay/match missing_ok=True
-  annotations:
     #@overlay/match missing_ok=True
     io.tencent.bcs.controller.type: #@ service_kind
     #@overlay/match missing_ok=True
@@ -121,21 +78,9 @@ spec:
         #@overlay/match missing_ok=True
         io.tencent.paas.projectid: #@ project_id
         #@overlay/match missing_ok=True
-        io.tencent.bkdata.baseall.dataid: #@ base_data_id
-        #@overlay/match missing_ok=True
-        io.tencent.bkdata.container.stdlog.dataid: #@ stdlog_data_id
-        #@overlay/match missing_ok=True
-        io.tencent.bcs.app.appid: #@ app_id
-        #@overlay/match missing_ok=True
-        io_tencent_bcs_cluster: #@ cluster_id
-        #@overlay/match missing_ok=True
         io.tencent.bcs.clusterid: #@ cluster_id 
         #@overlay/match missing_ok=True
         io.tencent.bcs.namespace: #@ namespace
-        #@overlay/match missing_ok=True
-        io.tencent.bcs.kind: #@ coes_kind
-        #@overlay/match missing_ok=True
-        io.tencent.bcs.monitor.level: #@ monitor_level
     #@overlay/match missing_ok=True
     spec:
       #@overlay/match missing_ok=True
@@ -144,20 +89,8 @@ spec:
       #@overlay/match-child-defaults expects="0+"
       - env:
         #@overlay/append
-        - name: "io_tencent_bcs_app_appid"
-          value: #@ app_id
-        #@overlay/append
-        - name: "io_tencent_bcs_cluster"
-          value: #@ cluster_id
-        #@overlay/append
         - name: "io_tencent_bcs_namespace"
           value: #@ namespace
-        #@overlay/append
-        - name: "io_tencent_bkdata_baseall_dataid"
-          value: #@ base_data_id
-        #@overlay/append
-        - name: "io_tencent_bkdata_container_stdlog_dataid"
-          value: #@ stdlog_data_id
         #@overlay/match by="name",expects="0+"
         #@overlay/merge
         - name: "io_tencent_bcs_custom_labels"
@@ -184,17 +117,12 @@ spec:
           #@overlay/append
           - name: #@ image_pull_secret
 
+
 #@overlay/match by=overlay.subset({"kind": "Deployment"}),expects="0+"
 ---
 metadata:
   #@overlay/match missing_ok=True
   labels:
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.type: #@ deployment_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.name: #@ deployment_name
-  #@overlay/match missing_ok=True
-  annotations:
     #@overlay/match missing_ok=True
     io.tencent.bcs.controller.type: #@ deployment_kind
     #@overlay/match missing_ok=True
@@ -210,18 +138,6 @@ spec:
         io.tencent.bcs.controller.type: #@ deployment_kind
         #@overlay/match missing_ok=True
         io.tencent.bcs.controller.name: #@ deployment_name
-    #@overlay/match missing_ok=True
-    spec:
-      containers:
-      #@overlay/match by=overlay.all,expects="0+"
-      #@overlay/match-child-defaults expects="0+"
-      - env:
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_type"
-          value: #@ deployment_kind
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_name"
-          value: #@ deployment_name
 
 
 #@overlay/match by=overlay.subset({"kind": "DaemonSet"}),expects="0+"
@@ -229,12 +145,6 @@ spec:
 metadata:
   #@overlay/match missing_ok=True
   labels:
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.type: #@ daemonset_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.name: #@ daemonset_name
-  #@overlay/match missing_ok=True
-  annotations:
     #@overlay/match missing_ok=True
     io.tencent.bcs.controller.type: #@ daemonset_kind
     #@overlay/match missing_ok=True
@@ -250,18 +160,6 @@ spec:
         io.tencent.bcs.controller.type: #@ daemonset_kind
         #@overlay/match missing_ok=True
         io.tencent.bcs.controller.name: #@ daemonset_name
-    #@overlay/match missing_ok=True
-    spec:
-      containers:
-      #@overlay/match by=overlay.all,expects="0+"
-      #@overlay/match-child-defaults expects="0+"
-      - env:
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_type"
-          value: #@ daemonset_kind
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_name"
-          value: #@ daemonset_name
 
 
 #@overlay/match by=overlay.subset({"kind": "StatefulSet"}),expects="0+"
@@ -269,12 +167,6 @@ spec:
 metadata:
   #@overlay/match missing_ok=True
   labels:
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.type: #@ sts_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.name: #@ sts_name
-  #@overlay/match missing_ok=True
-  annotations:
     #@overlay/match missing_ok=True
     io.tencent.bcs.controller.type: #@ sts_kind
     #@overlay/match missing_ok=True
@@ -290,18 +182,6 @@ spec:
         io.tencent.bcs.controller.type: #@ sts_kind
         #@overlay/match missing_ok=True
         io.tencent.bcs.controller.name: #@ sts_name
-    #@overlay/match missing_ok=True
-    spec:
-      containers:
-      #@overlay/match by=overlay.all,expects="0+"
-      #@overlay/match-child-defaults expects="0+"
-      - env:
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_type"
-          value: #@ sts_kind
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_name"
-          value: #@ sts_name
 
 
 #@overlay/match by=overlay.subset({"kind": "Job"}),expects="0+"
@@ -309,12 +189,6 @@ spec:
 metadata:
   #@overlay/match missing_ok=True
   labels:
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.type: #@ job_kind
-    #@overlay/match missing_ok=True
-    io.tencent.bcs.controller.name: #@ job_name
-  #@overlay/match missing_ok=True
-  annotations:
     #@overlay/match missing_ok=True
     io.tencent.bcs.controller.type: #@ job_kind
     #@overlay/match missing_ok=True
@@ -330,15 +204,3 @@ spec:
         io.tencent.bcs.controller.type: #@ job_kind
         #@overlay/match missing_ok=True
         io.tencent.bcs.controller.name: #@ job_name
-    #@overlay/match missing_ok=True
-    spec:
-      containers:
-      #@overlay/match by=overlay.all,expects="0+"
-      #@overlay/match-child-defaults expects="0+"
-      - env:
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_type"
-          value: #@ job_kind
-        #@overlay/append
-        - name: "io_tencent_bcs_controller_name"
-          value: #@ job_name
