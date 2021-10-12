@@ -68,6 +68,7 @@ mock = "3.0.5"
 pytest = "6.2.4"
 pytest-django = "3.9.0"
 pytest-asyncio = "^0.15.1"
+requests-mock = "1.9.3"
 
 [tool.black]
 exclude = '''
