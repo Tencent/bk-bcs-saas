@@ -1812,7 +1812,7 @@
     staticRenderFns: __vue_staticRenderFns__$a
   }, __vue_inject_styles__$a, __vue_script__$a, __vue_scope_id__$a, __vue_is_functional_template__$a, __vue_module_identifier__$a, false, undefined, undefined, undefined);
 
-  var _dec$9, _dec2$9, _dec3$9, _dec4$7, _dec5$7, _dec6$7, _dec7$7, _dec8$7, _dec9$7, _dec10$7, _dec11$7, _dec12$7, _dec13$7, _dec14$6, _dec15$6, _dec16$6, _dec17$4, _dec18$3, _dec19$2, _dec20$2, _class$9, _class2$9, _descriptor$9, _descriptor2$9, _descriptor3$7, _descriptor4$7, _descriptor5$7, _descriptor6$7, _descriptor7$7, _descriptor8$6, _descriptor9$5, _descriptor10$5, _descriptor11$5, _descriptor12$5, _descriptor13$4, _descriptor14$4, _descriptor15$2, _descriptor16$2;
+  var _dec$9, _dec2$9, _dec3$9, _dec4$7, _dec5$7, _dec6$7, _dec7$7, _dec8$7, _dec9$7, _dec10$7, _dec11$7, _dec12$7, _dec13$7, _dec14$6, _dec15$6, _dec16$6, _dec17$5, _dec18$3, _dec19$2, _dec20$2, _dec21$2, _class$9, _class2$9, _descriptor$9, _descriptor2$9, _descriptor3$7, _descriptor4$7, _descriptor5$7, _descriptor6$7, _descriptor7$7, _descriptor8$6, _descriptor9$5, _descriptor10$5, _descriptor11$5, _descriptor12$5, _descriptor13$4, _descriptor14$4, _descriptor15$3, _descriptor16$2, _descriptor17$2;
 
   function _createSuper$9(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$9(); return function _createSuperInternal() { var Super = _getPrototypeOf__default['default'](Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf__default['default'](this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn__default['default'](this, result); }; }
 
@@ -1864,7 +1864,10 @@
   }), _dec15$6 = Prop({
     default: false,
     type: Boolean
-  }), _dec16$6 = Ref('ipListWrapper'), _dec17$4 = Ref('table'), _dec18$3 = Watch('slotHeight'), _dec19$2 = Debounce(300), _dec20$2 = Emit('check-change'), _dec$9(_class$9 = (_class2$9 = /*#__PURE__*/function (_Vue) {
+  }), _dec16$6 = Prop({
+    default: true,
+    type: Boolean
+  }), _dec17$5 = Ref('ipListWrapper'), _dec18$3 = Ref('table'), _dec19$2 = Watch('slotHeight'), _dec20$2 = Debounce(300), _dec21$2 = Emit('check-change'), _dec$9(_class$9 = (_class2$9 = /*#__PURE__*/function (_Vue) {
     _inherits__default['default'](IpList, _Vue);
 
     var _super = _createSuper$9(IpList);
@@ -1908,9 +1911,11 @@
 
       _initializerDefineProperty__default['default'](_this, "defaultAccurate", _descriptor14$4, _assertThisInitialized__default['default'](_this));
 
-      _initializerDefineProperty__default['default'](_this, "ipListWrapperRef", _descriptor15$2, _assertThisInitialized__default['default'](_this));
+      _initializerDefineProperty__default['default'](_this, "showAccurate", _descriptor15$3, _assertThisInitialized__default['default'](_this));
 
-      _initializerDefineProperty__default['default'](_this, "tableRef", _descriptor16$2, _assertThisInitialized__default['default'](_this));
+      _initializerDefineProperty__default['default'](_this, "ipListWrapperRef", _descriptor16$2, _assertThisInitialized__default['default'](_this));
+
+      _initializerDefineProperty__default['default'](_this, "tableRef", _descriptor17$2, _assertThisInitialized__default['default'](_this));
 
       _this.isLoading = false;
       _this.fullData = [];
@@ -2214,17 +2219,22 @@
     enumerable: true,
     writable: true,
     initializer: null
-  }), _descriptor15$2 = _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "ipListWrapperRef", [_dec16$6], {
+  }), _descriptor15$3 = _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "showAccurate", [_dec16$6], {
     configurable: true,
     enumerable: true,
     writable: true,
     initializer: null
-  }), _descriptor16$2 = _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "tableRef", [_dec17$4], {
+  }), _descriptor16$2 = _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "ipListWrapperRef", [_dec17$5], {
     configurable: true,
     enumerable: true,
     writable: true,
     initializer: null
-  }), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleSlotHeightChange", [_dec18$3], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleSlotHeightChange"), _class2$9.prototype), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleKeywordChange", [_dec19$2], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleKeywordChange"), _class2$9.prototype), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleCheckChange", [_dec20$2], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleCheckChange"), _class2$9.prototype)), _class2$9)) || _class$9);
+  }), _descriptor17$2 = _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "tableRef", [_dec18$3], {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    initializer: null
+  }), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleSlotHeightChange", [_dec19$2], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleSlotHeightChange"), _class2$9.prototype), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleKeywordChange", [_dec20$2], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleKeywordChange"), _class2$9.prototype), _applyDecoratedDescriptor__default['default'](_class2$9.prototype, "handleCheckChange", [_dec21$2], Object.getOwnPropertyDescriptor(_class2$9.prototype, "handleCheckChange"), _class2$9.prototype)), _class2$9)) || _class$9);
 
   /* script */
   var __vue_script__$9 = IpList;
@@ -2267,7 +2277,7 @@
         },
         expression: "tableKeyword"
       }
-    }), _c('bk-checkbox', {
+    }), _vm.showAccurate ? _c('bk-checkbox', {
       staticClass: "ml10",
       on: {
         "change": _vm.handleAccurateChange
@@ -2279,7 +2289,7 @@
         },
         expression: "accurate"
       }
-    }, [_vm._v(_vm._s(_vm.$t('精确')))])], 1), _vm._t("tab"), _c('IpSelectorTable', {
+    }, [_vm._v(_vm._s(_vm.$t('精确')))]) : _vm._e()], 1), _vm._t("tab"), _c('IpSelectorTable', {
       ref: "table",
       staticClass: "ip-list-table mt10",
       attrs: {
@@ -2309,7 +2319,7 @@
   var __vue_inject_styles__$9 = undefined;
   /* scoped */
 
-  var __vue_scope_id__$9 = "data-v-1eb2029e";
+  var __vue_scope_id__$9 = "data-v-2dbb6d0c";
   /* module identifier */
 
   var __vue_module_identifier__$9 = undefined;
@@ -2327,7 +2337,7 @@
     staticRenderFns: __vue_staticRenderFns__$9
   }, __vue_inject_styles__$9, __vue_script__$9, __vue_scope_id__$9, __vue_is_functional_template__$9, __vue_module_identifier__$9, false, undefined, undefined, undefined);
 
-  var _dec$8, _dec2$8, _dec3$8, _dec4$6, _dec5$6, _dec6$6, _dec7$6, _dec8$6, _dec9$6, _dec10$6, _dec11$6, _dec12$6, _dec13$6, _dec14$5, _dec15$5, _dec16$5, _class$8, _class2$8, _descriptor$8, _descriptor2$8, _descriptor3$6, _descriptor4$6, _descriptor5$6, _descriptor6$6, _descriptor7$6, _descriptor8$5, _descriptor9$4, _descriptor10$4, _descriptor11$4, _descriptor12$4, _descriptor13$3, _descriptor14$3;
+  var _dec$8, _dec2$8, _dec3$8, _dec4$6, _dec5$6, _dec6$6, _dec7$6, _dec8$6, _dec9$6, _dec10$6, _dec11$6, _dec12$6, _dec13$6, _dec14$5, _dec15$5, _dec16$5, _dec17$4, _class$8, _class2$8, _descriptor$8, _descriptor2$8, _descriptor3$6, _descriptor4$6, _descriptor5$6, _descriptor6$6, _descriptor7$6, _descriptor8$5, _descriptor9$4, _descriptor10$4, _descriptor11$4, _descriptor12$4, _descriptor13$3, _descriptor14$3, _descriptor15$2;
 
   function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
@@ -2381,7 +2391,10 @@
   }), _dec14$5 = Prop({
     default: 'rtl',
     type: String
-  }), _dec15$5 = Ref('table'), _dec16$5 = Emit('check-change'), _dec$8(_class$8 = (_class2$8 = /*#__PURE__*/function (_Vue) {
+  }), _dec15$5 = Prop({
+    default: false,
+    type: Boolean
+  }), _dec16$5 = Ref('table'), _dec17$4 = Emit('check-change'), _dec$8(_class$8 = (_class2$8 = /*#__PURE__*/function (_Vue) {
     _inherits__default['default'](CustomInput, _Vue);
 
     var _super = _createSuper$8(CustomInput);
@@ -2423,7 +2436,9 @@
 
       _initializerDefineProperty__default['default'](_this, "ellipsisDirection", _descriptor13$3, _assertThisInitialized__default['default'](_this));
 
-      _initializerDefineProperty__default['default'](_this, "tableRef", _descriptor14$3, _assertThisInitialized__default['default'](_this));
+      _initializerDefineProperty__default['default'](_this, "showAccurate", _descriptor14$3, _assertThisInitialized__default['default'](_this));
+
+      _initializerDefineProperty__default['default'](_this, "tableRef", _descriptor15$2, _assertThisInitialized__default['default'](_this));
 
       _this.errList = [];
       _this.temErrList = [];
@@ -2732,12 +2747,17 @@
     enumerable: true,
     writable: true,
     initializer: null
-  }), _descriptor14$3 = _applyDecoratedDescriptor__default['default'](_class2$8.prototype, "tableRef", [_dec15$5], {
+  }), _descriptor14$3 = _applyDecoratedDescriptor__default['default'](_class2$8.prototype, "showAccurate", [_dec15$5], {
     configurable: true,
     enumerable: true,
     writable: true,
     initializer: null
-  }), _applyDecoratedDescriptor__default['default'](_class2$8.prototype, "handleTableCheckChange", [_dec16$5], Object.getOwnPropertyDescriptor(_class2$8.prototype, "handleTableCheckChange"), _class2$8.prototype)), _class2$8)) || _class$8);
+  }), _descriptor15$2 = _applyDecoratedDescriptor__default['default'](_class2$8.prototype, "tableRef", [_dec16$5], {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    initializer: null
+  }), _applyDecoratedDescriptor__default['default'](_class2$8.prototype, "handleTableCheckChange", [_dec17$4], Object.getOwnPropertyDescriptor(_class2$8.prototype, "handleTableCheckChange"), _class2$8.prototype)), _class2$8)) || _class$8);
 
   /* script */
   var __vue_script__$8 = CustomInput;
@@ -2804,7 +2824,8 @@
         "get-row-disabled-status": _vm.getRowDisabledStatus,
         "get-row-tips-content": _vm.getRowTipsContent,
         "default-accurate": _vm.defaultAccurate,
-        "ellipsis-direction": _vm.ellipsisDirection
+        "ellipsis-direction": _vm.ellipsisDirection,
+        "show-accurate": _vm.showAccurate
       },
       on: {
         "check-change": _vm.handleTableCheckChange
@@ -2841,7 +2862,7 @@
   var __vue_inject_styles__$8 = undefined;
   /* scoped */
 
-  var __vue_scope_id__$8 = "data-v-0be5332d";
+  var __vue_scope_id__$8 = "data-v-d400cd16";
   /* module identifier */
 
   var __vue_module_identifier__$8 = undefined;
