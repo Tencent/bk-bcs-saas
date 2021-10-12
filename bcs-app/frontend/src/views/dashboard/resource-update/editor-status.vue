@@ -37,7 +37,7 @@
 </script>
 <style lang="postcss" scoped>
 .editor-status {
-    height: 68px;
+    height: 100%;
     border-left: 4px solid;
     padding: 8px 16px;
     background: #212121;
