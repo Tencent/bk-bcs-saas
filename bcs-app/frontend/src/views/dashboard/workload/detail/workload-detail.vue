@@ -432,7 +432,4 @@
         width: 100% !important;
     }
 }
-/deep/ .bk-sideslider {
-    z-index: 5001 !important;
-}
 </style>
