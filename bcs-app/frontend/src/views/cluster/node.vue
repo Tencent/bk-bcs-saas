@@ -135,8 +135,8 @@
                                         <th style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
                                             <bk-checkbox name="check-all-node" v-model="isCheckCurPageAllNode" @change="checkAllNode(...arguments)" />
                                         </th>
-                                        <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
-                                        <th style="width: 12%;">{{$t('状态')}}</th>
+                                        <th style="width: 10%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
+                                        <th style="width: 8%;">{{$t('状态')}}</th>
                                         <th style="width: 8%;">{{$t('容器数量')}}</th>
                                         <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                             <th style="width: 8%;">{{$t('Pod数量')}}</th>
