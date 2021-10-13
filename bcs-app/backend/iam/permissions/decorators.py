@@ -15,12 +15,19 @@ specific language governing permissions and limitations under the License.
 import importlib
 import logging
 from abc import ABCMeta, abstractmethod
+from typing import Dict, List, Type
 
 import wrapt
+from rest_framework.exceptions import ValidationError
 
-from .exceptions import PermissionDeniedError
+from backend.utils.basic import str2bool
+from backend.utils.response import PermsResponse
+
+from .client import IAMClient
+from .exceptions import AttrValidationError, PermissionDeniedError
 from .perm import PermCtx
 from .perm import Permission as PermPermission
+from .request import ResourceRequest
 
 logger = logging.getLogger(__name__)
 
@@ -139,3 +146,78 @@ class Permission:
         getattr(self.perm_obj, self.method_name)(args[0])
 
         return wrapped(*args, **kwargs)
+
+
+class response_perms:
+    """
+    view 装饰器, 向 web_annotations 中注入 perms 数据
+
+    note: 只支持处理同一类资源
+    """
+
+    def __init__(
+        self,
+        action_id_list: List[str],
+        res_request_cls: Type[ResourceRequest],
+        resource_id_key: str = 'id',
+        auto_add: bool = False,
+    ):
+        """
+        :param action_id_list: 权限 action_id 列表
+        :param res_request_cls: 对应资源的 ResourceRequest 类, 如 ClusterRequest
+        :param resource_id_key: 示例, 如果 resource_data = [{'cluster_id': 'BCS-K8S-40000'}],
+                                那么 resource_id_key 设置为 cluster_id，其中 BCS-K8S-40000 是注册到权限中心的集群 ID
+        :param auto_add: 是否自动添加权限数据到 web_annotations 中。如果为 True, 则忽略请求中的 with_perms 参数, 主动添加权限数据
+        """
+        self.action_id_list = action_id_list
+        self.res_request_cls = res_request_cls
+        self.resource_id_key = resource_id_key
+        self.auto_add = auto_add
+
+    @wrapt.decorator
+    def __call__(self, wrapped, instance, args, kwargs):
+        resp = wrapped(*args, **kwargs)
+        if not isinstance(resp, PermsResponse):
+            raise ValueError('response_perms decorator only support PermsResponse')
+
+        if not resp.resource_data:
+            return resp
+
+        request = args[0]
+        with_perms = True
+        if not self.auto_add:  # 根据前端请求，决定是否返回权限数据
+            with_perms = str2bool(request.query_params.get('with_perms', True))
+
+        if not with_perms:
+            return resp
+
+        perms = self._calc_perms(request, resp)
+
+        if hasattr(resp, "web_annotations"):
+            resp.web_annotations = resp.web_annotations or {}
+            resp.web_annotations.update({"perms": perms})
+        else:
+            resp.web_annotations = {"perms": perms}
+        return resp
+
+    def _calc_perms(self, request, resp: PermsResponse) -> Dict[str, Dict[str, bool]]:
+        if isinstance(resp.resource_data, list):
+            res = [item.get(self.resource_id_key) for item in resp.resource_data]
+        else:
+            res = resp.resource_data.get(self.resource_id_key)
+
+        try:
+            iam_path_attrs = {'project_id': request.project.project_id}
+        except Exception:
+            iam_path_attrs = {}
+
+        iam_path_attrs.update(resp.iam_path_attrs)
+        try:
+            client = IAMClient()
+            return client.batch_resource_multi_actions_allowed(
+                request.user.username,
+                self.action_id_list,
+                self.res_request_cls(res, **iam_path_attrs),
+            )
+        except AttrValidationError as e:
+            raise ValidationError(e)

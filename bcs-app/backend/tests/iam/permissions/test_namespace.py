@@ -22,6 +22,7 @@ from backend.iam.permissions.resources.namespace import (
     NamespaceAction,
     NamespacePermCtx,
     NamespacePermission,
+    calc_iam_ns_id,
     namespace_perm,
 )
 from backend.iam.permissions.resources.project import ProjectAction, ProjectPermission
@@ -204,3 +205,15 @@ class TestNamespacePermDecorator:
                 ),
             ],
         )
+
+
+@pytest.mark.parametrize(
+    'cluster_id, namespace_name, expected',
+    [
+        ('BCS-K8S-40000', 'test-default', 'BCS-K8S-40000:test-default'),
+        ('BCS-K8S-40000', 'abc' * 30, 'BCS-K8S-40000:daa54284568d250dde'),
+        ('BCS-K8S-40000', None, None),
+    ],
+)
+def test_calc_cluster_ns_id(cluster_id, namespace_name, expected):
+    assert calc_iam_ns_id(cluster_id, namespace_name) == expected

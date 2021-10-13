@@ -21,6 +21,7 @@ from backend.iam.permissions.exceptions import AttrValidationError
 from backend.iam.permissions.perm import PermCtx, Permission
 from backend.iam.permissions.request import IAMResource, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+from backend.utils.basic import md5
 
 from .cluster import ClusterPermission, related_cluster_perm
 from .constants import ResourceType
@@ -28,10 +29,24 @@ from .constants import ResourceType
 
 def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int = 32) -> Optional[str]:
     """
-    计算出注册到权限中心的命名空间ID，具备唯一性.
-    TODO 下一个 PR 中实现，方便 review
+    计算出注册到权限中心的命名空间ID，具备唯一性. 当前的算法并不能完全避免冲突，但冲突概率较低
+    :param cluster_id: 集群 ID
+    :param name: 命名空间名，最长63个字符
+    :return: iam_ns_id，用于注册到权限中心
+
+    note: 权限中心对资源ID有长度限制，不超过32位
+    iam_ns_id 的初始结构是`集群ID:命名空间name`，如 `BCS-K8S-40000:default`
+    如果整体长度超过32，则进行压缩计算. 压缩计算需要保留集群ID，目的是用于 namespace provider 中的 fetch_instance_info
     """
-    return "default"
+    if not name:
+        return name
+
+    iam_ns_id = f'{cluster_id}:{name}'
+    if len(iam_ns_id) <= max_length:
+        return iam_ns_id
+
+    # md5 之后，从左取 max_length-len(cluster_id)-1 个字符
+    return f'{cluster_id}:{md5(name)[:max_length - len(cluster_id) - 1]}'
 
 
 class NamespaceAction(str, StructuredEnum):

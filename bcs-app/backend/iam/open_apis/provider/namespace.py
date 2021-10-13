@@ -20,6 +20,7 @@ from iam.resource.utils import Page
 
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
+from backend.iam.permissions.resources.namespace import calc_iam_ns_id
 
 from .utils import get_system_token
 
@@ -32,29 +33,24 @@ class NamespaceProvider(ResourceProvider):
         namespace_list = self._list_namespaces(cluster_id)
 
         namespace_slice = namespace_list[page_obj.slice_from : page_obj.slice_to]
-        results = [{'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']} for ns in namespace_slice]
+        results = [
+            {'id': calc_iam_ns_id(cluster_id, ns['name']), 'display_name': ns['name']} for ns in namespace_slice
+        ]
 
         return ListResult(results=results, count=len(namespace_list))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
-        cluster_id = filter_obj.parent['id']
-        namespace_list = self._list_namespaces(cluster_id)
+        iam_cluster_ns = self._calc_iam_cluster_ns(filter_obj.ids)
 
-        if filter_obj.ids:
-            # cluster_ns_id 结构如 BCS-K8S-40000:test
-            filter_ns_list = [cluster_ns_id.split(':')[1] for cluster_ns_id in filter_obj.ids]
-            results = [
-                {'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']}
-                for ns in namespace_list
-                if ns['name'] in filter_ns_list
-            ]
-        else:
-            results = [{'id': f"{cluster_id}:{ns['name']}", 'display_name': ns['name']} for ns in namespace_list]
+        results = []
+        for iam_ns_id in filter_obj.ids:
+            name = iam_cluster_ns.get(iam_ns_id)
+            if name:
+                results.append({'id': iam_ns_id, 'display_name': name})
 
         return ListResult(results=results, count=len(results))
 
     def list_instance_by_policy(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
-        # TODO 确认基于实例的查询是不是就是id的过滤查询
         return ListResult(results=[], count=0)
 
     def list_attr(self, **options) -> ListResult:
@@ -62,6 +58,25 @@ class NamespaceProvider(ResourceProvider):
 
     def list_attr_value(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         return ListResult(results=[], count=0)
+
+    def _calc_iam_cluster_ns(self, iam_ns_id_list: List[str]) -> Dict[str, str]:
+        """
+        计算出 iam_ns_id 和命名空间名称的映射表
+        :param iam_ns_id_list: iam_ns_id 列表
+        :return 映射表 {iam_ns_id: 命名空间名} 如 {'BCS-K8S-40000:test-default': 'test-default'}
+        """
+        iam_cluster_ns = {}
+        # 缓存集群命名空间对，其中 key: 集群 ID, value: 对应集群 ID 下的命名空间列表
+        cluster_ns_cache = {}
+
+        for iam_ns_id in iam_ns_id_list:
+            cluster_id = iam_ns_id.split(':')[0]
+            if cluster_id not in cluster_ns_cache:
+                cluster_ns_cache[cluster_id] = self._list_namespaces(cluster_id)
+                for ns in cluster_ns_cache[cluster_id]:
+                    iam_cluster_ns[calc_iam_ns_id(cluster_id, ns['name'])] = ns['name']
+
+        return iam_cluster_ns
 
     def _list_namespaces(self, cluster_id: str) -> List[Dict]:
         paas_cc = PaaSCCClient(auth=ComponentAuth(get_system_token()))

@@ -18,6 +18,7 @@ from rest_framework.test import APIRequestFactory
 
 from backend.iam.open_apis.constants import MethodType, ResourceType
 from backend.iam.open_apis.views import ResourceAPIView
+from backend.tests.bcs_mocks.misc import FakePaaSCCMod
 from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
 factory = APIRequestFactory()
@@ -25,17 +26,23 @@ factory = APIRequestFactory()
 
 @pytest.fixture(autouse=True)
 def patch_paas_cc():
-    with mock.patch('backend.iam.open_apis.provider.namespace.PaaSCCClient', new=StubPaaSCCClient):
+    with mock.patch('backend.container_service.clusters.base.utils.paas_cc', new=FakePaaSCCMod()):
         yield
 
 
-class TestNamespaceAPI:
+@pytest.fixture(autouse=True)
+def patch_paas_cc_client():
+    with mock.patch('backend.iam.open_apis.provider.cluster.PaaSCCClient', new=StubPaaSCCClient):
+        yield
+
+
+class TestClusterAPI:
     def test_list_instance(self, project_id):
         request = factory.post(
-            '/apis/iam/v1/namespaces/',
+            '/apis/iam/v1/clusters/',
             {
                 'method': MethodType.LIST_INSTANCE,
-                'type': ResourceType.Namespace,
+                'type': ResourceType.Cluster,
                 'page': {'offset': 0, 'limit': 1},
                 'filter': {'parent': {'id': project_id}},
             },
@@ -44,21 +51,19 @@ class TestNamespaceAPI:
         response = p_view(request)
         data = response.data
         assert data['count'] == 1
-        assert data['results'][0]['display_name'] == 'default'
 
-    def test_fetch_instance_info(self, cluster_id):
-        fetch_id = f'{cluster_id}:default'
+    def test_fetch_instance_info_with_cluster_ids(self, cluster_id):
+        """传入已存在的 cluster_id，查询特定 cluster_id 数据"""
         request = factory.post(
-            '/apis/iam/v1/namespaces/',
+            '/apis/iam/v1/clusters/',
             {
                 'method': MethodType.FETCH_INSTANCE_INFO,
-                'type': ResourceType.Namespace,
-                'filter': {'ids': [fetch_id]},
+                'type': ResourceType.Cluster,
+                'filter': {'ids': [cluster_id]},
             },
         )
         p_view = ResourceAPIView.as_view()
         response = p_view(request)
         data = response.data
         assert len(data) == 1
-        assert data[0]['id'] == fetch_id
-        assert data[0]['display_name'] == 'default'
+        assert data[0]["id"] == cluster_id

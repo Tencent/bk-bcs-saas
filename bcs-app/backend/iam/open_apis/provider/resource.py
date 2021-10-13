@@ -18,10 +18,17 @@ from iam.collection import FancyDict
 from iam.resource.utils import Page, get_filter_obj, get_page_obj
 
 from ..constants import ResourceType
+from .cluster import ClusterProvider
 from .namespace import NamespaceProvider
 from .project import ProjectProvider
+from .templateset import TemplatesetProvider
 
-PROVIDER_CLS_MAP = {ResourceType.Project: ProjectProvider, ResourceType.Namespace: NamespaceProvider}
+PROVIDER_CLS_MAP = {
+    ResourceType.Project: ProjectProvider,
+    ResourceType.Namespace: NamespaceProvider,
+    ResourceType.Cluster: ClusterProvider,
+    ResourceType.Templateset: TemplatesetProvider,
+}
 
 
 class ResourceProvider:
@@ -41,7 +48,7 @@ class ResourceProvider:
     def list_attr(self, data: Optional[Dict] = None, **options) -> List[Dict]:
         """
         查询某个资源类型可用于配置权限的属性列表
-        :param data: 占位字段，为了上面provide方法的处理统一
+        :param data: 占位参数，为了 self.provide 方法的处理统一
         """
         result = self.resource_provider.list_attr(**options)
         return result.to_list()

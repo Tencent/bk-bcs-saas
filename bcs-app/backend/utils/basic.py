@@ -13,6 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import base64
+import hashlib
 import json
 import logging
 import re
@@ -163,3 +164,9 @@ def str2bool(source, default=False):
 def b64encode_json(data: Any) -> bytes:
     """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))"""
     return base64.b64encode(bytes(json.dumps(data), "utf-8"))
+
+
+def md5(content: str) -> str:
+    h = hashlib.md5()
+    h.update(content.encode("utf-8"))
+    return h.hexdigest()
