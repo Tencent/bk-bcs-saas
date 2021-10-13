@@ -36,6 +36,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from backend.accounts import bcs_perm
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
 from backend.components.bcs import k8s
 from backend.container_service.misc.bke_client.client import BCSClusterCredentialsNotFound, BCSClusterNotFound
@@ -822,7 +823,7 @@ class AppAPIView(viewsets.ModelViewSet):
     queryset = App.objects.all()
 
 
-class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
+class HowToPushHelmChartView(SystemViewSet):
     def get_private_repo_info(self, user, project):
         private_repo = get_or_create_private_repo(user, project)
 
@@ -868,9 +869,7 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
             template = Template(f.read())
 
         content = template.render(**context)
-        response = HttpResponse(content=content, content_type='text/plain; charset=UTF-8')
-        response['Content-Disposition'] = 'attachment; filename="how-to-push-helm-chart.md"'
-        return response
+        return Response({"content": content})
 
 
 @with_code_wrapper
