@@ -68,6 +68,7 @@ class AppQueryService:
                 functools.partial(
                     self.cc_client.search_business,
                     PageData(start=start, limit=constants.CMDB_MAX_LIMIT),
+                    self.fields,
                     self.condition,
                     self.bk_supplier_account,
                 )
