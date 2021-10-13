@@ -1,4 +1,4 @@
-FROM golang:1.12.6-stretch
+FROM golang:1.14-stretch
 WORKDIR /data
 ADD . .
-RUN make clean && make && cp ./bin/bcs_cc /usr/local/bin/
+RUN make clean && make && cp ./bin/bcs-cc /usr/local/bin/
