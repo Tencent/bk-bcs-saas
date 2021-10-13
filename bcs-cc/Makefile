@@ -12,9 +12,6 @@ BUILDPKGDIR := ${BASEDIR}/pkg
 BUILDDIR := ${BASEDIR}/bin
 BUILDTARGET := ${BUILDDIR}/bcs-cc
 
-GOPATH := ${BASEDIR}
-GOENV := GOPATH=${GOPATH}
-
 # json package
 BUILDARGS := -tags=jsoniter
 LDFLAGS := -X bcs-cc/config.Edition=default -X bcs-cc/config.Version=${VERSION} -X bcs-cc/config.BuildTime=`date +%Y-%m-%dT%T%z`
