@@ -193,7 +193,7 @@ class PersistentVolumeAccessMode(str, StructuredEnum):
 
 
 class MetricSourceType(str, StructuredEnum):
-    """ k8s MetricSourceType """
+    """k8s MetricSourceType"""
 
     Object = EnumField('Object')
     Pods = EnumField('Pods')
@@ -222,3 +222,7 @@ class NodeConditionType(str, StructuredEnum):
     DiskPressure = EnumField("DiskPressure", label="kubelet is under pressure due to insufficient available disk")
     PIDPressure = EnumField("PIDPressure", label="kubelet is under pressure due to insufficient available PID")
     NetworkUnavailable = EnumField("NetworkUnavailable", label="network for the node is not correctly configured")
+
+
+# 设置 bcs cluster id 缓存时间为7天
+BCS_CLUSTER_EXPIRATION_TIME = 3600 * 24 * 7

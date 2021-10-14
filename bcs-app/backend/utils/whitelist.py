@@ -12,7 +12,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+# TODO: apps/whitelist是否可以统一
 from backend.utils.func_controller import get_func_controller
+
+
+def check_bcs_api_gateway_enabled(cluster_id: str) -> bool:
+    """校验是否通过 bcs-api-gateway 链路访问集群 apiserver"""
+    func_code = "BCS_API_GATEWAY_FOR_CLUSTER"
+    enabled, wlist = get_func_controller(func_code)
+    return enabled or cluster_id in wlist
 
 
 def check_app_access_webconsole_enable(app_code: str, project_id_or_code: str) -> bool:
@@ -21,6 +29,4 @@ def check_app_access_webconsole_enable(app_code: str, project_id_or_code: str) -
     """
     func_code = "APP_ACCESS_WEBCONSOLE"
     enabled, wlist = get_func_controller(func_code)
-    if enabled or f"{app_code}:{project_id_or_code}" in wlist:
-        return True
-    return False
+    return enabled or f"{app_code}:{project_id_or_code}" in wlist
