@@ -43,6 +43,11 @@ class ClusterPermCtx(PermCtx):
     def resource_id(self) -> str:
         return self.cluster_id
 
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+
 
 class ClusterRequest(ResourceRequest):
     resource_type: str = ResourceType.Cluster

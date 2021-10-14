@@ -72,6 +72,13 @@ class NamespacePermCtx(PermCtx):
     def resource_id(self) -> str:
         return self.iam_ns_id
 
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+        if not self.cluster_id:
+            raise AttrValidationError(f'invalid cluster_id:({self.cluster_id})')
+
 
 class NamespaceRequest(ResourceRequest):
     resource_type: str = ResourceType.Namespace

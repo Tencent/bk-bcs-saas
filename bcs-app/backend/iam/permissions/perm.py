@@ -45,6 +45,10 @@ class PermCtx:
     def resource_id(self) -> str:
         return ''
 
+    def validate(self):
+        if not self.username:
+            raise AttrValidationError(f'invalid username:({self.username})')
+
 
 class Permission(ABC, IAMClient):
     """
