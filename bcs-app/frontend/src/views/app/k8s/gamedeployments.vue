@@ -110,7 +110,7 @@
 
         <bk-dialog
             :is-show="batchDelDialogConf.isShow"
-            :width="400"
+            :width="500"
             :has-header="false"
             :quick-close="false"
             class="batch-delete-gamestatefulset"
