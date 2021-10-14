@@ -129,7 +129,8 @@ export default defineComponent({
         })
         // 悬浮
         const handleMouseEnter = (data: IInnerLogData) => {
-            hoverIds.value.push(data.time)
+            const index = hoverIds.value.findIndex(time => data.time === time)
+            index === -1 && hoverIds.value.push(data.time)
         }
 
         const handleMouseleave = (data: IInnerLogData) => {

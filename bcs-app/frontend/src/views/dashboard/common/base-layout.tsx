@@ -85,7 +85,8 @@ export default defineComponent({
         const { type, category, kind, showNameSpace, showCrd, defaultActiveDetailType, defaultCrd } = toRefs(props)
 
         // crd
-        const currentCrd = ref(defaultCrd.value || sessionStorage.getItem(CUR_SELECT_CRD))
+        const storageCrd = sessionStorage.getItem(CUR_SELECT_CRD) || ''
+        const currentCrd = ref(defaultCrd.value || storageCrd)
         const crdLoading = ref(false)
         // crd 数据
         const crdData = ref<ISubscribeData|null>(null)
@@ -117,8 +118,7 @@ export default defineComponent({
         }
         const handleCrdChange = async (value) => {
             sessionStorage.setItem(CUR_SELECT_CRD, value)
-            const namespace = (sessionStorage.getItem(CUR_SELECT_NAMESPACE) && JSON.parse(sessionStorage.getItem(CUR_SELECT_NAMESPACE)).namespace) || ''
-            namespaceValue.value = namespace
+            namespaceValue.value = sessionStorage.getItem(CUR_SELECT_NAMESPACE) || ''
             handleGetTableData()
         }
         const renderCrdHeader = (h, { column }) => {
@@ -149,18 +149,7 @@ export default defineComponent({
         // 初始化集群列表信息
         // useCluster(ctx)
         // 命名空间
-        let cacheNamespace = ''
-        const curSelectNameSpace = sessionStorage.getItem(CUR_SELECT_NAMESPACE)
-        if (ctx.root.$route.name === 'dashboardCustomObjects') {
-            if (curSelectNameSpace) {
-                const { isCrd } = JSON.parse(curSelectNameSpace) || {}
-                if (!isCrd) sessionStorage.removeItem(CUR_SELECT_NAMESPACE)
-            }
-        }
-        if (curSelectNameSpace) {
-            cacheNamespace = JSON.parse(curSelectNameSpace).namespace
-        }
-        const namespaceValue = ref(cacheNamespace)
+        const namespaceValue = ref(sessionStorage.getItem(CUR_SELECT_NAMESPACE) || '')
         const namespaceDisabled = computed(() => {
             const { scope } = currentCrdExt.value
             return type.value === 'crd' && scope && scope !== 'Namespaced'
@@ -236,11 +225,7 @@ export default defineComponent({
         })
 
         const handleNamespaceChange = (value) => {
-            const namespaceData = {
-                namespace: value,
-                isCrd : ctx.root.$route.name === 'dashboardCustomObjects'
-            }
-            sessionStorage.setItem(CUR_SELECT_NAMESPACE, JSON.stringify(namespaceData))
+            sessionStorage.setItem(CUR_SELECT_NAMESPACE, value)
         }
 
         // 分页
@@ -334,13 +319,13 @@ export default defineComponent({
             $router.push({
                 name: 'dashboardResourceUpdate',
                 params: {
-                    crd: currentCrd.value,
                     defaultShowExample: (type.value !== 'crd') as any
                 },
                 query: {
                     type: type.value,
                     category: category.value,
-                    kind: kind.value
+                    kind: kind.value,
+                    crd: currentCrd.value
                 }
             })
         }
@@ -351,13 +336,13 @@ export default defineComponent({
                 name: 'dashboardResourceUpdate',
                 params: {
                     namespace,
-                    name,
-                    crd: currentCrd.value
+                    name
                 },
                 query: {
                     type: type.value,
                     category: category.value,
-                    kind: type.value === 'crd' ? kind.value : row.kind
+                    kind: type.value === 'crd' ? kind.value : row.kind,
+                    crd: currentCrd.value
                 }
             })
         }

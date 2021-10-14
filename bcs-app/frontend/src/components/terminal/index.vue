@@ -13,7 +13,7 @@
                 </a>
             </div>
             <transition name="fade">
-                <div :class="['bk-dropdown-content is-show']" style="bottom: 44px; right: 0;" v-show="isShow">
+                <div :class="['bk-dropdown-content is-show']" style="bottom: 44px; right: 0; position: absolute;" v-show="isShow">
                     <div class="search-box">
                         <bkbcs-input
                             v-model="keyword"
@@ -160,7 +160,7 @@
         position: fixed;
         right: 10px;
         bottom: 10px;
-        z-index: 5000;
+        z-index: 1900;
         &.active {
             .biz-terminal-trigger {
                 width: 200px;

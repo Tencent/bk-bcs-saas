@@ -16,8 +16,8 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.iam import permissions
 from backend.components import paas_auth, paas_cc
+from backend.iam import legacy_perms as permissions
 from backend.utils import FancyDict
 from backend.utils.cache import region
 from backend.utils.error_codes import error_codes

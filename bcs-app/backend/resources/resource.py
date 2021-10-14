@@ -262,7 +262,7 @@ class ResourceClient:
         label_selector: Optional[str] = None,
         field_selector: Optional[str] = None,
         **kwargs,
-    ) -> Optional[ResourceInstance]:
+    ) -> ResourceInstance:
         """删除某个资源"""
         return self.api.delete(name, namespace, body, label_selector, field_selector, **kwargs)
 

@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -89,20 +89,17 @@ def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
         raise PermissionDeniedError(_("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), "")
 
 
-def get_cmdb_hosts(username, cc_app_id_list, host_property_filter):
+def get_cmdb_hosts(username: str, cc_app_id: int, host_property_filter: Dict) -> List:
+    """
+    根据指定条件获取 CMDB 主机信息，包含字段映射等转换
+    """
     hosts = []
-    for app_id in cc_app_id_list:
-        resp = cc.list_biz_hosts(username, int(app_id), host_property_filter=host_property_filter)
-        if resp.get("data"):
-            hosts = resp["data"]
-            break
-    cluster_masters = []
-    for info in hosts:
+    for info in cc.HostQueryService(username, cc_app_id, host_property_filter=host_property_filter).fetch_all():
         convert_host = convert_mappings(CCHostKeyMappings, info)
         convert_host["agent"] = AGENT_NORMAL_STATUS
-        cluster_masters.append(convert_host)
+        hosts.append(convert_host)
 
-    return cluster_masters
+    return hosts
 
 
 def use_tke(coes=None, access_token=None, project_id=None, cluster_id=None):

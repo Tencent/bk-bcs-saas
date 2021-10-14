@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import re
 from collections import OrderedDict
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum

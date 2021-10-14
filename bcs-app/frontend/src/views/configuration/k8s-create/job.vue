@@ -200,7 +200,7 @@
                                                     </div>
                                                 </div>
                                             </bk-tab-panel>
-                                            <bk-tab-panel name="tab2" :title="$t('Metric信息')">
+                                            <!-- <bk-tab-panel name="tab2" :title="$t('Metric信息')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
                                                         <div class="bk-form-content" style="margin-left: 0;">
@@ -231,7 +231,7 @@
                                                         </div>
                                                     </transition>
                                                 </div>
-                                            </bk-tab-panel>
+                                            </bk-tab-panel> -->
                                         </bk-tab>
 
                                         <bk-tab :type="'fill'" :active-name="'tab2'" :size="'small'" v-show="isPodPanelShow" style="margin-left: 140px;">
@@ -2141,28 +2141,29 @@
 
                 if (!this.curContainer.ports.length) {
                     this.addPort()
-                } else {
-                    this.curContainer.ports.forEach(item => {
-                        const projectId = this.projectId
-                        const version = this.curVersion
-                        const portId = item.id
-                        if (portId) {
-                            this.$store.dispatch('k8sTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
-                                item.isLink = ''
-                            }, res => {
-                                const message = res.message || res.data.data || ''
-                                const msg = message.split(',')[0]
-                                if (msg) {
-                                    item.isLink = msg + this.$t('，不能修改协议')
-                                } else {
-                                    item.isLink = ''
-                                }
-                            })
-                        } else {
-                            item.isLink = ''
-                        }
-                    })
                 }
+                // else {
+                //     this.curContainer.ports.forEach(item => {
+                //         const projectId = this.projectId
+                //         const version = this.curVersion
+                //         const portId = item.id
+                //         if (portId) {
+                //             this.$store.dispatch('k8sTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
+                //                 item.isLink = ''
+                //             }, res => {
+                //                 const message = res.message || res.data.data || ''
+                //                 const msg = message.split(',')[0]
+                //                 if (msg) {
+                //                     item.isLink = msg + this.$t('，不能修改协议')
+                //                 } else {
+                //                     item.isLink = ''
+                //                 }
+                //             })
+                //         } else {
+                //             item.isLink = ''
+                //         }
+                //     })
+                // }
 
                 // if (!this.curContainer.volumeMounts.length) {
                 //     const volumes = this.curContainer.volumeMounts
@@ -2199,7 +2200,7 @@
             this.initImageList()
             this.initVolumeConfigmaps()
             this.initVloumeSelectets()
-            this.initMetricList()
+            // this.initMetricList()
 
             const Validator = require('jsonschema').Validator
             this.appJsonValidator = new Validator()
@@ -3883,12 +3884,6 @@
                 const portId = item.id
                 this.$store.dispatch('k8sTemplate/checkPortIsLink', { projectId, version, portId }).then(res => {
                     this.curContainer.ports.splice(index, 1)
-                }, res => {
-                    const message = res.message || res.data.data
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
                 })
             },
             selectVolumeType (volumeItem) {

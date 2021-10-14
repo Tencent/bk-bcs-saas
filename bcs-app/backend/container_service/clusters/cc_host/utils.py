@@ -31,7 +31,7 @@ def fetch_cc_app_hosts(username, bk_biz_id, bk_module_id=None, bk_set_id=None) -
     """
     bk_module_ids = [bk_module_id] if bk_module_id else None
     bk_set_ids = [bk_set_id] if bk_set_id else None
-    return cc.list_all_hosts_by_topo(username, bk_biz_id, bk_module_ids, bk_set_ids)
+    return cc.HostQueryService(username, bk_biz_id, bk_module_ids, bk_set_ids).fetch_all()
 
 
 def fetch_all_cluster_nodes(access_token: str) -> Dict:

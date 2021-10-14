@@ -116,7 +116,7 @@ export default defineComponent({
                         onChange={this.handleContainerChange}>
                         {
                             this.containerList.map(option => (
-                                <bcs-option id={option.id} name={option.name}></bcs-option>
+                                <bcs-option id={option.name} name={option.name}></bcs-option>
                             ))
                         }
                     </bcs-select>

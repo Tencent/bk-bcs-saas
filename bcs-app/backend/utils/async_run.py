@@ -47,6 +47,8 @@ def async_run(tasks, raise_exception: bool = True) -> List[AsyncResult]:
     run a group of tasks async(仅适用于IO密集型)
     Requires the tasks arg to be a list of functools.partial()
     """
+    if not tasks:
+        return []
 
     loop, created = get_or_create_loop()
     # https://github.com/python/asyncio/issues/258

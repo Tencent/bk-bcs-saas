@@ -21,3 +21,12 @@ def check_bcs_api_gateway_enabled(cluster_id: str) -> bool:
     func_code = "BCS_API_GATEWAY_FOR_CLUSTER"
     enabled, wlist = get_func_controller(func_code)
     return enabled or cluster_id in wlist
+
+
+def check_app_access_webconsole_enable(app_code: str, project_id_or_code: str) -> bool:
+    """APP是否可以访问webconsole接口
+    NOTE：存储内容包含app_code和project信息(包含project_code和project_id)，格式app_code:project_id_or_code
+    """
+    func_code = "APP_ACCESS_WEBCONSOLE"
+    enabled, wlist = get_func_controller(func_code)
+    return enabled or f"{app_code}:{project_id_or_code}" in wlist

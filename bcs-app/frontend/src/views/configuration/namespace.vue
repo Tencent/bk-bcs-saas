@@ -294,7 +294,7 @@
                             </div>
                         </div>
                         <template v-if="editNamespaceConf.variableList && editNamespaceConf.variableList.length">
-                            <div class="bk-form-item flex-item">
+                            <div class="bk-form-item flex-item" style="margin-top: 20px;">
                                 <div class="left">
                                     <label class="bk-label label">
                                         {{$t('变量：')}}
@@ -347,10 +347,10 @@
                     <div class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">{{$t('名称：')}}</label>
+                                <label class="bk-label label">{{$t('名称')}}</label>
                             </div>
                             <div class="right" style="margin-left: 20px;">
-                                <label class="bk-label label">{{$t('所属集群：')}}</label>
+                                <label class="bk-label label">{{$t('所属集群')}}</label>
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
@@ -373,7 +373,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bk-form-item flex-item" style="margin-top: 20px;">
+                        <div class="bk-form-item flex-item" style="margin: 10px 0;">
                             <div class="left">
                                 <label class="bk-label label">
                                     {{$t('配额')}}
@@ -383,7 +383,7 @@
                         </div>
                         <div class="bk-form-item" style="margin-top: 18px;">
                             <div class="quota-label-tip">
-                                <span class="title">CPU（核）</span>
+                                <span class="title">CPU(核)</span>
                             </div>
                             <div class="bk-form-content">
                                 <div class="biz-key-value-wrapper mb10">
@@ -412,7 +412,7 @@
                         </div>
                         <div class="bk-form-item" style="margin-top: 32px;">
                             <div class="quota-label-tip">
-                                <span class="title">内存（Gi）</span>
+                                <span class="title">内存(Gi)</span>
                             </div>
                             <div class="bk-form-content">
                                 <div class="biz-key-value-wrapper mb10">
