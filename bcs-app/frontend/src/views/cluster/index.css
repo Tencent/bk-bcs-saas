@@ -8,16 +8,15 @@
 .cluster-btns {
     display: flex;
     align-items: center;
-    padding: 20px 30px 20px;
+    padding: 20px 20px 0 20px;
 }
 
 .biz-cluster-list {
-    padding: 30px 0 30px 30px;
-    font-size: 0;
+    padding: 20px;
 }
 
 .biz-status-box {
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .biz-cluster {
@@ -56,7 +55,12 @@
             font-size: 16px;
             font-weight: normal;
             margin: 0 0 4px 0;
-
+            &.clickable {
+                cursor: pointer;
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
             a {
                 color: $fontColor;
 
@@ -70,6 +74,8 @@
             margin: 0;
             font-size: 12px;
             color: $fnMinorColor;
+            display: flex;
+            align-items: center;
 
             .cluster-id {
                 @mixin ellipsis 200px;
@@ -226,6 +232,10 @@
     }
 }
 
+.add-node-btn {
+    width: 100%;
+}
+
 .biz-progress-box,
 .add-node-btn-wrapper {
     margin-bottom: 28px;
@@ -233,9 +243,6 @@
 
 .add-node-btn-wrapper {
     padding: 0 24px;
-    .add-node-btn {
-        width: 100%;
-    }
 }
 
 .biz-log-box {
@@ -378,10 +385,6 @@
 @media screen and (max-width: $mediaWidth) {
     .biz-cluster-guide {
         width: 320px;
-    }
-
-    .biz-cluster-list {
-        padding: 20px;
     }
 }
 
