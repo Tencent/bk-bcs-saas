@@ -21,6 +21,11 @@ import (
 func URLConf(engine *gin.Engine) {
 	engine.Use(RequestLogMiddleware())
 
+	healthz := engine.Group("/healthz")
+	{
+		healthz.GET("/", apis.Healthz)
+	}
+
 	area := engine.Group("/areas")
 	area.Use(JWTTokenMiddleware())
 	{
