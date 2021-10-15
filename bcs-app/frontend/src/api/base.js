@@ -44,6 +44,8 @@ export const fetchBizTopo = request('get', '/api/projects/$projectId/cc/topology
 export const fetchBizHosts = request('post', '/api/projects/$projectId/cc/hosts/')
 export const logLinks = request('post', '/api/datalog/projects/$projectId/log_links/')
 
+export const fetchClusterList = request('get', '/api/projects/$projectId/clusters/')
+
 export default {
     stdLogs,
     stdLogsDownload,
@@ -78,5 +80,6 @@ export default {
     fetchBizTopo,
     fetchBizHosts,
     reschedulePod,
-    logLinks
+    logLinks,
+    fetchClusterList
 }

@@ -21,6 +21,7 @@ export default function useIntervalFn (
     immediate = false
 ): ITimeoutFnResult {
     const isPending = ref(false)
+    const flag = ref(false)
 
     const timer = ref<number | null>(null)
 
@@ -33,6 +34,7 @@ export default function useIntervalFn (
 
     function stop () {
         isPending.value = false
+        flag.value = false
         clear()
     }
 
@@ -40,6 +42,7 @@ export default function useIntervalFn (
         clear()
         if (!interval) return
 
+        flag.value = true
         async function timerFn () {
             // 上一个接口未执行完，不执行本次轮询
             if (isPending.value) return
@@ -48,7 +51,9 @@ export default function useIntervalFn (
             // eslint-disable-next-line standard/no-callback-literal
             await cb(...args)
             isPending.value = false
-            timer.value = setTimeout(timerFn, interval) as unknown as number
+            if (flag.value) {
+                timer.value = setTimeout(timerFn, interval) as unknown as number
+            }
         }
         timerFn()
     }
