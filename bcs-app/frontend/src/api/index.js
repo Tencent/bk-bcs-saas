@@ -11,7 +11,7 @@
  */
 import axios from 'axios'
 import cookie from 'cookie'
-
+import { bus } from '../common/bus'
 import CachedPromise from './cached-promise'
 import RequestQueue from './request-queue'
 import { messageError } from '../common/bkmagic'
@@ -178,8 +178,8 @@ function handleReject (error, config) {
     }
 
     if (error.response) {
-        const { status, data, code, request_id } = error.response
-        let message = error?.message
+        const { status, data } = error.response
+        let message = error?.message || data?.message
         if (status === 401) {
             // 登录弹窗
             // eslint-disable-next-line camelcase
@@ -190,22 +190,23 @@ function handleReject (error, config) {
             message = window.i18n.t('系统出现异常')
         } else if (status === 403) {
             message = window.i18n.t('无权限操作')
-        } else if (data?.message) {
-            message = data.message
+        } else if ([4005, 4003].includes(data?.code)) {
+            bus.$emit('show-apply-perm-modal', data?.data)
         }
 
         // eslint-disable-next-line camelcase
-        if (code === 500 && request_id) {
-            message = `${message}( ${request_id.slice(0, 8)} )`
+        if (data?.code === 500 && data?.request_id) { // code为500的请求需要带上request_id
+            // eslint-disable-next-line camelcase
+            message = `${message}( ${data?.request_id.slice(0, 8)} )`
         }
 
-        if (config.globalError && !CUSTOM_HANDLE_CODE.includes(code)) {
+        if (config.globalError && !CUSTOM_HANDLE_CODE.includes(data?.code)) {
             messageError(message)
         }
     } else if (error.message === 'Network Error') {
         messageError(window.i18n.t('网络错误'))
-    } else if (error.message) {
-        config.globalError && messageError(error.message)
+    } else if (error.message && config.globalError) {
+        messageError(error.message)
     }
     return Promise.reject(error)
 }
