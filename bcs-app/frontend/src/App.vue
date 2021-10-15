@@ -15,6 +15,7 @@
     import Navigation from '@/views/navigation.vue'
     import ProjectCreate from '@/views/project/project-create.vue'
     import BkPaaSLogin from '@blueking/paas-login'
+    import { bus } from '@/common/bus'
 
     export default {
         name: 'app',
@@ -34,9 +35,17 @@
             routerKey () {
                 const { projectCode = '' } = this.$route.params
                 return `${projectCode}-${this.$route.meta.isDashboard}`
+            },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
             }
         },
         created () {
+            // 登录弹窗
+            bus.$on('show-apply-perm-modal', (data) => {
+                if (!data) return
+                this.$refs.bkApplyPerm && this.$refs.bkApplyPerm.show(this.curProjectCode, data)
+            })
             this.initBcsBaseData()
         },
         mounted () {
