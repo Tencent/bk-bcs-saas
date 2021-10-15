@@ -94,21 +94,6 @@ export default {
             context.commit('updateCacheRes', res)
             return res
         },
-        async getClusterListNew (context, { projectId, cache = true }, config = {}) {
-            if (context.state.clusterList.length && Object.keys(context.state.cacheRes) && cache) {
-                delete context.state.cacheRes.request_id
-                return JSON.parse(JSON.stringify(context.state.cacheRes))
-            }
-            // return http.get('/app/cluster?invoke=getClusterList', {}, config)
-            const res = await http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters?limit=1000`,
-                {},
-                Object.assign(config, { urlId: 'getClusterList' })
-            )
-            context.commit('forceUpdateClusterList', res?.data?.results || [])
-            context.commit('updateCacheRes', res)
-            return res
-        },
 
         /**
          * 根据项目 id 获取项目下有权限的集群
