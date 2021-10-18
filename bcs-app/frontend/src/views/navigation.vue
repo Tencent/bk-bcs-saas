@@ -15,7 +15,7 @@
                             :id="option.project_code"
                             :name="option.project_name">
                         </bcs-option>
-                        <template #extension>
+                        <template #extension v-if="!$INTERNAL">
                             <div class="extension-item" @click="handleCreateProject"><i class="bk-icon icon-plus-circle mr5"></i>{{$t('新建项目')}}</div>
                             <div class="extension-item" @click="handleGotoProjectManage"><i class="bcs-icon bcs-icon-apps mr5"></i>{{$t('项目管理')}}</div>
                         </template>
@@ -95,10 +95,14 @@
             },
             handleGotoProjectManage () {
                 this.$refs.projectSelectRef && this.$refs.projectSelectRef.close()
-                if (this.$route.name === 'projectManage') return
-                this.$router.push({
-                    name: 'projectManage'
-                })
+                if (window.REGION === 'ieod') {
+                    window.open(`${window.DEVOPS_HOST}/console/pm`)
+                } else {
+                    if (this.$route.name === 'projectManage') return
+                    this.$router.push({
+                        name: 'projectManage'
+                    })
+                }
             },
             handleUserItemClick (item) {
                 switch (item.id) {

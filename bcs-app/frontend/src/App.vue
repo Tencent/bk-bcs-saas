@@ -1,7 +1,7 @@
 <template>
     <div :class="systemCls" v-bkloading="{ isLoading, opacity: 1 }">
         <Navigation @create-project="handleCreateProject">
-            <router-view :key="routerKey" v-if="!isLoading" />
+            <router-view :key="routerKey" v-if="!isLoading && !err" />
         </Navigation>
         <!-- 项目创建弹窗 -->
         <ProjectCreate v-model="showCreateDialog"></ProjectCreate>
@@ -23,7 +23,8 @@
         data () {
             return {
                 isLoading: false,
-                showCreateDialog: false
+                showCreateDialog: false,
+                err: null
             }
         },
         computed: {
@@ -41,10 +42,13 @@
             }
         },
         created () {
-            // 登录弹窗
+            // 权限弹窗弹窗
             bus.$on('show-apply-perm-modal', (data) => {
                 if (!data) return
                 this.$refs.bkApplyPerm && this.$refs.bkApplyPerm.show(this.curProjectCode, data)
+            })
+            bus.$on('close-login-modal', () => {
+                window.location.reload()
             })
             this.initBcsBaseData()
         },
@@ -59,7 +63,9 @@
                 await Promise.all([
                     this.$store.dispatch('userInfo'),
                     this.$store.dispatch('getProjectList')
-                ]).catch((err) => console.log(err))
+                ]).catch((err) => {
+                    this.err = err
+                })
                 this.isLoading = false
             },
             handleCreateProject () {
