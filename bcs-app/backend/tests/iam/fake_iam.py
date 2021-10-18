@@ -143,5 +143,5 @@ class FakeIAMClient:
 
         return perms
 
-    def grant_resource_creator_actions(self, username: str, data: Dict):
-        return True, data
+    def grant_resource_creator_actions(self, username: str, data: Dict) -> (bool, str):
+        return True, 'success'

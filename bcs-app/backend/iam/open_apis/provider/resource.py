@@ -39,8 +39,10 @@ class ResourceProvider:
     def provide(self, method: str, data: Dict, **options) -> Union[List, Dict]:
         """
         根据 method 值, 调用对应的方法返回数据
+
         :param method: 值包括 list_attr, list_attr_value, list_instance 等
         :param data: 其他查询条件数据，如分页数据等
+        :return: method 方法返回的数据
         """
         handler = getattr(self, method)
         return handler(data, **options)
@@ -48,7 +50,9 @@ class ResourceProvider:
     def list_attr(self, data: Optional[Dict] = None, **options) -> List[Dict]:
         """
         查询某个资源类型可用于配置权限的属性列表
+
         :param data: 占位参数，为了 self.provide 方法的处理统一
+        :return: 属性列表
         """
         result = self.resource_provider.list_attr(**options)
         return result.to_list()

@@ -32,8 +32,10 @@ class ClusterProvider(ResourceProvider):
     def list_instance(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         """
         获取集群列表
+
         :param filter_obj: 查询参数字典。 以下为必传 如: {"parent": {"id": 1}}
         :param page_obj: 分页对象
+        :return: ListResult 类型的实例列表
         """
         project_id = filter_obj.parent["id"]
         cluster_list = get_clusters(get_system_token(), project_id)
@@ -44,7 +46,9 @@ class ClusterProvider(ResourceProvider):
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         """
         批量获取集群属性详情
+
         :param filter_obj: 查询参数字典
+        :return: ListResult 类型的实例列表
         """
         cluster_ids = filter_obj.ids
         paas_cc = PaaSCCClient(auth=ComponentAuth(get_system_token()))

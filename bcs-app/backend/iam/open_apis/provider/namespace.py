@@ -62,6 +62,7 @@ class NamespaceProvider(ResourceProvider):
     def _calc_iam_cluster_ns(self, iam_ns_id_list: List[str]) -> Dict[str, str]:
         """
         计算出 iam_ns_id 和命名空间名称的映射表
+
         :param iam_ns_id_list: iam_ns_id 列表
         :return 映射表 {iam_ns_id: 命名空间名} 如 {'BCS-K8S-40000:test-default': 'test-default'}
         """

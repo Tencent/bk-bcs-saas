@@ -25,22 +25,26 @@ class TemplatesetProvider(ResourceProvider):
     def list_instance(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         """
         获取模板集列表
+
         :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
         :param page_obj: 分页对象
+        :return: ListResult 类型的实例列表
         """
-        template_list = list(Template.objects.filter(project_id=filter_obj.parent['id']).values('id', 'name'))
-        template_slice = template_list[page_obj.slice_from : page_obj.slice_to]
+        template_qset = Template.objects.filter(project_id=filter_obj.parent['id']).values('id', 'name')
+        template_slice = template_qset[page_obj.slice_from : page_obj.slice_to]
         results = [{'id': template['id'], 'display_name': template['name']} for template in template_slice]
-        return ListResult(results=results, count=len(template_list))
+        return ListResult(results=results, count=template_qset.count())
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
         """
         批量获取模板集属性详情
+
         :param filter_obj: 查询参数
+        :return: ListResult 类型的实例列表
         """
-        template_list = list(Template.objects.filter(id__in=filter_obj.ids).values('id', 'name'))
-        results = [{'id': template['id'], 'display_name': template['name']} for template in template_list]
-        return ListResult(results=results, count=len(template_list))
+        template_qset = Template.objects.filter(id__in=filter_obj.ids).values('id', 'name')
+        results = [{'id': template['id'], 'display_name': template['name']} for template in template_qset]
+        return ListResult(results=results, count=template_qset.count())
 
     def list_instance_by_policy(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         return ListResult(results=[], count=0)
