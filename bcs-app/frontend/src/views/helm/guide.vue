@@ -51,7 +51,8 @@
              */
             async init () {
                 const projectId = this.$route.params.projectId
-                const markdown = await this.$store.dispatch('helm/getQuestionsMD', projectId)
+                const res = await this.$store.dispatch('helm/getQuestionsMD', projectId).catch(() => ({ data: { content: '' } }))
+                const markdown = res.data.content
                 const md = new MarkdownIt({
                     linkify: false
                 })
