@@ -8,7 +8,7 @@
         <!-- 权限弹窗 -->
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
         <!-- 登录弹窗 -->
-        <BkPaaSLogin ref="login"></BkPaaSLogin>
+        <BkPaaSLogin ref="login" :width="width" :height="height"></BkPaaSLogin>
     </div>
 </template>
 <script>
@@ -39,6 +39,12 @@
             },
             curProjectCode () {
                 return this.$store.state.curProjectCode
+            },
+            width () {
+                return this.$INTERNAL ? 700 : 400
+            },
+            height () {
+                return this.$INTERNAL ? 510 : 400
             }
         },
         created () {
@@ -49,6 +55,11 @@
             })
             bus.$on('close-login-modal', () => {
                 window.location.reload()
+            })
+            window.addEventListener('message', (event) => {
+                if (event.data === 'closeLoginModal') {
+                    window.location.reload()
+                }
             })
             this.initBcsBaseData()
         },

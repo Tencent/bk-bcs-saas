@@ -16,7 +16,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
 const threadLoader = require('thread-loader')
-
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
 const manifest = require('../static/lib-manifest.json')
@@ -113,6 +113,13 @@ const webpackConfig = merge(baseWebpackConfig, {
         new webpack.HotModuleReplacementPlugin(),
 
         new webpack.NoEmitOnErrorsPlugin(),
+        new CopyWebpackPlugin([
+            {
+                from: resolve(__dirname, '../login_success.html'),
+                to: config.dev.assetsSubDirectory,
+                ignore: ['.*']
+            }
+        ]),
 
         new HtmlWebpackPlugin({
             filename: 'index.html',
