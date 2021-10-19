@@ -12,14 +12,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Tuple
-
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 
 from backend.components.paas_auth import get_access_token
 from backend.utils import FancyDict
 from backend.utils.authentication import JWTClient, JWTUser
+from backend.utils.whitelist import check_bk_app_trusted
 
 from . import constants
 
@@ -37,7 +36,7 @@ class JWTAndTokenAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed(f"invalid {constants.APIGW_JWT_KEY_NAME}")
 
         username = client.user.username
-        if not username and client.app.app_code in constants.trusted_app_list:
+        if not username and check_bk_app_trusted(client.app.app_code):
             username = request.META.get(constants.USERNAME_KEY_NAME, "")
 
         user = JWTUser(username=username)
