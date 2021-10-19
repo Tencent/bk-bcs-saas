@@ -27,7 +27,6 @@ import log from '@/store/modules/log'
 import hpa from '@/store/modules/hpa'
 import storage from '@/store/modules/storage'
 import dashboard from '@/store/modules/dashboard'
-import menuConfig from '@/store/menu'
 import { projectFeatureFlag } from '@/api/base'
 
 Vue.use(Vuex)
@@ -88,7 +87,8 @@ const store = new Vuex.Store({
         // 功能开关
         featureFlag: {},
         viewMode: '',
-        curMenuId: ''
+        curMenuId: '',
+        menuList: []
     },
     // 公共 getters
     getters: {
@@ -98,8 +98,7 @@ const store = new Vuex.Store({
         featureFlag: state => state.featureFlag,
         curNavName: state => {
             let navName = ''
-            const menuList = state.viewMode === 'dashboard' ? menuConfig.dashboardMenuList : menuConfig.k8sMenuList
-            menuList.find(menu => {
+            state.menuList.find(menu => {
                 if (menu?.id === state.curMenuId) {
                     navName = menu?.routeName
                     return true
@@ -114,7 +113,8 @@ const store = new Vuex.Store({
         },
         curProjectCode: state => state.curProjectCode,
         curProjectId: state => state.curProjectId,
-        curClusterId: state => state.curClusterId
+        curClusterId: state => state.curClusterId,
+        menuList: state => state.menuList
     },
     // 公共 mutations
     mutations: {
@@ -238,6 +238,9 @@ const store = new Vuex.Store({
         },
         updateCurMenuId (state, id) {
             state.curMenuId = id
+        },
+        updateMenuList (state, menu = []) {
+            state.menuList = menu
         }
     },
     actions: {
