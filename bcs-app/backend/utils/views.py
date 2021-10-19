@@ -402,5 +402,6 @@ class LoginSuccessView(APIView):
 
     @xframe_options_exempt
     def get(self, request):
-        context = {"SESSION_COOKIE_DOMAIN": settings.SESSION_COOKIE_DOMAIN}
+        # 去除开头的 . document.domain需要
+        context = {"SESSION_COOKIE_DOMAIN": settings.SESSION_COOKIE_DOMAIN.lstrip(".")}
         return Response(context)
