@@ -120,7 +120,7 @@
                                             :style="{ width: !clusterOverviewMap[cluster.cluster_id] ? '0%' : `${getMetricPercent(cluster, item)}%` }"></div>
                                     </div>
                                 </div>
-                                <bk-button class="add-node-btn" @click="goOverview(cluster)">
+                                <bk-button class="add-node-btn" @click="goNodeInfo(cluster)">
                                     <span>{{$t('添加节点')}}</span>
                                 </bk-button>
                             </template>
@@ -483,6 +483,24 @@
                     }
                 })
             }
+            // 跳转添加节点界面
+            const goNodeInfo = async (cluster) => {
+                if (!cluster.permissions.view) {
+                    await $store.dispatch('getResourcePermissions', {
+                        project_id: curProjectId.value,
+                        policy_code: 'view',
+                        resource_code: cluster.cluster_id,
+                        resource_name: cluster.name,
+                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
+                    })
+                }
+                $router.push({
+                    name: 'clusterNode',
+                    params: {
+                        clusterId: cluster.cluster_id
+                    }
+                })
+            }
             // 跳转集群信息界面
             const goClusterInfo = async (cluster) => {
                 if (!cluster.permissions.view) {
@@ -689,6 +707,7 @@
                 getMetricPercent,
                 handleShowProjectConf,
                 goCreateCluster,
+                goNodeInfo,
                 goOverview,
                 goClusterInfo,
                 clusterNoticeList,
