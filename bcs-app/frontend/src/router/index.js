@@ -20,6 +20,7 @@ import HPARoutes from './hpa'
 import crdController from './crdcontroller.js'
 import storageRoutes from './storage'
 import dashboardRoutes from './dashboard'
+import menuConfig from '@/store/menu'
 
 Vue.use(VueRouter)
 
@@ -103,7 +104,8 @@ router.afterEach((to, from) => {
     // 设置左侧菜单栏选中项
     let activeMenuId = to.meta?.menuId // 1. 是否指定了菜单ID
     if (!activeMenuId) { // 2. 在菜单配置中查找当前路由对应的菜单ID
-        store.state.menuList.find(menu => {
+        const menuList = to.meta.isDashboard ? menuConfig.dashboardMenuList : menuConfig.k8sMenuList
+        menuList.find(menu => {
             if (menu?.routeName === to.name) {
                 activeMenuId = menu?.id
                 return true

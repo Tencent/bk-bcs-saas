@@ -120,13 +120,8 @@
             }
 
             // 菜单列表
-            const curProject = computed(() => {
-                return $store.state.curProject
-            })
-            watch([curProject, viewMode], () => {
-                if (curProject.value?.kind === 2) {
-                    $store.commit('updateMenuList', [])
-                } else if (viewMode.value === 'dashboard') {
+            watch(viewMode, () => {
+                if (viewMode.value === 'dashboard') {
                     $store.commit('updateMenuList', menuConfig.dashboardMenuList)
                 } else {
                     $store.commit('updateMenuList', menuConfig.k8sMenuList)
