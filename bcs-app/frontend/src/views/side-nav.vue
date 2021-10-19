@@ -144,18 +144,29 @@
                 }
                 return $store.state.curMenuId
             })
+            const projectCode = computed(() => {
+                return $store.state.curProjectCode
+            })
+            const projectId = computed(() => {
+                return $store.state.curProjectId
+            })
             // 菜单切换
             const handleMenuChange = (item: IMenuItem) => {
                 // 直接取$route会存在缓存，需要重新从root上获取最新路由信息
                 if (ctx.root.$route.name === item.routeName) return
 
-                $router.push({
-                    name: item.routeName,
-                    params: {
-                        // eslint-disable-next-line camelcase
-                        clusterId: curCluster.value?.cluster_id
-                    }
-                })
+                if (item.id === 'MONITOR') {
+                    // 特殊处理监控中心
+                    window.open(`${window.DEVOPS_HOST}/console/monitor/${projectCode.value}/?project_id=${projectId.value}`)
+                } else {
+                    $router.push({
+                        name: item.routeName,
+                        params: {
+                            // eslint-disable-next-line camelcase
+                            clusterId: curCluster.value?.cluster_id
+                        }
+                    })
+                }
             }
 
             return {
