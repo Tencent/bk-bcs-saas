@@ -394,5 +394,13 @@ class VueTemplateView(APIView):
         return Response(context, headers=headers)
 
 
-class LoginSuccessView(VueTemplateView):
+class LoginSuccessView(APIView):
     template_name = f"{settings.REGION}/login_success.html"
+    renderer_classes = [TemplateHTMLRenderer]
+    # 去掉权限控制
+    permission_classes = ()
+
+    @xframe_options_exempt
+    def get(self, request):
+        context = {"SESSION_COOKIE_DOMAIN": settings.SESSION_COOKIE_DOMAIN}
+        return Response(context)
