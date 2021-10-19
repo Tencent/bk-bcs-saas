@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts">
-    import { defineComponent, computed, ref } from '@vue/composition-api'
+    import { defineComponent, computed, ref, watch } from '@vue/composition-api'
     import SideMenu from '@/components/menu/index.vue'
     import clusterSelector from '@/components/cluster-selector/index.vue'
     import menuConfig, { IMenuItem, ISpecialMenuItem } from '@/store/menu'
@@ -120,13 +120,27 @@
             }
 
             // 菜单列表
+            const curProject = computed(() => {
+                return $store.state.curProject
+            })
+            watch([curProject, viewMode], () => {
+                if (curProject.value?.kind === 2) {
+                    $store.commit('updateMenuList', [])
+                } else if (viewMode.value === 'dashboard') {
+                    $store.commit('updateMenuList', menuConfig.dashboardMenuList)
+                } else {
+                    $store.commit('updateMenuList', menuConfig.k8sMenuList)
+                }
+            }, { immediate: true })
+
             const featureFlag = computed(() => {
                 return $store.getters.featureFlag || {}
             })
-            const { k8sMenuList, dashboardMenuList } = menuConfig
+            const menuConfigList = computed<IMenuItem[]>(() => {
+                return $store.state.menuList
+            })
             const menuList = computed(() => {
-                const menuList = viewMode.value === 'dashboard' ? dashboardMenuList : k8sMenuList
-                return menuList.reduce<(IMenuItem | ISpecialMenuItem)[]>((pre, item) => {
+                return menuConfigList.value.reduce<(IMenuItem | ISpecialMenuItem)[]>((pre, item) => {
                     if (item.id && featureFlag.value[item.id]) {
                         pre.push(item)
                     } else if (!item.id) {
