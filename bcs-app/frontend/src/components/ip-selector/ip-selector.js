@@ -2777,7 +2777,7 @@
       style: {
         width: isNaN(_vm.leftPanelWidth) ? _vm.leftPanelWidth : _vm.leftPanelWidth + "px"
       }
-    }, [_c('bk-input', {
+    }, [_c('bcs-input', {
       staticClass: "ip-text",
       attrs: {
         "placeholder": _vm.$t('多个IP以回车为分隔符'),
@@ -2862,7 +2862,7 @@
   var __vue_inject_styles__$8 = undefined;
   /* scoped */
 
-  var __vue_scope_id__$8 = "data-v-d400cd16";
+  var __vue_scope_id__$8 = "data-v-9564f676";
   /* module identifier */
 
   var __vue_module_identifier__$8 = undefined;
