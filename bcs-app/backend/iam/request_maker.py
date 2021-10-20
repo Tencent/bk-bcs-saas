@@ -12,8 +12,18 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from .cluster import ClusterPermCtx, ClusterPermission, ClusterRequest
-from .constants import ResourceType
-from .namespace import NamespacePermCtx, NamespacePermission, NamespaceRequest
-from .project import ProjectPermCtx, ProjectPermission, ProjectRequest
-from .templateset import TemplatesetPermCtx, TemplatesetPermission, TemplatesetRequest
+import logging
+
+from django.utils.module_loading import import_string
+
+from .perm_maker import make_perm_ctx
+from .permissions.request import ResourceRequest
+
+logger = logging.getLogger(__name__)
+
+
+def make_res_request(res_type: str, **ctx_kwargs) -> ResourceRequest:
+    p_module_name = __name__.rsplit('.', 1)[0]
+    res_request_cls = import_string(f'{p_module_name}.permissions.resources.{res_type.capitalize()}Request')
+    perm_ctx = make_perm_ctx(res_type, **ctx_kwargs)
+    return res_request_cls(perm_ctx.resource_id, **ctx_kwargs)

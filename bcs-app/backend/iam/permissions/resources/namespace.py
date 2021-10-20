@@ -21,17 +21,28 @@ from backend.iam.permissions.exceptions import AttrValidationError
 from backend.iam.permissions.perm import PermCtx, Permission
 from backend.iam.permissions.request import IAMResource, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+from backend.utils.basic import md5_digest
 
 from .cluster import ClusterPermission, related_cluster_perm
 from .constants import ResourceType
 
 
-def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int = 32) -> Optional[str]:
+def calc_iam_ns_id(cluster_id: str, name: str) -> Optional[str]:
     """
-    计算出注册到权限中心的命名空间ID，具备唯一性.
-    TODO 下一个 PR 中实现，方便 review
+    计算(压缩)出注册到权限中心的命名空间 ID，具备唯一性. 当前的算法并不能完全避免冲突，但概率较低。
+    note: 权限中心对资源 ID 有长度限制，不超过32位。长度越长，处理性能越低
+
+    :param cluster_id: 集群 ID
+    :param name: 命名空间名，k8s 限定最长63个字符
+    :return: iam_ns_id 是命名空间注册到权限中心的资源 ID，它是对结构`集群ID:命名空间name`的一个压缩，
+             如 `BCS-K8S-40000:default` 会被处理成 `40000:5f03d33dde`。其中，保留集群数字 ID 的目的是用于
+             NamespaceProvider 中的 fetch_instance_info 方法
     """
-    return "default"
+    cluster_idx = cluster_id.split('-')[-1]
+    iam_ns_id = f'{cluster_idx}:{md5_digest(name)[8:16]}{name[:2]}'
+    if len(iam_ns_id) > 32:
+        raise ValueError(f'iam_ns_id({iam_ns_id}) more than 32 characters')
+    return iam_ns_id
 
 
 class NamespaceAction(str, StructuredEnum):
@@ -51,11 +62,19 @@ class NamespacePermCtx(PermCtx):
 
     def __attrs_post_init__(self):
         """权限中心的 resource_id 长度限制为32位"""
-        self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
+        if self.name:
+            self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
 
     @property
     def resource_id(self) -> str:
         return self.iam_ns_id
+
+    def validate(self):
+        super().validate()
+        if not self.project_id:
+            raise AttrValidationError('project_id must not be empty')
+        if not self.cluster_id:
+            raise AttrValidationError('cluster_id must not be empty')
 
 
 class NamespaceRequest(ResourceRequest):

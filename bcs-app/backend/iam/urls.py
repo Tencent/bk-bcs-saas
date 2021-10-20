@@ -12,8 +12,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from .cluster import ClusterPermCtx, ClusterPermission, ClusterRequest
-from .constants import ResourceType
-from .namespace import NamespacePermCtx, NamespacePermission, NamespaceRequest
-from .project import ProjectPermCtx, ProjectPermission, ProjectRequest
-from .templateset import TemplatesetPermCtx, TemplatesetPermission, TemplatesetRequest
+from django.conf.urls import url
+
+from . import views
+
+urlpatterns = [
+    url(r'^user_perms/$', views.UserPermsViewSet.as_view({'post': 'get_perms'})),
+    url(
+        r'^user_perms/actions/(?P<action_id>[\w]+)/$',
+        views.UserPermsViewSet.as_view({'post': 'get_perm_by_action_id'}),
+    ),
+]

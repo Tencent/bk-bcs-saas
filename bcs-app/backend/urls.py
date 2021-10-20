@@ -30,6 +30,7 @@ urlpatterns = [
             ("backend.container_service.projects.urls", "backend.container_service.projects"), namespace="projects"
         ),
     ),
+    url(r"^api/iam/", include("backend.iam.urls")),
     # 仓库管理
     url(r"^", include("backend.container_service.misc.depot.urls")),
     # 集群管理

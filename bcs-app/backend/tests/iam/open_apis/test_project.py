@@ -16,6 +16,7 @@ import mock
 import pytest
 from rest_framework.test import APIRequestFactory
 
+from backend.iam.open_apis.constants import MethodType, ResourceType
 from backend.iam.open_apis.views import ResourceAPIView
 from backend.tests.bcs_mocks.misc import FakePaaSCCMod
 
@@ -31,7 +32,8 @@ def patch_paas_cc():
 class TestProjectAPI:
     def test_list_instance(self):
         request = factory.post(
-            '/apis/iam/v1/projects/', {'method': 'list_instance', 'type': 'project', 'page': {'offset': 0, 'limit': 1}}
+            '/apis/iam/v1/projects/',
+            {'method': MethodType.LIST_INSTANCE, 'type': ResourceType.Project, 'page': {'offset': 0, 'limit': 1}},
         )
         p_view = ResourceAPIView.as_view()
         response = p_view(request)
@@ -43,8 +45,8 @@ class TestProjectAPI:
         request = factory.post(
             '/apis/iam/v1/projects/',
             {
-                'method': 'fetch_instance_info',
-                'type': 'project',
+                'method': MethodType.FETCH_INSTANCE_INFO,
+                'type': ResourceType.Project,
                 'filter': {'ids': [project_id]},
             },
         )

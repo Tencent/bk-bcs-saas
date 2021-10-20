@@ -12,54 +12,53 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import mock
 import pytest
 from rest_framework.test import APIRequestFactory
 
 from backend.iam.open_apis.constants import MethodType, ResourceType
 from backend.iam.open_apis.views import ResourceAPIView
-from backend.iam.permissions.resources.namespace import calc_iam_ns_id
-from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
+from backend.templatesets.legacy_apps.configuration import models
+
+pytestmark = pytest.mark.django_db
 
 factory = APIRequestFactory()
 
 
-@pytest.fixture(autouse=True)
-def patch_paas_cc():
-    with mock.patch('backend.iam.open_apis.providers.namespace.PaaSCCClient', new=StubPaaSCCClient):
-        yield
+@pytest.fixture
+def template_qsets(project_id):
+    template1 = models.Template.objects.create(project_id=project_id, name='nginx-test')
+    template2 = models.Template.objects.create(project_id=project_id, name='redis-test')
+    return [template1, template2]
 
 
-class TestNamespaceAPI:
-    def test_list_instance(self, cluster_id):
+class TestTemplatesetAPI:
+    def test_list_instance(self, project_id, template_qsets):
         request = factory.post(
-            '/apis/iam/v1/namespaces/',
+            '/apis/iam/v1/templatesets/',
             {
                 'method': MethodType.LIST_INSTANCE,
-                'type': ResourceType.Namespace,
+                'type': ResourceType.Templateset,
                 'page': {'offset': 0, 'limit': 1},
-                'filter': {'parent': {'id': cluster_id}},
+                "filter": {'parent': {'id': project_id}},
             },
         )
         p_view = ResourceAPIView.as_view()
         response = p_view(request)
         data = response.data
-        assert data['count'] == 1
-        assert data['results'][0]['display_name'] == 'default'
+        assert data['count'] == 2
+        assert data['results'][0]['display_name'] in ['nginx-test', 'redis-test']
 
-    def test_fetch_instance_info(self, cluster_id):
-        iam_ns_id = calc_iam_ns_id(cluster_id, 'default')
+    def test_fetch_instance_info_with_tplset_ids(self, template_qsets):
         request = factory.post(
-            '/apis/iam/v1/namespaces/',
+            '/apis/iam/v1/templatesets/',
             {
-                'method': MethodType.FETCH_INSTANCE_INFO,
-                'type': ResourceType.Namespace,
-                'filter': {'ids': [iam_ns_id]},
+                'method': 'fetch_instance_info',
+                'type': 'templateset',
+                'page': {'offset': 0, 'limit': 1},
+                "filter": {'ids': [template_qsets[0].id]},
             },
         )
         p_view = ResourceAPIView.as_view()
         response = p_view(request)
         data = response.data
         assert len(data) == 1
-        assert data[0]['id'] == iam_ns_id
-        assert data[0]['display_name'] == 'default'
