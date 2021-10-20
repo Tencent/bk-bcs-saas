@@ -18,6 +18,7 @@ from rest_framework.test import APIRequestFactory
 
 from backend.iam.open_apis.constants import MethodType, ResourceType
 from backend.iam.open_apis.views import ResourceAPIView
+from backend.iam.permissions.resources.namespace import calc_iam_ns_id
 from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 
 factory = APIRequestFactory()
@@ -25,19 +26,19 @@ factory = APIRequestFactory()
 
 @pytest.fixture(autouse=True)
 def patch_paas_cc():
-    with mock.patch('backend.iam.open_apis.provider.namespace.PaaSCCClient', new=StubPaaSCCClient):
+    with mock.patch('backend.iam.open_apis.providers.namespace.PaaSCCClient', new=StubPaaSCCClient):
         yield
 
 
 class TestNamespaceAPI:
-    def test_list_instance(self, project_id):
+    def test_list_instance(self, cluster_id):
         request = factory.post(
             '/apis/iam/v1/namespaces/',
             {
                 'method': MethodType.LIST_INSTANCE,
                 'type': ResourceType.Namespace,
                 'page': {'offset': 0, 'limit': 1},
-                'filter': {'parent': {'id': project_id}},
+                'filter': {'parent': {'id': cluster_id}},
             },
         )
         p_view = ResourceAPIView.as_view()
@@ -47,18 +48,18 @@ class TestNamespaceAPI:
         assert data['results'][0]['display_name'] == 'default'
 
     def test_fetch_instance_info(self, cluster_id):
-        fetch_id = f'{cluster_id}:default'
+        iam_ns_id = calc_iam_ns_id(cluster_id, 'default')
         request = factory.post(
             '/apis/iam/v1/namespaces/',
             {
                 'method': MethodType.FETCH_INSTANCE_INFO,
                 'type': ResourceType.Namespace,
-                'filter': {'ids': [fetch_id]},
+                'filter': {'ids': [iam_ns_id]},
             },
         )
         p_view = ResourceAPIView.as_view()
         response = p_view(request)
         data = response.data
         assert len(data) == 1
-        assert data[0]['id'] == fetch_id
+        assert data[0]['id'] == iam_ns_id
         assert data[0]['display_name'] == 'default'

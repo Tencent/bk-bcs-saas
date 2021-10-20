@@ -12,12 +12,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import importlib
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Type
 
 import wrapt
+from django.utils.module_loading import import_string
 from rest_framework.exceptions import ValidationError
 
 from backend.utils.basic import str2bool
@@ -63,14 +63,10 @@ class RelatedPermission(metaclass=ABCMeta):
 
     def _gen_perm_obj(self) -> PermPermission:
         """获取权限类实例，如 project.ProjectPermission"""
-        p_module_name = __name__[: __name__.rfind(".")]
-        try:
-            return getattr(
-                importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
-                f'{self.module_name.capitalize()}Permission',
-            )()
-        except (ModuleNotFoundError, AttributeError) as e:
-            logger.error('_gen_perm_obj error: %s', e)
+        p_module_name = __name__.rsplit('.', 1)[0]
+        return import_string(
+            f'{p_module_name}.resources.{self.module_name}.{self.module_name.capitalize()}Permission'
+        )()
 
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
@@ -124,14 +120,10 @@ class Permission:
 
     def _gen_perm_obj(self) -> PermPermission:
         """获取权限类实例，如 project.ProjectPermission"""
-        p_module_name = __name__[: __name__.rfind(".")]
-        try:
-            return getattr(
-                importlib.import_module(f'{p_module_name}.resources.{self.module_name}'),
-                f'{self.module_name.capitalize()}Permission',
-            )()
-        except (ModuleNotFoundError, AttributeError) as e:
-            logger.error('_gen_perm_obj error: %s', e)
+        p_module_name = __name__.rsplit('.', 1)[0]
+        return import_string(
+            f'{p_module_name}.resources.{self.module_name}.{self.module_name.capitalize()}Permission'
+        )()
 
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
@@ -157,35 +149,35 @@ class response_perms:
 
     def __init__(
         self,
-        action_id_list: List[str],
+        action_ids: List[str],
         res_request_cls: Type[ResourceRequest],
         resource_id_key: str = 'id',
-        auto_add: bool = False,
+        force_add: bool = False,
     ):
         """
-        :param action_id_list: 权限 action_id 列表
+        :param action_ids: 权限 action_id 列表
         :param res_request_cls: 对应资源的 ResourceRequest 类, 如 ClusterRequest
         :param resource_id_key: 示例, 如果 resource_data = [{'cluster_id': 'BCS-K8S-40000'}],
                                 那么 resource_id_key 设置为 cluster_id，其中 BCS-K8S-40000 是注册到权限中心的集群 ID
-        :param auto_add: 是否自动添加权限数据到 web_annotations 中。如果为 True, 则忽略请求中的 with_perms 参数, 主动添加权限数据
+        :param force_add: 是否强制添加权限数据到 web_annotations 中。如果为 True, 则忽略请求中的 with_perms 参数, 主动添加权限数据
         """
-        self.action_id_list = action_id_list
+        self.action_ids = action_ids
         self.res_request_cls = res_request_cls
         self.resource_id_key = resource_id_key
-        self.auto_add = auto_add
+        self.force_add = force_add
 
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
         resp = wrapped(*args, **kwargs)
         if not isinstance(resp, PermsResponse):
-            raise ValueError('response_perms decorator only support PermsResponse')
+            raise TypeError('response_perms decorator only support PermsResponse')
 
         if not resp.resource_data:
             return resp
 
         request = args[0]
         with_perms = True
-        if not self.auto_add:  # 根据前端请求，决定是否返回权限数据
+        if not self.force_add:  # 根据前端请求，决定是否返回权限数据
             with_perms = str2bool(request.query_params.get('with_perms', True))
 
         if not with_perms:
@@ -193,11 +185,9 @@ class response_perms:
 
         perms = self._calc_perms(request, resp)
 
-        if hasattr(resp, "web_annotations"):
-            resp.web_annotations = resp.web_annotations or {}
-            resp.web_annotations.update({"perms": perms})
-        else:
-            resp.web_annotations = {"perms": perms}
+        annots = getattr(resp, 'web_annotations', None) or {}
+        resp.web_annotations = {"perms": perms, **annots}
+
         return resp
 
     def _calc_perms(self, request, resp: PermsResponse) -> Dict[str, Dict[str, bool]]:
@@ -208,7 +198,8 @@ class response_perms:
 
         try:
             iam_path_attrs = {'project_id': request.project.project_id}
-        except Exception:
+        except Exception as e:
+            logger.error('create iam_path_attrs failed: %s', e)
             iam_path_attrs = {}
 
         iam_path_attrs.update(resp.iam_path_attrs)
@@ -216,7 +207,7 @@ class response_perms:
             client = IAMClient()
             return client.batch_resource_multi_actions_allowed(
                 request.user.username,
-                self.action_id_list,
+                self.action_ids,
                 self.res_request_cls(res, **iam_path_attrs),
             )
         except AttrValidationError as e:

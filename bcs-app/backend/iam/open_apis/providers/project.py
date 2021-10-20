@@ -16,37 +16,30 @@ from iam.collection import FancyDict
 from iam.resource.provider import ListResult, ResourceProvider
 from iam.resource.utils import Page
 
-from backend.templatesets.legacy_apps.configuration.models import Template
+from backend.container_service.projects.base import list_projects
+
+from .utils import get_system_token
 
 
-class TemplatesetProvider(ResourceProvider):
-    """模板集 Provider"""
+class ProjectProvider(ResourceProvider):
+    """项目 Provider"""
 
     def list_instance(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
-        """
-        获取模板集列表
-
-        :param filter_obj: 查询参数。 以下为必传如: {"parent": {"id": 1}}
-        :param page_obj: 分页对象
-        :return: ListResult 类型的实例列表
-        """
-        template_qset = Template.objects.filter(project_id=filter_obj.parent['id']).values('id', 'name')
-        template_slice = template_qset[page_obj.slice_from : page_obj.slice_to]
-        results = [{'id': template['id'], 'display_name': template['name']} for template in template_slice]
-        return ListResult(results=results, count=template_qset.count())
+        projects = list_projects(get_system_token())
+        results = [
+            {'id': p['project_id'], 'display_name': p['project_name']}
+            for p in projects[page_obj.slice_from : page_obj.slice_to]
+        ]
+        return ListResult(results=results, count=len(projects))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
-        """
-        批量获取模板集属性详情
-
-        :param filter_obj: 查询参数
-        :return: ListResult 类型的实例列表
-        """
-        template_qset = Template.objects.filter(id__in=filter_obj.ids).values('id', 'name')
-        results = [{'id': template['id'], 'display_name': template['name']} for template in template_qset]
-        return ListResult(results=results, count=template_qset.count())
+        query_params = {'project_ids': ','.join(filter_obj.ids)}
+        projects = list_projects(get_system_token(), query_params)
+        results = [{'id': p['project_id'], 'display_name': p['project_name']} for p in projects]
+        return ListResult(results=results, count=len(results))
 
     def list_instance_by_policy(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
+        # TODO 确认基于实例的查询是不是就是id的过滤查询
         return ListResult(results=[], count=0)
 
     def list_attr(self, **options) -> ListResult:

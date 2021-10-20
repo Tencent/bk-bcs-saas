@@ -100,16 +100,12 @@ class FakeTemplatesetPermission(Permission):
 
 class FakeIAMClient:
     def resource_type_allowed(self, username: str, action_id: str, use_cache: bool = False) -> bool:
-        if action_id == 'project_create':
-            return True
-        return False
+        return action_id == 'project_create'
 
     def resource_inst_allowed(
         self, username: str, action_id: str, res_request: ResourceRequest, use_cache: bool = False
     ) -> bool:
-        if action_id in ['cluster_create', 'cluster_view']:
-            return True
-        return False
+        return action_id in ['cluster_create', 'cluster_view']
 
     def resource_type_multi_actions_allowed(self, username: str, action_ids: List[str]) -> Dict[str, bool]:
         return {action_id: self.resource_type_allowed(username, action_id) for action_id in action_ids}
@@ -134,8 +130,8 @@ class FakeIAMClient:
 
         perms = {}
 
-        for indx, r_id in enumerate(res):
-            if indx % 2 == 0:
+        for idx, r_id in enumerate(res):
+            if idx % 2 == 0:
                 p = {action_id: False for action_id in action_ids}
             else:
                 p = {action_id: True for action_id in action_ids}

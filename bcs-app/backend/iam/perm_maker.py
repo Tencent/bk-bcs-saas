@@ -12,8 +12,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import importlib
 import logging
+
+from django.utils.module_loading import import_string
 
 from .permissions.exceptions import AttrValidationError
 from .permissions.perm import PermCtx, Permission
@@ -23,19 +24,13 @@ logger = logging.getLogger(__name__)
 
 def make_perm_ctx(res_type: str, username: str = 'anonymous', **ctx_kwargs) -> PermCtx:
     """根据资源类型，生成对应的 PermCtx"""
-    p_module_name = __name__[: __name__.rfind(".")]
-    try:
-        perm_ctx_cls = getattr(
-            importlib.import_module(f'{p_module_name}.permissions.resources'), f'{res_type.capitalize()}PermCtx'
-        )
-    except (ModuleNotFoundError, AttributeError) as e:
-        logger.error('make_perm_ctx error: %s', e)
-        raise
+    p_module_name = __name__.rsplit('.', 1)[0]
+    perm_ctx_cls = import_string(f'{p_module_name}.permissions.resources.{res_type.capitalize()}PermCtx')
 
     try:
         perm_ctx = perm_ctx_cls(username=username, **ctx_kwargs)
     except TypeError as e:
-        logger.exception(e)
+        logger.error(e)
         raise AttrValidationError("perm ctx got an unexpected init argument")
 
     perm_ctx.validate()
@@ -44,12 +39,6 @@ def make_perm_ctx(res_type: str, username: str = 'anonymous', **ctx_kwargs) -> P
 
 def make_res_permission(res_type: str) -> Permission:
     """根据资源类型，生成对应的 Permission"""
-    p_module_name = __name__[: __name__.rfind(".")]
-    try:
-        perm_cls = getattr(
-            importlib.import_module(f'{p_module_name}.permissions.resources'), f'{res_type.capitalize()}Permission'
-        )
-        return perm_cls()
-    except (ModuleNotFoundError, AttributeError) as e:
-        logger.error('make_res_permission error: %s', e)
-        raise
+    p_module_name = __name__.rsplit('.', 1)[0]
+    perm_cls = import_string(f'{p_module_name}.permissions.resources.{res_type.capitalize()}Permission')
+    return perm_cls()

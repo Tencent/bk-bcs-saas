@@ -51,7 +51,7 @@ class TemplatesetPermCtx(PermCtx):
     def validate(self):
         super().validate()
         if not self.project_id:
-            raise AttrValidationError(f'invalid project_id:({self.project_id})')
+            raise AttrValidationError('project_id must not be empty')
 
 
 class TemplatesetRequest(ResourceRequest):

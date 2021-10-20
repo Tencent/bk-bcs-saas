@@ -32,7 +32,7 @@ def patch_paas_cc():
 
 @pytest.fixture(autouse=True)
 def patch_paas_cc_client():
-    with mock.patch('backend.iam.open_apis.provider.cluster.PaaSCCClient', new=StubPaaSCCClient):
+    with mock.patch('backend.iam.open_apis.providers.cluster.PaaSCCClient', new=StubPaaSCCClient):
         yield
 
 

@@ -41,7 +41,7 @@ class ClusterViewset(viewsets.SystemViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     @response_perms(
-        action_id_list=['cluster_view', 'cluster_manage'], res_request_cls=ClusterRequest, resource_id_key='cluster_id'
+        action_ids=['cluster_view', 'cluster_manage'], res_request_cls=ClusterRequest, resource_id_key='cluster_id'
     )
     def get_clusters(self, request):
         return PermsResponse(cluster_data, iam_path_attrs={'project_id': generate_random_string(32)})

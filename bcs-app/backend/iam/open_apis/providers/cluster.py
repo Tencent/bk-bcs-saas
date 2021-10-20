@@ -21,7 +21,8 @@ from iam.resource.utils import Page
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
 from backend.container_service.clusters.base import get_clusters
-from backend.iam.open_apis.provider.utils import get_system_token
+
+from .utils import get_system_token
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,12 @@ class ClusterProvider(ResourceProvider):
         :param page_obj: 分页对象
         :return: ListResult 类型的实例列表
         """
-        project_id = filter_obj.parent["id"]
+        project_id = filter_obj.parent['id']
         cluster_list = get_clusters(get_system_token(), project_id)
-        cluster_slice = cluster_list[page_obj.slice_from : page_obj.slice_to]
-        results = [{'id': cluster['cluster_id'], 'display_name': cluster['name']} for cluster in cluster_slice]
+        results = [
+            {'id': cluster['cluster_id'], 'display_name': cluster['name']}
+            for cluster in cluster_list[page_obj.slice_from : page_obj.slice_to]
+        ]
         return ListResult(results=results, count=len(cluster_list))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:
