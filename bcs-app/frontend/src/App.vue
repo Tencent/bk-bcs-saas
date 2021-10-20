@@ -1,20 +1,21 @@
 <template>
     <div :class="systemCls" v-bkloading="{ isLoading, opacity: 1 }">
         <Navigation @create-project="handleCreateProject">
-            <router-view :key="routerKey" v-if="!isLoading" />
+            <router-view :key="routerKey" v-if="!isLoading && !err" />
         </Navigation>
         <!-- 项目创建弹窗 -->
         <ProjectCreate v-model="showCreateDialog"></ProjectCreate>
         <!-- 权限弹窗 -->
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
         <!-- 登录弹窗 -->
-        <BkPaaSLogin ref="login"></BkPaaSLogin>
+        <BkPaaSLogin ref="login" :width="width" :height="height"></BkPaaSLogin>
     </div>
 </template>
 <script>
     import Navigation from '@/views/navigation.vue'
     import ProjectCreate from '@/views/project/project-create.vue'
     import BkPaaSLogin from '@blueking/paas-login'
+    import { bus } from '@/common/bus'
 
     export default {
         name: 'app',
@@ -22,7 +23,8 @@
         data () {
             return {
                 isLoading: false,
-                showCreateDialog: false
+                showCreateDialog: false,
+                err: null
             }
         },
         computed: {
@@ -34,9 +36,31 @@
             routerKey () {
                 const { projectCode = '' } = this.$route.params
                 return `${projectCode}-${this.$route.meta.isDashboard}`
+            },
+            curProjectCode () {
+                return this.$store.state.curProjectCode
+            },
+            width () {
+                return this.$INTERNAL ? 700 : 400
+            },
+            height () {
+                return this.$INTERNAL ? 510 : 400
             }
         },
         created () {
+            // 权限弹窗弹窗
+            bus.$on('show-apply-perm-modal', (data) => {
+                if (!data) return
+                this.$refs.bkApplyPerm && this.$refs.bkApplyPerm.show(this.curProjectCode, data)
+            })
+            bus.$on('close-login-modal', () => {
+                window.location.reload()
+            })
+            window.addEventListener('message', (event) => {
+                if (event.data === 'closeLoginModal') {
+                    window.location.reload()
+                }
+            })
             this.initBcsBaseData()
         },
         mounted () {
@@ -50,7 +74,9 @@
                 await Promise.all([
                     this.$store.dispatch('userInfo'),
                     this.$store.dispatch('getProjectList')
-                ]).catch((err) => console.log(err))
+                ]).catch((err) => {
+                    this.err = err
+                })
                 this.isLoading = false
             },
             handleCreateProject () {

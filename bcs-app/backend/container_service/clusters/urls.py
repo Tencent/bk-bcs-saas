@@ -79,11 +79,6 @@ urlpatterns = [
         views.NodeUpdateLogView.as_view({'get': 'get'}),
         name='api.projects.node_update_log',
     ),
-    # 单个节点docker版本信息
-    url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/info/',
-        views.NodeInfo.as_view({'get': 'info'}),
-    ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/containers/',
         views.NodeContainers.as_view({'get': 'list'}),

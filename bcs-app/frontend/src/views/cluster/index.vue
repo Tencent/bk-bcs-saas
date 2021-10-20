@@ -3,123 +3,67 @@
         <div class="biz-top-bar">
             <div class="biz-cluster-title">
                 {{$t('集群')}}
-                <template v-if="ccAppName && arrangeType">
-                    <span class="cc-info">（{{$t('业务')}}: {{ccAppName}}&nbsp;&nbsp;&nbsp;{{$t('编排类型')}}: {{arrangeType}}）</span>
-                </template>
-                <a href="javascript:void(0)" class="bk-text-button bk-default f12" @click="showProjectConfDialog">
+                <span class="cc-info">
+                    （{{$t('业务')}}: {{curProject.cc_app_name}}&nbsp;&nbsp;&nbsp;{{$t('编排类型')}}: {{kindMap[curProject.kind]}}）
+                </span>
+                <span class="bk-text-button bk-default f12" @click="handleShowProjectConf">
                     <i class="bcs-icon bcs-icon-edit"></i>
-                </a>
+                </span>
             </div>
             <bk-guide></bk-guide>
         </div>
-        <div class="biz-content-wrapper biz-cluster-wrapper" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
-            <app-exception
-                v-if="exceptionCode && !showLoading"
-                :type="exceptionCode.code"
-                :text="exceptionCode.msg">
-            </app-exception>
-            <template v-if="!exceptionCode && clusterList.length && !showLoading">
-                <div class="cluster-btns" v-if="isK8SProject">
-                    <bk-button theme="primary" icon="plus" @click="gotCreateCluster">{{$t('新建集群')}}</bk-button>
+        <div class="biz-content-wrapper biz-cluster-wrapper" v-bkloading="{ isLoading, color: '#fafbfd' }">
+            <template v-if="clusterList.length">
+                <div class="cluster-btns">
+                    <bk-button theme="primary" icon="plus" @click="goCreateCluster">{{$t('新建集群')}}</bk-button>
                     <apply-host class="ml10" v-if="$INTERNAL" />
                 </div>
-                <div class="biz-cluster-list" :style="{ paddingTop: isK8SProject ? 0 : '30px' }">
-                    <div class="biz-cluster" v-for="(cluster, clusterIndex) in clusterList.filter(item => item && (item.cluster_id !== 'all'))" :key="clusterIndex">
-                        <!-- 异常状态 -->
-                        <div class="bk-mark-corner bk-warning" v-if="
-                            cluster.status === 'normal'
-                                && (
-                                    conversionPercent(cluster.cpu_usage.used, cluster.cpu_usage.total) >= 80
-                                    || conversionPercent(cluster.mem_usage.used_bytes, cluster.mem_usage.total_bytes) >= 80
-                                    || conversionPercent(cluster.disk_usage.used_bytes, cluster.disk_usage.total_bytes) >= 80
-                                )
-                        ">
-                            <p>!</p>
-                        </div>
-                        <template v-else>
-                            <status-mark-corner v-if="cluster.status === 'normal' && cluster.cpu_usage !== undefined"
-                                :cur-cluster="cluster"
-                            ></status-mark-corner>
-                        </template>
-
+                <!-- 集群面板 -->
+                <div class="biz-cluster-list">
+                    <div class="biz-cluster" v-for="cluster in clusterList" :key="cluster.cluster_id">
+                        <!-- 异常角标 -->
+                        <div class="bk-mark-corner bk-warning" v-if="showCorner(cluster)"><p>!</p></div>
+                        <!-- 集群信息 -->
                         <div class="biz-cluster-header">
-                            <bcs-popover :content="cluster.name" :delay="500" placement="top">
-                                <h2 class="cluster-title">
-                                    <a href="javascript:void(0)"
-                                        v-if="cluster.status !== 'initializing'
-                                            && cluster.status !== 'so_initializing'
-                                            && cluster.status !== 'initial_checking'
-                                            && cluster.status !== 'initial_failed'
-                                            && cluster.status !== 'so_init_failed'
-                                            && cluster.status !== 'check_failed'
-                                            && cluster.status !== 'removing'
-                                            && cluster.status !== 'remove_failed'
-                                        "
-                                        @click="goOverviewOrNode('clusterOverview', cluster)">
-                                        {{cluster.name}}
-                                    </a>
-                                    <span v-else>{{cluster.name}}</span>
-                                </h2>
-                            </bcs-popover>
+                            <h2 :class="['cluster-title', { clickable: cluster.status === 'normal' }]"
+                                v-bk-tooltips.top="{ content: cluster.name, delay: 500 }" @click="goOverview(cluster)">
+                                {{ cluster.name }}
+                            </h2>
                             <p class="cluster-metadata">
-                                <bcs-popover :content="cluster.cluster_id" :delay="500" placement="top">
-                                    <span class="cluster-id">{{cluster.cluster_id}}</span>
-                                </bcs-popover>
+                                <span class="cluster-id" v-bk-tooltips.top="{ content: cluster.cluster_id, delay: 500 }">
+                                    {{cluster.cluster_id}}
+                                </span>
                                 <template v-if="$INTERNAL">
                                     <span v-if="cluster.environment === 'stag'" class="stag">
                                         {{$t('测试')}}
                                     </span>
-                                    <span v-if="cluster.environment === 'prod'" class="prod">
+                                    <span v-else-if="cluster.environment === 'prod'" class="prod">
                                         {{$t('正式')}}
                                     </span>
                                 </template>
                                 <span v-if="cluster.state === 'existing'" class="prod">{{$t('自有集群')}}</span>
                             </p>
-                            <bk-dropdown-menu
-                                v-if="
-                                    cluster.status !== 'initializing'
-                                        && cluster.status !== 'so_initializing'
-                                        && cluster.status !== 'initial_checking'
-                                        && cluster.status !== 'initial_failed'
-                                        && cluster.status !== 'so_init_failed'
-                                        && cluster.status !== 'check_failed'
-                                        && cluster.status !== 'removing'
-                                        && cluster.status !== 'remove_failed'
-                                "
-                                @show="showDropdownMenu(clusterIndex)"
-                                @hide="hideDropdownMenu(clusterIndex)">
-                                <bk-button class="cluster-opera-btn" :id="`operaBtn${clusterIndex}`" slot="dropdown-trigger">
+                            <!-- 集群操作菜单 -->
+                            <bk-dropdown-menu v-if="cluster.status === 'normal'">
+                                <bk-button class="cluster-opera-btn" slot="dropdown-trigger">
                                     <i class="bcs-icon bcs-icon-more"></i>
                                 </bk-button>
-                                <ul class="bk-dropdown-list" slot="dropdown-content" style="max-height: 210px; overflow: visible;">
-                                    <li>
-                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterOverview', cluster)">{{$t('总览')}}</a>
+                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                    <li @click="goOverview(cluster)"><a href="javascript:;">{{$t('总览')}}</a></li>
+                                    <li @click="goClusterInfo(cluster)"><a href="javascript:;">{{$t('集群信息')}}</a></li>
+                                    <li v-if="cluster.type === 'k8s' && $INTERNAL" @click="handleUpdateCluster(cluster)">
+                                        <a href="javascript:;">{{$t('集群升级')}}</a>
                                     </li>
-                                    <li>
-                                        <a href="javascript:void(0)" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
+                                    <li :class="{ disabled: !cluster.allow }"
+                                        v-bk-tooltips="{
+                                            content: $t('您需要删除集群内所有节点后，再进行集群删除操作'),
+                                            placement: 'right',
+                                            boundary: window,
+                                            interactive: false,
+                                            disabled: cluster.allow
+                                        }" @click="handleDeleteCluster(cluster)">
+                                        <a href="javascript:;">{{$t('删除')}}</a>
                                     </li>
-                                    <li v-if="cluster.type === 'k8s' && cluster.status === 'normal' && $INTERNAL">
-                                        <a href="javascript:void(0)" @click="showUpdateCluster(cluster)">{{$t('集群升级')}}</a>
-                                    </li>
-                                    <template v-if="cluster.allow">
-                                        <li>
-                                            <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
-                                        </li>
-                                    </template>
-                                    <template v-else>
-                                        <li style="position: relative;">
-                                            <a class="bk-dropdown-item"
-                                                style="width: 100%; cursor: not-allowed; color: #ccc !important;"
-                                                v-bk-tooltips="{
-                                                    content: $t('您需要删除集群内所有节点后，再进行集群删除操作'),
-                                                    placement: 'right',
-                                                    boundary: window,
-                                                    interactive: false
-                                                }">
-                                                {{$t('删除')}}
-                                            </a>
-                                        </li>
-                                    </template>
                                     <li v-if="!cluster.permissions.use">
                                         <a :href="createApplyPermUrl({
                                             policy: 'use',
@@ -129,153 +73,60 @@
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
-                            <bk-dropdown-menu
-                                v-else-if="cluster.allow === true"
-                                @show="showDropdownMenu(clusterIndex)"
-                                @hide="hideDropdownMenu(clusterIndex)">
-                                <bk-button class="cluster-opera-btn" :id="`operaBtn${clusterIndex}`" slot="dropdown-trigger">
+                            <bk-dropdown-menu v-else-if="cluster.allow">
+                                <bk-button class="cluster-opera-btn" slot="dropdown-trigger">
                                     <i class="bcs-icon bcs-icon-more"></i>
                                 </bk-button>
                                 <ul class="bk-dropdown-list" slot="dropdown-content">
-                                    <li>
-                                        <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
+                                    <li @click="handleDeleteCluster(cluster)">
+                                        <a href="javascript:;">{{$t('删除')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
                         </div>
-
-                        <div class="biz-cluster-content" v-if="cluster.status === 'removing'">
-                            <div class="biz-status-box">
-                                <div class="status-icon">
-                                    <div class="bk-spin-loading bk-spin-loading-large bk-spin-loading-primary">
-                                        <div class="rotate rotate1"></div>
-                                        <div class="rotate rotate2"></div>
-                                        <div class="rotate rotate3"></div>
-                                        <div class="rotate rotate4"></div>
-                                        <div class="rotate rotate5"></div>
-                                        <div class="rotate rotate6"></div>
-                                        <div class="rotate rotate7"></div>
-                                        <div class="rotate rotate8"></div>
-                                    </div>
-                                </div>
-                                <p class="status-text">{{$t('正在删除中，请稍等···')}}</p>
+                        <!-- 集群状态 -->
+                        <div class="biz-cluster-content">
+                            <!-- 进行中（移除中、升级中、初始化中） -->
+                            <div class="biz-status-box" v-if="['removing', 'upgrading', 'initializing', 'so_initializing', 'initial_checking'].includes(cluster.status)">
+                                <div class="status-icon" v-bkloading="{ isLoading: true, theme: 'primary', mode: 'spin' }"></div>
+                                <p class="status-text">{{ statusTextMap[cluster.status] }}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a>
+                                    <bk-button text @click="handleShowLog(cluster)">{{$t('查看日志')}}</bk-button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- 升级中 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'upgrading'">
-                            <div class="biz-status-box">
-                                <div class="status-icon">
-                                    <div class="bk-spin-loading bk-spin-loading-large bk-spin-loading-primary">
-                                        <div class="rotate rotate1"></div>
-                                        <div class="rotate rotate2"></div>
-                                        <div class="rotate rotate3"></div>
-                                        <div class="rotate rotate4"></div>
-                                        <div class="rotate rotate5"></div>
-                                        <div class="rotate rotate6"></div>
-                                        <div class="rotate rotate7"></div>
-                                        <div class="rotate rotate8"></div>
-                                    </div>
-                                </div>
-                                <p class="status-text">{{$t('正在升级中，请稍等···')}}</p>
-                                <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 升级失败 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'upgrade_failed'">
-                            <div class="biz-status-box">
+                            <!-- 失败（升级失败、删除失败、初始化失败） -->
+                            <div class="biz-status-box" v-else-if="['upgrade_failed', 'remove_failed', 'initial_failed', 'so_init_failed', 'check_failed'].includes(cluster.status)">
                                 <div class="status-icon danger">
                                     <i class="bcs-icon bcs-icon-close-circle"></i>
                                 </div>
-                                <p class="status-text">{{$t('升级失败，请重试')}}</p>
+                                <p class="status-text">{{ statusTextMap[cluster.status] }}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="reUpgrade(cluster, clusterIndex)">{{$t('重新升级')}}</a>
+                                    <bk-button text @click="handleShowLog(cluster)">{{$t('查看日志')}}</bk-button> |
+                                    <bk-button text @click="handleRedo(cluster)">{{ redoTextMap[cluster.status] }}</bk-button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- 删除失败 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'remove_failed'">
-                            <div class="biz-status-box">
-                                <div class="status-icon danger">
-                                    <i class="bcs-icon bcs-icon-close-circle"></i>
-                                </div>
-                                <p class="status-text">{{$t('删除失败，请重试')}}</p>
-                                <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('重新删除')}}</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 初始化中 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'initializing' || cluster.status === 'so_initializing' || cluster.status === 'initial_checking'">
-                            <div class="biz-status-box">
-                                <div class="status-icon">
-                                    <div class="bk-spin-loading bk-spin-loading-large bk-spin-loading-primary">
-                                        <div class="rotate rotate1"></div>
-                                        <div class="rotate rotate2"></div>
-                                        <div class="rotate rotate3"></div>
-                                        <div class="rotate rotate4"></div>
-                                        <div class="rotate rotate5"></div>
-                                        <div class="rotate rotate6"></div>
-                                        <div class="rotate rotate7"></div>
-                                        <div class="rotate rotate8"></div>
+                            <!-- 正常 -->
+                            <template v-else>
+                                <!-- 指标信息 -->
+                                <div class="biz-progress-box" v-for="item in clusterMetricList" :key="item.id">
+                                    <div class="progress-header">
+                                        <span class="title">{{item.title}}</span>
+                                        <span class="percent" v-if="clusterOverviewMap[cluster.cluster_id]">
+                                            {{getMetricPercent(cluster, item)}}%
+                                        </span>
+                                    </div>
+                                    <div class="progress" :class="!clusterOverviewMap[cluster.cluster_id] ? 'loading' : ''">
+                                        <div :class="['progress-bar', item.theme]"
+                                            :style="{ width: !clusterOverviewMap[cluster.cluster_id] ? '0%' : `${getMetricPercent(cluster, item)}%` }"></div>
                                     </div>
                                 </div>
-                                <p class="status-text">{{$t('正在初始化中，请稍等···')}}</p>
-                                <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 初始化失败 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'initial_failed' || cluster.status === 'so_init_failed' || cluster.status === 'check_failed'">
-                            <div class="biz-status-box">
-                                <div class="status-icon danger">
-                                    <i class="bcs-icon bcs-icon-close-circle"></i>
-                                </div>
-                                <p class="status-text">{{$t('初始化失败，请重试')}}</p>
-                                <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">{{$t('重新初始化')}}</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 集群创建成功！提示 -->
-                        <div class="biz-cluster-content" v-else-if="cluster.status === 'showSuccess'">
-                            <div class="biz-status-box">
-                                <div class="status-icon success">
-                                    <i class="bcs-icon bcs-icon-check-circle"></i>
-                                </div>
-                                <p class="status-text">{{$t('恭喜，集群创建成功！')}}</p>
-                            </div>
-                        </div>
-
-                        <!-- 正常状态 -->
-                        <template v-else>
-                            <status-progress
-                                :loading="!Object.keys(cluster.cpu_usage).length"
-                                :cur-project="curProject"
-                                :cur-cluster="cluster">
-                            </status-progress>
-                            <div class="add-node-btn-wrapper">
-                                <bk-button class="add-node-btn" @click="goOverviewOrNode('clusterNode', cluster)">
+                                <bk-button class="add-node-btn" @click="goNodeInfo(cluster)">
                                     <span>{{$t('添加节点')}}</span>
                                 </bk-button>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </div>
-                    <div class="biz-cluster biz-cluster-add" @click="gotCreateCluster">
+                    <div class="biz-cluster biz-cluster-add" @click="goCreateCluster">
                         <div class="add-btn">
                             <i class="bcs-icon bcs-icon-plus"></i>
                             <strong>{{$t('点击新建集群')}}</strong>
@@ -283,32 +134,33 @@
                     </div>
                 </div>
             </template>
-            <template v-else-if="!exceptionCode && !clusterList.length && !showLoading">
-                <div :class="['biz-guide-box',{ 'show-guide': isShowGuide }]" v-show="!showLoading">
+            <!-- 集群创建引导 -->
+            <template v-else-if="!isLoading">
+                <div class="biz-guide-box">
                     <p class="title">{{$t('欢迎使用容器服务')}}</p>
                     <p class="desc">{{$t('使用容器服务，蓝鲸将为您快速搭建、运维和管理容器集群，您可以轻松对容器进行启动、停止等操作，也可以查看集群、容器及服务的状态，以及使用各种组件服务。')}}</p>
                     <p class="desc">
                         <a :href="PROJECT_CONFIG.doc.quickStart" class="guide-link" target="_blank">{{$t('请点击了解更多')}}<i class="bcs-icon bcs-icon-angle-double-right ml5"></i></a>
                     </p>
                     <div class="guide-btn-group">
-                        <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" @click="gotCreateCluster">
+                        <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" @click="goCreateCluster">
                             <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                         </a>
 
                         <a class="bk-button bk-default bk-button-large" :href="PROJECT_CONFIG.doc.quickStart" target="_blank">
                             <span style="margin-left: 0;">{{$t('快速入门指引')}}</span>
                         </a>
-                        <apply-host class="apply-host ml5" />
+                        <apply-host class="apply-host ml5" v-if="$INTERNAL" />
                     </div>
                 </div>
             </template>
         </div>
-
+        <!-- 集群日志（保留的旧逻辑） -->
         <bk-sideslider
-            :is-show.sync="logSideDialogConf.isShow"
-            :title="logSideDialogConf.title"
-            @hidden="closeLog"
-            :quick-close="true">
+            :is-show.sync="showLogDialog"
+            :title="curOperateCluster && curOperateCluster.cluster_id"
+            :quick-close="true"
+            @hidden="handleCloseLog">
             <div slot="content" style="margin: 0 0 0 20px;">
                 <template v-if="logEndState === 'none'">
                     <div class="biz-no-data">
@@ -430,105 +282,38 @@
                 </template>
             </div>
         </bk-sideslider>
-
-        <bk-dialog
-            :is-show.sync="helmDialog.isShow"
-            :width="500"
-            :has-footer="false"
-            :title="helmDialog.title"
-            :quick-close="true"
-            @cancel="helmDialog.isShow = false">
-            <template slot="content">
-                <pre class="bk-intro bk-danger biz-error-message" v-if="helmEnableMessage">
-                    {{helmEnableMessage}}
-                </pre>
-
-                <div class="helm-repos-detail" v-else>
-                    <div class="repos-item">
-                        <div class="wrapper mb10">
-                            <i18n path="您可以通过{method}的方式管理K8S资源" class="url mb15" tag="p">
-                                <router-link place="method" class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>
-                            </i18n>
-                            <p class="url mb25">
-                                <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">{{$t('点击了解更多')}}</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="biz-message" v-if="helmErrorCode === 40032">
-                    <template>
-                        <h3>{{$t('集群下没有节点，您需要：')}}</h3>
-                        <p>{{$t('1、在集群下，添加节点')}}</p>
-                        <i18n path="2、或者联系【{user}】" tag="p">
-                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
-                        </i18n>
-                    </template>
-                </div>
-            </template>
-        </bk-dialog>
-
-        <bk-dialog
-            :is-show.sync="updateClusterDialog.isShow"
-            :width="450"
-            :has-footer="true"
-            :close-icon="false"
-            :quick-close="false"
-            :title="updateClusterDialog.title"
-            @confirm="confirmUpdateCluster"
-            @cancel="cancelUpdateCluster">
-            <template slot="content">
-                <main class="bk-form update-cluster-form" v-bkloading="{ isLoading: updateClusterDialog.loading, opacity: 1 }">
-                    <template v-if="updateClusterDialog.versionList.length && !updateClusterDialog.loading">
-                        <bk-alert type="error" class="mb15" :title="$t('升级过程需要业务停机；升级完后暂不支持版本回退')"></bk-alert>
-                        <div class="form-item">
-                            <label class="mb10">{{$t('集群版本')}}：<span class="red">*</span></label>
-                            <div class="form-item-inner">
-                                <div style="display: inline-block;" class="mr5">
-                                    <bk-selector
-                                        style="width: 402px;"
-                                        :placeholder="$t('请选择')"
-                                        :searchable="true"
-                                        :setting-key="'id'"
-                                        :display-key="'name'"
-                                        :selected.sync="updateClusterDialog.version"
-                                        :list="updateClusterDialog.versionList">
-                                    </bk-selector>
-                                </div>
+        <!-- 集群升级 -->
+        <bcs-dialog v-model="showUpdateDialog" header-position="left" width="448"
+            :loading="isUpgrading" :close-icon="false" :mask-close="false" :title="$t('集群升级')"
+            @confirm="handleConfirmUpdateCluster" @cancel="handleCancelUpdateCluster">
+            <main class="bk-form update-cluster-form" v-bkloading="{ isLoading: versionLoading, opacity: 1 }">
+                <template v-if="versionList.length">
+                    <bk-alert type="error" class="mb15" :title="$t('升级过程需要业务停机；升级完后暂不支持版本回退')"></bk-alert>
+                    <div class="form-item">
+                        <label>{{$t('集群版本')}}：<span class="red">*</span></label>
+                        <div class="form-item-inner mt10">
+                            <div style="display: inline-block;" class="mr5">
+                                <bk-selector
+                                    style="width: 400px;"
+                                    :placeholder="$t('请选择')"
+                                    :searchable="true"
+                                    :setting-key="'id'"
+                                    :display-key="'name'"
+                                    :selected.sync="version"
+                                    :list="versionList">
+                                </bk-selector>
                             </div>
                         </div>
-                    </template>
-                    <template v-if="!updateClusterDialog.versionList.length && !updateClusterDialog.loading">
-                        <bk-exception type="empty" scene="part" style="margin: 0 0 30px 0;">
-                            <p>{{$t('当前集群暂无可用的升级版本')}}</p>
-                        </bk-exception>
-                    </template>
-                </main>
-            </template>
-        </bk-dialog>
-
-        <bk-dialog
-            class="reupgrade-cluster"
-            :is-show.sync="reUpgradeDialog.isShow"
-            :width="350"
-            :title="$t('确认操作')"
-            :quick-close="false"
-            :close-icon="false">
-            <template slot="content">
-                <div>{{$t('确定重新升级？')}}</div>
-            </template>
-            <div slot="footer">
-                <div class="bk-dialog-outer">
-                    <bk-button type="primary" :loading="isReUpgrading" @click="confirmReUpgrade">
-                        {{$t('确定')}}
-                    </bk-button>
-                    <bk-button type="button" :disabled="isReUpgrading" @click="cancelReUpgrade">
-                        {{$t('取消')}}
-                    </bk-button>
-                </div>
-            </div>
-        </bk-dialog>
-
+                    </div>
+                </template>
+                <template v-else>
+                    <bk-exception type="empty" scene="part" style="margin: 0 0 30px 0;">
+                        <p>{{$t('当前集群暂无可用的升级版本')}}</p>
+                    </bk-exception>
+                </template>
+            </main>
+        </bcs-dialog>
+        <!-- 集群删除确认弹窗 -->
         <tip-dialog
             ref="clusterNoticeDialog"
             icon="bcs-icon bcs-icon-exclamation-triangle"
@@ -537,793 +322,422 @@
             :check-list="clusterNoticeList"
             :confirm-btn-text="$t('确定')"
             :cancel-btn-text="$t('取消')"
-            :confirm-callback="deleteCluster">
+            :confirm-callback="confirmDeleteCluster">
         </tip-dialog>
-
+        <!-- 编辑项目集群信息 -->
         <ProjectConfig v-model="isProjectConfDialogShow"></ProjectConfig>
     </div>
 </template>
 
-<script>
-    import { catchErrorHandler } from '@/common/util'
-    import applyPerm from '@/mixins/apply-perm'
-    import tipDialog from '@/components/tip-dialog'
-
-    import StatusProgress from './status-progress'
-    import StatusMarkCorner from './status-mark-corner'
-    import statusHoc from './status-hoc'
-    import ApplyHost from './apply-host'
+<script lang="ts">
+    /* eslint-disable camelcase */
+    import { computed, defineComponent, ref } from '@vue/composition-api'
+    import ApplyHost from './apply-host.vue'
     import ProjectConfig from '@/views/project/project-config.vue'
+    import tipDialog from '@/components/tip-dialog/index.vue'
+    import applyPerm from '@/mixins/apply-perm'
+    import { useClusterList, useClusterOverview, useClusterOperate } from './use-cluster'
 
-    export default {
+    export default defineComponent({
         components: {
-            tipDialog,
-            StatusProgress: statusHoc(StatusProgress),
-            StatusMarkCorner: statusHoc(StatusMarkCorner),
             ApplyHost,
-            ProjectConfig
+            ProjectConfig,
+            tipDialog
         },
         mixins: [applyPerm],
-        data () {
-            return {
-                helmErrorCode: 0,
-                helmEnableMessage: '',
-                clusterNoticeList: [
-                    {
-                        id: 1,
-                        text: this.$t('将master主机归还到你业务的空闲机模块'),
-                        isChecked: false
-                    },
-                    {
-                        id: 2,
-                        text: this.$t('清理其它容器服务相关组件'),
-                        isChecked: false
-                    }
-                ],
-                isShowGuide: false,
-                showLoading: false,
-                timer: null,
-                storage: localStorage || {},
-                logSideDialogConf: {
-                    isShow: false,
-                    title: '',
-                    timer: null
-                },
-                helmDialog: {
-                    title: '',
-                    isShow: false
-                },
-                curClusterHelm: null,
-                logList: [],
-                logEndState: '',
-                exceptionCode: null,
-                curCluster: null,
-                curClusterIndex: 0,
-                permissions: {},
-                cancelLoop: false,
-                ccAppName: '',
-                arrangeType: '',
-                // 存储集群 cpu, 内存, 磁盘使用率的数据，第一次进来请求时获取这些数据，之后轮询时不会在请求
-                overviewList: [],
-                overviewLoading: true,
-                updateClusterDialog: {
-                    title: '',
-                    isShow: false,
-                    loading: false,
-                    version: '',
-                    versionList: [],
-                    cluster: {}
-                },
-                isReUpgrading: false,
-                reUpgradeDialog: {
-                    isShow: false,
-                    cluster: {}
-                },
-                isProjectConfDialogShow: false
+        setup (props, ctx) {
+            const { $store, $router, $i18n, $bkInfo } = ctx.root
+            const curProject = computed(() => {
+                return $store.state.curProject
+            })
+            const kindMap = ref({
+                1: 'K8S',
+                2: 'Mesos'
+            })
+            // 获取集群状态的中文
+            const statusTextMap = {
+                'removing': $i18n.t('正在删除中，请稍等···'),
+                'upgrading': $i18n.t('正在升级中，请稍等···'),
+                'upgrade_failed': $i18n.t('升级失败，请重试'),
+                'remove_failed': $i18n.t('删除失败，请重试'),
+                'initializing': $i18n.t('正在初始化中，请稍等···'),
+                'so_initializing': $i18n.t('正在初始化中，请稍等···'),
+                'initial_checking': $i18n.t('正在初始化中，请稍等···'),
+                'initial_failed': $i18n.t('初始化失败，请重试'),
+                'so_init_failed': $i18n.t('初始化失败，请重试'),
+                'check_failed': $i18n.t('初始化失败，请重试')
             }
-        },
-        computed: {
-            projectId () {
-                return this.$route.params.projectId
-            },
-            projectCode () {
-                return this.$route.params.projectCode
-            },
-            clusterList () {
-                const clusterList = []
-                this.$store.state.cluster.clusterList.forEach(item => {
-                    if (!item.cpu_usage) {
-                        item.cpu_usage = {}
-                    }
-                    if (!item.mem_usage) {
-                        item.mem_usage = {}
-                    }
-                    if (!item.disk_usage) {
-                        item.disk_usage = {}
-                    }
-                    clusterList.push(item)
-                })
-                return clusterList
-            },
-            isHelmEnable () {
-                const curProject = this.$store.state.curProject
-                if (curProject && (curProject.kind === PROJECT_K8S || curProject.kind === PROJECT_TKE)) {
-                    return true
-                }
-                return false
-            },
-            isEn () {
-                return this.$store.state.isEn
-            },
-            curProject () {
-                return this.$store.state.curProject
-            },
-            isK8SProject () {
-                return this.curProject.kind === PROJECT_K8S
+            // 获取失败重试按钮文案
+            const redoTextMap = {
+                'upgrade_failed': $i18n.t('重新升级'),
+                'remove_failed': $i18n.t('重新删除'),
+                'initial_failed': $i18n.t('重新初始化'),
+                'so_init_failed': $i18n.t('重新初始化'),
+                'check_failed': $i18n.t('重新初始化')
             }
-        },
-        created () {
-            console.log(this.isK8SProject)
-            // created 时也需要执行一次 release，因为如果仅仅只在 destroyed 中执行的话，有时候不会 clearTimeout，
-            // 在 getClusters 请求完毕正要执行 setTimeout 的时候切换，有可能不会 clearTimeout，所以在 created 里再执行一次
-            this.release()
-            this.cancelLoop = false
-            this.getClusters()
-            this.getProject()
-        },
-        mounted () {
-            const guide = this.$refs.clusterGuide
-            guide && guide.hide()
-        },
-        beforeDestroy () {
-            this.release()
-        },
-        methods: {
-            /**
-             * 获取关联 CC 的数据
-             */
-            async getProject () {
-                try {
-                    const res = await this.$store.dispatch('getProject', { projectId: this.projectId })
-                    const data = res.data || {}
-                    this.ccAppName = data.cc_app_name
-                    if (data.kind === 2) {
-                        this.arrangeType = 'Mesos'
-                    } else if (data.kind === 1) {
-                        this.arrangeType = 'K8S'
-                    }
-                    this.$store.commit('updateCurProject', data)
-                } catch (e) {
-                    console.log(e)
+            // 指标信息配置
+            const clusterMetricList = [
+                {
+                    id: 'cpu_usage',
+                    title: $i18n.t('CPU使用率'),
+                    theme: 'primary'
+                },
+                {
+                    id: 'memory_usage',
+                    title: $i18n.t('内存使用率'),
+                    theme: 'success'
+                },
+                {
+                    id: 'disk_usage',
+                    title: $i18n.t('磁盘使用率'),
+                    theme: 'warning'
                 }
-            },
-            /**
-             * 创建集群
-             */
-            async gotCreateCluster () {
-                if (!this.permissions.create) {
-                    await this.$store.dispatch('getMultiResourcePermissions', {
-                        project_id: this.projectId,
-                        operator: 'or',
-                        resource_list: [
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_test'
-                            },
-                            {
-                                policy_code: 'create',
-                                resource_type: 'cluster_prod'
-                            }
-                        ]
-                    })
+            ]
+            // 集群列表
+            const { clusterList, getClusterList, permissions, curProjectId } = useClusterList(ctx)
+            const isLoading = ref(false)
+            const handleGetClusterList = async () => {
+                isLoading.value = true
+                await getClusterList()
+                isLoading.value = false
+            }
+            handleGetClusterList()
+            // 集群指标
+            const { getClusterOverview, clusterOverviewMap } = useClusterOverview(ctx, clusterList)
+            // 获取集群指标项百分比
+            const getMetricPercent = (cluster, item) => {
+                const data = getClusterOverview(cluster.cluster_id)
+                if (!data) return 0
+
+                let used = 0
+                let total = 0
+                if (item.id === 'cpu_usage') {
+                    used = data?.[item.id]?.used
+                    total = data?.[item.id]?.total
+                } else {
+                    used = data?.[item.id]?.used_bytes
+                    total = data?.[item.id]?.total_bytes
                 }
 
-                this.$router.push({
-                    name: 'clusterCreate',
-                    params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode
-                    }
-                })
-            },
-
-            /**
-             * 释放资源，重置 timer 等等
-             */
-            release () {
-                clearTimeout(this.timer)
-                this.timer = null
-                this.cancelLoop = true
-                this.storage.removeItem('initializingClusters')
-                clearTimeout(this.logSideDialogConf.timer)
-                this.logSideDialogConf.timer = null
-            },
-
-            /**
-             * 显示集群更多下拉框
-             *
-             * @param {number} clusterIndex 当前集群索引
-             */
-            showDropdownMenu (clusterIndex) {
-                document.getElementById(`operaBtn${clusterIndex}`).classList.add('hover')
-            },
-
-            /**
-             * 隐藏集群更多下拉框
-             *
-             * @param {number} clusterIndex 当前集群索引
-             */
-            hideDropdownMenu (clusterIndex) {
-                document.getElementById(`operaBtn${clusterIndex}`).classList.remove('hover')
-            },
-
-            /**
-             * 转换百分比
-             *
-             * @param {number} used 使用的量
-             * @param {number} total 总量
-             *
-             * @return {number} 百分比数字
-             */
-            conversionPercent (used, total) {
-                if (!total || parseFloat(total) === 0) {
+                if (!Number(total)) {
                     return 0
                 }
-                let ret = parseFloat(used) / parseFloat(total) * 100
+                let ret = Number(used) / Number(total) * 100
                 if (ret !== 0 && ret !== 100) {
-                    ret = ret.toFixed(2)
+                    ret = Number(ret.toFixed(2))
                 }
 
                 return ret
-            },
+            }
+            // 指标超出 80 时显示异常角标
+            const showCorner = (cluster) => {
+                return clusterMetricList.some(item => getMetricPercent(cluster, item) >= 80)
+            }
 
-            /**
-             * 设置 localStorage
-             *
-             * @param {Object} cluster 当前集群对象
-             */
-            setStorage (cluster) {
-                const storage = JSON.parse(this.storage.getItem('initializingClusters') || JSON.stringify({}))
-                storage[`${cluster.project_id}_${cluster.cluster_id}`] = '1'
-                this.storage.setItem('initializingClusters', JSON.stringify(storage))
-            },
+            // 集群信息编辑
+            const isProjectConfDialogShow = ref(false)
+            const handleShowProjectConf = () => {
+                isProjectConfDialogShow.value = true
+            }
+            // todo 权限校验（后面要删除）
+            const validatePermission = async (action: string, resourceList) => {
+                if (permissions.value[action]) return
 
-            /**
-             * 检测 localStorage
-             *
-             * @param {Object} cluster 当前集群对象
-             * @param {number} index 集群对象在集群列表中的索引
-             * @param {Array} clusterList 集群列表
-             * @param {string} status 当前集群状态
-             */
-            checkStorage (cluster, index, clusterList, status) {
-                let storage = this.storage.getItem('initializingClusters')
-                if (storage) {
-                    storage = JSON.parse(storage)
-                    if (storage[`${cluster.project_id}_${cluster.cluster_id}`]) {
-                        if (status === 'normal') {
-                            clusterList[index].status = 'showSuccess'
-                            this.$set(clusterList, index, clusterList[index])
-                            let t = setTimeout(() => {
-                                clearTimeout(t) && (t = null)
-                                clusterList[index].status = 'normal'
-                                this.$set(clusterList, index, clusterList[index])
-                            }, 3000)
-                        }
-                        delete storage[`${cluster.project_id}_${cluster.cluster_id}`]
-                        this.storage.setItem('initializingClusters', JSON.stringify(storage))
-                    }
-                }
-            },
-
-            /**
-             * 查看日志
-             *
-             * @param {Object} cluster 当前集群对象
-             */
-            async showLog (cluster) {
-                this.logSideDialogConf.isShow = true
-                this.logSideDialogConf.title = cluster.cluster_id
-                try {
-                    const res = await this.$store.dispatch('cluster/getClusterLogs', {
-                        projectId: cluster.project_id,
-                        clusterId: cluster.cluster_id
-                    }).catch(() => {
-                        return {
-                            data: {
-                                status: 'failed'
-                            }
-                        }
-                    })
-
-                    const { status, log = [], error_msg_list: errorMsgList = [] } = res.data
-
-                    // 最终的状态
-                    // running / failed / success
-                    this.logEndState = status
-
-                    const tasks = []
-                    log.forEach(operation => {
-                        if (operation.log.node_tasks) {
-                            operation.log.node_tasks.forEach(task => {
-                                task.state = task.state.replace(/\|/ig, '<p class="html-tag"></p>')
-                                task.state = task.state.replace(/(Failed)/ig, '<span class="biz-danger-text">$1</span>')
-                                task.state = task.state.replace(/(OK)/ig, '<span class="biz-success-text">$1</span>')
-                            })
-                        }
-                        operation.errorMsgList = errorMsgList
-                        tasks.push(operation)
-                    })
-
-                    this.logList.splice(0, this.logList.length, ...tasks)
-
-                    if (this.logEndState === 'success'
-                        || this.logEndState === 'failed'
-                        || this.logEndState === 'none'
-                    ) {
-                        clearTimeout(this.logSideDialogConf.timer)
-                        this.logSideDialogConf.timer = null
-                    } else {
-                        this.logSideDialogConf.timer = setTimeout(() => {
-                            this.showLog(cluster)
-                        }, 5000)
-                    }
-                } catch (e) {
-                    console.error(e)
-                }
-            },
-
-            /**
-             * 关闭日志
-             *
-             * @param {Object} cluster 当前集群对象
-             */
-            closeLog () {
-                // 还未轮询完即日志还未到最终状态
-                if (this.logSideDialogConf.timer) {
-                    clearTimeout(this.logSideDialogConf.timer)
-                    this.logSideDialogConf.timer = null
-                } else {
-                    if (!['success', 'none', 'failed'].includes(this.logEndState)) {
-                        clearTimeout(this.timer) && (this.timer = null)
-                        this.getClusters(true)
-                    }
-                }
-                this.logList.splice(0, this.logList.length, ...[])
-                this.logEndState = ''
-            },
-
-            /**
-             * 获取所有的集群
-             *
-             * @param {boolean} notLoading notLoading 是否不需要 loading，如果为 true 说明是轮询来的
-             */
-            async getClusters (notLoading) {
-                if (this.cancelLoop) {
-                    return
-                }
-
-                if (!notLoading) {
-                    this.showLoading = true
-                }
-
-                try {
-                    const res = await this.$store.dispatch('cluster/getClusterListNew', {
-                        projectId: this.projectId,
-                        cache: false
-                    })
-                    this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
-
-                    const list = res.data.results || []
-
-                    list.forEach((item, index) => {
-                        item.cpu_usage = {}
-                        item.mem_usage = {}
-                        item.disk_usage = {}
-
-                        item.activeip = 0
-                        item.availableip = 0
-                        item.reservedip = 0
-                        item.allip = 0
-                    })
-
-                    if (this.clusterList.length) {
-                        this.clusterList.forEach(c => {
-                            const resListItem = list.find(item => item.cluster_id === c.cluster_id)
-                            if (resListItem) {
-                                resListItem.cpu_usage = c.cpu_usage
-                                resListItem.mem_usage = c.mem_usage
-                                resListItem.disk_usage = c.disk_usage
-                                resListItem.activeip = c.activeip
-                                resListItem.availableip = c.availableip
-                                resListItem.reservedip = c.reservedip
-                                resListItem.allip = c.allip
-                            }
-                        })
-                    }
-                    this.showLoading = false // 关闭loading，让集群列表先出来，指标慢慢加载（后面重构）
-
-                    this.$store.commit('cluster/forceUpdateClusterList', list)
-                    if (!notLoading) {
-                        this.handleGetClusterOverview()
-                    }
-
-                    if (this.cancelLoop) {
-                        clearTimeout(this.timer)
-                        this.timer = null
-                    } else if (list.some(item => [
-                        'initial_checking',
-                        'initializing',
-                        'removing',
-                        'so_initializing',
-                        'scheduling',
-                        'upgrading',
-                        'bke_installing'
-                    ].includes(item.status))) {
-                        this.timer = setTimeout(() => {
-                            this.getClusters(true)
-                        }, 5000)
-                    }
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                } finally {
-                    this.showLoading = false
-                }
-            },
-            async handleGetClusterOverview () {
-                const newClusterList = JSON.parse(JSON.stringify(this.clusterList))
-                const promiseList = newClusterList.filter(item => item.status === 'normal').map(item => {
-                    return this.$store.dispatch('cluster/clusterOverview', {
-                        projectId: this.projectId,
-                        clusterId: item.cluster_id
-                    }).then(res => {
-                        item.cpu_usage = res.data.cpu_usage
-                        item.mem_usage = res.data.memory_usage
-                        item.disk_usage = res.data.disk_usage
-                    })
+                await $store.dispatch('getMultiResourcePermissions', {
+                    project_id: curProjectId.value,
+                    operator: 'or',
+                    resource_list: resourceList
                 })
-                await Promise.all(promiseList)
-                this.$store.commit('cluster/forceUpdateClusterList', newClusterList)
-            },
-            /**
-             * 重新初始化
-             *
-             * @param {Object} cluster 当前集群对象
-             * @param {number} index 集群对象在集群列表中的索引
-             */
-            async reInitializationCluster (cluster, index) {
-                cluster.status = 'initializing'
-                this.$set(this.clusterList, index, cluster)
-                try {
-                    await this.$store.dispatch('cluster/reInitializationCluster', {
-                        projectId: cluster.project_id,
-                        clusterId: cluster.cluster_id
-                    })
+            }
+            // 跳转创建集群界面
+            const goCreateCluster = async () => {
+                await validatePermission('create', [
+                    {
+                        policy_code: 'create',
+                        resource_type: 'cluster_test'
+                    },
+                    {
+                        policy_code: 'create',
+                        resource_type: 'cluster_prod'
+                    }])
+                $router.push({ name: 'clusterCreate' })
+            }
+            // 跳转预览界面
+            const goOverview = async (cluster) => {
+                if (cluster.status !== 'normal') return
 
-                    cluster.status = 'initializing'
-                    this.$set(this.clusterList, index, cluster)
-
-                    clearTimeout(this.timer) && (this.timer = null)
-                    this.getClusters(true)
-                } catch (e) {
-                    cluster.status = 'initial_failed'
-                    this.$set(this.clusterList, index, cluster)
-
-                    catchErrorHandler(e, this)
-                }
-            },
-
-            /**
-             * 切换到集群总览 router
-             *
-             * @param {string} target 目标 router
-             * @param {Object} cluster 当前集群对象
-             */
-            async goOverviewOrNode (target, cluster) {
+                // todo
                 if (!cluster.permissions.view) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
+                    await $store.dispatch('getResourcePermissions', {
+                        project_id: curProjectId.value,
                         policy_code: 'view',
                         resource_code: cluster.cluster_id,
                         resource_name: cluster.name,
                         resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
                     })
                 }
-
-                this.$router.push({
-                    name: target,
+                $router.push({
+                    name: 'clusterOverview',
                     params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode,
                         clusterId: cluster.cluster_id
                     }
                 })
-            },
-
-            /**
-             * 打开 web console
-             *
-             * @param {Object} cluster 当前集群对象
-             * @param {number} index 集群对象在集群列表中的索引
-             */
-            openWebConsole (cluster, index) {
-                // {host}/backend/web_console/projects/this.projectId/clusters/cluster.cluster_id/
-                const location = window.location
-                window.open(
-                    `${location.protocol}//${location.host.replace(/\.bcs/, '')}/backend/web_console/projects/`
-                        + `${this.projectId}/clusters/${cluster.cluster_id}/`,
-                    'web-console',
-                    'left=100,top=100,width=990,height=590,toolbar=0,resizable=1'
-                )
-            },
-
-            /**
-             * 到集群信息页面
-             *
-             * @param {Object} cluster 当前集群对象
-             */
-            async goClusterInfo (cluster) {
+            }
+            // 跳转集群信息界面
+            const goClusterInfo = async (cluster) => {
                 if (!cluster.permissions.view) {
                     const type = `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
                     const params = {
-                        project_id: this.projectId,
+                        project_id: curProjectId.value,
                         policy_code: 'view',
                         resource_code: cluster.cluster_id,
                         resource_name: cluster.name,
                         resource_type: type
                     }
-                    await this.$store.dispatch('getResourcePermissions', params)
+                    await $store.dispatch('getResourcePermissions', params)
                 }
-
-                this.$router.push({
+                $router.push({
                     name: 'clusterInfo',
                     params: {
-                        projectId: this.projectId,
-                        projectCode: this.projectCode,
                         clusterId: cluster.cluster_id
                     }
                 })
-            },
-
-            async enableClusterHelm (cluster) {
-                this.curClusterHelm = null
-                this.helmEnableMessage = ''
-                this.helmErrorCode = 0
-                if (!cluster.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
+            }
+            // 跳转添加节点界面
+            const goNodeInfo = async (cluster) => {
+                if (!cluster.permissions.view) {
+                    await $store.dispatch('getResourcePermissions', {
+                        project_id: curProjectId.value,
+                        policy_code: 'view',
                         resource_code: cluster.cluster_id,
                         resource_name: cluster.name,
                         resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
                     })
                 }
-
-                try {
-                    await this.$store.dispatch('cluster/enableClusterHelm', {
-                        projectId: this.projectId,
+                $router.push({
+                    name: 'clusterNode',
+                    params: {
                         clusterId: cluster.cluster_id
-                    })
-                    this.helmDialog.title = this.$t('启用Helm成功')
-                    this.helmDialog.isShow = true
-                } catch (e) {
-                    this.helmDialog.title = this.$t('启用Helm失败')
-                    this.helmErrorCode = e.code
-                    this.helmEnableMessage = e.message || e.data.msg || e.statusText
-                    this.helmDialog.isShow = true
+                    }
+                })
+            }
+            const { deleteCluster, upgradeCluster, reUpgradeCluster, reInitializationCluster } = useClusterOperate(ctx)
+            const curOperateCluster = ref<any>(null)
+            // 集群删除
+            const clusterNoticeDialog = ref<any>(null)
+            const clusterNoticeList = ref([
+                {
+                    id: 1,
+                    text: $i18n.t('将master主机归还到你业务的空闲机模块'),
+                    isChecked: false
+                },
+                {
+                    id: 2,
+                    text: $i18n.t('清理其它容器服务相关组件'),
+                    isChecked: false
                 }
-            },
-
-            async confirmDeleteCluster (cluster, index) {
-                if (!cluster.permissions.delete) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
+            ])
+            const confirmDeleteCluster = async () => {
+                // todo
+                if (!curOperateCluster.value.permissions.delete) {
+                    await $store.dispatch('getResourcePermissions', {
+                        project_id: curProjectId.value,
                         policy_code: 'delete',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
+                        resource_code: curOperateCluster.value.cluster_id,
+                        resource_name: curOperateCluster.value.name,
+                        resource_type: `cluster_${curOperateCluster.value.environment === 'stag' ? 'test' : 'prod'}`
                     })
                 }
-                this.curCluster = cluster
-                this.curClusterIndex = index
-                this.$refs.clusterNoticeDialog.show()
-            },
+                const result = await deleteCluster(curOperateCluster.value)
+                result && handleGetClusterList()
+            }
+            const handleDeleteCluster = (cluster) => {
+                if (!cluster.allow) return
 
-            /**
-             * 删除 cluster
-             *
-             * @param {Object} cluster 当前集群对象
-             * @param {number} index 集群对象在集群列表中的索引
-             */
-            async deleteCluster () {
-                const me = this
-                const cluster = this.curCluster
-                const index = this.curClusterIndex
+                curOperateCluster.value = cluster
+                clusterNoticeDialog.value && clusterNoticeDialog.value.show()
+            }
+            // 集群升级
+            const showUpdateDialog = ref(false)
+            const isUpgrading = ref(false)
+            const versionLoading = ref(false)
+            const version = ref('')
+            const versionList = ref([])
+            const handleConfirmUpdateCluster = async () => {
+                if (!version.value || !curOperateCluster.value) return
 
-                cluster.status = 'removing'
-                me.$set(me.clusterList, index, cluster)
-
-                try {
-                    await me.$store.dispatch('cluster/deleteCluster', {
-                        projectId: cluster.project_id,
-                        clusterId: cluster.cluster_id
-                    })
-
-                    cluster.status = 'removing'
-                    me.$set(me.clusterList, index, cluster)
-
-                    clearTimeout(me.timer) && (me.timer = null)
-                    me.getClusters(true)
-                } catch (e) {
-                    cluster.status = 'remove_failed'
-                    me.$set(me.clusterList, index, cluster)
-
-                    catchErrorHandler(e, me)
+                isUpgrading.value = true
+                const result = await upgradeCluster(curOperateCluster.value, version.value)
+                if (result) {
+                    await handleGetClusterList()
+                    showUpdateDialog.value = false
                 }
-            },
-
-            toggleGuide (status) {
-                this.isShowGuide = status
-            },
-
-            showGuide () {
-                this.$refs.guideTooltip.visible = false
-                const guide = this.$refs.clusterGuide
-                guide.show()
-            },
-
-            /**
-             * 显示升级集群弹框
-             *
-             * @param {Object} curCluster 当前升级的集群
-             */
-            async showUpdateCluster (curCluster) {
-                this.updateClusterDialog.title = this.$t('集群升级')
-                this.updateClusterDialog.isShow = true
-                this.updateClusterDialog.loading = true
-                this.updateClusterDialog.cluster = Object.assign({}, curCluster)
-                try {
-                    const versionList = []
-                    const res = await this.$store.dispatch('cluster/getClusterVersion', {
-                        projectId: this.projectId,
-                        clusterId: curCluster.cluster_id
-                    })
-                    const list = res.data || []
-                    list.forEach(item => {
-                        versionList.push({
-                            id: item,
-                            name: item
-                        })
-                    })
-                    this.updateClusterDialog.versionList.splice(
-                        0,
-                        this.updateClusterDialog.versionList.length,
-                        ...versionList
-                    )
-                    if (versionList.length) {
-                        this.updateClusterDialog.version = versionList[0].id
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.updateClusterDialog.loading = false
-                }
-            },
-
-            /**
-             * 确认升级集群
-             */
-            async confirmUpdateCluster () {
-                if (!this.updateClusterDialog.versionList.length) {
-                    this.cancelUpdateCluster()
-                    return
-                }
-                try {
-                    const { version, cluster } = this.updateClusterDialog
-                    if (!version.trim()) {
-                        this.bkMessageInstance = this.$bkMessage({
-                            theme: 'error',
-                            delay: 1000,
-                            message: this.$t('请选择集群版本')
-                        })
-                        return
-                    }
-                    await this.$store.dispatch('cluster/upgradeCluster', {
-                        projectId: this.projectId,
-                        clusterId: cluster.cluster_id,
+                isUpgrading.value = false
+            }
+            const handleCancelUpdateCluster = async () => {
+                versionList.value = []
+                version.value = ''
+                curOperateCluster.value = null
+            }
+            const handleUpdateCluster = async (cluster) => {
+                showUpdateDialog.value = true
+                versionLoading.value = true
+                const res = await $store.dispatch('cluster/getClusterVersion', {
+                    projectId: cluster.project_id,
+                    clusterId: cluster.cluster_id
+                }).catch(() => ({ data: [] }))
+                versionList.value = res.data.map(item => ({
+                    id: item,
+                    name: item
+                }))
+                version.value = res.data[0] // 默认选取第一个
+                curOperateCluster.value = cluster
+                versionLoading.value = false
+            }
+            // 集群日志
+            const showLogDialog = ref(false)
+            const logEndState = ref('')
+            const logList = ref([])
+            const logTimer = ref<any>(null)
+            const fetchLogData = async (cluster) => {
+                const res = await $store.dispatch('cluster/getClusterLogs', {
+                    projectId: cluster.project_id,
+                    clusterId: cluster.cluster_id
+                }).catch(() => {
+                    return {
                         data: {
-                            version: version,
-                            operation: 'upgrade'
+                            status: 'failed'
                         }
-                    })
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'success',
-                        delay: 1000,
-                        message: this.$t('任务下发成功')
-                    })
-                    this.cancelUpdateCluster()
-                    clearTimeout(this.timer) && (this.timer = null)
-                    this.getClusters(true)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.updateClusterDialog.loading = false
+                    }
+                })
+                const { status, log = [], error_msg_list: errorMsgList = [] } = res.data
+                // 最终的状态 running / failed / success
+                logEndState.value = status
+                logList.value = log.map(operation => {
+                    if (operation.log.node_tasks) {
+                        operation.log.node_tasks.forEach(task => {
+                            task.state = task.state.replace(/\|/ig, '<p class="html-tag"></p>')
+                            task.state = task.state.replace(/(Failed)/ig, '<span class="biz-danger-text">$1</span>')
+                            task.state = task.state.replace(/(OK)/ig, '<span class="biz-success-text">$1</span>')
+                        })
+                    }
+                    operation.errorMsgList = errorMsgList
+                    return operation
+                })
+
+                if (logEndState.value === 'running' && showLogDialog.value) {
+                    logTimer.value = setTimeout(() => {
+                        fetchLogData(cluster)
+                    }, 5000)
+                } else {
+                    clearTimeout(logTimer.value)
+                    logTimer.value = null
                 }
-            },
-
-            /**
-             * 取消升级集群
-             */
-            cancelUpdateCluster () {
-                this.updateClusterDialog.isShow = false
-                setTimeout(() => {
-                    this.updateClusterDialog.title = ''
-                    this.updateClusterDialog.version = ''
-                    this.updateClusterDialog.versionList.splice(0, this.updateClusterDialog.versionList.length, ...[])
-                    this.updateClusterDialog.cluster = Object.assign({}, {})
-                }, 300)
-            },
-
-            /**
-             * 显示重新升级弹框
-             *
-             * @param {Object} cluster 集群对象
-             */
-            reUpgrade (cluster) {
-                this.reUpgradeDialog.isShow = true
-                this.reUpgradeDialog.cluster = Object.assign({}, cluster)
-            },
-
-            /**
-             * 确认重新升级
-             */
-            async confirmReUpgrade () {
-                try {
-                    this.isReUpgrading = true
-                    await this.$store.dispatch('cluster/upgradeCluster', {
-                        projectId: this.projectId,
-                        clusterId: this.reUpgradeDialog.cluster.cluster_id,
-                        data: {
-                            version: '',
-                            operation: 'reupgrade'
-                        }
-                    })
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'success',
-                        delay: 1000,
-                        message: this.$t('任务下发成功')
-                    })
-                    clearTimeout(this.timer) && (this.timer = null)
-                    this.getClusters(true)
-                    this.cancelReUpgrade()
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    setTimeout(() => {
-                        this.isReUpgrading = false
-                    }, 300)
+            }
+            const handleShowLog = (cluster) => {
+                showLogDialog.value = true
+                curOperateCluster.value = cluster
+                fetchLogData(cluster)
+            }
+            const handleCloseLog = () => {
+                curOperateCluster.value = null
+                clearTimeout(logTimer.value)
+            }
+            // 重新升级
+            const handleReUpgrade = (cluster) => {
+                $bkInfo({
+                    type: 'warning',
+                    clsName: 'custom-info-confirm',
+                    title: $i18n.t('确认操作'),
+                    subTitle: $i18n.t('确定重新升级？'),
+                    defaultInfo: true,
+                    confirmFn: async () => {
+                        const result = await reUpgradeCluster(cluster)
+                        result && await handleGetClusterList()
+                    }
+                })
+            }
+            // 重新初始化
+            const handleReInitialization = async (cluster) => {
+                $bkInfo({
+                    type: 'warning',
+                    clsName: 'custom-info-confirm',
+                    title: $i18n.t('确认操作'),
+                    subTitle: $i18n.t('确定重新初始化？'),
+                    defaultInfo: true,
+                    confirmFn: async () => {
+                        const result = await reInitializationCluster(cluster)
+                        result && await handleGetClusterList()
+                    }
+                })
+            }
+            // 失败重试
+            const handleRedo = (cluster) => {
+                switch (cluster.status) {
+                    case 'upgrade_failed':
+                        handleReUpgrade(cluster)
+                        break
+                    case 'remove_failed':
+                        handleDeleteCluster(cluster)
+                        break
+                    case 'initial_failed':
+                        handleReInitialization(cluster)
+                        break
+                    case 'so_init_failed':
+                        handleReInitialization(cluster)
+                        break
+                    case 'check_failed':
+                        handleReInitialization(cluster)
+                        break
                 }
-            },
+            }
 
-            /**
-             * 取消重新升级
-             */
-            cancelReUpgrade () {
-                this.reUpgradeDialog.isShow = false
-                setTimeout(() => {
-                    this.reUpgradeDialog.cluster = Object.assign({}, {})
-                }, 300)
-            },
-
-            showProjectConfDialog () {
-                this.isProjectConfDialogShow = true
+            return {
+                isLoading,
+                clusterList,
+                curProject,
+                kindMap,
+                statusTextMap,
+                redoTextMap,
+                clusterMetricList,
+                getClusterOverview,
+                clusterOverviewMap,
+                isProjectConfDialogShow,
+                curOperateCluster,
+                getMetricPercent,
+                handleShowProjectConf,
+                goCreateCluster,
+                goOverview,
+                goClusterInfo,
+                clusterNoticeList,
+                clusterNoticeDialog,
+                confirmDeleteCluster,
+                handleDeleteCluster,
+                showLogDialog,
+                logEndState,
+                logList,
+                handleShowLog,
+                handleCloseLog,
+                handleRedo,
+                showCorner,
+                version,
+                versionLoading,
+                showUpdateDialog,
+                isUpgrading,
+                versionList,
+                handleCancelUpdateCluster,
+                handleConfirmUpdateCluster,
+                handleUpdateCluster,
+                goNodeInfo
             }
         }
-    }
+    })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
     @import './index.css';
+    @import './status-mark-corner.css';
+    @import './status-progress.css';
     .biz-error-message {
         white-space: normal;
         text-align: left;
@@ -1363,6 +777,13 @@
         /deep/ .bk-button-normal {
             line-height: 38px;
             font-size: 16px;
+        }
+    }
+    .bk-dropdown-list {
+        li.disabled a {
+            width: 100%;
+            cursor: not-allowed;
+            color: rgb(204, 204, 204);
         }
     }
 </style>

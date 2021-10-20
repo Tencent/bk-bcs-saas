@@ -18,7 +18,7 @@ from django.conf import settings
 from rest_framework import permissions
 
 from backend.components.paas_auth import get_access_token
-from backend.utils import FancyDict
+from backend.utils import FancyDict, whitelist
 
 from .constants import ACCESS_TOKEN_KEY_NAME
 
@@ -87,9 +87,5 @@ class BKAppPermission(permissions.BasePermission):
             return False
 
         app_code = request.user.client.app.app_code
-        project_whitelist = settings.BK_APP_WHITELIST.get(app_code) or []
 
-        if project_id_or_code in project_whitelist:
-            return True
-
-        return False
+        return whitelist.check_app_access_webconsole_enable(app_code, project_id_or_code)

@@ -14,44 +14,31 @@ specific language governing permissions and limitations under the License.
 """
 from unittest.mock import patch
 
-import pytest
-
 from backend.container_service.infras.hosts import host
 from backend.container_service.infras.hosts.perms import can_use_hosts
 from backend.container_service.infras.hosts.terraform.engines import sops
 from backend.tests.bcs_mocks.fake_sops import FakeSopsMod, sops_json
 
-fake_cc_host_ok_results = {
-    "result": True,
-    "data": [{"bk_host_innerip": "127.0.0.1,127.0.0.3"}, {"bk_host_innerip": "127.0.0.2"}],
-}
-fake_cc_host_null_results = {"result": False}
-fake_cc_host_not_match_results = {"results": True, "data": [{"bk_host_innerip": "127.0.0.1"}]}
+fake_cc_host_ok_results = [{"bk_host_innerip": "127.0.0.1,127.0.0.3"}, {"bk_host_innerip": "127.0.0.2"}]
+fake_cc_host_null_results = []
+fake_cc_host_not_match_results = [{"bk_host_innerip": "127.0.0.1"}]
 expect_used_ip_list = ["127.0.0.1", "127.0.0.2"]
 
 
 class TestCheckUseHost:
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_ok_results)
+    @patch("backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_ok_results)
     def test_ok(self, biz_id, username):
         assert can_use_hosts(biz_id, username, expect_used_ip_list)
 
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_null_results)
+    @patch("backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_null_results)
     def test_null_resp_failed(self, biz_id, username):
         assert not can_use_hosts(biz_id, username, expect_used_ip_list)
 
-    @patch("backend.container_service.infras.hosts.perms.get_cc_hosts", return_value=fake_cc_host_not_match_results)
+    @patch(
+        "backend.container_service.infras.hosts.perms.get_has_perm_hosts", return_value=fake_cc_host_not_match_results
+    )
     def test_not_match_failed(self, biz_id, username):
         assert not can_use_hosts(biz_id, username, expect_used_ip_list)
-
-
-class TestGetCCHosts:
-    @patch("backend.container_service.infras.hosts.host.cc.get_app_hosts", return_value={"result": False})
-    def test_get_null_hosts(self, mock_get_app_hosts, biz_id, username):
-        assert host.get_cc_hosts(username, biz_id) == []
-
-    @patch("backend.container_service.infras.hosts.host.cc.get_app_hosts", return_value=fake_cc_host_ok_results)
-    def test_get_hosts(self, mock_get_app_hosts, biz_id, username):
-        assert host.get_cc_hosts(username, biz_id) == fake_cc_host_ok_results["data"]
 
 
 class TestGetAgentStatus:

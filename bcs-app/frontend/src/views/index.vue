@@ -55,9 +55,14 @@
                 return
             }
 
-            // 切换不同项目时清空单集群信息
             if (localStorage.getItem('curProjectCode') !== projectCode) {
+                // 切换不同项目时清空单集群信息
                 handleSetClusterStorageInfo()
+                const preProject = projectList.value.find(item => item.project_code === localStorage.getItem('curProjectCode'))
+                if (preProject && (curProject.kind !== preProject.kind)) {
+                    // 切换不同项目类型时重刷界面
+                    window.location.reload()
+                }
             }
 
             // 缓存当前项目信息
@@ -87,6 +92,10 @@
             onBeforeMount(async () => {
                 // 获取项目的集群列表和菜单配置信息
                 isLoading.value = true
+                // 获取当前项目详情信息
+                $store.dispatch('getProject', { projectId: curProject.project_id }).then((res) => {
+                    $store.commit('updateCurProject', res.data)
+                })
                 await $store.dispatch('cluster/getClusterList', curProject.project_id).catch(err => {
                     $bkMessage({
                         theme: 'error',

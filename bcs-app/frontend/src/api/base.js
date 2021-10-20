@@ -48,6 +48,8 @@ export const createProject = request('post', '/api/nav/projects/')
 export const editProject = request('put', '/api/nav/projects/$projectId')
 export const logLinks = request('post', '/api/datalog/projects/$projectId/log_links/')
 
+export const fetchClusterList = request('get', '/api/projects/$projectId/clusters/')
+
 export default {
     stdLogs,
     stdLogsDownload,
@@ -84,5 +86,6 @@ export default {
     logLinks,
     editProject,
     fetchBizTopo,
-    fetchBizHosts
+    fetchBizHosts,
+    fetchClusterList
 }

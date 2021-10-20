@@ -176,7 +176,6 @@
                 }
                 return treeData
             }
-            const splitCode = ['\n', ' ', ',']
             // 静态表格数据处理
             const handleGetStaticTableData = async (params) => {
                 const { selections = [], current, limit, tableKeyword, accurate } = params
@@ -184,7 +183,7 @@
                     limit,
                     offset: (current - 1) * limit,
                     fuzzy: !accurate,
-                    ip_list: tableKeyword.split(splitCode).filter(ip => !!ip)
+                    ip_list: tableKeyword.split(' ').filter(ip => !!ip)
                 }
                 const [node] = selections
                 state.curTreeNode = node

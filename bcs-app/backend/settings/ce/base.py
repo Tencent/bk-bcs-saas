@@ -36,7 +36,7 @@ INSTALLED_APPS += [
     "backend.uniapps.apis",
     "backend.bcs_web.apis.apps.APIConfig",
     "iam.contrib.iam_migration",
-    "backend.bcs_web.iam.bcs_iam_migration.apps.BcsIamMigrationConfig",
+    "backend.iam.bcs_iam_migration.apps.BcsIamMigrationConfig",
 ]
 
 # 统一登录页面
@@ -54,10 +54,6 @@ CACHES = {
         "LOCATION": "/tmp/paas-backend-django_cache",
     },
 }
-
-# cors settings
-CORS_ORIGIN_REGEX_WHITELIST = (r".*",)
-CORS_ALLOW_CREDENTIALS = True
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
@@ -274,3 +270,6 @@ BCS_APP_SECRET = SECRET_KEY
 HELM_REPO_DOMAIN = os.environ.get('HELM_REPO_DOMAIN')
 HELM_MERELY_REPO_URL = HELM_REPO_DOMAIN
 BK_REPO_URL_PREFIX = os.environ.get('BK_REPO_URL_PREFIX')
+
+# 默认 BKCC 设备供应方
+BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', None)

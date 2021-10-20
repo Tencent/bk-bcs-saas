@@ -52,6 +52,14 @@ tar -xf rumpetroll.tgz
 
 - 推送 Chart
 
+如果 `push` 插件版本大于等于0.10.0，必须使用如下命令
+
+```
+helm cm-push rumpetroll/ {{ project_code }}
+```
+
+其它版本，使用如下命令
+
 ```
 helm push rumpetroll/ {{ project_code }}
 ```

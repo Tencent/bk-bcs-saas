@@ -867,7 +867,7 @@
                             },
                             itemStyle: {
                                 normal: {
-                                    color: '#853cff'
+                                    color: '#3dda80'
                                 }
                             },
                             data: item.values

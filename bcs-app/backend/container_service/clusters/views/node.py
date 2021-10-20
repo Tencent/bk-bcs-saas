@@ -37,7 +37,7 @@ from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.clusters.driver.k8s import K8SDriver
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
-from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
+from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_gse_mod
 from backend.container_service.clusters.tools.node import query_cluster_nodes
 from backend.container_service.clusters.utils import cluster_env_transfer, status_transfer
 from backend.utils.errcodes import ErrorCode
@@ -47,7 +47,6 @@ from backend.utils.renderers import BKAPIRenderer
 
 # 导入相应模块
 node = get_cluster_node_mod()
-cmdb = get_cmdb_mod()
 gse = get_gse_mod()
 
 logger = logging.getLogger(__name__)
@@ -454,41 +453,6 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
         # get log
         logs = self.get_queryset(project_id, cluster_id, node_id)
         data = self.get_log_data(request, logs, project_id, cluster_id, node_id)
-        return Response(data)
-
-
-class NodeInfo(NodeBase, viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def get_node_id(self, inner_ip, node_list):
-        """get node id by bcs cc"""
-        node_id = 0
-        for info in node_list:
-            if info['inner_ip'] != inner_ip:
-                continue
-            node_id = info['id']
-            break
-        if not node_id:
-            raise error_codes.CheckFailed(f'inner_ip[{inner_ip}] not found')
-        return node_id
-
-    def info(self, request, project_id, cluster_id):
-        """get host info by cmdb"""
-        self.can_view_cluster(request, project_id, cluster_id)
-        inner_ip = request.GET.get('res_id')
-        if not inner_ip:
-            raise error_codes.APIError('params[res_id] is null')
-        # get node list, compatible logic
-        try:
-            node_data = self.get_node_list(request, project_id, cluster_id)
-            node_list = node_data.get("results") or []
-        except Exception as err:
-            logger.error('get node error, %s', err)
-            return Response([])
-        node_id = self.get_node_id(inner_ip, node_list)
-        data = cmdb.CMDBClient(request).get_host_base_info(inner_ip)
-        # provider can only be CMDB
-        data.update({'provider': 'CMDB', 'id': node_id})
         return Response(data)
 
 
