@@ -1,7 +1,8 @@
 <template>
-    <bcs-navigation navigation-type="top-bottom" :need-menu="false" :side-title="$t('蓝鲸容器管理平台')">
-        <template slot="side-icon">
-            <img src="@/images/bcs.svg" class="all-icon">
+    <bcs-navigation navigation-type="top-bottom" :need-menu="false">
+        <template slot="side-header">
+            <span class="title-icon"><img src="@/images/bcs.svg" class="all-icon"></span>
+            <span class="title-desc bcs-title-desc" @click="handleGoHome">{{ $t('TKEx-IEG 容器平台') }}</span>
         </template>
         <template #header>
             <div class="bcs-navigation-header">
@@ -55,15 +56,15 @@
                     {
                         id: 'project',
                         name: this.$t('项目管理')
-                    },
-                    {
-                        id: 'auth',
-                        name: this.$t('权限中心')
-                    },
-                    {
-                        id: 'exit',
-                        name: this.$t('退出')
                     }
+                    // {
+                    //     id: 'auth',
+                    //     name: this.$t('权限中心')
+                    // },
+                    // {
+                    //     id: 'exit',
+                    //     name: this.$t('退出')
+                    // }
                 ]
             }
         },
@@ -76,6 +77,10 @@
             },
             curProjectCode () {
                 return this.$store.state.curProjectCode
+            },
+            curCluster () {
+                const cluster = this.$store.state.cluster.curCluster
+                return cluster && Object.keys(cluster).length ? cluster : null
             }
         },
         methods: {
@@ -122,6 +127,16 @@
             },
             handleGotoHelp () {
                 window.open(window.BCS_CONFIG?.doc?.help)
+            },
+            // 跳转首页
+            handleGoHome () {
+                if (this.$route.name !== 'clusterMain' && !this.curCluster) {
+                    // 全部集群首页
+                    this.$router.push({ name: 'clusterMain' })
+                } else if (this.$route.name !== 'clusterOverview' && this.curCluster) {
+                    // 单集群首页
+                    this.$router.replace({ name: 'clusterOverview' })
+                }
             }
         }
     }
@@ -132,6 +147,9 @@
 }
 /deep/ .bk-select .bk-tooltip.bk-select-dropdown {
     background: transparent;
+}
+/deep/ .bcs-title-desc {
+    cursor: pointer;
 }
 .bcs-navigation-admin {
     display:flex;
