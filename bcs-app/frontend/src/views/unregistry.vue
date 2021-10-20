@@ -157,6 +157,8 @@
              * 获取关联 CC 的数据
              */
             async fetchCCList () {
+                if (!this.curProject.project_id) return
+
                 const res = await this.$store.dispatch('getCCList', {
                     project_kind: this.kind,
                     project_id: this.curProject.project_id
