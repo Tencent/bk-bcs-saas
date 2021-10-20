@@ -3,7 +3,7 @@
 CURR_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 # db信息
-BCS_DB="/data/mysql -h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
+BCS_DB="/data/bin/mysql -h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
 $BCS_DB -e "CREATE DATABASE IF NOT EXISTS $MYSQL_NAME DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 # 基本配置信息
@@ -13,7 +13,7 @@ K8S_JSON=$(cat /data/etc/migrate/cc-k8s.json | tr -d '\n')
 MESOS_JSON=$(cat /data/etc/migrate/cc-mesos.json | tr -d '\n')
 
 # 初始化表
-bcs_cc migrate -c /data/etc/config/cc.yaml||exit 1
+bcs-cc migrate -c /data/etc/config/cc.yaml||exit 1
 
 # 插入区域配置信息
 BCS_CC_DB="$BCS_DB $MYSQL_NAME"
