@@ -1,4 +1,4 @@
 FROM golang:1.14-stretch
 WORKDIR /data
 ADD . .
-RUN make clean && make && cp ./bin/bcs-cc /usr/local/bin/ && chmod a+x ./bin/
+RUN make clean && make && cp ./bin/bcs-cc /usr/local/bin/ && chmod a+x ./bin/*
