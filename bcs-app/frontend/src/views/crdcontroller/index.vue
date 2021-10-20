@@ -173,7 +173,9 @@
                                                         </template>
                                                     </template>
                                                     <template v-else-if="crdcontroller.status === 'unknown'">
-                                                        <bk-button :disabled="true" v-bk-tooltips="$t('请联系蓝鲸容器助手')">{{$t('启用')}}</bk-button>
+                                                        <span v-bk-tooltips="$t('请联系蓝鲸容器助手')">
+                                                            <bk-button :disabled="true">{{$t('启用')}}</bk-button>
+                                                        </span>
                                                     </template>
                                                     <template v-else-if="crdcontroller.status === 'pending'">
                                                         <bk-button :disabled="true">{{$t('启用中...')}}</bk-button>

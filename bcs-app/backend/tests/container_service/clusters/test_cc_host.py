@@ -21,7 +21,7 @@ pytestmark = pytest.mark.django_db
 API_URL_PREFIX = f'/api/projects/{TEST_PROJECT_ID}/cc'
 
 
-def fake_search_topo(*args, **kwargs):
+def fake_fetch_topo(*args, **kwargs):
     """ 返回测试用 topo 数据 """
     return [
         {
@@ -29,6 +29,23 @@ def fake_search_topo(*args, **kwargs):
             "bk_obj_name": "业务",
             "bk_obj_id": "biz",
             "child": [
+                {
+                    "default": 0,
+                    "bk_obj_name": "集群",
+                    "bk_obj_id": "set",
+                    "child": [
+                        {
+                            "default": 0,
+                            "bk_obj_name": "模块",
+                            "bk_obj_id": "module",
+                            "child": [],
+                            "bk_inst_id": 1001,
+                            "bk_inst_name": "空闲机",
+                        }
+                    ],
+                    "bk_inst_id": 1,
+                    "bk_inst_name": "BCS-K8S-1000",
+                },
                 {
                     "default": 0,
                     "bk_obj_name": "集群",
@@ -53,7 +70,7 @@ def fake_search_topo(*args, **kwargs):
                     ],
                     "bk_inst_id": 5001,
                     "bk_inst_name": "BCS-K8S-1001",
-                }
+                },
             ],
             "bk_inst_id": 10001,
             "bk_inst_name": "BCS",
@@ -61,25 +78,7 @@ def fake_search_topo(*args, **kwargs):
     ]
 
 
-def fake_inner_mod_topo(*args, **kwargs):
-    """ 返回测试用 internal module topo 数据 """
-    return {
-        'bk_set_id': 1,
-        'bk_set_name': '空闲机池',
-        'module': [
-            {
-                'bk_module_id': 11,
-                'bk_module_name': '空闲机',
-            },
-            {
-                'bk_module_id': 12,
-                'bk_module_name': '故障机',
-            },
-        ],
-    }
-
-
-def fake_list_all_hosts(*args, **kwargs):
+def fake_fetch_all_hosts(*args, **kwargs):
     """ 返回测试用主机数据（省略非必须字段） """
     return [
         # 被使用的
@@ -160,8 +159,7 @@ def fake_get_agent_status(*args, **kwargs):
 class TestCCAPI:
     """ 测试 CMDB API 相关接口 """
 
-    @mock.patch('backend.container_service.clusters.cc_host.views.cc.search_biz_inst_topo', new=fake_search_topo)
-    @mock.patch('backend.container_service.clusters.cc_host.views.cc.get_biz_internal_module', new=fake_inner_mod_topo)
+    @mock.patch('backend.container_service.clusters.cc_host.views.cc.BizTopoQueryService.fetch', new=fake_fetch_topo)
     def test_get_biz_inst_topology(self, api_client):
         """ 测试创建资源接口 """
         response = api_client.get(f'{API_URL_PREFIX}/topology/')
@@ -174,7 +172,8 @@ class TestCCAPI:
             'backend.container_service.clusters.cc_host.views.cc.get_application_name',
             new=lambda *args, **kwargs: 'test-app-name',
         ), mock.patch(
-            'backend.container_service.clusters.cc_host.views.cc.list_all_hosts_by_topo', new=fake_list_all_hosts
+            'backend.container_service.clusters.cc_host.views.cc.HostQueryService.fetch_all',
+            new=fake_fetch_all_hosts,
         ), mock.patch(
             'backend.container_service.clusters.cc_host.utils.paas_cc.get_project_cluster_resource',
             new=fake_get_project_cluster_resource,

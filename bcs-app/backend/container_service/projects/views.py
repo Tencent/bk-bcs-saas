@@ -24,15 +24,11 @@ from rest_framework.views import APIView
 
 from backend.bcs_web.audit_log import client
 from backend.bcs_web.constants import bcs_project_cache_key
-from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components import paas_cc
+from backend.components import cc, paas_cc
 from backend.container_service.projects import base as Project
-from backend.container_service.projects.utils import (
-    get_app_by_user_role,
-    get_application_name,
-    update_bcs_service_for_project,
-)
+from backend.container_service.projects.utils import fetch_has_maintain_perm_apps, update_bcs_service_for_project
+from backend.iam.legacy_perms import ProjectPermission
 from backend.utils.basic import normalize_datetime
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
@@ -116,7 +112,7 @@ class Projects(viewsets.ViewSet):
             data["created_at"], data["updated_at"]
         )
         # 添加业务名称
-        data["cc_app_name"] = get_application_name(request)
+        data["cc_app_name"] = cc.get_application_name(request.project.cc_app_id)
         data["can_edit"] = self.can_edit(request, project_id)
         return Response(data)
 
@@ -172,7 +168,7 @@ class CC(viewsets.ViewSet):
 
     def list(self, request):
         """获取当前用户CC列表"""
-        data = get_app_by_user_role(request)
+        data = fetch_has_maintain_perm_apps(request)
         return Response(data)
 
 
@@ -233,11 +229,11 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
         access_token = request.user.token.access_token
 
         if project_code:
-            projects = Project.filter_projects(access_token, {"english_names": project_code})
+            projects = Project.list_projects(access_token, {"english_names": project_code})
         elif project_name:
-            projects = Project.filter_projects(access_token, {"project_names": project_name})
+            projects = Project.list_projects(access_token, {"project_names": project_name})
         else:
-            projects = Project.filter_projects(access_token)
+            projects = Project.list_projects(access_token)
 
         if not projects:
             return Response(projects)

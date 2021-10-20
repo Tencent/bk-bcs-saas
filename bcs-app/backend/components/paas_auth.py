@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from backend.bcs_web.iam import permissions
+from backend.iam import legacy_perms as permissions
 
 from .ssm import get_client_access_token
 

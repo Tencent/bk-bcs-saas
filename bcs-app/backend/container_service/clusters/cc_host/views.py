@@ -20,7 +20,9 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import cc
+from backend.components.base import BaseCompError, CompParseBkCommonResponseError
 from backend.container_service.clusters.serializers import FetchCCHostSLZ
+from backend.utils.error_codes import error_codes
 from backend.utils.filter import filter_by_ips
 from backend.utils.paginator import custom_paginator
 
@@ -35,27 +37,13 @@ class CCViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='topology', detail=False)
     def biz_inst_topo(self, request, project_id):
         """ 查询业务实例拓扑 """
-        topo_info = cc.search_biz_inst_topo(request.user.username, request.project.cc_app_id)
-        raw_inner_mod_topo = cc.get_biz_internal_module(request.user.username, request.project.cc_app_id)
-        # topo 最外层为业务，如果存在首个业务即为查询的结果
-        if topo_info and raw_inner_mod_topo:
-            inner_mod_topo = {
-                'bk_obj_id': 'set',
-                'bk_obj_name': _('集群'),
-                'bk_inst_id': raw_inner_mod_topo['bk_set_id'],
-                'bk_inst_name': raw_inner_mod_topo['bk_set_name'],
-                'child': [
-                    {
-                        'bk_obj_id': 'module',
-                        'bk_obj_name': _('模块'),
-                        'bk_inst_id': mod['bk_module_id'],
-                        'bk_inst_name': mod['bk_module_name'],
-                        'child': [],
-                    }
-                    for mod in raw_inner_mod_topo['module']
-                ],
-            }
-            topo_info[0]['child'].insert(0, inner_mod_topo)
+        try:
+            topo_info = cc.BizTopoQueryService(request.user.username, request.project.cc_app_id).fetch()
+        except CompParseBkCommonResponseError as e:
+            raise error_codes.ComponentError(_('查询业务拓扑信息失败：{}').format(e))
+        except BaseCompError as e:
+            logger.error('查询业务拓扑信息失败：%s', e)
+            raise error_codes.ComponentError(_('发生未知错误，请稍候再试'))
         return Response(data=topo_info)
 
     @action(methods=['POST'], url_path='hosts', detail=False)
@@ -67,8 +55,14 @@ class CCViewSet(SystemViewSet):
         bk_biz_id = request.project.cc_app_id
 
         # 从 CMDB 获取可用主机信息，业务名称信息
-        host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
-        cc_app_name = cc.get_application_name(username, bk_biz_id)
+        try:
+            host_list = utils.fetch_cc_app_hosts(username, bk_biz_id, params['set_id'], params['module_id'])
+        except CompParseBkCommonResponseError as e:
+            raise error_codes.ComponentError(str(e))
+        except BaseCompError as e:
+            logger.error('获取主机信息失败：%s', e)
+            raise error_codes.ComponentError(_('发生未知错误，请稍候再试'))
+        cc_app_name = cc.get_application_name(bk_biz_id)
 
         # 根据指定的 IP 过滤
         host_list = filter_by_ips(host_list, params['ip_list'], key='bk_host_innerip', fuzzy=params['fuzzy'])

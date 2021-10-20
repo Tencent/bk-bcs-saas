@@ -388,9 +388,6 @@ COMMON_CUSTOMER_SUPPORT_MSG = _("联系管理员解决")
 # 灰度功能提示消息
 GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名单"
 
-# APIGW APP权限控制
-BK_APP_WHITELIST = {}
-
 # 平台组件部署到的命名空间
 BCS_SYSTEM_NAMESPACE = "bcs-system"
 
@@ -459,6 +456,12 @@ DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET']
 
 # 默认主键 3.2 版本需要主动指定
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# 访问 bcs-api 服务需要的token
+BCS_AUTH_TOKEN = os.environ.get("BCS_AUTH_TOKEN", "")
+# 访问 bcs-api-gateway 服务需要的token
+BCS_API_GW_AUTH_TOKEN = os.environ.get("BCS_API_GW_AUTH_TOKEN", "")
+
 
 try:
     from .base_ext import *  # noqa

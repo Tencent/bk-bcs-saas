@@ -41,16 +41,18 @@
                     </bcs-alert>
                     <div class="biz-cluster-node-content">
                         <div class="biz-cluster-node-header">
-                            <bk-button type="primary"
+                            <span
+                                :disabled="curClusterInPage.state !== 'existing'"
                                 v-bk-tooltips="{
-                                    content: $t('自有集群不支持通过平台添加节点'),
-                                    disabled: curClusterInPage.state !== 'existing'
-                                }"
-                                :disabled="curClusterInPage.state === 'existing'"
-                                @click.stop="openDialog">
-                                <i class="bcs-icon bcs-icon-plus"></i>
-                                <span>{{$t('添加节点')}}</span>
-                            </bk-button>
+                                    content: $t('自有集群不支持通过平台添加节点')
+                                }">
+                                <bk-button type="primary"
+                                    :disabled="curClusterInPage.state === 'existing'"
+                                    @click.stop="openDialog">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
+                                    <span>{{$t('添加节点')}}</span>
+                                </bk-button>
+                            </span>
                             <template v-if="curClusterInPage.type === 'tke' && $INTERNAL">
                                 <apply-host theme="primary" style="display: inline-block;" :cluster-id="clusterId" :is-backfill="true" />
                             </template>
@@ -133,8 +135,8 @@
                                         <th style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
                                             <bk-checkbox name="check-all-node" v-model="isCheckCurPageAllNode" @change="checkAllNode(...arguments)" />
                                         </th>
-                                        <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
-                                        <th style="width: 12%;">{{$t('状态')}}</th>
+                                        <th style="width: 10%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
+                                        <th style="width: 8%;">{{$t('状态')}}</th>
                                         <th style="width: 8%;">{{$t('容器数量')}}</th>
                                         <template v-if="curClusterInPage.type === 'k8s' || curClusterInPage.type === 'tke'">
                                             <th style="width: 8%;">{{$t('Pod数量')}}</th>

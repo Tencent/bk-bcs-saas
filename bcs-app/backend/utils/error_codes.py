@@ -48,6 +48,7 @@ class ErrorCodes:
     JSONParseError = ErrorCode(_("解析异常"))
     DBOperError = ErrorCode(_("DB操作异常"))
 
+    # TODO 禁用 APIError，该 ErrorCode 定义过于模糊，容易误用，考虑后续去除
     APIError = ErrorCode(_('请求失败'), code_num=40001)
     NoBCSService = ErrorCode(_('该项目没有使用蓝鲸容器服务'), code_num=416)
     ValidateError = ErrorCode(_('参数不正确'), code_num=40002)
@@ -69,10 +70,6 @@ class ErrorCodes:
         code_num=40101,
         status_code=status.HTTP_401_UNAUTHORIZED,
     )
-    # 没有权限，最好使用drf permission class检查权限
-    Forbidden = ErrorCode(_('没有使用权限'), code_num=40301, status_code=status.HTTP_403_FORBIDDEN)
-    # 权限中心错误码
-    IAMCheckFailed = ErrorCode(_('权限校验失败'), code_num=40302, status_code=status.HTTP_403_FORBIDDEN)
     # 资源未找到
     ResNotFoundError = ErrorCode(_('资源未找到'), code_num=40400, status_code=status.HTTP_404_NOT_FOUND)
 

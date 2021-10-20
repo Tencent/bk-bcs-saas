@@ -483,24 +483,6 @@
                     }
                 })
             }
-            // 跳转添加节点界面
-            const goNodeInfo = async (cluster) => {
-                if (!cluster.permissions.view) {
-                    await $store.dispatch('getResourcePermissions', {
-                        project_id: curProjectId.value,
-                        policy_code: 'view',
-                        resource_code: cluster.cluster_id,
-                        resource_name: cluster.name,
-                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
-                    })
-                }
-                $router.push({
-                    name: 'clusterNode',
-                    params: {
-                        clusterId: cluster.cluster_id
-                    }
-                })
-            }
             // 跳转集群信息界面
             const goClusterInfo = async (cluster) => {
                 if (!cluster.permissions.view) {
@@ -516,6 +498,24 @@
                 }
                 $router.push({
                     name: 'clusterInfo',
+                    params: {
+                        clusterId: cluster.cluster_id
+                    }
+                })
+            }
+            // 跳转添加节点界面
+            const goNodeInfo = async (cluster) => {
+                if (!cluster.permissions.view) {
+                    await $store.dispatch('getResourcePermissions', {
+                        project_id: curProjectId.value,
+                        policy_code: 'view',
+                        resource_code: cluster.cluster_id,
+                        resource_name: cluster.name,
+                        resource_type: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}`
+                    })
+                }
+                $router.push({
+                    name: 'clusterNode',
                     params: {
                         clusterId: cluster.cluster_id
                     }
@@ -707,7 +707,6 @@
                 getMetricPercent,
                 handleShowProjectConf,
                 goCreateCluster,
-                goNodeInfo,
                 goOverview,
                 goClusterInfo,
                 clusterNoticeList,
@@ -728,7 +727,8 @@
                 versionList,
                 handleCancelUpdateCluster,
                 handleConfirmUpdateCluster,
-                handleUpdateCluster
+                handleUpdateCluster,
+                goNodeInfo
             }
         }
     })

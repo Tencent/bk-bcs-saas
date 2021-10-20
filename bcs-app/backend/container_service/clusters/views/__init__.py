@@ -33,7 +33,6 @@ from .node import (  # noqa
     NodeCreateListViewSet,
     NodeForceDeleteViewSet,
     NodeGetUpdateDeleteViewSet,
-    NodeInfo,
     NodeLabelListViewSet,
     NodeLabelQueryCreateViewSet,
     NodeUpdateLogView,

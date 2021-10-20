@@ -131,7 +131,7 @@
                                             </label>
                                         </th>
                                         <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
-                                        <th style="width: 12%;">{{$t('状态')}}</th>
+                                        <th style="width: 8%;">{{$t('状态')}}</th>
                                         <th style="width: 8%;">{{$t('容器数量')}}</th>
                                         <template v-if="curClusterInPage.type === 'k8s'">
                                             <th style="width: 8%;">{{$t('Pod数量')}}</th>

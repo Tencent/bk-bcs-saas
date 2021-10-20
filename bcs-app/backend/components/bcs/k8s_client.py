@@ -12,42 +12,30 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import logging
+from functools import lru_cache
 from typing import Dict
 
-from cachetools import LRUCache, cached
-from cachetools.keys import hashkey
 from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
 
 from backend.components.bcs import BCSClientBase, resources
-from backend.components.utils import http_get
+from backend.container_service.clusters.base import CtxCluster
+from backend.resources.client import BcsKubeConfigurationService
 
 logger = logging.getLogger(__name__)
 
-# 获取cluster context使用的缓存策略
-cluster_context_cache_policy = LRUCache(maxsize=128)
 
-
-@cached(
-    cache=cluster_context_cache_policy,
-    key=lambda url_prefix, access_token, project_id, cluster_id: hashkey(url_prefix, project_id, cluster_id),
-)
-def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cluster_id: str) -> Dict:
-    """组装集群的Context"""
-    # 获取bcs api的集群信息
-    url = f"{url_prefix}/bcs/query_by_id/"
-    params = {"access_token": access_token, "project_id": project_id, "cluster_id": cluster_id}
-    headers = {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
-    context = http_get(url, params=params, raise_for_status=False, headers=headers)
-    # 获取集群的credential
-    url = f"{url_prefix}/{context['id']}/client_credentials"
-    params = {"access_token": access_token}
-    credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
-    context.update(credentials)
-
-    return context
+@lru_cache(maxsize=32)
+def make_cluster_configuration(access_token: str, project_id: str, cluster_id: str) -> Dict:
+    ctx_cluster = CtxCluster.create(
+        id=cluster_id,
+        project_id=project_id,
+        token=access_token,
+    )
+    return BcsKubeConfigurationService(ctx_cluster).make_configuration()
 
 
 class K8SAPIClient(BCSClientBase):
@@ -61,19 +49,12 @@ class K8SAPIClient(BCSClientBase):
 
     @cached_property
     def api_client(self):
-        configure = client.Configuration()
-        configure.verify_ssl = False
-        # 获取集群context，如果调用接口或者其它异常导致失败，需要主动使缓存失效
-        try:
-            context = make_cluster_context(self.rest_host, self.access_token, self.project_id, self.cluster_id)
-            configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
-            configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
-        except Exception as e:
-            logger.exception("make cluster context error, %s", e)
-            # 当出现异常时，需要清空缓存
-            cluster_context_cache_policy.clear()
-            raise
-        api_client = client.ApiClient(configure)
+        configure = make_cluster_configuration(self.access_token, self.project_id, self.cluster_id)
+        api_client = client.ApiClient(
+            configure,
+            header_name='X-BKAPI-AUTHORIZATION',
+            header_value=json.dumps({"access_token": self.access_token}),
+        )
         return api_client
 
 

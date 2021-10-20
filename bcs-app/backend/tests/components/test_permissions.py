@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import pytest
 from iam import OP
 
-from backend.bcs_web.iam.permissions import ProjectPermission
+from backend.iam.legacy_perms import ProjectPermission
 
 test_dict_filter_data = [
     ({'op': OP.IN, 'value': [2, 1], 'field': 'project.id'}, {'project_id_list': [1, 2], 'op': OP.IN}),
