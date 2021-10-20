@@ -1021,8 +1021,19 @@
              */
             async goLoadBalanceDetail (loadBalance) {
                 const projectName = this.curProject.project_code
-                const url = `${window.DEVOPS_HOST}/console/bcs/${projectName}/app/mesos/${loadBalance.name}/${loadBalance.namespace}/deployment?cluster_id=${loadBalance.cluster_id}`
-                window.open(url)
+                const location = this.$router.resolve({
+                    name: 'instanceDetail2',
+                    params: {
+                        projectCode: projectName,
+                        instanceName: loadBalance.name,
+                        instanceNamespace: loadBalance.namespace,
+                        instanceCategory: 'deployment'
+                    },
+                    query: {
+                        cluster_id: loadBalance.cluster_id
+                    }
+                })
+                window.open(location.href)
             },
 
             /**

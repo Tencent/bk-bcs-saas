@@ -1,137 +1,34 @@
 <template>
     <div>
-        <div class="biz-side-title cluster-selector">
-            <!-- 全部集群 -->
-            <template v-if="!curCluster">
-                <img src="@/images/bcs2.svg" class="all-icon">
-                <span class="cluster-name-all">{{$t('全部集群')}}</span>
-            </template>
-            <!-- 单集群 -->
-            <template v-else-if="curCluster.cluster_id && curCluster.name">
-                <span class="icon">{{ curCluster.name[0] }}</span>
-                <span>
-                    <span class="cluster-name" :title="curCluster.name">{{ curCluster.name }}</span>
-                    <br>
-                    <span class="cluster-id">{{ curCluster.cluster_id }}</span>
-                </span>
-            </template>
-            <!-- 异常情况 -->
-            <template v-else>
-                <img src="@/images/bcs2.svg" class="all-icon">
-                <span class="cluster-name-all">{{$t('容器服务')}}</span>
-            </template>
-            <!-- 单集群切换 -->
-            <i class="biz-conf-btn bcs-icon bcs-icon-qiehuan f12" @click.stop="handleShowClusterSelector"></i>
-            <img v-if="featureCluster" class="dot" src="@/images/new.svg" />
-            <cluster-selector v-model="isShowClusterSelector" @change="handleChangeCluster" />
-        </div>
-        <!-- 视图切换 -->
-        <div class="resouce-toggle" v-if="curCluster">
-            <span v-for="item in viewList"
-                :key="item.id"
-                :class="['tab bcs-ellipsis', { active: viewMode === item.id }]"
-                @click="handleChangeView(item)">
-                {{item.name}}
-            </span>
-        </div>
+        <p class="biz-side-title">
+            <img src="@/images/bcs2.svg" class="all-icon">
+            <span style="font-size: 16px;">{{$t('容器服务')}}</span>
+            <i class="biz-conf-btn bcs-icon bcs-icon-cog" style="font-size: 16px;"
+                v-bk-tooltips.bottom="$t('项目信息')" @click="handleShowProjectConfDialog "></i>
+        </p>
         <!-- 菜单 -->
         <div class="side-nav">
             <SideMenu :list="menuList" :selected="selected" @change="handleMenuChange"></SideMenu>
             <p class="biz-copyright">Copyright © 2012-{{(new Date()).getFullYear()}} Tencent BlueKing. All Rights Reserved</p>
         </div>
+        <ProjectConfig v-model="isProjectConfDialogShow"></ProjectConfig>
     </div>
 </template>
 
 <script lang="ts">
-    import { defineComponent, computed, ref, watch } from '@vue/composition-api'
+    import { defineComponent, computed, ref } from '@vue/composition-api'
     import SideMenu from '@/components/menu/index.vue'
-    import clusterSelector from '@/components/cluster-selector/index.vue'
-    import menuConfig, { IMenuItem, ISpecialMenuItem } from '@/store/menu'
+    import { IMenuItem, ISpecialMenuItem } from '@/store/menu'
+    import ProjectConfig from '@/views/project/project-config.vue'
 
     export default defineComponent({
         name: 'SideNav',
         components: {
             SideMenu,
-            clusterSelector
+            ProjectConfig
         },
         setup (props, ctx) {
-            const { $store, $i18n, $router } = ctx.root
-            const featureCluster = ref(!localStorage.getItem('FEATURE_CLUSTER'))
-            const curCluster = computed(() => {
-                const cluster = $store.state.cluster.curCluster
-                return cluster && Object.keys(cluster).length ? cluster : null
-            })
-
-            const isShowClusterSelector = ref(false)
-            const handleShowClusterSelector = () => {
-                isShowClusterSelector.value = true
-            }
-            // 切换单集群
-            const handleChangeCluster = (cluster) => {
-                localStorage.setItem('FEATURE_CLUSTER', 'done')
-                if (viewMode.value === 'dashboard') {
-                    $router.replace({
-                        name: 'dashboard',
-                        params: {
-                            clusterId: cluster.cluster_id
-                        }
-                    })
-                } else if (!cluster.cluster_id) {
-                    $router.replace({
-                        name: 'clusterMain',
-                        params: {
-                            clusterId: cluster.cluster_id
-                        }
-                    })
-                } else {
-                    $router.replace({
-                        name: 'clusterOverview',
-                        params: {
-                            clusterId: cluster.cluster_id
-                        }
-                    })
-                }
-            }
-
-            // 视图类型
-            const viewMode = computed<'dashboard' | 'cluster'>(() => {
-                return $store.state.viewMode
-            })
-            const viewList = ref([
-                {
-                    id: 'cluster',
-                    name: $i18n.t('集群管理')
-                },
-                {
-                    id: 'dashboard',
-                    name: $i18n.t('资源视图')
-                }
-            ])
-            // 视图切换
-            const handleChangeView = (item) => {
-                if (viewMode.value === item.id) return
-
-                $store.commit('updateViewMode', item.id)
-                if (viewMode.value === 'dashboard') {
-                    $router.push({ name: 'dashboard' })
-                } else {
-                    $router.push({ name: 'clusterOverview' })
-                }
-            }
-
-            // 菜单列表
-            const curProject = computed(() => {
-                return $store.state.curProject
-            })
-            watch([curProject, viewMode], () => {
-                if (curProject.value?.kind === 2) {
-                    $store.commit('updateMenuList', [])
-                } else if (viewMode.value === 'dashboard') {
-                    $store.commit('updateMenuList', menuConfig.dashboardMenuList)
-                } else {
-                    $store.commit('updateMenuList', menuConfig.k8sMenuList)
-                }
-            }, { immediate: true })
+            const { $store, $router } = ctx.root
 
             const featureFlag = computed(() => {
                 return $store.getters.featureFlag || {}
@@ -152,10 +49,6 @@
 
             const selected = computed(() => {
                 // 当前选择菜单在全局导航守卫中设置的
-                // eslint-disable-next-line camelcase
-                if ($store.state.curMenuId === 'OVERVIEW' && !curCluster.value?.cluster_id) { // 全部集群时预览界面是归属于集群菜单的
-                    return 'CLUSTER'
-                }
                 return $store.state.curMenuId
             })
             const projectCode = computed(() => {
@@ -174,27 +67,21 @@
                     window.open(`${window.DEVOPS_HOST}/console/monitor/${projectCode.value}/?project_id=${projectId.value}`)
                 } else {
                     $router.push({
-                        name: item.routeName,
-                        params: {
-                            // eslint-disable-next-line camelcase
-                            clusterId: curCluster.value?.cluster_id
-                        }
+                        name: item.routeName
                     })
                 }
             }
+            const isProjectConfDialogShow = ref(false)
+            const handleShowProjectConfDialog = () => {
+                isProjectConfDialogShow.value = true
+            }
 
             return {
-                featureCluster,
-                curCluster,
-                isShowClusterSelector,
-                viewMode,
-                viewList,
                 menuList,
                 selected,
-                handleChangeCluster,
-                handleShowClusterSelector,
-                handleChangeView,
-                handleMenuChange
+                handleMenuChange,
+                isProjectConfDialogShow,
+                handleShowProjectConfDialog
             }
         }
     })

@@ -45,7 +45,10 @@ const childRoutes = [
         path: 'cluster/:clusterId/overview',
         name: 'clusterOverview',
         component: ClusterOverview,
-        alias: 'cluster/:clusterId'
+        alias: 'cluster/:clusterId',
+        meta: {
+            menuId: 'CLUSTER'
+        }
     },
     // 集群里的节点列表
     {
@@ -53,7 +56,7 @@ const childRoutes = [
         name: 'clusterNode',
         component: ClusterNode,
         meta: {
-            menuId: 'OVERVIEW'
+            menuId: 'CLUSTER'
         }
     },
     // 集群里的集群信息
@@ -62,7 +65,7 @@ const childRoutes = [
         name: 'clusterInfo',
         component: ClusterInfo,
         meta: {
-            menuId: 'OVERVIEW'
+            menuId: 'CLUSTER'
         }
     },
     // 集群里的具体节点
@@ -71,7 +74,7 @@ const childRoutes = [
         name: 'clusterNodeOverview',
         component: ClusterNodeOverview,
         meta: {
-            menuId: 'OVERVIEW'
+            menuId: 'CLUSTER'
         }
     },
     // 节点详情页面跳转的容器详情页面
@@ -80,7 +83,7 @@ const childRoutes = [
         name: 'containerDetailForNode',
         component: ContainerDetailForNode,
         meta: {
-            menuId: 'OVERVIEW'
+            menuId: 'CLUSTER'
         }
     }
 ]

@@ -2609,3 +2609,6 @@ div::-webkit-scrollbar-thumb {
     height: 16px;
     width: 12px;
 }
+.navigation-message-theme {
+    padding: 0 !important;
+}

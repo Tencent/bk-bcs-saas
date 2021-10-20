@@ -18,17 +18,26 @@ const childRoutes = [
                     // mesos 应用里的实例详情页面
                     {
                         path: ':instanceId',
-                        name: 'instanceDetail'
+                        name: 'instanceDetail',
+                        meta: {
+                            menuId: 'WORKLOAD'
+                        }
                     },
 
                     {
                         path: ':instanceName/:instanceNamespace/:instanceCategory',
-                        name: 'instanceDetail2'
+                        name: 'instanceDetail2',
+                        meta: {
+                            menuId: 'WORKLOAD'
+                        }
                     },
                     // mesos 应用里的容器详情页面
                     {
                         path: ':instanceId/taskgroups/:taskgroupName/containers/:containerId',
-                        name: 'containerDetail'
+                        name: 'containerDetail',
+                        meta: {
+                            menuId: 'WORKLOAD'
+                        }
                     },
                     {
                         path: ':instanceName/:instanceNamespace/:instanceCategory/taskgroups/:taskgroupName/containers/:containerId',

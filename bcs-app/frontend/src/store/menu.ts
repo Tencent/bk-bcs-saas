@@ -38,6 +38,7 @@ export interface ISpecialMenuItem {
 export interface IMenu {
     dashboardMenuList: (IMenuItem | ISpecialMenuItem)[];
     k8sMenuList: (IMenuItem | ISpecialMenuItem)[];
+    mesosMenuList: (IMenuItem | ISpecialMenuItem)[];
 }
 // 左侧菜单配置
 const menu: IMenu = {
@@ -392,6 +393,139 @@ const menu: IMenu = {
                     name: projectImage,
                     routeName: 'projectImage',
                     id: 'projectImage'
+                }
+            ],
+            id: 'REPO'
+        },
+        { type: 'line' },
+        {
+            name: operateAudit,
+            icon: 'bcs-icon-operate-audit',
+            id: 'AUDIT',
+            routeName: 'operateAudit'
+        },
+        {
+            name: eventQuery,
+            icon: 'bcs-icon-event-query',
+            id: 'EVENT',
+            routeName: 'eventQuery'
+        },
+        { type: 'line' },
+        {
+            name: monitor,
+            icon: 'bcs-icon-monitors',
+            id: 'MONITOR'
+        }
+    ],
+    mesosMenuList: [
+        {
+            name: cluster,
+            icon: 'bcs-icon-jq-colony',
+            id: 'CLUSTER',
+            routeName: 'clusterMain'
+        },
+        {
+            name: node,
+            icon: 'bcs-icon-jd-node',
+            id: 'NODE',
+            routeName: 'nodeMain'
+        },
+        {
+            name: namespace,
+            icon: 'bcs-icon-namespace',
+            id: 'NAMESPACE',
+            routeName: 'namespace'
+        },
+        { type: 'line' },
+        {
+            name: templateset,
+            icon: 'bcs-icon-templateset',
+            id: 'TEMPLATESET',
+            routeName: 'templateset'
+        },
+        {
+            name: variable,
+            icon: 'bcs-icon-var',
+            id: 'VARIABLE',
+            routeName: 'var'
+        },
+        {
+            name: metric,
+            icon: 'bcs-icon-control-center',
+            id: 'METRICS',
+            routeName: 'metricManage'
+        },
+        { type: 'line' },
+        {
+            name: app,
+            icon: 'bcs-icon-yy-apply',
+            id: 'WORKLOAD',
+            routeName: 'mesos'
+        },
+        {
+            name: network,
+            icon: 'bcs-icon-wl-network',
+            children: [
+                {
+                    name: 'Service',
+                    id: 'service',
+                    routeName: 'service'
+                },
+                {
+                    name: 'Ingress',
+                    id: 'resourceIngress',
+                    routeName: 'resourceIngress'
+                },
+                {
+                    name: 'LoadBalancer',
+                    id: 'loadBalance',
+                    routeName: 'loadBalance'
+                },
+                {
+                    name: 'CloudLoadBalancer',
+                    id: 'cloudLoadBalance',
+                    routeName: 'cloudLoadBalance'
+                }
+            ],
+            id: 'NETWORK'
+        },
+        {
+            name: resource,
+            icon: 'bcs-icon-zy-resource',
+            children: [
+                {
+                    name: 'ConfigMaps',
+                    id: 'resourceConfigmap',
+                    routeName: 'resourceConfigmap'
+                },
+                {
+                    name: 'Secrets',
+                    id: 'resourceSecret',
+                    routeName: 'resourceSecret'
+                }
+            ],
+            id: 'CONFIGURATION'
+        },
+        {
+            name: 'HPA',
+            icon: 'bcs-icon-hpa',
+            id: 'HPA',
+            routeName: 'hpa'
+        },
+        { type: 'line' },
+        {
+            name: imageHub,
+            icon: 'bcs-icon-ck-store',
+            children: [
+                {
+                    name: publicImage,
+                    id: 'imageLibrary',
+                    routeName: 'imageLibrary'
+                },
+                {
+                    name: projectImage,
+                    id: 'projectImage',
+                    routeName: 'projectImage'
                 }
             ],
             id: 'REPO'

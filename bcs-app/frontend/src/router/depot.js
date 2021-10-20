@@ -30,6 +30,10 @@ const childRoutes = [
                 alias: '',
                 meta: {
                     menuId: 'imageLibrary'
+                },
+                beforeEnter (to, from, next) {
+                    to.meta.menuId = from.name
+                    next()
                 }
             },
             {

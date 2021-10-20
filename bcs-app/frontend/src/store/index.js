@@ -28,6 +28,7 @@ import hpa from '@/store/modules/hpa'
 import storage from '@/store/modules/storage'
 import dashboard from '@/store/modules/dashboard'
 import { projectFeatureFlag } from '@/api/base'
+import menuConfig from '@/store/menu'
 
 Vue.use(Vuex)
 Vue.config.devtools = NODE_ENV === 'development'
@@ -88,7 +89,7 @@ const store = new Vuex.Store({
         featureFlag: {},
         viewMode: '',
         curMenuId: '',
-        menuList: []
+        menuList: menuConfig.mesosMenuList
     },
     // 公共 getters
     getters: {

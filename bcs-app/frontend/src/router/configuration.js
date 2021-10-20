@@ -108,7 +108,10 @@ const childRoutes = [
                         path: 'templateset/application/:templateId',
                         name: 'mesosTemplatesetApplication',
                         component: MesosCreateApplication,
-                        alias: 'templateset/create'
+                        alias: 'templateset/create',
+                        meta: {
+                            menuId: "TEMPLATESET"
+                        }
                     },
                     {
                         path: 'templateset/deployment/:templateId',

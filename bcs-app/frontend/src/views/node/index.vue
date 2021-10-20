@@ -1421,7 +1421,7 @@
                     name: 'clusterNode',
                     params: {
                         projectId: node.project_id,
-                        projectCode: node.project_code,
+                        projectCode: this.$route.params.projectCode,
                         clusterId: node.cluster_id,
                         backTarget: 'nodeMain'
                     },
