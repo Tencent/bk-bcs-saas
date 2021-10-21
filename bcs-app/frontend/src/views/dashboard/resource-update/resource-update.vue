@@ -33,14 +33,14 @@
                         :auto-minimize="true"
                         :initial-divide="0"
                         :max="300"
-                        :style="{ 'height': fullScreen ? '100%' : height + 'px' }">>
+                        :style="{ 'height': fullScreen ? clientHeight + 'px' : height + 'px' }">>
                         <div slot="aside">
                             <EditorStatus class="status-wrapper" :message="editorErr.message" v-show="!!editorErr.message"></EditorStatus>
                         </div>
                         <div slot="main">
                             <ResourceEditor
                                 v-model="detail"
-                                :height="fullScreen ? '100%' : height"
+                                :height="fullScreen ? clientHeight : height"
                                 ref="editorRef"
                                 key="editor"
                                 v-bkloading="{ isLoading, opacity: 1, color: '#1a1a1a' }"
@@ -195,6 +195,7 @@
         setup (props, ctx) {
             const { $i18n, $store, $bkMessage, $router, $bkInfo } = ctx.root
             const { namespace, type, category, name, kind, crd, defaultShowExample } = toRefs(props)
+            const clientHeight = document.body.clientHeight
 
             onMounted(() => {
                 document.addEventListener('keyup', handleExitFullScreen)
@@ -561,7 +562,8 @@
                 toggleDiffEditor,
                 handleCreateOrUpdate,
                 handleCancel,
-                handleDiffStatChange
+                handleDiffStatChange,
+                clientHeight
             }
         }
     })
