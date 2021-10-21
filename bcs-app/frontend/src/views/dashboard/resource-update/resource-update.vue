@@ -112,7 +112,7 @@
                     key="diff"
                     :value="detail"
                     :original="original"
-                    :height="fullScreen ? clientHeight : height"
+                    :height="fullScreen ? '100%' : height"
                     :options="{
                         renderLineHighlight: 'none'
                     }"
