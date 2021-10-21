@@ -4,7 +4,7 @@ CURR_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 # db信息
 BCS_DB="/data/bin/mysql -h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
-$BCS_DB -e "CREATE DATABASE IF NOT EXISTS $MYSQL_NAME DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+$BCS_DB -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_NAME\` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 # 基本配置信息
 AREA_JSON=$(cat /data/etc/migrate/cc-area.json | tr -d '\n')
