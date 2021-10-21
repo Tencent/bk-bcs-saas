@@ -123,7 +123,7 @@
                                                 <label class="title">{{$t('命名空间')}}</label>
                                                 <div>
                                                     <bk-selector
-                                                        style="width: 265px;"
+                                                        style="width: 248px;"
                                                         :placeholder="$t('请选择')"
                                                         :searchable="true"
                                                         :selected.sync="namespaceId"
@@ -133,6 +133,7 @@
                                                         :display-key="'name'"
                                                         @item-selected="getClusterInfo">
                                                     </bk-selector>
+                                                    <i v-bk-tooltips.top="$t('如果Chart中已经配置命名空间，则会使用Chart中的命名空间，会导致不匹配等问题;建议Chart中不要配置命名空间')" class="bcs-icon bcs-icon-question-circle f14"></i>
                                                 </div>
                                             </div>
                                             <p class="biz-tip pt10" id="cluster-info" style="clear: both;" v-if="clusterInfo" v-html="clusterInfo"></p>

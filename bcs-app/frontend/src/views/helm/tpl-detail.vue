@@ -345,12 +345,19 @@
              */
             async getTplVersions () {
                 const projectId = this.projectId
-                const tplId = this.curTpl.name
                 const isPublic = this.curTpl.repository.name === 'public-repo'
                 try {
-                    const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
-
-                    this.curTplVersions = res.data
+                    if (this.$INTERNAL) {
+                        // 内部版本
+                        const tplId = this.curTpl.name
+                        const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
+                        this.curTplVersions = res.data || []
+                    } else {
+                        // 外部版本
+                        const tplId = this.curTpl.id
+                        const res = await this.$store.dispatch('helm/getTplVersions', { projectId, tplId })
+                        this.curTplVersions = res.data.results || []
+                    }
                     if (this.curTplVersions.length) {
                         const firstVersion = this.curTplVersions[0]
                         const versionId = firstVersion.version
