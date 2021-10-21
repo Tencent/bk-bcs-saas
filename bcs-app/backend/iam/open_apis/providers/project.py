@@ -22,12 +22,14 @@ from .utils import get_system_token
 
 
 class ProjectProvider(ResourceProvider):
-    """项目资源的 Provider"""
+    """项目 Provider"""
 
     def list_instance(self, filter_obj: FancyDict, page_obj: Page, **options) -> ListResult:
         projects = list_projects(get_system_token())
-        projects_slice = projects[page_obj.slice_from : page_obj.slice_to]
-        results = [{'id': p['project_id'], 'display_name': p['project_name']} for p in projects_slice]
+        results = [
+            {'id': p['project_id'], 'display_name': p['project_name']}
+            for p in projects[page_obj.slice_from : page_obj.slice_to]
+        ]
         return ListResult(results=results, count=len(projects))
 
     def fetch_instance_info(self, filter_obj: FancyDict, **options) -> ListResult:

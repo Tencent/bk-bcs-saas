@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from backend.utils.renderers import BKAPIRenderer
 
 from .authentication import IamBasicAuthentication
-from .provider.resource import ResourceProvider
+from .providers.resource import ResourceProvider
 from .serializers import QueryResourceSLZ
 
 

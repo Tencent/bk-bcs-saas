@@ -86,15 +86,19 @@ export function useClusterOverview (ctx: SetupContext, clusterList: Ref<any[]>) 
         set(clusterOverviewMap.value, cluster.cluster_id, res.data)
         return res.data
     }
-    const overviewCluster = computed(() => {
-        return clusterList.value.filter(item => item.status === 'normal'
-        && !clusterOverviewMap.value?.[item.cluster_id])
-    })
 
-    watch(overviewCluster, () => {
-        overviewCluster.value.forEach(item => {
-            fetchClusterOverview(item)
-        })
+    watch(clusterList, (newValue, oldValue) => {
+        const newClusterList = newValue.filter(item => item.status === 'normal' && !clusterOverviewMap.value?.[item.cluster_id])
+        const oldClusterList = oldValue.filter(item => item.status === 'normal' && !clusterOverviewMap.value?.[item.cluster_id])
+
+        const newClusterIds = newClusterList.map(item => item.cluster_id)
+        const oldClusterIds = oldClusterList.map(item => item.cluster_id)
+
+        if (newClusterIds.sort().join() !== oldClusterIds.sort().join()) {
+            newClusterList.forEach(item => {
+                fetchClusterOverview(item)
+            })
+        }
     })
 
     return {

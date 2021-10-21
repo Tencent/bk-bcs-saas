@@ -39,11 +39,15 @@ class PermCtx:
     def validate_resource_id(self):
         """校验资源实例 ID. 如果校验不过，抛出 AttrValidationError 异常"""
         if not self.resource_id:
-            raise AttrValidationError(f'missing valid resource_id')
+            raise AttrValidationError('missing valid resource_id')
 
     @property
     def resource_id(self) -> str:
         return ''
+
+    def validate(self):
+        if not self.username:
+            raise AttrValidationError('username must not be empty')
 
 
 class Permission(ABC, IAMClient):
