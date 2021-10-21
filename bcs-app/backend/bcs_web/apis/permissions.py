@@ -88,4 +88,4 @@ class BKAppPermission(permissions.BasePermission):
 
         app_code = request.user.client.app.app_code
 
-        return whitelist.check_app_access_webconsole_enable(app_code, project_id_or_code)
+        return whitelist.can_access_webconsole(app_code, project_id_or_code)
