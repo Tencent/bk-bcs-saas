@@ -160,15 +160,15 @@ DEVOPS_BCS_HOST = os.environ.get('BKAPP_DEVOPS_BCS_URL')
 DEVOPS_BCS_API_URL = os.environ.get('BKAPP_DEVOPS_BCS_API_URL')
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
 
-# 统一登录页面
-LOGIN_SIMPLE = os.environ.get('BK_LOGIN_URL', '')
-LOGIN_FULL = f'{LOGIN_SIMPLE}?c_url={DEVOPS_BCS_HOST}'
-
 BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
 
-BK_PAAS_HOST = os.environ.get('BK_PAAS2_URL')
+BK_PAAS_HOST = os.environ.get('BK_PAAS_URL')
 BK_PAAS_INNER_HOST = BK_PAAS_HOST
 APIGW_HOST = BK_PAAS_INNER_HOST
+
+# 统一登录页面
+LOGIN_SIMPLE = os.environ.get('BK_LOGIN_URL', f'{BK_PAAS_HOST}/login/')
+LOGIN_FULL = f'{LOGIN_SIMPLE}?c_url={DEVOPS_BCS_HOST}'
 
 # BCS API PRE URL
 BCS_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_api'

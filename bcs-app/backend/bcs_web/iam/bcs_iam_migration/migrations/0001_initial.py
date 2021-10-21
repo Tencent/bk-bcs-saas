@@ -33,5 +33,5 @@ class Migration(migrations.Migration):
     dependencies = []
 
     operations = [
-        # migrations.RunPython(forward_func)
+        migrations.RunPython(forward_func)
     ]
