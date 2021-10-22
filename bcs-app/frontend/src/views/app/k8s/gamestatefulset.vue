@@ -55,7 +55,9 @@
                             :data="curPageData"
                             :page-params="pageConf"
                             @page-change="handlePageChange"
-                            @page-limit-change="handlePageSizeChange">
+                            @page-limit-change="handlePageSizeChange"
+                            @selection-change="handleSelectionChange">
+                            <bk-table-column type="selection" width="60"></bk-table-column>
                             <bk-table-column v-for="(column, index) in columnList" :label="(defaultColumnMap[column] && defaultColumnMap[column].label) || column"
                                 :min-width="defaultColumnMap[column] ? defaultColumnMap[column].minWidth : 'auto'"
                                 :key="index">
@@ -114,37 +116,34 @@
 
         <bk-dialog
             :is-show="batchDelDialogConf.isShow"
-            :width="400"
+            :width="500"
             :has-header="false"
             :quick-close="false"
             class="batch-delete-gamestatefulset"
             @cancel="hideBatchDelDialog">
-            <div slot="content">
-                <div class="biz-batch-wrapper">
-                    <p class="batch-title">{{batchDelDialogConf.title}}</p>
-                    <ul class="batch-list">
-                        <li v-for="(item, index) of batchDelDialogConf.list" :key="index">{{item.name}}</li>
-                    </ul>
-                </div>
+            <div class="biz-batch-wrapper">
+                <p class="batch-title">{{batchDelDialogConf.title}}</p>
+                <ul class="batch-list">
+                    <li v-for="(item, index) of batchDelDialogConf.list" :key="index">{{item.name}}</li>
+                </ul>
             </div>
             <template slot="footer">
                 <div class="bk-dialog-outer">
                     <template v-if="batchDelDialogConf.isDeleting">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled">
+                        <bk-button theme="primary">
                             {{$t('删除中...')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel is-disabled">
+                        </bk-button>
+                        <bk-button>
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                     <template v-else>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                            @click="batchDelConfirm">
+                        <bk-button theme="primary" @click="batchDelConfirm">
                             {{$t('确定')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideBatchDelDialog">
+                        </bk-button>
+                        <bk-button @click="hideBatchDelDialog">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                 </div>
             </template>
@@ -396,6 +395,10 @@
                 this.pageConf.curPage = 1
                 this.initPageConf()
                 this.handlePageChange()
+            },
+            // select变更
+            handleSelectionChange (selection) {
+                this.checkedNodeList = selection
             },
 
             /**

@@ -22,6 +22,8 @@ from backend.tests.testing_utils.mocks.bcs_api import StubBcsApiClient
 from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 from backend.utils.exceptions import ComponentError
 
+pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture(autouse=True)
 def setup_settings(settings):

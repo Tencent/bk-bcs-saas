@@ -295,7 +295,7 @@
                                                     </table>
                                                 </div>
                                             </bk-tab-panel> -->
-                                            <bk-tab-panel name="tab4" :title="$t('Metric信息')">
+                                            <!-- <bk-tab-panel name="tab4" :title="$t('Metric信息')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
                                                         <div class="bk-form-content" style="margin-left: 0;">
@@ -326,7 +326,7 @@
                                                         </div>
                                                     </transition>
                                                 </div>
-                                            </bk-tab-panel>
+                                            </bk-tab-panel> -->
                                             <bk-tab-panel name="ta5" :title="'HostAliases'">
                                                 <div class="bk-form m20">
                                                     <table class="biz-simple-table" style="width: 720px;" v-if="curApplication.config.webCache.hostAliasesCache && curApplication.config.webCache.hostAliasesCache.length">
@@ -2393,7 +2393,7 @@
             this.initImageList()
             this.initVolumeConfigmaps()
             this.initVloumeSelectets()
-            this.initMetricList()
+            // this.initMetricList()
 
             const Validator = require('jsonschema').Validator
             this.appJsonValidator = new Validator()

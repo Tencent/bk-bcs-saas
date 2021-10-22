@@ -200,7 +200,7 @@
                                                     </div>
                                                 </div>
                                             </bk-tab-panel>
-                                            <bk-tab-panel name="tab2" :title="$t('Metric信息')">
+                                            <!-- <bk-tab-panel name="tab2" :title="$t('Metric信息')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
                                                         <div class="bk-form-content" style="margin-left: 0;">
@@ -231,7 +231,7 @@
                                                         </div>
                                                     </transition>
                                                 </div>
-                                            </bk-tab-panel>
+                                            </bk-tab-panel> -->
                                         </bk-tab>
 
                                         <bk-tab :type="'fill'" :active-name="'tab2'" :size="'small'" v-show="isPodPanelShow" style="margin-left: 140px;">
@@ -2200,7 +2200,7 @@
             this.initImageList()
             this.initVolumeConfigmaps()
             this.initVloumeSelectets()
-            this.initMetricList()
+            // this.initMetricList()
 
             const Validator = require('jsonschema').Validator
             this.appJsonValidator = new Validator()

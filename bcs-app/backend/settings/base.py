@@ -457,6 +457,12 @@ DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET']
 # 默认主键 3.2 版本需要主动指定
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
+# 访问 bcs-api 服务需要的token
+BCS_AUTH_TOKEN = os.environ.get("BCS_AUTH_TOKEN", "")
+# 访问 bcs-api-gateway 服务需要的token
+BCS_API_GW_AUTH_TOKEN = os.environ.get("BCS_API_GW_AUTH_TOKEN", "")
+
+
 try:
     from .base_ext import *  # noqa
 except ImportError as e:

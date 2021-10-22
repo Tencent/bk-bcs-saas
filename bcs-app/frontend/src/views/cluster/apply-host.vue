@@ -76,7 +76,13 @@
                     </bk-input>
                 </bk-form-item>
                 <bk-form-item :label="$t('需求数量')">
-                    <bk-input v-model="formdata.replicas" type="number" :min="1"></bk-input>
+                    <bk-number-input
+                        :value.sync="formdata.replicas"
+                        :min="1"
+                        :max="50"
+                        :ex-style="{ 'width': '325px' }"
+                        :placeholder="$t('请输入')">
+                    </bk-number-input>
                 </bk-form-item>
                 <bk-form-item class="custom-item" :label="$t('机型')">
                     <div class="form-item-inner">

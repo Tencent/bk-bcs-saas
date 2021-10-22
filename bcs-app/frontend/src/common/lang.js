@@ -1904,10 +1904,14 @@ export default {
     '设置污点': ['Set Taint'],
     '影响': ['Effect'],
     '确认删除资源 {kind}: {name}': ['Confirm delete resource {type}: {name}'],
+    '请输入值': ['Please enter value'],
+    '请输入参数': ['Please enter parameters'],
+    'Helm配置选项': ['Helm configuration options'],
     'Chart配置选项': ['Chart configuration options'],
-    'Helm部署选项': ['Helm deployment options'],
+    '加载中': ['loading'],
     '等待所有Jobs完成': ['Wait for all the Jobs to complete'],
     '超时时间': ['Time out'],
+    'Helm部署选项': ['Helm deployment options'],
     '等待所有Pod，PVC处于ready状态': ['Wait for all Pod and PVC to be ready'],
     '忽略CRD': ['Ignore the CRD'],
     '参数Key必须由 -- 字符开头': ['The parameter Key must begin with the -- character'],
@@ -1971,7 +1975,9 @@ export default {
     '本页全选': [''],
     '跨页全选': [''],
     '成功复制IP {number} 个': [''],
-    '查无数据': ['']
+    '查无数据': [''],
+    '集群网络': [''],
+    '如果Chart中已经配置命名空间，则会使用Chart中的命名空间，会导致不匹配等问题;建议Chart中不要配置命名空间': ['If the namespace in Chart has been configured, the namespace in Chart will be used, leading to problems such as mismatch.You are advised not to configure namespaces in Chart']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

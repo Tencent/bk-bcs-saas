@@ -15,11 +15,9 @@ specific language governing permissions and limitations under the License.
 from rest_framework.authentication import BaseAuthentication
 
 from backend.utils.authentication import JWTClient, JWTUser
+from backend.utils.whitelist import is_app_open_api_trusted
 
 from .constants import APIGW_JWT_KEY_NAME, BCS_APP_APIGW_PUBLIC_KEY, USERNAME_KEY_NAME
-
-# 受信任的app可以从header获取用户名.(私有化版本apigw不支持bk_username传参)
-trusted_app_list = ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -29,7 +27,7 @@ class JWTAuthentication(BaseAuthentication):
             return None
 
         username = client.user.username
-        if not username and client.app.app_code in trusted_app_list:
+        if not username and is_app_open_api_trusted(client.app.app_code):
             username = request.META.get(USERNAME_KEY_NAME, "")
 
         user = JWTUser(username=username)

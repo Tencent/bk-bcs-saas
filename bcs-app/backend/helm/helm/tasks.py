@@ -232,7 +232,7 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
     old_charts = _get_old_charts(repo)
 
     for chart_name, versions in charts.items():
-        chart, chart_created = Chart.objects.get_or_create(name=chart_name, repository=repo)
+        chart, chart_created = Chart.default_objects.get_or_create(name=chart_name, repository=repo)
         chart.clean_deleted_status()
 
         # 1. prepare data

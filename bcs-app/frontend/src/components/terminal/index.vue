@@ -160,7 +160,7 @@
         position: fixed;
         right: 10px;
         bottom: 10px;
-        z-index: 5000;
+        z-index: 1900;
         &.active {
             .biz-terminal-trigger {
                 width: 200px;

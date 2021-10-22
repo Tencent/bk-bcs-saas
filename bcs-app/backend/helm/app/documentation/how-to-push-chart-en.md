@@ -63,6 +63,14 @@ sed -E -i.bak s/version\:\ .+/version\:\ 1\.0\.1/g rumpetroll/Chart.yaml
 
 - Push Chart
 
+if the version of `push` plugin is gte 0.10.0, command line is the following:
+
+```
+helm cm-push rumpetroll/ {{ project_code }}
+```
+
+else, command line is the following:
+
 ```
 helm push rumpetroll/ {{ project_code }}
 ```

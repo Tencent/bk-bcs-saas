@@ -39,7 +39,7 @@ class AppQueryService:
         username: str,
         fields: List = None,
         condition: Dict = None,
-        bk_supplier_account: str = constants.DEFAULT_SUPPLIER_ACCOUNT,
+        bk_supplier_account: str = settings.BKCC_DEFAULT_SUPPLIER_ACCOUNT,
     ):
         """
         :param username: 查询者用户名
@@ -68,6 +68,7 @@ class AppQueryService:
                 functools.partial(
                     self.cc_client.search_business,
                     PageData(start=start, limit=constants.CMDB_MAX_LIMIT),
+                    self.fields,
                     self.condition,
                     self.bk_supplier_account,
                 )

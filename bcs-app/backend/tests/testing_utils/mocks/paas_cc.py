@@ -13,7 +13,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from .utils import mockable_function
 
@@ -27,6 +27,14 @@ class StubPaaSCCClient:
     @mockable_function
     def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
         return self.wrap_resp(self.make_cluster_data(project_id, cluster_id))
+
+    @mockable_function
+    def get_cluster_by_id(self, cluster_id: str) -> Dict:
+        return self.make_cluster_data_by_id(cluster_id)
+
+    @mockable_function
+    def list_clusters(self, cluster_ids: List[str]) -> List:
+        return [self.make_cluster_data(uuid.uuid4().hex, cluster_id) for cluster_id in cluster_ids]
 
     @mockable_function
     def get_project(self, project_id: str) -> Dict:
@@ -69,6 +77,40 @@ class StubPaaSCCClient:
             'need_nat': True,
             'node_count': 1,
             'project_id': project_id,
+            'remain_cpu': 10,
+            'remain_disk': 0,
+            'remain_mem': 10,
+            'status': 'normal',
+            'total_cpu': 12,
+            'total_disk': 0,
+            'total_mem': 64,
+            'type': 'k8s',
+            'updated_at': _stub_time,
+        }
+
+    @staticmethod
+    def make_cluster_data_by_id(cluster_id: str):
+        _stub_time = '2021-01-01T00:00:00+08:00'
+        return {
+            'area_id': 1,
+            'artifactory': '',
+            'capacity_updated_at': _stub_time,
+            'cluster_id': cluster_id,
+            'cluster_num': 1,
+            'config_svr_count': 0,
+            'created_at': _stub_time,
+            'creator': 'unknown',
+            'description': 'cluster description',
+            'disabled': False,
+            'environment': 'stag',
+            'extra_cluster_id': '',
+            'ip_resource_total': 0,
+            'ip_resource_used': 0,
+            'master_count': 0,
+            'name': 'test-cluster',
+            'need_nat': True,
+            'node_count': 1,
+            'project_id': uuid.uuid4().hex,
             'remain_cpu': 10,
             'remain_disk': 0,
             'remain_mem': 10,
