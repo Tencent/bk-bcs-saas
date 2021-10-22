@@ -22,18 +22,17 @@ const (
 	forceColor
 )
 
-const (
-	green   = "\033[97;42m"
-	white   = "\033[90;47m"
-	yellow  = "\033[90;43m"
-	red     = "\033[97;41m"
-	blue    = "\033[97;44m"
-	magenta = "\033[97;45m"
-	cyan    = "\033[97;46m"
-	reset   = "\033[0m"
+var (
+	green            = string([]byte{27, 91, 57, 55, 59, 52, 50, 109})
+	white            = string([]byte{27, 91, 57, 48, 59, 52, 55, 109})
+	yellow           = string([]byte{27, 91, 57, 48, 59, 52, 51, 109})
+	red              = string([]byte{27, 91, 57, 55, 59, 52, 49, 109})
+	blue             = string([]byte{27, 91, 57, 55, 59, 52, 52, 109})
+	magenta          = string([]byte{27, 91, 57, 55, 59, 52, 53, 109})
+	cyan             = string([]byte{27, 91, 57, 55, 59, 52, 54, 109})
+	reset            = string([]byte{27, 91, 48, 109})
+	consoleColorMode = autoColor
 )
-
-var consoleColorMode = autoColor
 
 // LoggerConfig defines the config for Logger middleware.
 type LoggerConfig struct {
@@ -99,19 +98,19 @@ func (p *LogFormatterParams) MethodColor() string {
 	method := p.Method
 
 	switch method {
-	case http.MethodGet:
+	case "GET":
 		return blue
-	case http.MethodPost:
+	case "POST":
 		return cyan
-	case http.MethodPut:
+	case "PUT":
 		return yellow
-	case http.MethodDelete:
+	case "DELETE":
 		return red
-	case http.MethodPatch:
+	case "PATCH":
 		return green
-	case http.MethodHead:
+	case "HEAD":
 		return magenta
-	case http.MethodOptions:
+	case "OPTIONS":
 		return white
 	default:
 		return reset
@@ -141,7 +140,7 @@ var defaultLogFormatter = func(param LogFormatterParams) string {
 		// Truncate in a golang < 1.8 safe way
 		param.Latency = param.Latency - param.Latency%time.Second
 	}
-	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
+	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s",
 		param.TimeStamp.Format("2006/01/02 - 15:04:05"),
 		statusColor, param.StatusCode, resetColor,
 		param.Latency,

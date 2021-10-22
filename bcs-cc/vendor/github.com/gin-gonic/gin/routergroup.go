@@ -95,51 +95,51 @@ func (group *RouterGroup) Handle(httpMethod, relativePath string, handlers ...Ha
 
 // POST is a shortcut for router.Handle("POST", path, handle).
 func (group *RouterGroup) POST(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodPost, relativePath, handlers)
+	return group.handle("POST", relativePath, handlers)
 }
 
 // GET is a shortcut for router.Handle("GET", path, handle).
 func (group *RouterGroup) GET(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodGet, relativePath, handlers)
+	return group.handle("GET", relativePath, handlers)
 }
 
 // DELETE is a shortcut for router.Handle("DELETE", path, handle).
 func (group *RouterGroup) DELETE(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodDelete, relativePath, handlers)
+	return group.handle("DELETE", relativePath, handlers)
 }
 
 // PATCH is a shortcut for router.Handle("PATCH", path, handle).
 func (group *RouterGroup) PATCH(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodPatch, relativePath, handlers)
+	return group.handle("PATCH", relativePath, handlers)
 }
 
 // PUT is a shortcut for router.Handle("PUT", path, handle).
 func (group *RouterGroup) PUT(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodPut, relativePath, handlers)
+	return group.handle("PUT", relativePath, handlers)
 }
 
 // OPTIONS is a shortcut for router.Handle("OPTIONS", path, handle).
 func (group *RouterGroup) OPTIONS(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodOptions, relativePath, handlers)
+	return group.handle("OPTIONS", relativePath, handlers)
 }
 
 // HEAD is a shortcut for router.Handle("HEAD", path, handle).
 func (group *RouterGroup) HEAD(relativePath string, handlers ...HandlerFunc) IRoutes {
-	return group.handle(http.MethodHead, relativePath, handlers)
+	return group.handle("HEAD", relativePath, handlers)
 }
 
 // Any registers a route that matches all the HTTP methods.
 // GET, POST, PUT, PATCH, HEAD, OPTIONS, DELETE, CONNECT, TRACE.
 func (group *RouterGroup) Any(relativePath string, handlers ...HandlerFunc) IRoutes {
-	group.handle(http.MethodGet, relativePath, handlers)
-	group.handle(http.MethodPost, relativePath, handlers)
-	group.handle(http.MethodPut, relativePath, handlers)
-	group.handle(http.MethodPatch, relativePath, handlers)
-	group.handle(http.MethodHead, relativePath, handlers)
-	group.handle(http.MethodOptions, relativePath, handlers)
-	group.handle(http.MethodDelete, relativePath, handlers)
-	group.handle(http.MethodConnect, relativePath, handlers)
-	group.handle(http.MethodTrace, relativePath, handlers)
+	group.handle("GET", relativePath, handlers)
+	group.handle("POST", relativePath, handlers)
+	group.handle("PUT", relativePath, handlers)
+	group.handle("PATCH", relativePath, handlers)
+	group.handle("HEAD", relativePath, handlers)
+	group.handle("OPTIONS", relativePath, handlers)
+	group.handle("DELETE", relativePath, handlers)
+	group.handle("CONNECT", relativePath, handlers)
+	group.handle("TRACE", relativePath, handlers)
 	return group.returnObj()
 }
 
@@ -187,21 +187,19 @@ func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileS
 	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
 
 	return func(c *Context) {
-		if _, noListing := fs.(*onlyFilesFS); noListing {
+		if _, nolisting := fs.(*onlyfilesFS); nolisting {
 			c.Writer.WriteHeader(http.StatusNotFound)
 		}
 
 		file := c.Param("filepath")
 		// Check if file exists and/or if we have permission to access it
-		f, err := fs.Open(file)
-		if err != nil {
+		if _, err := fs.Open(file); err != nil {
 			c.Writer.WriteHeader(http.StatusNotFound)
 			c.handlers = group.engine.noRoute
 			// Reset index
 			c.index = -1
 			return
 		}
-		f.Close()
 
 		fileServer.ServeHTTP(c.Writer, c.Request)
 	}
