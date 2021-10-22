@@ -26,29 +26,13 @@ var (
 	slash     = []byte("/")
 )
 
-// RecoveryFunc defines the function passable to CustomRecovery.
-type RecoveryFunc func(c *Context, err interface{})
-
 // Recovery returns a middleware that recovers from any panics and writes a 500 if there was one.
 func Recovery() HandlerFunc {
 	return RecoveryWithWriter(DefaultErrorWriter)
 }
 
-//CustomRecovery returns a middleware that recovers from any panics and calls the provided handle func to handle it.
-func CustomRecovery(handle RecoveryFunc) HandlerFunc {
-	return RecoveryWithWriter(DefaultErrorWriter, handle)
-}
-
 // RecoveryWithWriter returns a middleware for a given writer that recovers from any panics and writes a 500 if there was one.
-func RecoveryWithWriter(out io.Writer, recovery ...RecoveryFunc) HandlerFunc {
-	if len(recovery) > 0 {
-		return CustomRecoveryWithWriter(out, recovery[0])
-	}
-	return CustomRecoveryWithWriter(out, defaultHandleRecovery)
-}
-
-// CustomRecoveryWithWriter returns a middleware for a given writer that recovers from any panics and calls the provided handle func to handle it.
-func CustomRecoveryWithWriter(out io.Writer, handle RecoveryFunc) HandlerFunc {
+func RecoveryWithWriter(out io.Writer) HandlerFunc {
 	var logger *log.Logger
 	if out != nil {
 		logger = log.New(out, "\n\n\x1b[31m", log.LstdFlags)
@@ -76,32 +60,28 @@ func CustomRecoveryWithWriter(out io.Writer, handle RecoveryFunc) HandlerFunc {
 							headers[idx] = current[0] + ": *"
 						}
 					}
-					headersToStr := strings.Join(headers, "\r\n")
 					if brokenPipe {
-						logger.Printf("%s\n%s%s", err, headersToStr, reset)
+						logger.Printf("%s\n%s%s", err, string(httpRequest), reset)
 					} else if IsDebugging() {
 						logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s",
-							timeFormat(time.Now()), headersToStr, err, stack, reset)
+							timeFormat(time.Now()), strings.Join(headers, "\r\n"), err, stack, reset)
 					} else {
 						logger.Printf("[Recovery] %s panic recovered:\n%s\n%s%s",
 							timeFormat(time.Now()), err, stack, reset)
 					}
 				}
+
+				// If the connection is dead, we can't write a status to it.
 				if brokenPipe {
-					// If the connection is dead, we can't write a status to it.
 					c.Error(err.(error)) // nolint: errcheck
 					c.Abort()
 				} else {
-					handle(c, err)
+					c.AbortWithStatus(http.StatusInternalServerError)
 				}
 			}
 		}()
 		c.Next()
 	}
-}
-
-func defaultHandleRecovery(c *Context, err interface{}) {
-	c.AbortWithStatus(http.StatusInternalServerError)
 }
 
 // stack returns a nicely formatted stack frame, skipping skip frames.
@@ -166,6 +146,6 @@ func function(pc uintptr) []byte {
 }
 
 func timeFormat(t time.Time) string {
-	timeString := t.Format("2006/01/02 - 15:04:05")
+	var timeString = t.Format("2006/01/02 - 15:04:05")
 	return timeString
 }
