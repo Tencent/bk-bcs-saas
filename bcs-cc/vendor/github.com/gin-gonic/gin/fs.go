@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-type onlyFilesFS struct {
+type onlyfilesFS struct {
 	fs http.FileSystem
 }
 
@@ -26,11 +26,11 @@ func Dir(root string, listDirectory bool) http.FileSystem {
 	if listDirectory {
 		return fs
 	}
-	return &onlyFilesFS{fs}
+	return &onlyfilesFS{fs}
 }
 
 // Open conforms to http.Filesystem.
-func (fs onlyFilesFS) Open(name string) (http.File, error) {
+func (fs onlyfilesFS) Open(name string) (http.File, error) {
 	f, err := fs.fs.Open(name)
 	if err != nil {
 		return nil, err

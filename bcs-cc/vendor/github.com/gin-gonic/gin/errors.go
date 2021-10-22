@@ -5,9 +5,9 @@
 package gin
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/gin-gonic/gin/internal/json"
 )
@@ -55,7 +55,7 @@ func (msg *Error) SetMeta(data interface{}) *Error {
 
 // JSON creates a properly formatted JSON
 func (msg *Error) JSON() interface{} {
-	jsonData := H{}
+	json := H{}
 	if msg.Meta != nil {
 		value := reflect.ValueOf(msg.Meta)
 		switch value.Kind() {
@@ -63,16 +63,16 @@ func (msg *Error) JSON() interface{} {
 			return msg.Meta
 		case reflect.Map:
 			for _, key := range value.MapKeys() {
-				jsonData[key.String()] = value.MapIndex(key).Interface()
+				json[key.String()] = value.MapIndex(key).Interface()
 			}
 		default:
-			jsonData["meta"] = msg.Meta
+			json["meta"] = msg.Meta
 		}
 	}
-	if _, ok := jsonData["error"]; !ok {
-		jsonData["error"] = msg.Error()
+	if _, ok := json["error"]; !ok {
+		json["error"] = msg.Error()
 	}
-	return jsonData
+	return json
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -88,11 +88,6 @@ func (msg Error) Error() string {
 // IsType judges one error.
 func (msg *Error) IsType(flags ErrorType) bool {
 	return (msg.Type & flags) > 0
-}
-
-// Unwrap returns the wrapped error, to allow interoperability with errors.Is(), errors.As() and errors.Unwrap()
-func (msg *Error) Unwrap() error {
-	return msg.Err
 }
 
 // ByType returns a readonly copy filtered the byte.
@@ -140,17 +135,17 @@ func (a errorMsgs) Errors() []string {
 }
 
 func (a errorMsgs) JSON() interface{} {
-	switch length := len(a); length {
+	switch len(a) {
 	case 0:
 		return nil
 	case 1:
 		return a.Last().JSON()
 	default:
-		jsonData := make([]interface{}, length)
+		json := make([]interface{}, len(a))
 		for i, err := range a {
-			jsonData[i] = err.JSON()
+			json[i] = err.JSON()
 		}
-		return jsonData
+		return json
 	}
 }
 
@@ -163,7 +158,7 @@ func (a errorMsgs) String() string {
 	if len(a) == 0 {
 		return ""
 	}
-	var buffer strings.Builder
+	var buffer bytes.Buffer
 	for i, msg := range a {
 		fmt.Fprintf(&buffer, "Error #%02d: %s\n", i+1, msg.Err)
 		if msg.Meta != nil {
