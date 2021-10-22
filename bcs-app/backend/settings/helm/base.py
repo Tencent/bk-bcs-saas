@@ -176,7 +176,7 @@ BCS_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_api'
 # paas-cc 服务，后续接入 cmdb
 BK_CC_HOST = os.environ.get('BKAPP_CC_URL', '')
 # BCS CC HOST
-BCS_CC_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
+BCS_CC_API_PRE_URL = BK_CC_HOST
 
 # 组件API地址
 COMPONENT_HOST = BK_PAAS_INNER_HOST

@@ -8,3 +8,4 @@ RUN mkdir -p $HELM_BIN_DIR && curl -sL $HELM_LINK | tar xzf - -C $HELM_BIN_DIR &
 
 ADD . .
 RUN pip install -r requirements.txt
+RUN python manage.py collectstatic
