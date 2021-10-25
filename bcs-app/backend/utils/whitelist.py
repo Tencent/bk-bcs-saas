@@ -23,10 +23,24 @@ def check_bcs_api_gateway_enabled(cluster_id: str) -> bool:
     return enabled or cluster_id in wlist
 
 
-def check_app_access_webconsole_enable(app_code: str, project_id_or_code: str) -> bool:
-    """APP是否可以访问webconsole接口
+def can_access_webconsole(app_code: str, project_id_or_code: str) -> bool:
+    """蓝鲸应用是否可以访问webconsole接口
     NOTE：存储内容包含app_code和project信息(包含project_code和project_id)，格式app_code:project_id_or_code
     """
     func_code = "APP_ACCESS_WEBCONSOLE"
     enabled, wlist = get_func_controller(func_code)
     return enabled or f"{app_code}:{project_id_or_code}" in wlist
+
+
+def is_app_open_api_trusted(app_code: str) -> bool:
+    """
+    校验访问 open api 的蓝鲸应用是可信任的，用以通过传递的username获取用户信息
+
+    :param app_code: 蓝鲸应用编码
+    :return: 返回是否可信任
+    """
+    func_code = "TRUSTED_APPS_FOR_OPEN_API"
+    enabled, wlist = get_func_controller(func_code)
+    # 追加默认的蓝鲸应用: ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]
+    wlist.extend(["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"])
+    return enabled or app_code in wlist
