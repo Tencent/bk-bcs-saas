@@ -19,32 +19,27 @@ from backend.iam.permissions.exceptions import AttrValidationError
 from backend.iam.permissions.perm import PermCtx, Permission, ResCreatorActionCtx
 from backend.iam.permissions.request import IAMResource, ResourceRequest
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
-from backend.utils.basic import md5
+from backend.utils.basic import md5_digest
 
 from .cluster import ClusterPermission, related_cluster_perm
 from .constants import ResourceType
 
 
-def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None, max_length: int = 32) -> Optional[str]:
+def calc_iam_ns_id(cluster_id: str, name: Optional[str] = None) -> Optional[str]:
     """
-    计算出注册到权限中心的命名空间ID，具备唯一性. 当前的算法并不能完全避免冲突，但是冲突概率极低
+    计算(压缩)出注册到权限中心的命名空间 ID，具备唯一性. 当前的算法并不能完全避免冲突，但概率较低。
+    note: 权限中心对资源 ID 有长度限制，不超过32位。长度越长，处理性能越低
     :param cluster_id: 集群 ID
-    :param name: 命名空间名
-    :return: iam_ns_id，用于注册到权限中心
-
-    note: 权限中心对资源ID有长度限制，不超过32位
-    iam_ns_id 的初始结构是`集群ID:命名空间name`，如 `BCS-K8S-40000:default`
-    如果整体长度超过32，则进行压缩计算. 压缩计算需要保留集群ID，目的是用于 namespace provider 中的 fetch_instance_info
+    :param name: 命名空间名，k8s 限定最长63个字符
+    :return: iam_ns_id 是命名空间注册到权限中心的资源 ID，它是对结构`集群ID:命名空间name`的一个压缩，
+             如 `BCS-K8S-40000:default` 会被处理成 `40000:5f03d33dde`。其中，保留集群数字 ID 的目的是用于
+             NamespaceProvider 中的 fetch_instance_info 方法
     """
-    if not name:
-        return name
-
-    iam_ns_id = f'{cluster_id}:{name}'
-    if len(iam_ns_id) <= max_length:
-        return iam_ns_id
-
-    # md5 之后，从左取 max_length-len(cluster_id)-1 个字符
-    return f'{cluster_id}:{md5(name)[:max_length-len(cluster_id)-1]}'
+    cluster_idx = cluster_id.split('-')[-1]
+    iam_ns_id = f'{cluster_idx}:{md5_digest(name)[8:16]}{name[:2]}'
+    if len(iam_ns_id) > 32:
+        raise ValueError(f'iam_ns_id({iam_ns_id}) more than 32 characters')
+    return iam_ns_id
 
 
 class NamespaceAction(str, StructuredEnum):
@@ -79,7 +74,8 @@ class NamespacePermCtx(PermCtx):
 
     def __post_init__(self):
         """权限中心的 resource_id 长度限制为32位"""
-        self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
+        if self.name:
+            self.iam_ns_id = calc_iam_ns_id(self.cluster_id, self.name)
 
     def validate(self):
         super().validate()

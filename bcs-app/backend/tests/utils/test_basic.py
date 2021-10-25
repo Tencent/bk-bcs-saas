@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 """
 import pytest
 
-from backend.utils.basic import get_with_placeholder, getitems, md5, str2bool
+from backend.utils.basic import get_with_placeholder, getitems, md5_digest, str2bool
 
 
 @pytest.mark.parametrize(
@@ -98,5 +98,5 @@ def test_get_with_placeholder(items, expected):
         ('abc' * 30, 'daa54284568d250dde2cc8578c2e116a'),
     ],
 )
-def test_md5(content, expected):
-    assert md5(content) == expected
+def test_md5_digest(content, expected):
+    assert md5_digest(content) == expected

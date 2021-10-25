@@ -152,6 +152,14 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         """get project cluster list"""
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get("results") or []
+
+        cluster_node_map = self.cluster_has_node(request, project_id)
+        for info in cluster_data:
+            info["environment"] = cluster_env_transfer(info["environment"])
+            # allow delete cluster
+            allow_delete = False if cluster_node_map.get(info["cluster_id"]) else True
+            info["allow"] = info["allow_delete"] = allow_delete
+
         self.register_function_controller(cluster_data)
         return PermsResponse(
             data={"count": len(cluster_data), "results": cluster_data},
