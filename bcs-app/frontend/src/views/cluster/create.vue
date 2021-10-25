@@ -866,7 +866,7 @@
                     const versionList = []
                     const version = res.data.version_list || []
                     version.forEach((item, index) => {
-                        if (index === 0) {
+                        if (item.version_id === '1.18.4') {
                             this.versionKey = item.version_id
                         }
                         versionList.push({
