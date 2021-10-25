@@ -62,6 +62,7 @@ class Chart(BaseTSModel):
     annotations = JSONField(default={})
 
     objects = ChartManager()
+    default_objects = models.Manager()
 
     class Meta:
         unique_together = ('name', 'repository')
