@@ -1,15 +1,15 @@
 {
-  "system_id": "bcs-helm-2",
+  "system_id": "bk_bcs_app",
   "operations": [
     {
       "operation": "upsert_system",
       "data": {
-        "id": "bcs-helm-2",
-        "name": "容器管理平台(Helm2)",
-        "name_en": "BlueKing Container Service Helm2",
-        "description": "蓝鲸容器管理平台基于原生 Kubernetes 的模式，提供给用户高度可扩展、灵活易用的容器管理服务",
-        "description_en": "The BlueKing Container Management platform provides highly scalable, flexible and easy-to-use container management services base on native Kubernetes mode",
-        "clients": "bcs-helm-2,bk_bcs_monitor,bk_bcs,bk_devops,bk_harbor",
+        "id": "bk_bcs_app",
+        "name": "容器管理平台",
+        "name_en": "BlueKing Container Service",
+        "description": "蓝鲸容器管理平台基于原生Kubernetes和Mesos自研的两种模式，提供给用户高度可扩展、灵活易用的容器管理服务",
+        "description_en": "The BlueKing Container Management platform provides highly scalable, flexible and easy-to-use container management services base on native Kubernetes and Mesos self-developed mode",
+        "clients": "bk_bcs_app,bk_bcs_monitor,bk_bcs,bk_devops,bk_harbor",
         "provider_config": {
           "host": "{{ BCS_SAAS_URL }}",
           "auth": "basic"
@@ -39,7 +39,7 @@
         "name_en": "BCS project",
         "resource_type_chain": [
           {
-            "system_id": "bcs-helm-2",
+            "system_id": "bk_bcs_app",
             "id": "project"
           }
         ]
@@ -73,14 +73,14 @@
         "type": "view",
         "related_resource_types": [
           {
-            "system_id": "bcs-helm-2",
+            "system_id": "bk_bcs_app",
             "id": "project",
             "name_alias": "",
             "name_alias_en": "",
             "selection_mode": "instance",
             "related_instance_selections": [
               {
-                "system_id": "bcs-helm-2",
+                "system_id": "bk_bcs_app",
                 "id": "project_list"
               }
             ]
@@ -100,14 +100,14 @@
         "type": "edit",
         "related_resource_types": [
           {
-            "system_id": "bcs-helm-2",
+            "system_id": "bk_bcs_app",
             "id": "project",
             "name_alias": "",
             "name_alias_en": "",
             "selection_mode": "instance",
             "related_instance_selections": [
               {
-                "system_id": "bcs-helm-2",
+                "system_id": "bk_bcs_app",
                 "id": "project_list"
               }
             ]
