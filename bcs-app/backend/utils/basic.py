@@ -166,7 +166,7 @@ def b64encode_json(data: Any) -> bytes:
     return base64.b64encode(bytes(json.dumps(data), "utf-8"))
 
 
-def md5(content: str) -> str:
+def md5_digest(content: str) -> str:
     h = hashlib.md5()
     h.update(content.encode("utf-8"))
     return h.hexdigest()

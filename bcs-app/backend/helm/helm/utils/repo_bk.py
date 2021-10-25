@@ -17,7 +17,7 @@ import logging
 import requests
 import yaml
 
-from backend.utils.basic import md5
+from backend.utils.basic import md5_digest
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def get_charts_info(url, auths):
         return (False, None, None)
 
     # 生成MD5，主要是便于后续校验是否变动
-    charts_info_hash = md5(str(charts_info))
+    charts_info_hash = md5_digest(str(charts_info))
     return (True, charts_info, charts_info_hash)
 
 
