@@ -2,7 +2,7 @@
     <bcs-navigation navigation-type="top-bottom" :need-menu="false">
         <template slot="side-header">
             <span class="title-icon"><img src="@/images/bcs.svg" class="all-icon"></span>
-            <span class="title-desc bcs-title-desc" @click="handleGoHome">{{ $t('TKEx-IEG 容器平台') }}</span>
+            <span class="title-desc bcs-title-desc" @click="handleGoHome">{{ $INTERNAL ? $t('TKEx-IEG 容器平台') : $t('蓝鲸容器管理平台') }}</span>
         </template>
         <template #header>
             <div class="bcs-navigation-header">
