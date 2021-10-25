@@ -15,6 +15,7 @@
 from .base import *  # noqa
 
 # ******************************** 日志 配置 ********************************
+
 BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/app/logs/')
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
 
@@ -39,3 +40,8 @@ PAAS_HOST = BK_PAAS_HOST
 PAAS_ENV = 'prod'
 
 BKE_SERVER_HOST = BCS_SERVER_HOST
+
+from .cors import get_cors_allowed_origins
+
+CORS_ALLOWED_ORIGINS = get_cors_allowed_origins([DEVOPS_HOST, BK_PAAS_HOST, DEVOPS_BCS_HOST, DEVOPS_BCS_API_URL])
+CORS_ALLOW_CREDENTIALS = True

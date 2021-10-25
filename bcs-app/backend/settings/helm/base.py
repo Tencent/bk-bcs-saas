@@ -45,7 +45,7 @@ INSTALLED_APPS += [
     'backend.uniapps.apis',
     'backend.bcs_web.apis.apps.APIConfig',
     'iam.contrib.iam_migration',
-    'backend.bcs_web.iam.bcs_iam_migration.apps.BcsIamMigrationConfig',
+    'backend.iam.bcs_iam_migration.apps.BcsIamMigrationConfig',
 ]
 
 # 应用访问路径
