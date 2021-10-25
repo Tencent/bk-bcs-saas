@@ -1976,7 +1976,9 @@ export default {
     '跨页全选': [''],
     '成功复制IP {number} 个': [''],
     '查无数据': [''],
-    '集群网络': ['']
+    '集群网络': [''],
+    '如果Chart中已经配置命名空间，则会使用Chart中的命名空间，会导致不匹配等问题;建议Chart中不要配置命名空间': ['If the namespace in Chart has been configured, the namespace in Chart will be used, leading to problems such as mismatch.You are advised not to configure namespaces in Chart'],
+    'TKEx-IEG 容器平台': ['BCS']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

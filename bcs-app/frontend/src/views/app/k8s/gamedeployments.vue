@@ -319,6 +319,8 @@
             async fetchData () {
                 this.isPageLoading = true
                 try {
+                    if (!this.selectedClusterId) return
+
                     const params = {}
                     if (this.selectedNamespaceName) {
                         params.namespace = this.selectedNamespaceName
