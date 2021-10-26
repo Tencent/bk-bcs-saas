@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 APIGW = 'bcs_ops'
 ENV = 'prod'
-API_HOST = '{APIGW_HOST}/api/apigw/{APIGW}/{STAG}'
+API_HOST = '{APIGW_HOST}/api/{APIGW}/{STAG}'
 
 FUNCTION_PATH_MAP = {
     'create_cluster': '/v1/install_cluster',
