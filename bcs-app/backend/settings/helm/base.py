@@ -199,7 +199,7 @@ SOPS_API_HOST = os.environ.get('SOPS_API_URL')
 BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', None)
 
 # 可能有带端口的情况，需要去除
-SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
+SESSION_COOKIE_DOMAIN = '.' + os.environ.get('ROOT_DOMAIN')
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
 # ******************************** IAM & SSM 配置 ********************************
