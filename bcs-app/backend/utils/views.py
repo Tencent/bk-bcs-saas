@@ -336,7 +336,7 @@ class VueTemplateView(APIView):
         return redirect_url
 
     @xframe_options_exempt
-    def get(self, request, project_code: str):
+    def get(self, request, project_code: str = None):
 
         # 缓存 项目类型
         @cache.region.cache_on_arguments(expiration_time=60 * 60)
