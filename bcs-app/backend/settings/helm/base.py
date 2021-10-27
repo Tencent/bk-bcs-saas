@@ -194,7 +194,7 @@ URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 SOPS_API_HOST = os.environ.get('SOPS_API_URL')
 
 # 默认 BKCC 设备供应方
-BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', None)
+BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', 0)
 
 # 可能有带端口的情况，需要去除
 SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
