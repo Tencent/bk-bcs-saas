@@ -170,8 +170,9 @@ BK_PAAS_HOST = os.environ.get('BK_PAAS_URL')
 BK_PAAS_INNER_HOST = BK_PAAS_HOST
 
 # 统一登录页面
-LOGIN_SIMPLE = os.environ.get('BK_LOGIN_URL', f'{BK_PAAS_HOST}/login/')
-LOGIN_FULL = f'{LOGIN_SIMPLE}?c_url={DEVOPS_BCS_HOST}'
+LOGIN_SIMPLE = f"{BK_PAAS_HOST}/login/plain"
+LOGIN_FULL = f"{BK_PAAS_HOST}/login/?c_url={DEVOPS_BCS_HOST}"
+LOGIN_URL = f"{BK_PAAS_HOST}/login/"
 
 # APIGW API 访问地址
 APIGW_HOST = os.environ.get('BK_APIGW_URL')
