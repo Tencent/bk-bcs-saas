@@ -34,17 +34,7 @@ module.exports = {
         port: 8004,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
-        proxyTable: {
-            '/api': {
-                target: '', // 接口域名
-                changeOrigin: true, // 是否跨域
-                secure: false,
-                toProxy: true,
-                headers: {
-                  referer: ''
-                }
-            },
-        },
+        proxyTable: {},
         cssSourceMap: false,
         autoOpenBrowser: false
     }
