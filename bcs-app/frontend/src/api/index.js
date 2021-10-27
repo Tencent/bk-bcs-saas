@@ -183,7 +183,7 @@ function handleReject (error, config) {
         if (status === 401) {
             // 登录弹窗
             // eslint-disable-next-line camelcase
-            window.$loginModal.loginUrl = `${data.data.login_url.simple}?c_url=${DEVOPS_BCS_HOST}/login_success.html&size=big`
+            window.$loginModal.loginUrl = `${data.data.login_url.simple}?c_url=${location.origin}${window.STATIC_URL}/login_success.html&size=big`
             window.$loginModal && window.$loginModal.show()
             return
         } else if (status === 500) {
