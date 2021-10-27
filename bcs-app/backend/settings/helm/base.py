@@ -168,23 +168,25 @@ BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
 
 BK_PAAS_HOST = os.environ.get('BK_PAAS_URL')
 BK_PAAS_INNER_HOST = BK_PAAS_HOST
-APIGW_HOST = BK_PAAS_INNER_HOST
 
 # 统一登录页面
 LOGIN_SIMPLE = os.environ.get('BK_LOGIN_URL', f'{BK_PAAS_HOST}/login/')
 LOGIN_FULL = f'{LOGIN_SIMPLE}?c_url={DEVOPS_BCS_HOST}'
 
+# APIGW API 访问地址
+APIGW_HOST = os.environ.get('BK_APIGW_URL')
+
 # BCS API PRE URL
-BCS_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_api'
+BCS_API_PRE_URL = f'{APIGW_HOST}/api/bcs_api'
 
 # paas-cc 服务，后续接入 cmdb
 BK_CC_HOST = os.environ.get('BKAPP_CC_URL', '')
 # BCS CC HOST
 BCS_CC_API_PRE_URL = BK_CC_HOST
 
-# 组件API地址
-COMPONENT_HOST = BK_PAAS_INNER_HOST
-DEPOT_API = f'{APIGW_HOST}/api/apigw/harbor_api/'
+# 组件API地址（ESB）默认与 APIGW_HOST 相同
+COMPONENT_HOST = APIGW_HOST
+DEPOT_API = f'{APIGW_HOST}/api/harbor_api/'
 
 # 数据平台清洗URL
 _URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
@@ -197,7 +199,7 @@ SOPS_API_HOST = os.environ.get('SOPS_API_URL')
 BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', 0)
 
 # 可能有带端口的情况，需要去除
-SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
+SESSION_COOKIE_DOMAIN = '.' + os.environ.get('ROOT_DOMAIN', 'example.com')
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
 # ******************************** IAM & SSM 配置 ********************************
@@ -207,7 +209,6 @@ BK_SSM_HOST = os.environ.get('BKAPP_SSM_URL')
 BK_IAM_HOST = os.environ.get('BKAPP_IAM_URL')
 BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = 'bcs_iam_migration'
-BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or 'http://paas.service.consul'
 BK_IAM_INNER_HOST = BK_IAM_HOST
 
 # 权限中心前端地址
