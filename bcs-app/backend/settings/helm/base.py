@@ -106,9 +106,6 @@ DEPOT_STAG = 'prod'
 # 镜像地址前缀
 DEPOT_PREFIX = ''
 
-# CI系统API地址
-DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_URL')
-
 # V3 部署环境
 ENVIRONMENT = os.environ.get('BKPAAS_ENVIRONMENT', 'prod')
 # 运行模式， DEVELOP(开发模式)， TEST(测试模式)， PRODUCT(正式模式)
@@ -157,11 +154,15 @@ INSTALLED_APPS += [
 
 # ******************************** BCS 或 依赖服务 URL / ADDR ********************************
 # 容器服务地址
-DEVOPS_HOST = os.environ.get('BKAPP_DEVOPS_URL')
-DEVOPS_BCS_HOST = os.environ.get('BKAPP_DEVOPS_BCS_URL')
+DEVOPS_BCS_HOST = os.environ.get('BKAPP_BCS_UI_URL')
+# 容器化版本值 与 DEVOPS_BCS_HOST 相同，后续统一合并
+DEVOPS_HOST = DEVOPS_BCS_HOST
+
+# CI系统API地址 TODO 私有化不再需要
+DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_URL')
 
 # 容器服务 API 地址
-DEVOPS_BCS_API_URL = os.environ.get('BKAPP_DEVOPS_BCS_API_URL')
+DEVOPS_BCS_API_URL = os.environ.get('BKAPP_BCS_UI_API_URL')
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
 
 BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
@@ -193,8 +194,8 @@ DEPOT_API = f'{APIGW_HOST}/api/harbor_api/'
 _URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
 URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 
-# SOPS API HOST
-SOPS_API_HOST = os.environ.get('SOPS_API_URL')
+# SOPS API HOST TODO 接入新版 clustermanager 后废弃
+SOPS_API_HOST = os.environ.get('BKAPP_SOPS_URL')
 
 # 默认 BKCC 设备供应方，社区版默认 '0'
 BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', '0')
