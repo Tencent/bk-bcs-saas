@@ -196,8 +196,8 @@ URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 # SOPS API HOST
 SOPS_API_HOST = os.environ.get('SOPS_API_URL')
 
-# 默认 BKCC 设备供应方
-BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', 0)
+# 默认 BKCC 设备供应方，社区版默认 '0'
+BKCC_DEFAULT_SUPPLIER_ACCOUNT = os.environ.get('BKCC_DEFAULT_SUPPLIER_ACCOUNT', '0')
 
 # 可能有带端口的情况，需要去除
 SESSION_COOKIE_DOMAIN = '.' + os.environ.get('ROOT_DOMAIN', 'example.com')
@@ -335,7 +335,7 @@ RDS_HANDER_SETTINGS = {
 }
 
 # web_console监听地址
-WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 5000))
+WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 28800))
 
 # web_console运行模式, 支持external(平台托管), internal（自己集群托管）
 WEB_CONSOLE_MODE = 'internal'
