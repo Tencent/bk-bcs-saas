@@ -45,7 +45,7 @@ export const fetchBizHosts = request('post', '/api/projects/$projectId/cc/hosts/
 
 // project
 export const createProject = request('post', '/api/nav/projects/')
-export const editProject = request('put', '/api/nav/projects/$projectId')
+export const editProject = request('put', '/api/nav/projects/$projectId/')
 export const logLinks = request('post', '/api/datalog/projects/$projectId/log_links/')
 
 export const fetchClusterList = request('get', '/api/projects/$projectId/clusters/')
