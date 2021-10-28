@@ -352,3 +352,12 @@ DEFAULT_METRIC_SOURCE = "prometheus"
 
 # 普罗米修斯项目白名单
 DEFAULT_METRIC_SOURCE_PROM_WLIST = []
+
+# 容器化部署版本，不走 APIGW，直连 Cluster Service，需要指定 URL
+BCS_CC_CLUSTER_CONFIG = "/v1/clusters/{cluster_id}/cluster_version_config/"
+BCS_CC_GET_CLUSTER_MASTERS = "/projects/{project_id}/clusters/{cluster_id}/manager_masters/"
+BCS_CC_GET_PROJECT_MASTERS = "/projects/{project_id}/clusters/null/manager_masters/"
+BCS_CC_GET_PROJECT_NODES = "/projects/{project_id}/clusters/null/nodes/"
+BCS_CC_OPER_PROJECT_NODE = "/projects/{project_id}/clusters/null/nodes/{node_id}/"
+BCS_CC_OPER_PROJECT_NAMESPACES = "/projects/{project_id}/clusters/null/namespaces/"
+BCS_CC_OPER_PROJECT_NAMESPACE = "/projects/{project_id}/clusters/null/namespaces/{namespace_id}/"
