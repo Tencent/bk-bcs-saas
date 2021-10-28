@@ -715,7 +715,7 @@
         },
         mounted () {
             this.getVersionList()
-            this.initImageList()
+            // this.initImageList()
         },
         methods: {
             beforeLeave () {
@@ -783,19 +783,19 @@
                     this.goTemplatePage()
                 }
             },
-            initImageList () {
-                const projectId = this.projectId
-                this.$store.dispatch('k8sTemplate/getImageList', { projectId }).then(res => {
-                    const data = res.data
-                    this.$store.commit('k8sTemplate/updateImageList', data)
-                }, res => {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: res.message,
-                        delay: 10000
-                    })
-                })
-            },
+            // initImageList () {
+            //     const projectId = this.projectId
+            //     this.$store.dispatch('k8sTemplate/getImageList', { projectId }).then(res => {
+            //         const data = res.data
+            //         this.$store.commit('k8sTemplate/updateImageList', data)
+            //     }, res => {
+            //         this.$bkMessage({
+            //             theme: 'error',
+            //             message: res.message,
+            //             delay: 10000
+            //         })
+            //     })
+            // },
             removeVersion (data) {
                 const self = this
                 this.$bkInfo({

@@ -3653,12 +3653,6 @@
                                     self.$store.commit('k8sTemplate/updateCurVersion', data.version)
                                     self.$store.commit('k8sTemplate/updateBindVersion', true)
                                 }
-                            }, res => {
-                                const message = res.message
-                                self.$bkMessage({
-                                    theme: 'error',
-                                    message: message
-                                })
                             })
                         }
                     }
@@ -3928,13 +3922,7 @@
                         this.$store.commit('k8sTemplate/updateImageList', this.imageList)
                         this.isLoadingImageList = false
                     }, 1000)
-                }, res => {
-                    const message = res.message
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message,
-                        delay: 10000
-                    })
+                }, () => {
                     this.isLoadingImageList = false
                 })
             },
@@ -3978,11 +3966,6 @@
                     }, res => {
                         this.curContainer.image = ''
                         this.curContainer.imageVersion = ''
-                        const message = res.message
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: message
-                        })
                     })
                 } else if (!isInitTrigger) {
                     this.imageVersionList = []
@@ -4143,12 +4126,6 @@
                     this.volumeConfigmapList = data
                     this.configmapKeyList.splice(0, this.configmapKeyList.length, ...keyList)
                     this.configmapList.splice(0, this.configmapList.length, ...data)
-                }, res => {
-                    const message = res.message
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
                 })
             },
 
@@ -4182,12 +4159,6 @@
                     this.volumeSecretList = data
                     this.secretKeyList.splice(0, this.secretKeyList.length, ...keyList)
                     this.secretList.splice(0, this.secretList.length, ...data)
-                }, res => {
-                    const message = res.message
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
                 })
             },
 
