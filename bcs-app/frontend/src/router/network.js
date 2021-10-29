@@ -31,7 +31,10 @@ const childRoutes = [
     {
         path: 'cloudloadbalance/:instanceId/detail/:instanceName/:instanceNamespace/:instanceCategory',
         name: 'cloudLoadBalanceDetail',
-        component: CloudLoadBalanceDetail
+        component: CloudLoadBalanceDetail,
+        meta: {
+            menuId: 'cloudLoadBalance'
+        }
     }
 ]
 

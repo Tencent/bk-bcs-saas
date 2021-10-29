@@ -270,15 +270,13 @@
 </template>
 
 <script>
-    import bkIPSearcher from '@open/components/ip-searcher'
-    import applyPerm from '@open/mixins/apply-perm'
-    import tipDialog from '@open/components/tip-dialog'
-    import { bus } from '@open/common/bus'
-    import ClusterGuide from './guide'
+    import bkIPSearcher from '@/components/ip-searcher'
+    import applyPerm from '@/mixins/apply-perm'
+    import tipDialog from '@/components/tip-dialog'
+    // import { bus } from '@/common/bus'
 
     export default {
         components: {
-            ClusterGuide,
             tipDialog,
             'bk-ip-searcher': bkIPSearcher
         },
@@ -458,8 +456,7 @@
             }
         },
         mounted () {
-            const projectList = this.onlineProjectList || window.$projectList
-            this.curProject = Object.assign({}, projectList.filter(p => p.project_id === this.projectId)[0] || {})
+            this.curProject = Object.assign({}, this.onlineProjectList.filter(p => p.project_id === this.projectId)[0] || {})
             // k8s
             this.isK8sProject = this.curProject.kind === PROJECT_K8S
         },
@@ -475,18 +472,18 @@
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
-                    if (!this.permissions.create) {
-                        const url = this.createApplyPermUrl({
-                            policy: 'create',
-                            projectCode: this.projectCode,
-                            idx: 'cluster_test,cluster_prod'
-                        })
-                        bus.$emit('show-apply-perm', {
-                            data: {
-                                apply_url: url
-                            }
-                        })
-                    }
+                    // if (!this.permissions.create) {
+                    //     const url = this.createApplyPermUrl({
+                    //         policy: 'create',
+                    //         projectCode: this.projectCode,
+                    //         idx: 'cluster_test,cluster_prod'
+                    //     })
+                    //     bus.$emit('show-apply-perm', {
+                    //         data: {
+                    //             apply_url: url
+                    //         }
+                    //     })
+                    // }
                 } catch (e) {
                     console.warn(e)
                 }

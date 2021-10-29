@@ -35,10 +35,6 @@
     var MIRROR_HOST = '{{ MIRROR_HOST }}'
     var CONTAINER_ORCHESTRATION = '{{ CONTAINER_ORCHESTRATION }}'
 
-    if (window.self === window.top) {
-        window.location.href = DEVOPS_HOST + '/console/'
-    }
-
     document.domain = '{{ SESSION_COOKIE_DOMAIN }}'
      // 加载配置文件
      window.onload = function () {

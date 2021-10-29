@@ -595,8 +595,6 @@
 </template>
 
 <script>
-    import { bus } from '@open/common/bus'
-
     import bkIPSearcher from '@open/components/ip-searcher'
     import applyPerm from '@open/mixins/apply-perm'
     import tipDialog from '@open/components/tip-dialog'
@@ -921,8 +919,7 @@
             }
         },
         async created () {
-            const projectList = this.onlineProjectList || window.$projectList
-            this.curProject = Object.assign({}, projectList.filter(p => p.project_id === this.projectId)[0] || {})
+            this.curProject = Object.assign({}, this.onlineProjectList.filter(p => p.project_id === this.projectId)[0] || {})
 
             if (this.curProject.kind === PROJECT_MESOS) {
                 this.coes = 'mesos'
@@ -1012,18 +1009,18 @@
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
-                    if (!this.permissions.create) {
-                        const url = this.createApplyPermUrl({
-                            policy: 'create',
-                            projectCode: this.projectCode,
-                            idx: 'cluster_test,cluster_prod'
-                        })
-                        bus.$emit('show-apply-perm', {
-                            data: {
-                                apply_url: url
-                            }
-                        })
-                    }
+                    // if (!this.permissions.create) {
+                    //     const url = this.createApplyPermUrl({
+                    //         policy: 'create',
+                    //         projectCode: this.projectCode,
+                    //         idx: 'cluster_test,cluster_prod'
+                    //     })
+                    //     bus.$emit('show-apply-perm', {
+                    //         data: {
+                    //             apply_url: url
+                    //         }
+                    //     })
+                    // }
                 } catch (e) {
                     console.warn(e)
                 }

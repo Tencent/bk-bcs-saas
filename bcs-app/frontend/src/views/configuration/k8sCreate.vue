@@ -64,10 +64,6 @@
             }
             this.checkProjectType()
             this.getExistConfigmap()
-
-            window.addEventListener('change::$currentProjectId', async e => {
-                this.isProjectChange = true
-            })
         },
         beforeRouteLeave (to, from, next) {
             this.clearData()

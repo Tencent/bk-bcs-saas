@@ -3,17 +3,9 @@ import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 import { locale, lang } from 'bk-magic-vue'
 import cookie from 'cookie'
-import langMap from '@open/common/lang'
+import langMap from './lang'
 
 Vue.use(VueI18n)
-// 加载全部语言包
-// const langFiles = require.context('../i18n', true, /\.js$/)
-// const langMap = langFiles.keys().reduce((langMap, path) => {
-//     const fileName = path.replace(/(.*\/)*([^.]+).*/ig, '$2')
-//     const module = langFiles(path)
-//     langMap[fileName] = module.default
-//     return langMap
-// }, {})
 
 const en = {}
 const cn = {}

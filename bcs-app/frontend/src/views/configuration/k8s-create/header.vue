@@ -574,8 +574,10 @@
             curTemplateId () {
                 return this.$store.state.k8sTemplate.curTemplateId || this.newTemplateId || this.$route.params.templateId
             },
+            userInfo () {
+                return this.$store.state.user
+            },
             templateLockStatus () {
-                const userInfo = window.$userInfo
                 const status = {
                     isLocked: false,
                     isCurLocker: false,
@@ -586,7 +588,7 @@
                     status.isLocked = true
                     status.locker = this.curTemplate.locker
                     // 如果是当前用户加锁
-                    if (this.curTemplate.locker && this.curTemplate.locker === userInfo.username) {
+                    if (this.curTemplate.locker && this.curTemplate.locker === this.userInfo.username) {
                         status.isCurLocker = true
                     } else {
                         status.isCurLocker = false

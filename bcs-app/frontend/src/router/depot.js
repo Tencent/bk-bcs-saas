@@ -27,7 +27,14 @@ const childRoutes = [
                 path: 'image-detail',
                 component: ImageDetail,
                 name: 'imageDetail',
-                alias: ''
+                alias: '',
+                meta: {
+                    menuId: 'imageLibrary'
+                },
+                beforeEnter (to, from, next) {
+                    to.meta.menuId = from.name
+                    next()
+                }
             },
             {
                 path: 'project-image',
