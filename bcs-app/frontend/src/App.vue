@@ -4,7 +4,7 @@
             <router-view :key="routerKey" v-if="!isLoading && !err" />
         </Navigation>
         <!-- 项目创建弹窗 -->
-        <ProjectCreate v-model="showCreateDialog"></ProjectCreate>
+        <ProjectCreate v-model="showCreateDialog" :project-data="null"></ProjectCreate>
         <!-- 权限弹窗 -->
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
         <!-- 登录弹窗 -->
