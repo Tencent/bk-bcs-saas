@@ -49,19 +49,21 @@
             }
         },
         setup: (props, ctx) => {
-            const { projectData } = toRefs(props)
+            const { projectData, value } = toRefs(props)
             const { emit } = ctx
-            const { $bkMessage, $i18n } = ctx.root
+            const { $bkMessage, $i18n, $store } = ctx.root
             const formData = ref({
                 project_name: projectData?.value?.project_name,
                 english_name: projectData?.value?.english_name,
                 description: projectData?.value?.description
             })
-            watch(projectData, () => {
-                formData.value = {
-                    project_name: projectData?.value?.project_name,
-                    english_name: projectData?.value?.english_name,
-                    description: projectData?.value?.description
+            watch(value, (isShow) => {
+                if (isShow) {
+                    formData.value = {
+                        project_name: projectData?.value?.project_name,
+                        english_name: projectData?.value?.english_name,
+                        description: projectData?.value?.description
+                    }
                 }
             })
             const loading = ref(false)
@@ -109,6 +111,8 @@
                 }
                 loading.value = false
                 if (result) {
+                    // 更新集群列表
+                    await $store.dispatch('getProjectList')
                     $bkMessage({
                         message: isEdit.value ? $i18n.t('编辑成功') : $i18n.t('创建成功'),
                         theme: 'success'
