@@ -143,7 +143,7 @@ BCS_APP_ID = 1
 PROJECT_FUNC_CODES = ['ServiceMonitor']
 
 # 覆盖上层base中的DIRECT_ON_FUNC_CODE: 直接开启的功能开关，不需要在db中配置
-DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET', 'ServiceMonitor']
+DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET', 'ServiceMonitor', 'BCS_API_GATEWAY_FOR_CLUSTER']
 
 # 集群及节点metric功能白名单
 CLUSTER_FUNC_CODES = ['MesosResource']
@@ -180,6 +180,10 @@ APIGW_HOST = os.environ.get('BK_APIGW_URL')
 
 # BCS API PRE URL
 BCS_API_PRE_URL = f'{APIGW_HOST}/api/bcs_api'
+
+# bcs-api-gateway api 配置
+BCS_API_GW_DOMAIN = os.environ.get('BCS_API_GW_DOMAIN', APIGW_HOST)
+BCS_API_GW_AUTH_TOKEN = os.environ.get('BCS_API_GW_AUTH_TOKEN')
 
 # paas-cc 服务，后续接入 cmdb
 BK_CC_HOST = os.environ.get('BKAPP_CC_URL', '')
