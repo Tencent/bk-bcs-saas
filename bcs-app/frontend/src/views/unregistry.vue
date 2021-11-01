@@ -6,27 +6,32 @@
             <div class="form-item">
                 <div class="form-item-label">{{ $t('业务编排类型') }}</div>
                 <div class="form-item-content kind">
-                    <div class="kind-panel active">
-                        <div class="kind-panel-title">K8S</div>
-                        <div class="kind-panel-desc mt5">{{ $t('k8s容器编排引擎') }}</div>
+                    <div v-for="item in kindList"
+                        :class="['kind-panel', { active: kind === item.id, disabled: item.disabled }]"
+                        :key="item.id"
+                        v-bk-tooltips="{
+                            disabled: !item.disabled && !item.tips,
+                            content: item.tips
+                        }"
+                        @click="handleKindChange(item)">
+                        <div class="kind-panel-title">{{ item.name }}</div>
+                        <div class="kind-panel-desc mt5">{{ item.desc }}</div>
                     </div>
                 </div>
             </div>
             <div class="form-item mt30">
                 <div class="form-item-label">{{ $t('关联CMDB业务') }}</div>
                 <div class="form-item-content cc-list">
-                    <bk-select class="cc-selector"
+                    <bcs-select class="cc-selector"
                         :placeholder="$t('请选择关联业务')"
                         v-model="ccKey"
-                        :disabled="!ccList.length"
-                        searchable
-                        @change="handleCmdbChange">
-                        <bk-option v-for="item in ccList"
+                        searchable>
+                        <bcs-option v-for="item in ccList"
                             :key="item.id"
                             :id="item.id"
                             :name="item.name">
-                        </bk-option>
-                    </bk-select>
+                        </bcs-option>
+                    </bcs-select>
                 </div>
                 <div class="form-item-tips" v-if="!ccList.length && $INTERNAL">
                     {{ $t('请联系需要关联的CMDB业务的运维') }}
@@ -53,39 +58,43 @@
     </section>
 </template>
 <script>
-    import { isEmpty } from '@open/common/util'
+    import { isEmpty } from '@/common/util'
     export default {
         name: 'bcs-unregistry',
-        props: {
-            ccList: {
-                type: Array,
-                default: () => []
-            },
-            defaultKind: {
-                type: Number,
-                default: 1
-            }
-        },
         data () {
             return {
-                kindList: [
-                    {
-                        id: 1,
-                        name: 'K8S',
-                        desc: this.$t('k8s容器编排引擎')
-                    }
-                ],
+                kindList: [],
                 guideList: [],
-                kind: this.defaultKind,
+                kind: 1,
+                ccList: [],
                 ccKey: ''
             }
         },
         computed: {
             enableBtn () {
                 return !isEmpty(this.ccKey)
+            },
+            curProject () {
+                return this.$store.state.curProject
             }
         },
         created () {
+            this.kindList = [
+                {
+                    id: 1,
+                    name: 'K8S',
+                    desc: this.$t('k8s容器编排引擎')
+                }
+            ]
+            if (this.$INTERNAL) {
+                this.kindList.push({
+                    id: 2,
+                    name: 'Mesos',
+                    desc: this.$t('基于mesos框架自研的容器编排引擎'),
+                    disabled: true,
+                    tips: `${this.$t('如需使用，请联系')}<a href="${this.PROJECT_CONFIG.doc.contact}" style="color: #3a84ff" target="">${this.$t('【蓝鲸容器助手】')}</a>`
+                })
+            }
             this.guideList = [
                 {
                     id: 'binding',
@@ -110,12 +119,51 @@
                 }
             ]
         },
+        mounted () {
+            this.fetchCCList()
+        },
         methods: {
-            handleCmdbChange (value, oldvalue) {
-                this.$emit('cc-change', value, oldvalue)
+            handleKindChange (item) {
+                if (item.disabled) return
+
+                this.kind = item.id
             },
-            updateProject () {
-                this.$emit('update-project')
+            /**
+             * 启用容器服务 更新项目
+             */
+            async updateProject () {
+                try {
+                    this.isLoading = true
+                    await this.$store.dispatch('editProject', Object.assign({}, this.curProject, {
+                        // deploy_type 值固定，就是原来页面上的：部署类型：容器部署
+                        deploy_type: [2],
+                        // kind 业务编排类型
+                        kind: parseInt(this.kind, 10),
+                        // use_bk 值固定，就是原来页面上的：使用蓝鲸部署服务
+                        use_bk: true,
+                        cc_app_id: this.ccKey
+                    }))
+                    this.isLoading = false
+
+                    this.$nextTick(() => {
+                        window.location.reload()
+                    })
+                } catch (e) {
+                    console.error(e)
+                    this.isLoading = false
+                }
+            },
+            /**
+             * 获取关联 CC 的数据
+             */
+            async fetchCCList () {
+                if (!this.curProject.project_id) return
+
+                const res = await this.$store.dispatch('getCCList', {
+                    project_kind: this.kind,
+                    project_id: this.curProject.project_id
+                }).catch(() => ({ data: [] }))
+                this.ccList = [...(res.data || [])]
             }
         }
     }
