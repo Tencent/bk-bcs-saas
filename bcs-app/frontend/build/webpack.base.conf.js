@@ -48,7 +48,6 @@ module.exports = {
         alias: {
             'vue$': 'vue/dist/vue.esm.js',
             '@': resolve('src'),
-            '@open': resolve('src'),
             'echarts$': 'echarts/dist/echarts.min.js',
             'echarts': 'echarts',
             'zrender$': 'zrender/dist/zrender.min.js',
