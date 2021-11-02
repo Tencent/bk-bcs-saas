@@ -182,7 +182,7 @@ APIGW_HOST = os.environ.get('BK_APIGW_URL')
 BCS_API_PRE_URL = f'{APIGW_HOST}/api/bcs_api'
 
 # bcs-api-gateway api 配置
-BCS_API_GW_DOMAIN = os.environ.get('BCS_API_GW_DOMAIN', APIGW_HOST)
+BCS_API_GW_DOMAIN = os.environ.get('BCS_API_GW_DOMAIN', f'{APIGW_HOST}/api/bcs-api-gateway/')
 BCS_API_GW_AUTH_TOKEN = os.environ.get('BCS_API_GW_AUTH_TOKEN')
 
 # paas-cc 服务，后续接入 cmdb
