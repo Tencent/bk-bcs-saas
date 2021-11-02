@@ -165,7 +165,10 @@ DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_URL')
 DEVOPS_BCS_API_URL = os.environ.get('BKAPP_BCS_UI_API_URL')
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
 
-BCS_SERVER_HOST = {'prod': os.environ.get('BKAPP_BCS_API_URL')}
+# bcs-api-gateway api 配置
+BCS_API_PRE_URL = os.environ.get('BKAPP_BCS_API_URL')
+BCS_SERVER_HOST = {'prod': BCS_API_PRE_URL}
+BCS_API_GW_AUTH_TOKEN = os.environ.get('BCS_API_GW_AUTH_TOKEN')
 
 BK_PAAS_HOST = os.environ.get('BK_PAAS_URL')
 BK_PAAS_INNER_HOST = BK_PAAS_HOST
@@ -177,13 +180,6 @@ LOGIN_URL = f"{BK_PAAS_HOST}/login/"
 
 # APIGW API 访问地址
 APIGW_HOST = os.environ.get('BK_APIGW_URL')
-
-# BCS API PRE URL
-BCS_API_PRE_URL = f'{APIGW_HOST}/api/bcs_api'
-
-# bcs-api-gateway api 配置
-BCS_API_GW_DOMAIN = os.environ.get('BCS_API_GW_DOMAIN', f'{APIGW_HOST}/api/bcs-api-gateway/')
-BCS_API_GW_AUTH_TOKEN = os.environ.get('BCS_API_GW_AUTH_TOKEN')
 
 # paas-cc 服务，后续接入 cmdb
 BK_CC_HOST = os.environ.get('BKAPP_CC_URL', '')

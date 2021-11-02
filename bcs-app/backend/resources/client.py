@@ -123,7 +123,7 @@ class BcsKubeConfigurationService:
         :param env_name: 集群所属环境，包含正式环境和测试环境
         """
         return {
-            "host": f"{getattr(settings, 'BCS_API_GW_DOMAIN', '')}/{env_name}/v4/clusters/{self.cluster.id}",
+            "host": f"{settings.BCS_SERVER_HOST[env_name]}/clusters/{self.cluster.id}",
             "user_token": getattr(settings, "BCS_API_GW_AUTH_TOKEN", ""),
         }
 
