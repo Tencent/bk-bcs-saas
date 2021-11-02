@@ -122,10 +122,13 @@ class BcsKubeConfigurationService:
 
         :param env_name: 集群所属环境，包含正式环境和测试环境
         """
-        return {
-            "host": f"{settings.BCS_SERVER_HOST[env_name]}/clusters/{self.cluster.id}",
-            "user_token": getattr(settings, "BCS_API_GW_AUTH_TOKEN", ""),
-        }
+        # TODO 社区版直连后台 API，后续统一不走 APIGW
+        if settings.REGION == 'ce':
+            host = f"{settings.BCS_SERVER_HOST[env_name]}/clusters/{self.cluster.id}"
+        else:
+            host = f"{getattr(settings, 'BCS_API_GW_DOMAIN', '')}/{env_name}/v4/clusters/{self.cluster.id}"
+
+        return {"host": host, "user_token": getattr(settings, "BCS_API_GW_AUTH_TOKEN", "")}
 
     @staticmethod
     def _get_apiservers_host(api_env_name: str) -> str:
