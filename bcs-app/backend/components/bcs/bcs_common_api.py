@@ -12,6 +12,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
+
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_post
 
@@ -102,6 +104,13 @@ class BCSClient(BCSClientBase):
         """获取事件
         注意需要针对不同的环境进行查询
         """
-        url = "{host}/events".format(host=self.storage_host)
-        resp = http_get(url, params=params, headers=self.headers)
+        # TODO 社区版不经过 apigw 调用，直接连后台接口，参数等不相同，后续统一不走 apigw
+        if settings.REGION == 'ce':
+            host = settings.BCS_SERVER_HOST[self.env]
+            url = f"{host}/bcsapi/v4/storage/events"
+            headers = {'Authorization': f'Bearer {settings.BCS_API_GW_AUTH_TOKEN}'}
+        else:
+            url = "{host}/events".format(host=self.storage_host)
+            headers = self.headers
+        resp = http_get(url, params=params, headers=headers)
         return resp
