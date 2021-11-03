@@ -122,8 +122,8 @@ class BcsKubeConfigurationService:
 
         :param env_name: 集群所属环境，包含正式环境和测试环境
         """
-        # TODO 社区版直连后台 API，后续统一不走 APIGW
-        if settings.REGION == 'ce':
+        # TODO 容器化版本不经过 apigw 调用，直接连后台接口，参数等不相同，后续统一不走 apigw
+        if getattr(settings, 'USE_BCS_API_GATEWAY', False):
             host = f"{settings.BCS_SERVER_HOST[env_name]}/clusters/{self.cluster.id}"
         else:
             host = f"{getattr(settings, 'BCS_API_GW_DOMAIN', '')}/{env_name}/v4/clusters/{self.cluster.id}"
