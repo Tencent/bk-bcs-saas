@@ -104,13 +104,8 @@ class BCSClient(BCSClientBase):
         """获取事件
         注意需要针对不同的环境进行查询
         """
-        # TODO 容器化版本不经过 apigw 调用，直接连后台接口，参数等不相同，后续统一不走 apigw
-        if getattr(settings, 'USE_BCS_API_GATEWAY', False):
-            host = settings.BCS_SERVER_HOST[self.env]
-            url = f"{host}/bcsapi/v4/storage/events"
-            headers = {'Authorization': f'Bearer {settings.BCS_API_GW_AUTH_TOKEN}'}
-        else:
-            url = "{host}/events".format(host=self.storage_host)
-            headers = self.headers
+        host = settings.BCS_SERVER_HOST[self.env]
+        url = f"{host}/bcsapi/v4/storage/events"
+        headers = {'Authorization': f'Bearer {settings.BCS_API_GW_AUTH_TOKEN}'}
         resp = http_get(url, params=params, headers=headers)
         return resp

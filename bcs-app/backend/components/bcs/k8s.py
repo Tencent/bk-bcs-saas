@@ -42,19 +42,10 @@ class K8SClient(BCSClientBase):
     @cached_property
     def context(self):
         """BCS API Context信息"""
-        # TODO 容器化版本直接连 bcs-api-gateway 后台接口
-        if getattr(settings, 'USE_BCS_API_GATEWAY', False):
-            context = {
-                'server_address_path': f"{settings.BCS_SERVER_HOST[self.env]}/clusters/{self.cluster_id}",
-                'user_token': getattr(settings, "BCS_API_GW_AUTH_TOKEN", ""),
-            }
-        else:
-            context = {}
-            cluster_info = self.query_cluster()
-            context.update(cluster_info)
-            credentials = self.get_client_credentials(cluster_info["id"])
-            context.update(credentials)
-        return context
+        return {
+            'server_address_path': f"/clusters/{self.cluster_id}",
+            'user_token': settings.BCS_API_GW_AUTH_TOKEN,
+        }
 
     @cached_property
     def k8s_raw_client(self):

@@ -131,15 +131,7 @@ class BCSClusterClient:
 
     def get_access_cluster_context(self):
         """ 获取访问集群需要的信息 """
-        context = self.get_cluster_credential()
-        context.update(
-            **{
-                'host': self.host,
-                'source_cluster_id': self.cluster_id,
-                'source_project_id': self.project_id,
-            }
-        )
-        return context
+        return {'server_address_path': '/clusters/{self.cluster.id}', "user_token": settings.BCS_API_GW_AUTH_TOKEN}
 
     def make_kubectl_options(self):
         context = self.get_access_cluster_context()

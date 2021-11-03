@@ -165,9 +165,9 @@ DEVOPS_BCS_API_URL = os.environ.get('BKAPP_BCS_UI_API_URL')
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
 
 # bcs-api-gateway api 配置
-USE_BCS_API_GATEWAY = True
 BCS_API_PRE_URL = os.environ.get('BKAPP_BCS_API_URL')
 BCS_SERVER_HOST = {'prod': BCS_API_PRE_URL}
+BCS_API_GW_AUTH_TOKEN = os.environ.get("BCS_API_GW_AUTH_TOKEN", "")
 
 BK_PAAS_HOST = os.environ.get('BK_PAAS_URL')
 BK_PAAS_INNER_HOST = BK_PAAS_HOST
