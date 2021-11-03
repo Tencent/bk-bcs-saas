@@ -42,8 +42,11 @@ class K8SClient(BCSClientBase):
     @cached_property
     def context(self):
         """BCS API Context信息"""
+        server_address_path = f'/clusters/{self.cluster_id}'
         return {
-            'server_address_path': f"/clusters/{self.cluster_id}",
+            'server_address': f'{self._bcs_server_host}{server_address_path}',
+            'server_address_path': server_address_path,
+            'identifier': self.cluster_id,
             'user_token': settings.BCS_API_GW_AUTH_TOKEN,
         }
 
