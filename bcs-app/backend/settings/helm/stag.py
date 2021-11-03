@@ -29,7 +29,7 @@ LOGGING_DIR = os.environ.get('LOGGING_DIR', LOGGING_DIR)
 if not os.path.exists(LOGGING_DIR):
     os.makedirs(LOGGING_DIR)
 
-LOG_FILE = os.path.join(LOGGING_DIR, f'{APP_ID}.log')
+LOG_FILE = os.path.join(LOGGING_DIR, f'bcs_ui.log')
 LOGGING = get_logging_config(LOG_LEVEL, None, LOG_FILE)
 
 # ******************************** 容器服务相关配置 ********************************
