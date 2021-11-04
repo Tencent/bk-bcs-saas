@@ -72,7 +72,7 @@
                 // 切换不同项目时清空单集群信息
                 handleSetClusterStorageInfo()
                 const preProject = projectList.value.find(item => item.project_code === localStorage.getItem('curProjectCode'))
-                if (curProject.kind && preProject?.kind && (curProject.kind !== preProject.kind)) {
+                if (curProject?.kind !== preProject?.kind) {
                     // 切换不同项目类型时重刷界面
                     window.location.reload()
                 }
