@@ -162,7 +162,7 @@ DEVOPS_CI_API_HOST = os.environ.get('DEVOPS_CI_API_URL')
 
 # 容器服务 API 地址
 DEVOPS_BCS_API_URL = os.environ.get('BKAPP_BCS_UI_API_URL')
-DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_URL')
+DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_ADDR')
 
 # bcs-api-gateway api 配置
 BCS_API_PRE_URL = os.environ.get('BKAPP_BCS_API_URL')
