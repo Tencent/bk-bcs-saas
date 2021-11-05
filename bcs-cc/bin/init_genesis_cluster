@@ -2,9 +2,9 @@
 CURR_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 CLUSTER_ID='BCS-K8S-00000'
 CLUSTER_NUM=0
-CLUSTER_NAME='蓝鲸'
+CLUSTER_NAME='Blueking'
 PROJECT_ID=$(cat /proc/sys/kernel/random/uuid | md5sum | awk '{print $1}')
-PROJECT_NAME='蓝鲸'
+PROJECT_NAME='Blueking'
 PROJECT_CODE='blueking'
 MASTER_IP=$(/data/bin/kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
 
