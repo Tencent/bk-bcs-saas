@@ -248,7 +248,7 @@
     import useDetail from './use-detail'
     import { formatTime } from '@/common/util'
     import Ace from '@/components/ace-editor'
-    import fullScreen from '@open/directives/full-screen'
+    import fullScreen from '@/directives/full-screen'
 
     export interface IDetail {
         manifest: any;
