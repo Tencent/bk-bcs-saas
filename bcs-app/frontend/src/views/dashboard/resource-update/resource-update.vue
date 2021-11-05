@@ -422,6 +422,11 @@
                     }).catch(err => {
                         editorErr.value.type = 'http'
                         editorErr.value.message = err.message
+
+                        $bkMessage({
+                            theme: 'error',
+                            message: err.response.data.message
+                        })
                         return false
                     })
                 } else {
@@ -432,6 +437,11 @@
                     }).catch(err => {
                         editorErr.value.type = 'http'
                         editorErr.value.message = err.message
+                        
+                        $bkMessage({
+                            theme: 'error',
+                            message: err.response.data.message
+                        })
                         return false
                     })
                 }
@@ -467,6 +477,10 @@
                             }).catch(err => {
                                 editorErr.value.type = 'http'
                                 editorErr.value.message = err.message
+                                $bkMessage({
+                                    theme: 'error',
+                                    message: err.response.data.message
+                                })
                                 return false
                             })
                         } else {
@@ -479,6 +493,11 @@
                             }).catch(err => {
                                 editorErr.value.type = 'http'
                                 editorErr.value.message = err.message
+
+                                $bkMessage({
+                                    theme: 'error',
+                                    message: err.response.data.message
+                                })
                                 return false
                             })
                         }
