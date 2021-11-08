@@ -361,3 +361,6 @@ BCS_CC_GET_PROJECT_NODES = "/projects/{project_id}/clusters/null/nodes/"
 BCS_CC_OPER_PROJECT_NODE = "/projects/{project_id}/clusters/null/nodes/{node_id}/"
 BCS_CC_OPER_PROJECT_NAMESPACES = "/projects/{project_id}/clusters/null/namespaces/"
 BCS_CC_OPER_PROJECT_NAMESPACE = "/projects/{project_id}/clusters/null/namespaces/{namespace_id}/"
+
+# 容器化部署版本，暂不需要提供 APIGW API，默认 PUBLIC KEY 设置为空值
+BCS_APP_APIGW_PUBLIC_KEY = None
