@@ -15,13 +15,11 @@
 from .base import *  # noqa
 
 # ******************************** 日志 配置 ********************************
-
 BK_LOG_DIR = os.environ.get('BKAPP_LOG_DIR', '/app/logs/')
 LOG_CLASS = 'logging.handlers.RotatingFileHandler'
 
-# 生产环境仅打印 ERROR 日志
 LOGGING_DIR = os.path.join(BK_LOG_DIR, APP_ID)
-LOG_LEVEL = 'ERROR'
+LOG_LEVEL = os.environ.get('PROD_LOG_LEVEL', 'ERROR')
 
 # 兼容企业版
 LOGGING_DIR = os.environ.get('LOGGING_DIR', LOGGING_DIR)
