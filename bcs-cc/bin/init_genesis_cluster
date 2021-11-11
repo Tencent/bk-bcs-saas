@@ -10,12 +10,12 @@ MASTER_IP=$(/data/bin/kubectl get nodes -o jsonpath="{.items[0].status.addresses
 
 BCS_CC_DB="/data/bin/mysql -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_NAME"
 # 插入初始项目信息
-$BCS_CC_DB -e "INSERT INTO projects(name, creator, english_name, project_id, cc_app_id, kind, approval_status, created_at, updated_at) VALUES('$PROJECT_NAME', 'admin', '$PROJECT_CODE', '$PROJECT_ID', 2, 1, 2, '$CURR_TIME', '$CURR_TIME')" || exit 1
+$BCS_CC_DB -e "INSERT IGNORE INTO projects(name, creator, english_name, project_id, cc_app_id, kind, approval_status, created_at, updated_at) VALUES('$PROJECT_NAME', 'admin', '$PROJECT_CODE', '$PROJECT_ID', 2, 1, 2, '$CURR_TIME', '$CURR_TIME')" || exit 1
 # 插入初始集群信息
-$BCS_CC_DB -e "INSERT INTO clusters(name, creator, project_id, cluster_id, cluster_num, status, type, environment, area_id, created_at, updated_at) VALUES('$CLUSTER_NAME', 'admin', '$PROJECT_ID', '$CLUSTER_ID', $CLUSTER_NUM, 'normal', 'k8s', 'prod', 1, '$CURR_TIME', '$CURR_TIME')" || exit 1
+$BCS_CC_DB -e "INSERT IGNORE INTO clusters(name, creator, project_id, cluster_id, cluster_num, status, type, environment, area_id, created_at, updated_at) VALUES('$CLUSTER_NAME', 'admin', '$PROJECT_ID', '$CLUSTER_ID', $CLUSTER_NUM, 'normal', 'k8s', 'prod', 1, '$CURR_TIME', '$CURR_TIME')" || exit 1
 # 插入初始 master 信息
-$BCS_CC_DB -e "INSERT INTO manager_masters(inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
+$BCS_CC_DB -e "INSERT IGNORE INTO manager_masters(inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
 # 插入初始节点信息
-$BCS_CC_DB -e "INSERT INTO nodes (inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
+$BCS_CC_DB -e "INSERT IGNORE INTO nodes (inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
 # 插入初始命名空间信息
-$BCS_CC_DB -e "insert into kubernetes_namespaces (name, project_id, cluster_id, created_at, updated_at) VALUES('default', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME'), ('$POD_NAMESPACE', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME')" || exit 1
+$BCS_CC_DB -e "INSERT IGNORE INTO kubernetes_namespaces (name, project_id, cluster_id, created_at, updated_at) VALUES('default', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME'), ('$POD_NAMESPACE', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME')" || exit 1
