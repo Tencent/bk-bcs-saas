@@ -341,7 +341,9 @@ WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 28800))
 WEB_CONSOLE_MODE = 'internal'
 
 # web_console 镜像地址
-WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kubectld"
+WEB_CONSOLE_KUBECTLD_IMAGE_PATH = os.environ.get(
+    'WEB_CONSOLE_KUBECTLD_IMAGE', f'{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kubectld'
+)
 
 # ******************************** 监控 & 指标配置  ********************************
 
