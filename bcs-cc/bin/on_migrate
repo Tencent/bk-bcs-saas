@@ -3,7 +3,7 @@
 CURR_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 # db信息
-BCS_DB="/data/bin/mysql -h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
+BCS_DB="/data/bin/mysql -h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD --default-character-set=utf8"
 $BCS_DB -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_NAME\` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 # 基本配置信息
@@ -17,7 +17,7 @@ bcs-cc migrate -c /data/etc/config/cc.yaml||exit 1
 
 # 插入区域配置信息
 BCS_CC_DB="$BCS_DB $MYSQL_NAME"
-$BCS_CC_DB -e "INSERT INTO areas(created_at, updated_at, name, chinese_name, configuration) VALUES('$CURR_TIME', '$CURR_TIME', 'area', '区域', '$AREA_JSON') ON DUPLICATE KEY UPDATE configuration='$AREA_JSON',created_at='$CURR_TIME', updated_at='$CURR_TIME'"||exit 1
+$BCS_CC_DB -e "INSERT INTO areas(created_at, updated_at, name, chinese_name, configuration) VALUES('$CURR_TIME', '$CURR_TIME', 'default_area', '默认区域', '$AREA_JSON') ON DUPLICATE KEY UPDATE configuration='$AREA_JSON',created_at='$CURR_TIME', updated_at='$CURR_TIME'"||exit 1
 # 插入zk配置信息
 $BCS_CC_DB -e "INSERT INTO zookeeper_configs(created_at, updated_at, name, zookeeper, bcs_zookeeper, environment, creator) VALUES('$CURR_TIME', '$CURR_TIME', 'zk', '$ZK_JSON', '$ZK_JSON', 'prod', 'admin') ON DUPLICATE KEY UPDATE zookeeper='$ZK_JSON', bcs_zookeeper='$ZK_JSON',created_at='$CURR_TIME', updated_at='$CURR_TIME'"||exit 1
 # 插入k8s配置信息
