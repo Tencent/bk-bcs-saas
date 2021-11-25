@@ -59,8 +59,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 # ******************************** 容器服务 配置 ********************************
 
-# 设置存储在 session 中的 token 一天后过期，默认为 5 分钟
-BKAUTH_SESSION_TIMEOUT = 86400
+# 设置 session 过期时间为 12H
+SESSION_COOKIE_AGE = 12 * 60 * 60
 
 # BK 环境的账号要单独申请
 BK_JFROG_ACCOUNT_DOMAIN = 'bk.artifactory.bking.com'

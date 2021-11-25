@@ -126,6 +126,18 @@ class SSMAccessToken(object):
     def access_token(self):
         return get_access_token_by_credentials(self.bk_token)
 
+    def is_valid(self) -> bool:
+        """
+        当 access_token 缓存失效时，会发起重新获取，如果未获取到正确的 access_token, 则校验不通过，返回 False
+        """
+        try:
+            _ = self.access_token
+        except Exception as e:
+            logger.error('no valid access_token: %s', e)
+            return False
+        else:
+            return True
+
 
 class BKTokenAuthentication(BaseAuthentication):
     """企业版bk_token校验"""
@@ -157,7 +169,7 @@ class BKTokenAuthentication(BaseAuthentication):
             return None
 
         credentials = request.session.get("auth_credentials")
-        if not credentials or credentials['bk_token'] != auth_credentials['bk_token']:
+        if not (credentials and auth_credentials) or credentials['bk_token'] != auth_credentials['bk_token']:
             try:
                 username = self.verify_bk_token(**auth_credentials)
             except NoAuthError as e:
@@ -175,6 +187,10 @@ class BKTokenAuthentication(BaseAuthentication):
 
         user = self.get_user(username)
         user.token = SSMAccessToken(auth_credentials)
+        # 增加校验 access_token 的有效性
+        if not user.token.is_valid():
+            return None
+
         return (user, None)
 
 
