@@ -6,16 +6,40 @@ CLUSTER_NAME='蓝鲸'
 PROJECT_ID=$(cat /proc/sys/kernel/random/uuid | md5sum | awk '{print $1}')
 PROJECT_NAME='蓝鲸'
 PROJECT_CODE='blueking'
-MASTER_IP=$(/data/bin/kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
 
 BCS_CC_DB="/data/bin/mysql -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_NAME --default-character-set=utf8"
-# 插入初始项目信息
-$BCS_CC_DB -e "INSERT IGNORE INTO projects(name, creator, english_name, project_id, cc_app_id, kind, approval_status, created_at, updated_at) VALUES('$PROJECT_NAME', 'admin', '$PROJECT_CODE', '$PROJECT_ID', 2, 1, 2, '$CURR_TIME', '$CURR_TIME')" || exit 1
-# 插入初始集群信息
-$BCS_CC_DB -e "INSERT IGNORE INTO clusters(name, creator, project_id, cluster_id, cluster_num, status, type, environment, area_id, created_at, updated_at) VALUES('$CLUSTER_NAME', 'admin', '$PROJECT_ID', '$CLUSTER_ID', $CLUSTER_NUM, 'normal', 'k8s', 'prod', 1, '$CURR_TIME', '$CURR_TIME')" || exit 1
-# 插入初始 master 信息
-$BCS_CC_DB -e "INSERT IGNORE INTO manager_masters(inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
-# 插入初始节点信息
-$BCS_CC_DB -e "INSERT IGNORE INTO nodes (inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$MASTER_IP', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
+
+# 插入初始项目 & 集群信息，如果存在则忽略
+if [[ $($BCS_CC_DB -sNe "SELECT count(*) FROM projects WHERE english_name='blueking';") == 0 ]];
+then
+    echo "Insert Project" $PROJECT_ID $PROJECT_CODE
+    $BCS_CC_DB -e "INSERT IGNORE INTO projects(name, creator, english_name, project_id, cc_app_id, kind, approval_status, created_at, updated_at) VALUES('$PROJECT_NAME', 'admin', '$PROJECT_CODE', '$PROJECT_ID', 2, 1, 2, '$CURR_TIME', '$CURR_TIME')" || exit 1
+    echo "Insert Cluster" $CLUSTER_ID $CLUSTER_NAME
+    $BCS_CC_DB -e "INSERT IGNORE INTO clusters(name, creator, project_id, cluster_id, cluster_num, status, type, environment, area_id, created_at, updated_at) VALUES('$CLUSTER_NAME', 'admin', '$PROJECT_ID', '$CLUSTER_ID', $CLUSTER_NUM, 'normal', 'k8s', 'prod', 1, '$CURR_TIME', '$CURR_TIME')" || exit 1
+else
+    PROJECT_ID=$($BCS_CC_DB -sNe "SELECT project_id FROM projects WHERE english_name='blueking'")
+    echo "Project blueking exists, ID:" $PROJECT_ID
+fi
+
 # 插入初始命名空间信息
 $BCS_CC_DB -e "INSERT IGNORE INTO kubernetes_namespaces (name, project_id, cluster_id, created_at, updated_at) VALUES('default', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME'), ('$POD_NAMESPACE', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME')" || exit 1
+
+# 清理所有的 master，node 信息
+$BCS_CC_DB -e "DELETE FROM manager_masters WHERE cluster_id='$CLUSTER_ID'"
+$BCS_CC_DB -e "DELETE FROM nodes WHERE cluster_id='$CLUSTER_ID'"
+
+# 插入 Master 信息
+MASTER_IP_ARR=($(/data/bin/kubectl get nodes -l node-role.kubernetes.io/master="" -o go-template='{{range .items }}{{range .status.addresses}}{{if eq .type "InternalIP"}}{{printf "%s " .address}}{{end}}{{end}}{{end}}'))
+for ip in ${MASTER_IP_ARR[@]}
+do
+    echo "Insert Master" $ip
+    $BCS_CC_DB -e "INSERT INTO manager_masters(inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$ip', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
+done
+
+# 插入 Node 信息
+NODE_IP_ARR=($(/data/bin/kubectl get nodes -o go-template='{{range .items}}{{range .status.addresses}}{{if eq .type "InternalIP"}}{{printf "%s " .address}}{{end}}{{end}}{{end}}'))
+for ip in ${NODE_IP_ARR[@]}
+do
+    echo "Insert Node" $ip
+    $BCS_CC_DB -e "INSERT INTO nodes (inner_ip, cluster_id, project_id, status, created_at, updated_at) VALUES('$ip', '$CLUSTER_ID', '$PROJECT_ID', 'normal', '$CURR_TIME', '$CURR_TIME')" || exit 1
+done
