@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # 初始化蓝鲸项目 & 集群
 CURR_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 CLUSTER_ID='BCS-K8S-00000'
@@ -10,7 +12,7 @@ PROJECT_CODE='blueking'
 BCS_CC_DB="/data/bin/mysql -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_NAME --default-character-set=utf8"
 
 # 插入初始项目 & 集群信息，如果存在则忽略
-if [[ $($BCS_CC_DB -sNe "SELECT count(*) FROM projects WHERE english_name='blueking';") == 0 ]];
+if [[ $($BCS_CC_DB -sNe "SELECT count(*) FROM projects WHERE english_name='blueking';") == 0 ]]
 then
     echo "Insert Project" $PROJECT_ID $PROJECT_CODE
     $BCS_CC_DB -e "INSERT IGNORE INTO projects(name, creator, english_name, project_id, cc_app_id, kind, approval_status, created_at, updated_at) VALUES('$PROJECT_NAME', 'admin', '$PROJECT_CODE', '$PROJECT_ID', 2, 1, 2, '$CURR_TIME', '$CURR_TIME')" || exit 1
@@ -29,7 +31,7 @@ $BCS_CC_DB -e "DELETE FROM manager_masters WHERE cluster_id='$CLUSTER_ID'"
 $BCS_CC_DB -e "DELETE FROM nodes WHERE cluster_id='$CLUSTER_ID'"
 
 # 插入 Master 信息
-MASTER_IP_ARR=($(/data/bin/kubectl get nodes -l node-role.kubernetes.io/master="" -o go-template='{{range .items }}{{range .status.addresses}}{{if eq .type "InternalIP"}}{{printf "%s " .address}}{{end}}{{end}}{{end}}'))
+MASTER_IP_ARR=($(/data/bin/kubectl get nodes -l node-role.kubernetes.io/master="" -o go-template='{{range .items}}{{range .status.addresses}}{{if eq .type "InternalIP"}}{{printf "%s " .address}}{{end}}{{end}}{{end}}'))
 for ip in ${MASTER_IP_ARR[@]}
 do
     echo "Insert Master" $ip
