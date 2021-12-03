@@ -1795,7 +1795,6 @@ export default {
     '文章': ['the document '],
     '系统出现异常': ['System Error'],
     'Sorry，您的权限不足': ['Sorry, you do not have permission'],
-    '请去': ['please go'],
     '非IEG用户请使用对应BG的容器服务平台': ['Non-IEG users please use the corresponding BG container service platform'],
     '总大小': ['Total size'],
     '读': ['read'],

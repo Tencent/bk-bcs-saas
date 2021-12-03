@@ -132,8 +132,7 @@
                     + '<div class="bk-exception bk-exception-center">'
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
-                    + `<p class="f14">${self.$t('Sorry，您的权限不足')}${message ? `: ${message}` : ''}, ${self.$t('请去')}`
-                    + `<a class="bk-text-button" href="${data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
+                    + `<p class="f14">${self.$t('Sorry，您的权限不足')}${message ? `: ${message}` : ''}`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
