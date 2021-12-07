@@ -278,14 +278,15 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
         return Response(project)
 
 
-class NavProjectPermissionViewSet(viewsets.ViewSet, ProjectPermission):
+class NavProjectPermissionViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     permission_classes = (permissions.IsAuthenticated,)
+    project_perm = ProjectPermission()
 
     def get_user_perms(self, request):
         serializer = serializers.ProjectPermsSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
-        perms = self.query_user_perms(request.user.username, **serializer.validated_data)
+        perms = self.project_perm.query_user_perms(request.user.username, **serializer.validated_data)
         return Response(perms)
 
     def query_user_perms_by_project(self, request, project_id):
@@ -295,15 +296,23 @@ class NavProjectPermissionViewSet(viewsets.ViewSet, ProjectPermission):
         serializer = serializers.ProjectInstPermsSLZ(data=req_data)
         serializer.is_valid(raise_exception=True)
 
-        perms = self.query_user_perms(request.user.username, **serializer.validated_data)
+        perms = self.project_perm.query_user_perms(request.user.username, **serializer.validated_data)
         return Response(perms)
 
     def list_authorized_users(self, request, project_id):
         serializer = serializers.QueryAuthorizedUsersSLZ(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
-        users = self.query_authorized_users(project_id, serializer.validated_data["action_id"])
+        users = self.project_perm.query_authorized_users(project_id, serializer.validated_data["action_id"])
         return Response(users)
+
+    def verify_users(self, request, project_id):
+        serializer = serializers.VerifyUserListSLZ(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        return Response(
+            self.project_perm.verify_users(validated_data['users'], validated_data['action_id'], project_id)
+        )
 
 
 class ProjectBizInfoViewSet(SystemViewSet):
