@@ -221,7 +221,7 @@ function handleReject (error, config) {
         if (code !== 0 && code !== '0000' && code !== '00') {
             if (code === 4003) {
                 bus.$emit('show-apply-perm', error)
-            } else if (code === 4005) {
+            } else if ([4005, 40300].includes(code)) {
                 bus.$emit('show-apply-perm-modal', error.data)
             }
         }

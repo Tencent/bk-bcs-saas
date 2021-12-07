@@ -97,8 +97,8 @@
                                 <template slot-scope="{ row }">
                                     <a href="javascript:void(0)" class="bk-text-button"
                                         v-authority="{
-                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
-                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update,
+                                            clickable: web_annotations.perms[row.iam_ns_id]
+                                                && web_annotations.perms[row.iam_ns_id].namespace_update,
                                             actionId: 'namespace_update',
                                             resourceName: row.name,
                                             disablePerms: true,
@@ -108,12 +108,12 @@
                                                 name: row.name
                                             }
                                         }" @click="showEditNamespace(row, index)">{{$t('设置变量值')}}</a>
-                                    <bcs-popover :disabled="!(web_annotations.perms[`${row.cluster_id}:${row.name}`]
-                                                     && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update)"
+                                    <bcs-popover :disabled="!(web_annotations.perms[row.iam_ns_id]
+                                                     && web_annotations.perms[row.iam_ns_id].namespace_update)"
                                         :delay="0" theme="dot-menu light" placement="bottom" trigger="mouseenter" class="mr10 ml10" v-if="curProject.kind !== 2">
                                         <a href="javascript:void(0);" v-authority="{
-                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
-                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_update,
+                                            clickable: web_annotations.perms[row.iam_ns_id]
+                                                && web_annotations.perms[row.iam_ns_id].namespace_update,
                                             actionId: 'namespace_update',
                                             resourceName: row.name,
                                             disablePerms: true,
@@ -132,8 +132,8 @@
                                     </bcs-popover>
                                     <a href="javascript:void(0)" class="bk-text-button"
                                         v-authority="{
-                                            clickable: web_annotations.perms[`${row.cluster_id}:${row.name}`]
-                                                && web_annotations.perms[`${row.cluster_id}:${row.name}`].namespace_delete,
+                                            clickable: web_annotations.perms[row.iam_ns_id]
+                                                && web_annotations.perms[row.iam_ns_id].namespace_delete,
                                             actionId: 'namespace_delete',
                                             resourceName: row.name,
                                             disablePerms: true,
