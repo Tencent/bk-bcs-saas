@@ -120,8 +120,7 @@
                 })
             })
             bus.$on('show-apply-perm', error => {
-                const { data = {}, message } = error
-                const projectCode = self.$route.params.projectCode
+                const { message } = error
                 const content = ''
                     + '<div class="biz-top-bar">'
                     + '<div class="biz-back-btn" onclick="history.back()">'
