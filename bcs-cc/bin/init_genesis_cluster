@@ -23,12 +23,18 @@ else
     echo "Project blueking exists, ID:" $PROJECT_ID
 fi
 
-# 插入初始命名空间信息
-$BCS_CC_DB -e "INSERT IGNORE INTO kubernetes_namespaces (name, project_id, cluster_id, created_at, updated_at) VALUES('default', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME'), ('$POD_NAMESPACE', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME')" || exit 1
-
-# 清理所有的 master，node 信息
+# 清理所有的 ns，master，node 信息
+$BCS_CC_DB -e "DELETE FROM kubernetes_namespaces WHERE cluster_id='$CLUSTER_ID'"
 $BCS_CC_DB -e "DELETE FROM manager_masters WHERE cluster_id='$CLUSTER_ID'"
 $BCS_CC_DB -e "DELETE FROM nodes WHERE cluster_id='$CLUSTER_ID'"
+
+# 插入初始命名空间信息
+NS_ARR=($(/data/bin/kubectl get ns -o go-template='{{range .items}}{{printf "%s " .metadata.name}}{{end}}'))
+for ns in ${NS_ARR[@]}
+do
+    echo "Insert k8s namespace" $ns
+    $BCS_CC_DB -e "INSERT IGNORE INTO kubernetes_namespaces (name, project_id, cluster_id, created_at, updated_at) VALUES('$ns', '$PROJECT_ID', '$CLUSTER_ID', '$CURR_TIME', '$CURR_TIME')" || exit 1
+done
 
 # 插入 Master 信息
 MASTER_IP_ARR=($(/data/bin/kubectl get nodes -l node-role.kubernetes.io/master="" -o go-template='{{range .items}}{{range .status.addresses}}{{if eq .type "InternalIP"}}{{printf "%s " .address}}{{end}}{{end}}{{end}}'))
