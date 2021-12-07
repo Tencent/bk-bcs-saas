@@ -12,7 +12,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Dict, Optional
+import functools
+from typing import Dict, List, Optional, Tuple
 
 from django.conf import settings
 from iam import IAM, OP, Action, MultiActionRequest, Request, Resource, Subject
@@ -21,6 +22,7 @@ from iam.api.http import http_get, http_post
 from iam.apply import models
 from iam.exceptions import AuthAPIError, AuthInvalidRequest
 
+from backend.utils.async_run import async_run
 from backend.utils.basic import ChoicesEnum
 from backend.utils.exceptions import PermissionDeniedError
 
@@ -324,3 +326,21 @@ class ProjectPermission(Permission):
                 value_list.append(value)
 
         return {key: list(set(value_list)), "op": OP.IN}
+
+    def verify_users(self, users: List[str], action_id: str, project_id: str) -> Dict[str, List]:
+        """
+        根据 action_id，校验用户权限
+        """
+        authorized_users, unauthorized_users = [], []
+        tasks = [functools.partial(self._verify_user, username, action_id, project_id) for username in users]
+        results = async_run(tasks)
+        for r in results:
+            (username, is_allowed) = r.ret
+            if is_allowed:
+                authorized_users.append(username)
+            else:
+                unauthorized_users.append(username)
+        return {"authorized_users": authorized_users, "unauthorized_users": unauthorized_users}
+
+    def _verify_user(self, username: str, action_id: str, project_id: str) -> Tuple[str, bool]:
+        return username, self._allowed_do_project_inst(username, action_id, project_id)
