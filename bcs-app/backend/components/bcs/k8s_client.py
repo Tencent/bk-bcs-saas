@@ -36,19 +36,19 @@ def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cl
     try:
         context = http_get(url, params=params, raise_for_status=False, headers=headers)
     except Exception as e:
-        logger.error("通过集群: %s 查询注册的集群信息出现异常: %s", cluster_id, e)
-        raise error_codes.ComponentError(_("查询集群: {} 信息出现异常").format(cluster_id))
+        logger.error("查询集群(%s)信息出现异常: %s", cluster_id, e)
+        raise error_codes.ComponentError(_("查询集群({})信息出现异常").format(cluster_id))
     # 如果返回中没有包含{"id": "bcs-bcs-k8s-xxx-xxxxxx"}，则认为集群没有注册
     if not context.get("id"):
-        raise error_codes.ComponentError(_("集群: {} 未注册").format(cluster_id))
+        raise error_codes.ComponentError(_("集群({})未注册").format(cluster_id))
     # 获取集群的credential
     url = f"{url_prefix}/{context['id']}/client_credentials"
     params = {"access_token": access_token}
     try:
         credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
     except Exception as e:
-        logger.error("通过集群: %s 查询注册集群的认证信息出现异常: %s", cluster_id, e)
-        raise error_codes.ComponentError(_("查询集群: {} 认证信息出现异常").format(cluster_id))
+        logger.error("查询集群(%s)认证信息出现异常: %s", cluster_id, e)
+        raise error_codes.ComponentError(_("查询集群({})认证信息出现异常").format(cluster_id))
     context.update(credentials)
 
     return context
