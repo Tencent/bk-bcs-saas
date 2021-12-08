@@ -106,7 +106,9 @@ def use_prometheus_source(request):
 def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
     has_perm = host_perms.can_use_hosts(bk_biz_id, username, host_ips)
     if not has_perm:
-        raise PermissionDeniedError(_("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), "")
+        raise PermissionDeniedError(
+            _("您没有主机({})的使用权限，请联系admin(管理员)在【蓝鲸配置平台】-> 资源 -> 业务下，找到绑定的业务，将您添加为运维人员角色").format(host_ips)
+        )
 
 
 def get_cmdb_hosts(username, cc_app_id_list, host_property_filter):

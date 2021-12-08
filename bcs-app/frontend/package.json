@@ -89,6 +89,7 @@
     "monaco-editor-webpack-plugin": "1.7.0",
     "monaco-themes": "^0.3.3",
     "nano-assign": "^1.0.1",
+    "resize-detector": "^0.3.0",
     "shlex": "^2.0.2",
     "vee-validate": "2.2.11",
     "vue": "2.6.12",
