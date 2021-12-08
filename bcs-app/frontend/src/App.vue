@@ -132,7 +132,7 @@
                     + '<div class="bk-exception bk-exception-center">'
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
-                    + `<p class="f14">${self.$t('Sorry，您的权限不足')}${message ? `: ${message}` : ''}`
+                    + `<p class="f14">${self.$t('权限不足')}${message ? `: ${message}` : ''}`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
