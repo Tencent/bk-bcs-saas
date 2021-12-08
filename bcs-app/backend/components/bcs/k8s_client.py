@@ -17,10 +17,12 @@ from typing import Dict
 
 from django.conf import settings
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext_lazy as _
 from kubernetes import client
 
 from backend.components.bcs import BCSClientBase, resources
 from backend.components.utils import http_get
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +33,22 @@ def make_cluster_context(url_prefix: str, access_token: str, project_id: str, cl
     url = f"{url_prefix}/bcs/query_by_id/"
     params = {"access_token": access_token, "project_id": project_id, "cluster_id": cluster_id}
     headers = {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
-    context = http_get(url, params=params, raise_for_status=False, headers=headers)
+    try:
+        context = http_get(url, params=params, raise_for_status=False, headers=headers)
+    except Exception as e:
+        logger.error("通过集群: %s 查询注册的集群信息出现异常: %s", cluster_id, e)
+        raise error_codes.ComponentError(_("查询集群: {} 信息出现异常").format(cluster_id))
+    # 如果返回中没有包含{"id": "bcs-bcs-k8s-xxx-xxxxxx"}，则认为集群没有注册
+    if not context.get("id"):
+        raise error_codes.ComponentError(_("集群: {} 未注册").format(cluster_id))
     # 获取集群的credential
     url = f"{url_prefix}/{context['id']}/client_credentials"
     params = {"access_token": access_token}
-    credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
+    try:
+        credentials = http_get(url, params=params, raise_for_status=False, headers=headers)
+    except Exception as e:
+        logger.error("通过集群: %s 查询注册集群的认证信息出现异常: %s", cluster_id, e)
+        raise error_codes.ComponentError(_("查询集群: {} 认证信息出现异常").format(cluster_id))
     context.update(credentials)
 
     return context
