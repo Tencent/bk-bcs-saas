@@ -119,8 +119,8 @@
                     message: data
                 })
             })
-            bus.$on('show-apply-perm', data => {
-                const projectCode = self.$route.params.projectCode
+            bus.$on('show-apply-perm', error => {
+                const { message } = error
                 const content = ''
                     + '<div class="biz-top-bar">'
                     + '<div class="biz-back-btn" onclick="history.back()">'
@@ -131,8 +131,7 @@
                     + '<div class="bk-exception bk-exception-center">'
                     + `<img src="${Img403}"/>`
                     + '<h2 class="exception-text">'
-                    + `<p class="f14">${self.$t('Sorry，您的权限不足，请去')}`
-                    + `<a class="bk-text-button" href="${data.apply_url}&project_code=${projectCode}" target="_blank">${self.$t('申请')}</a>`
+                    + `<p class="f14">${self.$t('Sorry，您的权限不足')}${message ? `: ${message}` : ''}`
                     + '</p>'
                     + '</h2>'
                     + '</div>'
