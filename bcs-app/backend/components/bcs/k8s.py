@@ -49,9 +49,20 @@ class K8SClient(BCSClientBase):
     def context(self):
         """BCS API Context信息"""
         context = {}
-        cluster_info = self.query_cluster()
+        try:
+            cluster_info = self.query_cluster()
+        except Exception as e:
+            logger.error("查询集群(%s)信息出现异常: %s", self.cluster_id, e)
+            raise error_codes.ComponentError(_("查询集群({})信息出现异常").format(self.cluster_id))
+        # 如果返回中没有包含{"id": "bcs-bcs-k8s-xxx-xxxxxx"}，则认为集群没有注册
+        if not cluster_info.get("id"):
+            raise error_codes.ComponentError(_("集群({})未注册").format(self.cluster_id))
         context.update(cluster_info)
-        credentials = self.get_client_credentials(cluster_info["id"])
+        try:
+            credentials = self.get_client_credentials(cluster_info["id"])
+        except Exception as e:
+            logger.error("查询集群(%s)认证信息出现异常: %s", self.cluster_id, e)
+            raise error_codes.ComponentError(_("查询集群({})认证信息出现异常").format(self.cluster_id))
         context.update(credentials)
         return context
 
