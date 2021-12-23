@@ -21,7 +21,6 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.response import Response
 
 from backend.accounts.bcs_perm import Cluster
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
