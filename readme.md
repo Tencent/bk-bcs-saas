@@ -6,7 +6,7 @@
 
 [(English Documents Available)](readme_en.md)
 
->**提示**: :warning: 当前项目不再维护，已整体迁移至仓库 [BK-BCS](https://github.com/Tencent/bk-bcs/tree/master/bcs-ui)下
+>**提示**: :warning: 当前项目不再维护，已整体迁移至 [BK-BCS](https://github.com/Tencent/bk-bcs/tree/master/bcs-ui)仓库下
 
 蓝鲸智云容器管理平台(BCS，BlueKing Container Service)是高度可扩展、灵活易用的容器管理服务。蓝鲸容器管理平台支持两种不同的集群模式，分别为原生Kubernetes模式和基于Mesos自研的模式。使用该平台，用户无需关注基础设施的安装、运维和管理，只需要调用简单的API，或者在页面上进行简单的配置，便可对容器进行启动、停止等操作，查看集群、容器及服务的状态，以及使用各种组件服务。用户可以依据自身的需要选择集群模式和容器编排的方式，以满足业务的特定要求。
 
