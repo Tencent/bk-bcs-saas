@@ -102,7 +102,7 @@ type createProjectData struct {
 // update project data
 type updateProjectData struct {
 	Name           string  `binding:"max=64" json:"project_name"`
-	Description    string  `json:"description"`
+	Description    *string `json:"description"`
 	IsOfflined     *bool   `json:"is_offlined"`
 	ProjectType    *uint   `json:"project_type"`
 	UseBK          *bool   `json:"use_bk"`
